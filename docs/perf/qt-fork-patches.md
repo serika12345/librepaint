@@ -1,6 +1,6 @@
 # Krita の Qt フォークの改変一覧（for-krita/6.11.3）
 
-Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォーク（`dimula73/qtbase` の `for-krita/6.11.3`、先頭 d918f368da）が Qt 正式版 6.11.3 に加えている 92 件の改変を、目的ごとにまとめ、LibrePaint の依存と判定を記録する。「判定」は 2026-11-08 に埋めた。判定の要約は DECISIONS.md の同じ日の行にあり、保留の決定は L1（計測）と Q4（フォークの撤去）で行う。
+Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォーク（`dimula73/qtbase` の `for-krita/6.11.3`、先頭 d918f368da）が Qt 正式版 6.11.3 に加えている 92 件の改変を、目的ごとにまとめ、LibrePaint の依存と判定を記録する。「判定」は 2026-11-08 に埋めた。保留の一部は 2026-11-10 の L1 の計測結果で見直した（「L1 の結果による保留の見直し（2026-11-10）」）。判定の要約は DECISIONS.md の同じ日の行にあり、保留の決定は L1（計測）と Q4（フォークの撤去）で行う。
 
 「正式版」の列は、改変の件名で qt/qtbase の履歴を検索して見つかったコミットを示す（2026-11-08 時点）。件名が変わって取り込まれたものは見落としている可能性がある。
 
@@ -18,37 +18,37 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | まとまり | 件数 | 判定 |
 | --- | --- | --- |
-| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（11件）、不要（7件）。L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
-| 画面更新の間引き（フレームレート圧縮） | 10 | 保留：L1 の H6 で Windows の遅れへの寄与を測り、`KisCanvas2` 側の間引きと1系統にまとめるかを決める |
-| HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
-| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（9件）、保留（2件）、不要（3件） |
-| Wayland のペン入力とウィンドウ | 10 | 正式版で解決済み（3件）、保留（4件）、不要（3件） |
-| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（5件）、不要（2件） |
-| 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 正式版で解決済み（2件）、保留（1件）、不要（10件） |
+| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（11件）、不要（7件）。H7 前段で desktop はホバー 35.4→13.6ms、インク 39.1→17.9ms（16:37 の 10 回）。ANGLE を残すかと、表示の正しさ・HDR・Wintab の確認で決める |
+| 画面更新の間引き（フレームレート圧縮） | 10 | 保留（3件）、不要（7件）。H6 で H1（先積みのフレーム数）=1 の下の差が 0.3ms 未満（13:41 の 15 回）なので、間引きは `KisCanvas2` の1系統にまとめる。部分再描画・fast transfer・クリップの3件は保留 |
+| HDR と色変換（バックバッファー、QRhi） | 4 | 保留：H7 前段で desktop は起動したが、HDR は内蔵画面が SDR で未確認。Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
+| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（9件）、保留（2件）、不要（3件）。L1 の合成入力は全回 WM_POINTER（`native_wintab`=0） |
+| Wayland のペン入力とウィンドウ | 10 | 正式版で解決済み（3件）、保留（4件）、不要（3件）。L1 は Windows だけで、Wayland のペンは未計測 |
+| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（5件）、不要（2件）。L1 は合成ペンだけで、配列は未計測 |
+| 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 正式版で解決済み（2件）、保留（2件）、不要（9件） |
 | その他（構築、UI、プラットフォーム固有の調整） | 11 | LibrePaint 側で代替（1件）、正式版で解決済み（1件）、不要（9件） |
 
 ## Windows の ANGLE と OpenGL ES の経路
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| 927cee712e | Fix difinition in QEGLPlatformContext | src/gui/opengl/platform | なし | 保留 |
-| 731ab8bba8 | Fix openGL 2.x support in QOpenGL2PaintEngine | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 保留 |
-| 8ec599f593 | [eglfs] Don't enable QOpenGLCompositor on platforms it is not used | src/opengl/CMakeLists.txt | なし | 不要 |
-| 50d61a44d5 | [xcb] Fix QPlatformIntegration::openGLModuleType() for XCB platform | src/gui/kernel/qplatformintegration.cpp, src/plugins/platforms/xcb | なし | 不要 |
-| f5a65b7761 | [win] Recover ANGLE support on Windows | cmake/3rdparty/extra-cmake-modules/find-modules, cmake/FindGLESv2.cmake, src/gui/CMakeLists.txt ほか | なし | 保留 |
-| 7ad4a8bc17 | QSurfaceFormat: implement color space selection for OpenGL ES | src/gui/kernel/qsurfaceformat.cpp, src/gui/kernel/qsurfaceformat.h, src/gui/opengl/platform ほか | なし | 保留 |
-| 95bb9c74f1 | Deprecate QT_FEATURE_opengl_dynamic | src/gui/CMakeLists.txt, src/gui/configure.cmake, src/gui/kernel/qopenglcontext.cpp ほか | なし | 保留 |
-| 747eca7b69 | Let hellogles3 to manually switch API on Windows | examples/opengl/hellogles3/CMakeLists.txt, examples/opengl/hellogles3/app.manifest, examples/opengl/hellogles3/glwindow.cpp ほか | なし | 不要 |
-| 72a68d87fd | Fix building on platforms without EGL | src/gui/CMakeLists.txt | なし | 不要 |
-| 02216d26ba | [win+angle] Fix flickering when resizing the Window | src/plugins/platforms/windows | なし | 保留 |
-| 1efb3f6434 | [win] Implement callback for ANGLE debugging information | src/plugins/platforms/windows | なし | 不要 |
-| 261c23275e | [win] Implement support for ANGLE's openGL backend | src/gui/kernel/qplatformopenglcontext.h, src/gui/rhi/qrhigles2.cpp, src/gui/rhi/qrhigles2_p.h ほか | なし | 保留 |
-| 14ebe92549 | Remove dynamicgl from mkspecs | mkspecs/features/win32/opengl.prf | なし | 保留 |
-| aced4e6119 | Fix crash on Linux when using wayland plugin | src/gui/opengl/platform | なし | 不要 |
-| 7f50d93a7f | Fix a crash when opening multiple windows in Compatibility openGL profile | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 不要 |
-| 1a543f2832 | Add workaround for flickering on resizing on ANGLE and Qt6 | src/plugins/platforms/windows | なし | 保留 |
-| 77d2b02daf | Fix flickering when opening dialogs on ANGLE and Qt6 | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/painting/qplatformbackingstore.cpp ほか | なし | 保留 |
-| 70086804f9 | Fix EGL format being reset to 0 alpha instead of 2 | src/gui/opengl/platform | なし | 保留 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| 927cee712e | Fix difinition in QEGLPlatformContext | src/gui/opengl/platform | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| 731ab8bba8 | Fix openGL 2.x support in QOpenGL2PaintEngine | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| 8ec599f593 | [eglfs] Don't enable QOpenGLCompositor on platforms it is not used | src/opengl/CMakeLists.txt | なし | 不要 | — |
+| 50d61a44d5 | [xcb] Fix QPlatformIntegration::openGLModuleType() for XCB platform | src/gui/kernel/qplatformintegration.cpp, src/plugins/platforms/xcb | なし | 不要 | — |
+| f5a65b7761 | [win] Recover ANGLE support on Windows | cmake/3rdparty/extra-cmake-modules/find-modules, cmake/FindGLESv2.cmake, src/gui/CMakeLists.txt ほか | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| 7ad4a8bc17 | QSurfaceFormat: implement color space selection for OpenGL ES | src/gui/kernel/qsurfaceformat.cpp, src/gui/kernel/qsurfaceformat.h, src/gui/opengl/platform ほか | なし | 保留 | 同 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色も未計測 |
+| 95bb9c74f1 | Deprecate QT_FEATURE_opengl_dynamic | src/gui/CMakeLists.txt, src/gui/configure.cmake, src/gui/kernel/qopenglcontext.cpp ほか | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| 747eca7b69 | Let hellogles3 to manually switch API on Windows | examples/opengl/hellogles3/CMakeLists.txt, examples/opengl/hellogles3/app.manifest, examples/opengl/hellogles3/glwindow.cpp ほか | なし | 不要 | — |
+| 72a68d87fd | Fix building on platforms without EGL | src/gui/CMakeLists.txt | なし | 不要 | — |
+| 02216d26ba | [win+angle] Fix flickering when resizing the Window | src/plugins/platforms/windows | なし | 保留 | 同 H7 前段で desktop は起動（16:37 の 10 回）。desktop のリサイズとダイアログのちらつきは未確認 |
+| 1efb3f6434 | [win] Implement callback for ANGLE debugging information | src/plugins/platforms/windows | なし | 不要 | — |
+| 261c23275e | [win] Implement support for ANGLE's openGL backend | src/gui/kernel/qplatformopenglcontext.h, src/gui/rhi/qrhigles2.cpp, src/gui/rhi/qrhigles2_p.h ほか | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| 14ebe92549 | Remove dynamicgl from mkspecs | mkspecs/features/win32/opengl.prf | なし | 保留 | L1 H7 前段（16:37 の 10 回）: desktop は起動し、ホバー 35.4→13.6ms、インク 39.1→17.9ms。表示の正しさ・HDR・Wintab は未確認 |
+| aced4e6119 | Fix crash on Linux when using wayland plugin | src/gui/opengl/platform | なし | 不要 | — |
+| 7f50d93a7f | Fix a crash when opening multiple windows in Compatibility openGL profile | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 不要 | — |
+| 1a543f2832 | Add workaround for flickering on resizing on ANGLE and Qt6 | src/plugins/platforms/windows | なし | 保留 | 同 H7 前段で desktop は起動（16:37 の 10 回）。desktop のリサイズとダイアログのちらつきは未確認 |
+| 77d2b02daf | Fix flickering when opening dialogs on ANGLE and Qt6 | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/painting/qplatformbackingstore.cpp ほか | なし | 保留 | 同 H7 前段で desktop は起動（16:37 の 10 回）。desktop のリサイズとダイアログのちらつきは未確認 |
+| 70086804f9 | Fix EGL format being reset to 0 alpha instead of 2 | src/gui/opengl/platform | なし | 保留 | 同 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色も未計測 |
 
 ### 根拠
 
@@ -65,18 +65,18 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## 画面更新の間引き（フレームレート圧縮）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| e121cb08e5 | Pass proper dirty rect in paint event to QOpenGLWidget with partial updates | src/openglwidgets/qopenglwidget.cpp, src/widgets/kernel/qwidget.cpp, src/widgets/kernel/qwidget_p.h ほか | なし | 保留 |
-| a9b60ead54 | Implement framerate compression in QWidgetRepaintManager | src/corelib/CMakeLists.txt, src/corelib/kernel/qsignalcompressor.cpp, src/corelib/kernel/qsignalcompressor_p.h ほか | なし | 保留 |
-| 7ec0f9c727 | Replace QSignalCompressor with a specialized QFrameRateCompressor | src/corelib/CMakeLists.txt, src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h ほか | なし | 保留 |
-| fb923e4a97 | Add fast-transfer option for QImage when rendering QWidget | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 保留 |
-| 6d39b2c286 | Compress frames in a more parallel way | src/gui/rhi/qrhi.cpp, src/gui/rhi/qrhi.h, src/gui/rhi/qrhi_p.h ほか | なし | 保留 |
-| dc3246d166 | Fix possible recursion issue in QFrameRateCompressor | src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h | なし | 保留 |
-| 6e540ae34f | Implement ability to switch FPS compression mode | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 保留 |
-| c7d92e97b8 | Implement optional FPS stats printing | src/corelib/CMakeLists.txt, src/corelib/kernel/qmeasureavgportion_p.h, src/gui/rhi/qrhigles2.cpp | なし | 保留 |
-| 71fd8157aa | Add QT_FRAME_RATE_OVERRIDE switch | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 保留 |
-| f1cf04e958 | Fix clipping when cutting QOpenGLWidget through the GUI texture | src/widgets/kernel/qwidget.cpp | なし | 保留 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| e121cb08e5 | Pass proper dirty rect in paint event to QOpenGLWidget with partial updates | src/openglwidgets/qopenglwidget.cpp, src/widgets/kernel/qwidget.cpp, src/widgets/kernel/qwidget_p.h ほか | なし | 保留 | L1 H6 は部分再描画の正しさを測っていない。部分更新の dirty rect は未確認 |
+| a9b60ead54 | Implement framerate compression in QWidgetRepaintManager | src/corelib/CMakeLists.txt, src/corelib/kernel/qsignalcompressor.cpp, src/corelib/kernel/qsignalcompressor_p.h ほか | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| 7ec0f9c727 | Replace QSignalCompressor with a specialized QFrameRateCompressor | src/corelib/CMakeLists.txt, src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h ほか | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| fb923e4a97 | Add fast-transfer option for QImage when rendering QWidget | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 保留 | L1 H6 の切り替えでも fast transfer は有効のままで、単独の効果は未計測 |
+| 6d39b2c286 | Compress frames in a more parallel way | src/gui/rhi/qrhi.cpp, src/gui/rhi/qrhi.h, src/gui/rhi/qrhi_p.h ほか | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| dc3246d166 | Fix possible recursion issue in QFrameRateCompressor | src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| 6e540ae34f | Implement ability to switch FPS compression mode | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| c7d92e97b8 | Implement optional FPS stats printing | src/corelib/CMakeLists.txt, src/corelib/kernel/qmeasureavgportion_p.h, src/gui/rhi/qrhigles2.cpp | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| 71fd8157aa | Add QT_FRAME_RATE_OVERRIDE switch | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 不要 | L1 H6（09:39 の 10 回）: 外すと +24.5/+11.7ms。H1=1 の下（13:41 の 15 回）は +0.3/0ms で、PresentMon の差 0.1ms 未満。H1=1 を既定にするため不要 |
+| f1cf04e958 | Fix clipping when cutting QOpenGLWidget through the GUI texture | src/widgets/kernel/qwidget.cpp | なし | 保留 | L1 H6 はクリップの正しさを測っていない。GUI テクスチャの切り抜きは未確認 |
 
 ### 根拠
 
@@ -86,12 +86,12 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## HDR と色変換（バックバッファー、QRhi）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| 752559eb9b | Implement color conversion for the backing store texture | src/gui/CMakeLists.txt, src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h ほか | なし | 保留 |
-| c55693d623 | Implement a manual test for checking is HDR features work | examples/opengl/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/KisGLImageF16.cpp ほか | なし | 保留 |
-| a1fa6f1629 | Create color conversion pipelines on-demand | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h | なし | 保留 |
-| 5da2f94813 | Implement feature QRhi::DynamicBlendSwitch | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/rhi/qrhi.h ほか | なし | 保留 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| 752559eb9b | Implement color conversion for the backing store texture | src/gui/CMakeLists.txt, src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h ほか | なし | 保留 | L1 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色と表示の正しさは未計測 |
+| c55693d623 | Implement a manual test for checking is HDR features work | examples/opengl/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/KisGLImageF16.cpp ほか | なし | 保留 | L1 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色と表示の正しさは未計測 |
+| a1fa6f1629 | Create color conversion pipelines on-demand | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h | なし | 保留 | L1 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色と表示の正しさは未計測 |
+| 5da2f94813 | Implement feature QRhi::DynamicBlendSwitch | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/rhi/qrhi.h ほか | なし | 保留 | L1 H7 前段で desktop は起動（16:37 の 10 回）。HDR は内蔵画面が SDR で未確認、10bit の色と表示の正しさは未計測 |
 
 ### 根拠
 
@@ -101,22 +101,22 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## Windows のペン入力（WinTab、Windows Ink、タッチ）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| c41d66281e | [win] Generate Enter/Leave events on touching non-client area of the window | src/plugins/platforms/windows | なし | 必要 |
-| df3a678309 | [win] Remove subscription on WM_MOUSELEAVE when a tablet enters the window | src/plugins/platforms/windows | なし | 必要 |
-| 7bb46828ae | Disable tablet relative mode in Qt | src/plugins/platforms/windows | なし | 保留 |
-| 051139ed72 | Fetch mapped screen size from the Wintab driver | src/plugins/platforms/windows | なし | 必要 |
-| 2357bbfe90 | Add a workaround for button mapping on Lenovo Yoga C940 | src/plugins/platforms/windows | なし | 不要 |
-| 33a49f25d1 | Add workaround for handling table press correctly in WinInk mode | src/gui/kernel/qguiapplication.cpp, src/gui/kernel/qwindowsysteminterface.cpp, src/plugins/platforms/windows | なし | 必要 |
-| 7ca0b0e289 | Revert "Query the mouse buttons initially in case the middle button was used" | src/plugins/platforms/windows | なし | 不要 |
-| f5a75c4071 | WinInk: Synthesize mouse events for full pen stroke | src/plugins/platforms/windows | なし | 必要 |
-| 41adadd8db | Synthesize Enter/LeaveEvent for accepted QTabletEvent | src/widgets/kernel/qwidgetwindow.cpp | なし | 必要 |
-| 0027358f20 | Poison Qt's headers with a mark about presence of Enter/Leave patch | src/gui/kernel/qevent.h | なし | 必要 |
-| 8f8eabfb72 | Fix duplicated syntetic mouse events on WinTab | src/plugins/platforms/windows | なし | 必要 |
-| c132390390 | Revert "Send LeaveEvent as reaction to WM_POINTERLEAVE to reset hover states" | src/plugins/platforms/windows | なし | 必要 |
-| a60ed01a25 | [win] Allow explicit accepting of touch events on Windows | src/gui/kernel/qguiapplication.cpp, src/plugins/platforms/windows | なし | 保留 |
-| d918f368da | Windows: implement touchpad gestures using Direct Manipulation | src/gui/configure.cmake, src/gui/kernel/qevent.cpp, src/plugins/platforms/direct2d ほか | なし | 不要 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| c41d66281e | [win] Generate Enter/Leave events on touching non-client area of the window | src/plugins/platforms/windows | なし | 必要 | — |
+| df3a678309 | [win] Remove subscription on WM_MOUSELEAVE when a tablet enters the window | src/plugins/platforms/windows | なし | 必要 | — |
+| 7bb46828ae | Disable tablet relative mode in Qt | src/plugins/platforms/windows | なし | 保留 | L1 の合成入力は全回 WM_POINTER（native_wintab=0）。Wintab の相対モードは実機の Wintab ドライバーで未確認 |
+| 051139ed72 | Fetch mapped screen size from the Wintab driver | src/plugins/platforms/windows | なし | 必要 | — |
+| 2357bbfe90 | Add a workaround for button mapping on Lenovo Yoga C940 | src/plugins/platforms/windows | なし | 不要 | — |
+| 33a49f25d1 | Add workaround for handling table press correctly in WinInk mode | src/gui/kernel/qguiapplication.cpp, src/gui/kernel/qwindowsysteminterface.cpp, src/plugins/platforms/windows | なし | 必要 | — |
+| 7ca0b0e289 | Revert "Query the mouse buttons initially in case the middle button was used" | src/plugins/platforms/windows | なし | 不要 | — |
+| f5a75c4071 | WinInk: Synthesize mouse events for full pen stroke | src/plugins/platforms/windows | なし | 必要 | — |
+| 41adadd8db | Synthesize Enter/LeaveEvent for accepted QTabletEvent | src/widgets/kernel/qwidgetwindow.cpp | なし | 必要 | — |
+| 0027358f20 | Poison Qt's headers with a mark about presence of Enter/Leave patch | src/gui/kernel/qevent.h | なし | 必要 | — |
+| 8f8eabfb72 | Fix duplicated syntetic mouse events on WinTab | src/plugins/platforms/windows | なし | 必要 | — |
+| c132390390 | Revert "Send LeaveEvent as reaction to WM_POINTERLEAVE to reset hover states" | src/plugins/platforms/windows | なし | 必要 | — |
+| a60ed01a25 | [win] Allow explicit accepting of touch events on Windows | src/gui/kernel/qguiapplication.cpp, src/plugins/platforms/windows | なし | 保留 | L1 はペンのみ。タッチのパン・ズームと描画は未確認 |
+| d918f368da | Windows: implement touchpad gestures using Direct Manipulation | src/gui/configure.cmake, src/gui/kernel/qevent.cpp, src/plugins/platforms/direct2d ほか | なし | 不要 | — |
 
 ### 根拠
 
@@ -139,18 +139,18 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## Wayland のペン入力とウィンドウ
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| ed56d12b50 | Fix unexpected window transparency after enabling CSD on Wayland | src/plugins/platforms/wayland | f1fbd15105（2026-02-27） | 正式版で解決済み |
-| d2aa04db1a | Fix cursor update when tablet moves between native surfaces | src/plugins/platforms/wayland | なし | 保留 |
-| b069509b06 | Fix cursor update on tablet transition between alien widgets | src/plugins/platforms/wayland | なし | 保留 |
-| 483ceed535 | [wayland] Handle the case when a tablet has multiple tools | src/plugins/platforms/wayland | なし | 保留 |
-| 3b6b57d0b7 | [wayland] Emit native Enter/Leave events on tablet proximity events | src/plugins/platforms/wayland | なし | 保留 |
-| bc9fec0a20 | [wayland] Implement raise() and lower() methods for subsurfaces | src/plugins/platforms/wayland, tests/auto/widgets/kernel | なし | 不要 |
-| 5020e751e6 | [wayland] Make positioners reactive by default | src/plugins/platforms/wayland | なし | 不要 |
-| 435e604932 | wayland: keep a popup in place when it is resized | src/plugins/platforms/wayland, tests/auto/wayland/shared, tests/auto/wayland/xdgshell | c3cc50d89d（2026-09-09） | 正式版で解決済み |
-| eb6579e6d1 | [wayland] Fix flickering when resizing popup windows | src/plugins/platforms/wayland | なし | 不要 |
-| 693de2c4fb | Wayland client: update cursor position after sending QTabletEvent | src/plugins/platforms/wayland | 4332e5e2c4（2026-07-23） | 正式版で解決済み |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| ed56d12b50 | Fix unexpected window transparency after enabling CSD on Wayland | src/plugins/platforms/wayland | f1fbd15105（2026-02-27） | 正式版で解決済み | — |
+| d2aa04db1a | Fix cursor update when tablet moves between native surfaces | src/plugins/platforms/wayland | なし | 保留 | L1 は Windows の WM_POINTER のみ。Wayland のペンは Linux 開発機にタブレットがなく未確認 |
+| b069509b06 | Fix cursor update on tablet transition between alien widgets | src/plugins/platforms/wayland | なし | 保留 | L1 は Windows の WM_POINTER のみ。Wayland のペンは Linux 開発機にタブレットがなく未確認 |
+| 483ceed535 | [wayland] Handle the case when a tablet has multiple tools | src/plugins/platforms/wayland | なし | 保留 | L1 は Windows の WM_POINTER のみ。Wayland のペンは Linux 開発機にタブレットがなく未確認 |
+| 3b6b57d0b7 | [wayland] Emit native Enter/Leave events on tablet proximity events | src/plugins/platforms/wayland | なし | 保留 | L1 は Windows の WM_POINTER のみ。Wayland のペンは Linux 開発機にタブレットがなく未確認 |
+| bc9fec0a20 | [wayland] Implement raise() and lower() methods for subsurfaces | src/plugins/platforms/wayland, tests/auto/widgets/kernel | なし | 不要 | — |
+| 5020e751e6 | [wayland] Make positioners reactive by default | src/plugins/platforms/wayland | なし | 不要 | — |
+| 435e604932 | wayland: keep a popup in place when it is resized | src/plugins/platforms/wayland, tests/auto/wayland/shared, tests/auto/wayland/xdgshell | c3cc50d89d（2026-09-09） | 正式版で解決済み | — |
+| eb6579e6d1 | [wayland] Fix flickering when resizing popup windows | src/plugins/platforms/wayland | なし | 不要 | — |
+| 693de2c4fb | Wayland client: update cursor position after sending QTabletEvent | src/plugins/platforms/wayland | 4332e5e2c4（2026-07-23） | 正式版で解決済み | — |
 
 ### 根拠
 
@@ -164,20 +164,20 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## キーボードとショートカット（配列、不均衡な押下と解放）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| 82d2864a8a | Don't eat ShortcutOverride events when there is a partial-match | src/gui/kernel/qshortcutmap_p.h, src/gui/kernel/qwindowsysteminterface.cpp | なし | 必要 |
-| dc27f27d8e | Fix unbalanced KeyPress/Release events in children of QMdiArea | src/widgets/widgets/qmdiarea.cpp | なし | 必要 |
-| 18a07bf888 | Fix shortcuts assigned to special keys on non-latin layouts | src/plugins/platforms/windows | なし | 保留 |
-| 3fab97e30b | Fix multiple shortcuts match from different keyboard layouts | src/gui/kernel/qshortcutmap.cpp | なし | 保留 |
-| adf861033b | Fix fallback latin shortcuts not to be the top priority on Windows | src/plugins/platforms/windows | なし | 保留 |
-| 747423036c | [win] Fix unbalanced KeyPress/Release events when using | src/plugins/platforms/windows | なし | LibrePaint 側で代替 |
-| f8a61ebc5b | [win] Fin unbalanced shortcuts on non-latin layouts again | src/plugins/platforms/windows | なし | LibrePaint 側で代替 |
-| 9bfd8a120f | Make sure AltGr-based shortcuts are disallowed when textbox is in focus | src/widgets/widgets/qwidgetlinecontrol.cpp | なし | 保留 |
-| c8049a518f | Fix composing of dead keys with short form of system locale | src/plugins/platforminputcontexts/compose | なし | 不要 |
-| 07a57fa505 | Fix shortcuts with special keys on non-US layouts on Linux | src/gui/platform/unix | なし | 保留 |
-| 21d400db4f | Fix unbalanced KeyPress/Release on non-latin keyboard on Linux | src/plugins/platforms/xcb | なし | LibrePaint 側で代替 |
-| 35296972ce | Poison Qt's headers with a mark about presence of KeyPress/Release patches | src/gui/kernel/qevent.h | なし | 不要 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| 82d2864a8a | Don't eat ShortcutOverride events when there is a partial-match | src/gui/kernel/qshortcutmap_p.h, src/gui/kernel/qwindowsysteminterface.cpp | なし | 必要 | — |
+| dc27f27d8e | Fix unbalanced KeyPress/Release events in children of QMdiArea | src/widgets/widgets/qmdiarea.cpp | なし | 必要 | — |
+| 18a07bf888 | Fix shortcuts assigned to special keys on non-latin layouts | src/plugins/platforms/windows | なし | 保留 | L1 は合成ペンのみ。日本語配列のショートカットは未確認 |
+| 3fab97e30b | Fix multiple shortcuts match from different keyboard layouts | src/gui/kernel/qshortcutmap.cpp | なし | 保留 | L1 は合成ペンのみ。日本語配列のショートカットは未確認 |
+| adf861033b | Fix fallback latin shortcuts not to be the top priority on Windows | src/plugins/platforms/windows | なし | 保留 | L1 は合成ペンのみ。日本語配列のショートカットは未確認 |
+| 747423036c | [win] Fix unbalanced KeyPress/Release events when using | src/plugins/platforms/windows | なし | LibrePaint 側で代替 | — |
+| f8a61ebc5b | [win] Fin unbalanced shortcuts on non-latin layouts again | src/plugins/platforms/windows | なし | LibrePaint 側で代替 | — |
+| 9bfd8a120f | Make sure AltGr-based shortcuts are disallowed when textbox is in focus | src/widgets/widgets/qwidgetlinecontrol.cpp | なし | 保留 | L1 は合成ペンのみ。日本語配列のショートカットは未確認 |
+| c8049a518f | Fix composing of dead keys with short form of system locale | src/plugins/platforminputcontexts/compose | なし | 不要 | — |
+| 07a57fa505 | Fix shortcuts with special keys on non-US layouts on Linux | src/gui/platform/unix | なし | 保留 | L1 は合成ペンのみ。日本語配列のショートカットは未確認 |
+| 21d400db4f | Fix unbalanced KeyPress/Release on non-latin keyboard on Linux | src/plugins/platforms/xcb | なし | LibrePaint 側で代替 | — |
+| 35296972ce | Poison Qt's headers with a mark about presence of KeyPress/Release patches | src/gui/kernel/qevent.h | なし | 不要 | — |
 
 ### 根拠
 
@@ -192,21 +192,21 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## 不具合とクラッシュの修正（ウィジェット、GUI、コア）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| 29d93a5d62 | Remove chunk size limits | src/gui/image/qpnghandler.cpp | なし | 不要 |
-| cf05dd04c8 | Check whether there is a QGestureRecognizer at all | src/widgets/kernel/qgesturerecognizer.cpp | なし | 不要 |
-| d2507d05fa | Check if we reached the end of Iterator | src/widgets/kernel/qgesturemanager.cpp | なし | 不要 |
-| 93bd31ff0f | Use DebugBreak instead of fast-fail exception to abort | src/corelib/global/qassert.cpp | なし | 不要 |
-| f1302dbbc8 | Do not crash if the foundry name is an empty space | src/gui/text/qfontdatabase.cpp | なし | 不要 |
-| 8dadf099b8 | Check for uninitialized QDockAreaLayoutInfo | src/widgets/widgets/qdockarealayout.cpp | なし | 保留 |
-| 2ea7817457 | Return 0 for Window if there is no widget | src/widgets/accessible/qaccessiblewidget.cpp | なし | 不要 |
-| bf2ee30931 | QMenu: make less sensitive to mouse jitter | src/widgets/widgets/qmenu.cpp | 4292ad0292（2020-08-19） | 正式版で解決済み |
-| df46429bb3 | Fix slowdown caused by making window system events synchronous. | src/gui/kernel/qwindowsysteminterface.cpp, src/gui/kernel/qwindowsysteminterface.h | なし | 不要 |
-| 7c155ae659 | Implement better parsing of EDID model number | src/gui/util/qedidparser.cpp | なし | 不要 |
-| 83e4fd6099 | Sync buffers of the destination file after QFile::copy() | src/corelib/io/qfile.cpp | なし | 不要 |
-| d850335b2d | [win] Fix pasting copy-pasting QImages to Chrome | src/plugins/platforms/windows | なし | 保留 |
-| 24ea6b40c2 | Fix QHeaderView failing to init memory mode | src/widgets/itemviews/qheaderview.cpp, tests/auto/widgets/itemviews | e3d05b35b3（2026-10-27） | 正式版で解決済み |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| 29d93a5d62 | Remove chunk size limits | src/gui/image/qpnghandler.cpp | なし | 不要 | — |
+| cf05dd04c8 | Check whether there is a QGestureRecognizer at all | src/widgets/kernel/qgesturerecognizer.cpp | なし | 不要 | — |
+| d2507d05fa | Check if we reached the end of Iterator | src/widgets/kernel/qgesturemanager.cpp | なし | 不要 | — |
+| 93bd31ff0f | Use DebugBreak instead of fast-fail exception to abort | src/corelib/global/qassert.cpp | なし | 不要 | — |
+| f1302dbbc8 | Do not crash if the foundry name is an empty space | src/gui/text/qfontdatabase.cpp | なし | 不要 | — |
+| 8dadf099b8 | Check for uninitialized QDockAreaLayoutInfo | src/widgets/widgets/qdockarealayout.cpp | なし | 保留 | L1 の計測では再現しない（対象外）。ドックの操作は未確認 |
+| 2ea7817457 | Return 0 for Window if there is no widget | src/widgets/accessible/qaccessiblewidget.cpp | なし | 不要 | — |
+| bf2ee30931 | QMenu: make less sensitive to mouse jitter | src/widgets/widgets/qmenu.cpp | 4292ad0292（2020-08-19） | 正式版で解決済み | — |
+| df46429bb3 | Fix slowdown caused by making window system events synchronous. | src/gui/kernel/qwindowsysteminterface.cpp, src/gui/kernel/qwindowsysteminterface.h | なし | 不要 | — |
+| 7c155ae659 | Implement better parsing of EDID model number | src/gui/util/qedidparser.cpp | なし | 不要 | — |
+| 83e4fd6099 | Sync buffers of the destination file after QFile::copy() | src/corelib/io/qfile.cpp | なし | 不要 | — |
+| d850335b2d | [win] Fix pasting copy-pasting QImages to Chrome | src/plugins/platforms/windows | なし | 保留 | L1 の計測では再現しない（対象外）。Windows の Chrome/Edge への貼り付けは未確認 |
+| 24ea6b40c2 | Fix QHeaderView failing to init memory mode | src/widgets/itemviews/qheaderview.cpp, tests/auto/widgets/itemviews | e3d05b35b3（2026-10-27） | 正式版で解決済み | — |
 
 ### 根拠
 
@@ -226,19 +226,19 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## その他（構築、UI、プラットフォーム固有の調整）
 
-| コミット | 件名 | 変更範囲 | 正式版 | 判定 |
-| --- | --- | --- | --- | --- |
-| a7c925fb66 | [windeployqt] Fix windeployqt to find ICU built with Meson | src/tools/windeployqt/main.cpp | なし | 不要 |
-| 55a0448923 | Use fast path for unsupported mime types | src/plugins/platforms/windows | なし | 不要 |
-| d002731cb6 | [moc] Remove double checks for file-exists in searchIncludePaths() | src/tools/moc/preprocessor.cpp | なし | 不要 |
-| f786da6451 | Add QMdiArea::AlwaysShowSubwindowNameInTitleBar | src/widgets/widgets/qmdiarea.h, src/widgets/widgets/qmdisubwindow.cpp, src/widgets/widgets/qmdisubwindow_p.h | なし | LibrePaint 側で代替 |
-| d343ee345f | Warn about downgraded precise timers | src/corelib/kernel/qeventdispatcher_win.cpp | cf8cd71476（2026-10-27） | 正式版で解決済み |
-| 54de8a5b6d | Add icon caching in QFusionStyle | src/widgets/styles/qfusionstyle.cpp | なし | 不要 |
-| 7db708f3ff | Assume widgets are rendered in pass-through mode on MacOS | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 不要 |
-| 81a5ac7eb5 | Allow widgets to block kinetic scrolling | src/widgets/util/qflickgesture.cpp, src/widgets/util/qscroller.cpp, src/widgets/util/qscroller.h | なし | 不要 |
-| 5874f1f131 | Implement QT_GLX_SWAP_INTERVAL_SYNC_WORKAROUND | src/plugins/platforms/xcb | なし | 不要 |
-| b2cc4909b0 | [macos] Add bundle-local path to GenericDataLocation | src/corelib/io/qstandardpaths_mac.mm | なし | 不要 |
-| 9dc7c77358 | Add a switch to disable accessibility on Windows | src/plugins/platforms/windows | なし | 不要 |
+| コミット | 件名 | 変更範囲 | 正式版 | 判定 | L1 の根拠（2026-11-10） |
+| --- | --- | --- | --- | --- | --- |
+| a7c925fb66 | [windeployqt] Fix windeployqt to find ICU built with Meson | src/tools/windeployqt/main.cpp | なし | 不要 | — |
+| 55a0448923 | Use fast path for unsupported mime types | src/plugins/platforms/windows | なし | 不要 | — |
+| d002731cb6 | [moc] Remove double checks for file-exists in searchIncludePaths() | src/tools/moc/preprocessor.cpp | なし | 不要 | — |
+| f786da6451 | Add QMdiArea::AlwaysShowSubwindowNameInTitleBar | src/widgets/widgets/qmdiarea.h, src/widgets/widgets/qmdisubwindow.cpp, src/widgets/widgets/qmdisubwindow_p.h | なし | LibrePaint 側で代替 | — |
+| d343ee345f | Warn about downgraded precise timers | src/corelib/kernel/qeventdispatcher_win.cpp | cf8cd71476（2026-10-27） | 正式版で解決済み | — |
+| 54de8a5b6d | Add icon caching in QFusionStyle | src/widgets/styles/qfusionstyle.cpp | なし | 不要 | — |
+| 7db708f3ff | Assume widgets are rendered in pass-through mode on MacOS | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 不要 | — |
+| 81a5ac7eb5 | Allow widgets to block kinetic scrolling | src/widgets/util/qflickgesture.cpp, src/widgets/util/qscroller.cpp, src/widgets/util/qscroller.h | なし | 不要 | — |
+| 5874f1f131 | Implement QT_GLX_SWAP_INTERVAL_SYNC_WORKAROUND | src/plugins/platforms/xcb | なし | 不要 | — |
+| b2cc4909b0 | [macos] Add bundle-local path to GenericDataLocation | src/corelib/io/qstandardpaths_mac.mm | なし | 不要 | — |
+| 9dc7c77358 | Add a switch to disable accessibility on Windows | src/plugins/platforms/windows | なし | 不要 | — |
 
 ### 根拠
 
@@ -255,10 +255,25 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
   - b2cc4909b0 は macOS のバンドル内のデータの探索で、macOS 版は正式版の Qt で動いている。
   - 9dc7c77358 は Windows のアクセシビリティを切る環境変数の追加で、LibrePaint は `krita/main.cc:703-712` で `DisableAccessibilityInQt` の設定に応じて設定する。正式版の Qt ではこの変数が効かず、アクセシビリティを切る設定が無効になるだけで、動作は変わらない。Q4 でこの設定項目の扱いを決める。
 
-## Q4 への持ち越し（2026-11-08 の判定のまとめ）
+## L1 の結果による保留の見直し（2026-11-10）
 
-92 件の内訳は、不要 33 件、正式版で解決済み 6 件、LibrePaint 側で代替 4 件、必要 11 件、保留 38 件（2026-11-09 に d850335b2d を不要から保留へ見直した）。
+L1（Windows のペン入力から表示までの約 50ms の遅れの原因を仮説ごとに数値で特定する）の結果で、保留のうち 7 件を「不要」にした。各行の「L1 の根拠（2026-11-10）」に、計測の回と ms を書いた。比較はすべて同じ回で交互に測った値で、回ごとの中央値のばらつきは 5% 未満である。
+
+- 画面更新の間引きのうち、フレームレート圧縮の実装（a9b60ead54、7ec0f9c727、6d39b2c286、dc3246d166、6e540ae34f、c7d92e97b8、71fd8157aa）を「不要」にした。
+  - H6（フォークの更新の間引きの歯止め）の計測（2026-11-10 09:39、`l1-h6-throttle`、基準と切り替えを各 5 回）：H1（先積みのフレーム数）=1 のない基準では、外すとホバー 57.5 → 82.0ms（+24.5ms）、インク 61.3 → 73.0ms（+11.7ms）だった。
+  - H1=1 の下（2026-11-10 13:41、`l1-h1-remeasure-ext`、3 対象を各 5 回）：H1=1 のホバー 49.9ms、H1=1 で間引きも外した回 50.2ms（+0.3ms）、インクはどちらも 40.1ms、PresentMon の入力から表示の差は 0.1ms 未満だった。H1=1 では前のフレームがほぼ毎回 GPU で完了しているため、間引きは遅れに寄与しない。
+  - L2（Windows の遅れを直す）は H1=1 を ANGLE の既定にするので、Q4 では Qt の圧縮を外し、`KisCanvas2` の1系統にまとめる。desktop の経路は H1 が効かないため、Q4 の後に `KisCanvas2` の間引きだけで測り直す。差が 2ms 以上なら、その時点で1系統の設計を見直す。
+  - e121cb08e5（部分更新の dirty rect）、fb923e4a97（fast transfer）、f1cf04e958（GUI テクスチャのクリップ）は、H6 の切り替えでは効果を分離できない。部分再描画とクリップの正しさ、fast transfer の単独の効果を確かめるまで保留とする。
+- ANGLE と OpenGL ES の 11 件は保留のままにした。H7（フォークなし・ANGLE を使わない OpenGL）の前段（2026-11-10 16:37、`l1-h7-desktop-smoke`、2 対象を各 5 回）で、desktop は起動し、H1=1＋H5（ホバーの間引き）のホバー 35.4ms・インク 39.1ms から、H5＋desktop は 13.6ms・17.9ms になった（−21.8ms / −21.2ms）。ただし desktop を既定にするかは、表示の正しさ、HDR、Wintab、取りこぼし、CPU・電力の確認の後で決める（18:05 と 18:20 の記録）。ANGLE を残す判断ならこの一群は必要、やめる判断なら不要になる。
+- HDR と色変換の 4 件は保留のままにした。確かめた範囲は「desktop の OpenGL が起動し、合成入力のホバーとインクを測れる」ことまでである。HDR は Surface の内蔵画面が SDR のため未確認で、10bit の色、色変換、表示の正しさは確かめていない。7ad4a8bc17 と 70086804f9 も同じ確認に従う。
+- Windows のペンの保留 2 件は保留のままにした。確かめた範囲は、Surface の合成入力が全回 WM_POINTER（`native_wintab`=0）で届き、ペンの描画が 4 通りの入力の設定で問題なかったことである（18:20）。Wintab の相対モード（7bb46828ae）は Wintab ドライバーを持つ実機で、タッチの受理（a60ed01a25）はタッチのパン・ズームと描画で確かめていない。
+- Wayland のペン 4 件、キーボードの配列 5 件、ドックのクラッシュ 1 件、クリップボードの CF_DIB 1 件は、L1 の計測の対象外なので保留のままにした（L1 は Windows の WM_POINTER と合成ペンだけで、Linux 開発機にタブレットがなく、キーボードとクリップボードも使っていない）。
+- Q4 の判断材料：正式版 Qt 6.11.3 には ANGLE がないため、Q4 は desktop の OpenGL だけになる。H1=1 は ANGLE の経路にしか効かず、desktop では H5（ホバーの間引き）が主な対策になる。H1 と H6 の効果は足し合わせない（H1=1 の下では H6 の差が 0.3ms 未満）。正式版 Qt の構築は、desktop を既定にするかの確認が済むまで行わない。
+
+## Q4 への持ち越し（2026-11-08 の判定のまとめ、2026-11-10 に更新）
+
+92 件の内訳は、不要 40 件、正式版で解決済み 6 件、LibrePaint 側で代替 4 件、必要 11 件、保留 31 件（2026-11-10 に L1 の結果で画面更新の間引きの 7 件を不要にし、d850335b2d は 2026-11-09 に不要から保留へ見直した）。
 
 - 必要（11件）：c41d66281e、df3a678309、051139ed72、33a49f25d1、f5a75c4071、41adadd8db、0027358f20、8f8eabfb72、c132390390、82d2864a8a、dc27f27d8e。Windows のペンの9件は、`QT_WINTAB_DESKTOP_RECT` などの環境変数とペンのホバーの状態に直結する。Q4 では、公式に取り込まれるのを待つか、LibrePaint 側で作り直すかを1件ずつ決める。
 - LibrePaint 側で代替（4件）：747423036c、f8a61ebc5b、21d400db4f は `kis_input_manager_p.cpp:242` の回避コードを使い、Windows でも有効にする。f786da6451 はタブ表示の窓の題名を `KisMainWindow` 側で設定する。
-- 保留（38件）：ANGLE 11件と画面更新の間引き 10件は L1 の H7 と H6 の数値で決める。HDR 4件は Windows の HDR 表示を残すかで決める。Wayland のペン 4件は Wayland でペンを使った確認で決める。キーボードの配列 5件は日本語配列での確認で決める。Windows のペン 2件は Surface の計測で決める。ドックのクラッシュ 1件は再現の確認で決める。クリップボードの CF_DIB 1件は Windows で Chrome と Edge への貼り付けを確認して決める。
+- 保留（31件）：ANGLE 11件は H7 前段で desktop が動き約 21ms 速いが、表示の正しさ・HDR・Wintab の確認が済むまで決めない。画面更新の間引き 3件（e121cb08e5、fb923e4a97、f1cf04e958）は部分再描画・fast transfer・クリップの確認で決める。HDR 4件は Windows の HDR 表示を残すかで決める（内蔵画面は SDR で未確認）。Wayland のペン 4件は Wayland でペンを使った確認で決める。キーボードの配列 5件は日本語配列での確認で決める。Windows のペン 2件は実機の Wintab とタッチで決める。ドックのクラッシュ 1件は再現の確認で決める。クリップボードの CF_DIB 1件は Windows で Chrome と Edge への貼り付けを確認して決める。
