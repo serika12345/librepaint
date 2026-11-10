@@ -15,11 +15,16 @@ Windows の表示の正しさである。2026-11-11 に、LibrePaint のソー�
   正式版 Qt 6.11.3 で構築されている。したがって Q4（フォークをやめ、全プラットフォームで
   正式版の同じ Qt にする）で新たに変わるのは Windows である。
 - Windows で新たに失う主なものは、ANGLE（OpenGL を Direct3D に変換する経路）、HDR（10bit と
-  scRGB / Rec.2020 PQ の表示）、Wintab の対応範囲の設定、Windows Ink の押下と Enter/Leave の
-  修正、タッチの受理、クリップボードの CF_DIB の回避である。
+  scRGB / Rec.2020 PQ の表示）、Wintab の対応範囲の設定（Qt6 では起動時に保存された設定が
+  反映されない）、Windows Ink の押下と Enter/Leave の修正、タッチの受理、クリップボードの
+  CF_DIB の回避である。
 - このうち Wintab の対応範囲と Windows Ink の押下・Enter/Leave は、外すとペンの操作が壊れる
   「必要」の 9 件である。Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の
   前に、公式に取り込むか、LibrePaint 側で作り直すかを決める必要がある。
+- その 9 件の見積もり（2.7、2026-11-11）は、正式版 Qt 6.11.3 へのパッチ（P）が合計 305 行で
+  3 件が他の改変に依存し、Windows だけのパッチになる。LibrePaint 側の実装（L）は、共通の
+  進入・離脱ガードで 3 件をまとめられ、共通ガードと主な 3 件で約 190〜310 行、全部を L で
+  作ると約 500〜700 行である。
 - ANGLE は外して desktop の OpenGL にする候補が最も効果が大きい。2026-11-10 の L1（Windows の
   ペン入力から表示までの約 50ms の遅れの原因を仮説ごとに数値で特定する）の H7（フォークなし・
   ANGLE を使わない OpenGL）の前段で、H1（先積みのフレーム数）=1 と H5（ホバーの間引き）の組
@@ -126,20 +131,134 @@ Android・iOS の現在の構築での値である。
 
 ### 2.6 ソースを読んで分かった確認点
 
-- `KisDlgCustomTabletResolution`（Wintab の対応範囲のダイアログ）は、Qt5 の起動時の
-  `krita/main.cc:895-910` と、ダイアログの `accept()`（`KisDlgCustomTabletResolution.cpp:99`）から
-  だけ呼ばれている。Qt6 でこのダイアログを開く入口は、ソースの検索では見つからなかった。
-  したがって `051139ed72` の「必要」は、Qt5 のコードと過去の UI に基づく判定である。Q4（フォークを
-  やめ、全プラットフォームで正式版の同じ Qt にする）の前に、Qt6 でこの設定が実際に使われているか
-  （設定の読み込みと `QT_WINTAB_DESKTOP_RECT` の適用が起きているか）を確かめる。
-- Qt6 で Wintab と Windows Ink のどちらを使うかを切り替えるコードも、`QT_VERSION < 6.0` の
-  分岐（`krita/main.cc:896, 1144`）にしかない。Qt6 の設定画面は `useWin8PointerInput` を表示するが、
-  それが Qt6 の入力経路に反映されるかを確かめる必要がある。反映されていないなら、この設定項目は
-  Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の前後で同じ（効かない）である。
+- `KisDlgCustomTabletResolution`（Wintab の対応範囲のダイアログ）は、設定の「タブレット」ページの
+  `TabletSettingsTab::slotResolutionSettings()`（`libs/ui/dialogs/kis_dlg_preferences.cc:1869-1876`）から
+  開ける。`accept()` は `kritadisplayrc` を書き、その場で `applyConfiguration()` を呼んで
+  `QT_WINTAB_DESKTOP_RECT` / `QT_IGNORE_WINTAB_MAPPING` を設定する。しかし、起動時に
+  `kritadisplayrc` を読んで同じ環境変数を設定するのは Qt5 の `krita/main.cc:895-910` の分岐だけである。
+  したがって Qt6 では、ダイアログで変更したセッションでは効くが、再起動すると保存された設定が
+  入力経路に反映されない。Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）で
+  この設定を残すなら、Qt6 の起動時に `kritadisplayrc` を読む処理を LibrePaint 側に足す必要がある
+  （約 10 行）。
+- Qt6 で Wintab と Windows Ink のどちらを使うかを切り替えるコードは、起動時の
+  `Qt::AA_MSWindowsUseWinTabAPI`（`krita/main.cc:896, 1144`）だけが Qt5 の分岐にある。設定ページの
+  保存時は、Qt6 のネイティブインターフェース
+  `QNativeInterface::Private::QWindowsApplication::setWinTabEnabled()`
+  （`kis_dlg_preferences.cc:3270-3278`）で切り替える。このインターフェースは正式版 Qt 6.11.3 にも
+  ある（`src/gui/platform/windows/qwindowsnativeinterface.h`）。したがって Wintab と Windows Ink の
+  切り替え自体は Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の前後で同じに
+  動く。
 - Android の 5 つのマクロは、現在の Android の構築が使う正式版 Qt 6.11.3 では偽になる。Q4（フォークを
   やめ、全プラットフォームで正式版の同じ Qt にする）で新たに失う機能ではない。
 - `HAVE_HDR` は Windows だけで検査する。Linux と macOS は、Wayland の画面色管理を使う場合を除き、
   8bit の sRGB である。HDR の確認は外部の HDR 画面が要る。
+
+
+### 2.7 ペンに必要な 9 件の取り込み方法の見積もり（2026-11-11）
+
+2026-11-11 08:05 の監査役の「次にすること」に従い、`docs/perf/qt-fork-patches.md` の「必要」のうち
+Windows のペン入力の 9 件（c41d66281e、df3a678309、051139ed72、33a49f25d1、f5a75c4071、
+41adadd8db、0027358f20、8f8eabfb72、c132390390）について、次の 2 つの方法を 1 件ずつ見積もった。
+コードは変えていない。
+
+- (P) 正式版 Qt 6.11.3 に、その改変だけを `nix/qt/overlay.nix` のパッチとして Windows で当てる。
+- (L) LibrePaint 側（`libs/input/ui/kis_input_manager.cpp`、`KisShortcutMatcher`、
+  `KisInputEventSuppressor`、Windows のネイティブイベントフィルターなど）で同じ動作を作る。
+
+#### 見積もりの方法
+
+- 正式版 Qt 6.11.3 のソースは、`nix/qt/srcs.nix` の `qtbase`
+  （`qtbase-everywhere-src-6.11.3.tar.xz`、sha256 `13wg5z37nm6ana0kgi83d4f191m3v9a47r3a8ifmm54lnl80gpj6`、
+  ファイルの sha256 `46de0710b594945a5d446ae44354daa386141c6903c53781b2ca547bc62f8f8f`）を展開して使った。
+- 各改変のパッチは `https://github.com/dimula73/qtbase/commit/<sha>.patch` から取得した
+  （2026-11-11）。「単独」は他の改変を当てていない 6.11.3 にその 1 件だけを当てた結果、
+  「累積」はブランチの順（c41d66281e → df3a678309 → 051139ed72 → 33a49f25d1 → f5a75c4071 →
+  41adadd8db → 0027358f20 → 8f8eabfb72 → c132390390）に当てた結果である。どちらも
+  `patch -p1 --dry-run` と `git apply --check` で確かめた。
+- 行数はパッチの追加行と削除行の合計（テストは含まない。9 件のパッチにテストの変更はない）。
+- コンパイル、リンク、実機の動作は未確認である。`patch --dry-run` が通ることは、そのまま
+  ビルドが通ることを意味しない。
+
+#### (P) 正式版 Qt 6.11.3 へのパッチ
+
+| コミット | 内容 | 変更行（追加/削除） | 単独 | 累積 | 主なファイル | Qt 更新ごとの保守 |
+| --- | --- | --- | --- | --- | --- | --- |
+| c41d66281e | タブレットが窓の非クライアント領域に入ったときの Enter/Leave | 38（+21/−17） | 当たる | 当たる | `qwindowspointerhandler.cpp/.h` | 高。ポインターハンドラは変更が多い |
+| df3a678309 | タブレットの進入時に `WM_MOUSELEAVE` の購読を外す | 2（+0/−2） | 当たらない（c41d が必要） | 当たる | `qwindowspointerhandler.cpp` | 高。c41d と同じ箇所 |
+| 051139ed72 | Wintab の対応範囲を `lcSys{Org,Ext}` から取る | 101（+98/−3） | 当たる | 当たる | `qwindowstabletsupport.cpp/.h` | 中。Wintab の変更は少ない |
+| 33a49f25d1 | Windows Ink の押下をウィジェットへ届ける | 103（+92/−11） | 当たらない（c41d が必要） | 当たる | `qguiapplication.cpp`、`qwindowsysteminterface.cpp`、`qwindowspointerhandler.cpp` | 高。GUI のカーネルとポインターハンドラ |
+| f5a75c4071 | 受理した押下のストローク全体の合成マウス | 39（+35/−4） | 当たらない（c41d と 33a4 が必要） | 当たる | `qwindowspointerhandler.cpp/.h` | 高。33a4 の後 |
+| 41adadd8db | 受理した `QTabletEvent` の Enter/Leave の合成 | 12（+12/−0） | 当たる | 当たる | `qwidgetwindow.cpp` | 中。ウィジェットのカーネル |
+| 0027358f20 | Enter/Leave パッチの存在を示すヘッダーの印 | 4（+4/−0） | 当たる | 当たる | `qevent.h` | 低。41ad と一緒に当てる |
+| 8f8eabfb72 | WinTab の合成マウスの二重を止める | 4（+4/−0） | 当たる | 当たる | `qwindowscontext.cpp` | 低 |
+| c132390390 | `WM_POINTERLEAVE` の Leave の戻し | 2（+0/−2） | 当たる | 当たる | `qwindowspointerhandler.cpp` | 中。上流の変更に追随する |
+
+- 合計は 305 行（+266/−39）、9 ファイルである。3 件（df3a678309、33a49f25d1、f5a75c4071）は
+  単独では当たらず、前の改変（c41d66281e、または c41d66281e と 33a49f25d1）が要る。
+  9 件をブランチの順に当てると、すべて `git apply --check` を通る。
+- 33a49f25d1 は `qguiapplication.cpp` と `qwindowsysteminterface.cpp`、41adadd8db は
+  `qwidgetwindow.cpp`、0027358f20 は `qevent.h` を変える。これらは Windows 専用のファイルでは
+  ないため、`nix/qt/overlay.nix` で Windows（MinGW）のときだけ当てる条件が要る（約 10 行）。
+  条件を付けずに当てると、Linux、macOS、Android の Qt の動作も変わる。
+- その結果、Windows の Qt は Linux、macOS と版は同じでも、9 件のパッチの分だけ構成が異なる。
+  Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の「正式版の同じ Qt」は、
+  「同じ版の正式版に、Windows だけのパッチを当てた Qt」になる。
+- Qt を更新するたびに 9 件の再ベースと `patch --dry-run` が要る。`qwindowspointerhandler.cpp` が
+  変わると、c41d66281e、df3a678309、33a49f25d1、f5a75c4071、c132390390 の 5 件（184 行）を
+  まとめて直す。見込みは、マイナー更新で半日〜1日、パッチ更新で2〜4時間である。ビルドと実機の
+  確認は別に 1 回 1〜2 時間（正式版 Qt の Windows の差分構築は 36 分 5 秒の実績）かかる。
+
+#### (L) LibrePaint 側の実装
+
+| コミット | LibrePaint の実装箇所と方法 | 実装行数（テスト別） | Qt の内部に踏み込む度合い | 176a8164a3（Enter の復帰）で足りるか |
+| --- | --- | --- | --- | --- |
+| c41d66281e | `KisInputManager` か `KisApplication` の `QAbstractNativeEventFilter` で `WM_NCPOINTER*` と `WM_NCMOUSEMOVE` を見て、キャンバスへ Enter/Leave を送り、カーソルを戻す | 80〜120 | 中。Win32 のメッセージとカーソルに依存する。Qt の内部 API は使わない | 足りない。押下の復帰だけでは非クライアント領域のカーソルは戻らない |
+| df3a678309 | `KisInputManager::eventFilter` の `QEvent::Leave` を、タブレットが近接中か押下中は無視する（共通ガードの一部） | 10〜20 | 低。公開の Qt イベントだけ | 一部。押下時は戻るが、ホバーの途切れは共通ガードで補う |
+| 051139ed72 | Wintab の生の座標が `QTabletEvent` にないため、自前の Wintab コンテキスト（`WTOpen`、`WT_PACKET`）を持つか、設定を失う | 200〜300（機能を残す場合） | 高。Wintab API と Qt の Wintab 経路の二重化 | 足りない。P を推奨する |
+| 33a49f25d1 | キャンバスの HWND に `SetGestureConfig` を設定して長押し・タップのシステムジェスチャーを切り、受理を WndProc の戻り値に依存しない形にする | 30〜60 | 中。Win32 のウィンドウとジェスチャー | 足りない。176a8164a3 は action の復帰だけで、システムジェスチャーは止めない |
+| f5a75c4071 | 受理したタブレットの押下・移動・解放に `QMouseEvent` を作ってウィジェットへ送る | 60〜100（必要なら） | 高。Qt のイベント配送の再実装 | 足りないが、キャンバスはタブレットを直接使うため優先度は低い |
+| 41adadd8db | 共通ガードでキャンバスの Enter/Leave を戻す。全ウィジェットに同じ合成をするならアプリのイベントフィルターを足す | 20〜30（キャンバス）、+40〜60（全ウィジェット） | 低〜中。公開の Qt イベントだけ | 押下時は足りる。ホバーは共通ガードで補う |
+| 0027358f20 | L では不要。CMake の検出を偽のままにし、LibrePaint の既存の分岐を使う | 0 | なし | 関係しない。P の 41adadd8db と一緒に当てるときだけ 4 行 |
+| 8f8eabfb72 | `KisInputEventSuppressor` の `setSuppressSyntheticMouseEvents` を Windows の WinTab でも使う、または近接中の合成マウスを落とす | 20〜40 | 低。既存の抑止の枠組みを使う。WinTab の OS レベルのマウスは `QMouseEvent::source()` が合成と印されないため、近接の状態で落とす判定を足す | 足りない |
+| c132390390 | 共通ガードのタッチ分岐で、最後の指が離れたときの Leave を無視する | 10〜20 | 低。公開の Qt イベントだけ | 足りない。176a8164a3 は押下の復帰だけ |
+
+- df3a678309、c132390390、41adadd8db の 3 件は、1 つの「タブレット近接・進入のガード」で
+  まとめられる。タブレットの進入（`TabletEnterProximity`、`TabletMove`、`TabletPress`）で
+  `containsPointer` を立て、近接中や押下中の `QEvent::Leave` を無視し、離れた後に
+  `QCursor::pos()` がキャンバスの外なら Leave を確定する。共通ガードは 60〜90 行、テストは
+  80〜120 行である。
+- 共通ガードと c41d66281e、33a49f25d1、8f8eabfb72 を L で作る範囲は、約 190〜310 行である。
+  f5a75c4071 と 051139ed72 も L で作ると、約 500〜700 行になる。
+- L の共通ガードは公開の Qt イベントだけを使うため、Qt の内部 API への依存は増えない。
+  ただし、Windows のメッセージを使う c41d66281e と 33a49f25d1 は `#ifdef Q_OS_WIN` の
+  ネイティブコードになり、Linux、macOS では動かさない。共通ガードは全プラットフォームで
+  動くため、Linux と macOS のホバーとタッチの回帰を確認する必要がある。
+- 051139ed72 は、Qt6 では起動時に保存された設定が入力経路に反映されない（ダイアログで変更した
+  セッションでは効く。2.6）。P を当てて機能を残す場合も、Qt6 の起動時に `kritadisplayrc` を
+  読んで `QT_WINTAB_DESKTOP_RECT` / `QT_IGNORE_WINTAB_MAPPING` を設定する約 10 行が要る。
+  機能を残さないなら、この件は Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt に
+  する）で新たに失うものはない。
+
+#### 見積もりから分かること（判定の材料）
+
+- P は 9 件で 305 行と小さいが、Qt の内部（`QWindowsPointerHandler`、`QWindowsTabletSupport`、
+  `QWidgetWindow`）に依存し、Windows だけパッチを当てた Qt を Qt の更新ごとに保守する。
+  Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の「同じ Qt」は、
+  パッチの分だけ完全にはそろわない。
+- L は Qt の内部 API に依存しないが、Windows のメッセージ、Wintab、ジェスチャーの再実装が
+  要る。df3a678309、c132390390、41adadd8db は 1 つの共通ガードにまとめられ、176a8164a3 と
+  合わせてキャンバスのペン操作を保てる見込みである。
+- 1 件ずつの候補（監査役の判定前の材料）：
+  - c41d66281e：P（38 行）か L（80〜120 行）。カーソルの見た目だけなら L を後回しにできる。
+  - df3a678309：L の共通ガード（P は c41d66281e が前提）。
+  - 051139ed72：機能を残すなら P（101 行）＋L（約 10 行）。残さないなら現状維持。
+  - 33a49f25d1：L の `SetGestureConfig`（30〜60 行）を先に試し、足りなければ P（103 行）。
+  - f5a75c4071：L はキャンバスに不要と見る。非キャンバスのウィジェットで必要になったときだけ
+    P（39 行）か L（60〜100 行）。
+  - 41adadd8db：L の共通ガード（20〜30 行）。P（12 行）は 0027358f20 と一緒に当てるときだけ。
+  - 0027358f20：P の 41adadd8db を当てないなら不要。
+  - 8f8eabfb72：L（20〜40 行）か P（4 行）。
+  - c132390390：L の共通ガード（10〜20 行）か P（2 行）。
 
 
 ## 3. 正式版 Qt にしたときに失われる機能（利用者に見える違い）
@@ -152,7 +271,7 @@ Android、iOS は「今」も正式版なので、この表の「後」と同じ
 | ANGLE（OpenGL ES を Direct3D に変換する経路） | Windows の既定。`OpenGLRenderer=angle` | ANGLE がない。desktop の OpenGL に落ちる | GPU とドライバーによっては起動しない、または表示が違うおそれ。遅れは desktop の方が小さい（H7（フォークなし・ANGLE を使わない OpenGL）の前段で −21.8 / −21.2ms） | Krita Manual「Display Settings」の ANGLE の説明（https://docs.krita.org/en/reference_manual/preferences/display_settings.html）、DECISIONS.md 2026-11-10、`nix/windows/krita.nix:99, 653` | desktop を既定にする案を推奨。表示の正しさ、HDR、Wintab、CPU・電力を確認してから決める |
 | ANGLE のリサイズ・ダイアログのちらつきの回避 | `QT_USE_PREMATURE_RESIZE_EVENTS` ほかを設定 | 環境変数は無視される。ANGLE がないので通常は関係しない | desktop の OpenGL でリサイズやダイアログのちらつきが出るかは未確認 | `1a543f2832`、`02216d26ba`、`77d2b02daf` のコミットメッセージ（https://github.com/dimula73/qtbase/commit/1a543f2832） | desktop でリサイズとダイアログを確認する |
 | HDR（10bit、scRGB、Rec.2020 PQ） | HDR の設定ページがあり、HDR の画面を選べる | 8bit の sRGB だけ（Wayland の画面色管理を使う場合は 10bit まで）。HDR の設定ページは無効 | HDR の画面で、明るい色と階調の見え方が SDR になる | Krita Manual「HDR Display」（https://docs.krita.org/en/reference_manual/hdr_display.html）、`HAVE_HDR` の使用箇所、`7ad4a8bc17`、`70086804f9` | 利用者の判断。残すなら色変換を LibrePaint 側に作る。やめるなら設定ページと `HAVE_HDR` の分岐を外す |
-| Wintab の対応範囲の設定 | 「タブレットが提供する情報」「仮想画面全体」「任意の矩形」を選べる（Qt6 でこのダイアログを開く入口はソースの検索では見つからない。2.6） | 環境変数が無視され、設定が効かない | Surface Pro 5 のような内蔵タブレットの機器や複数画面で、ペンの位置がずれるおそれ。Qt6 で設定自体が使われていないなら、この差は出ない | Krita Manual「Tablet Settings」の Advanced Tablet Settings（https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html）、`051139ed72`、`KisDlgCustomTabletResolution.cpp:149-161` | 公式に取り込むか、LibrePaint 側でタブレットの座標を変換する。Qt6 で設定が使われているかを先に確認する |
+| Wintab の対応範囲の設定 | 「タブレットが提供する情報」「仮想画面全体」「任意の矩形」を選べる。ただし Qt6 では起動時に保存された設定を適用するコードが Qt5 の分岐にしかなく、再起動すると設定が戻る（ダイアログで変更したセッションでは効く。2.6） | 環境変数が無視され、設定が効かない | Surface Pro 5 のような内蔵タブレットの機器や複数画面で、ペンの位置がずれるおそれ。Qt6 で設定自体が使われていないなら、Q4 で新たに失うものはない | Krita Manual「Tablet Settings」の Advanced Tablet Settings（https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html）、`051139ed72`、`KisDlgCustomTabletResolution.cpp:149-161` | 機能を残すなら、P（`051139ed72`、101 行）と Qt6 の起動時の読み込み（約 10 行）。残さないなら現状維持（Q4 で新たに失わない） |
 | Wintab の相対モード | フォークは相対モードを切っている（`7bb46828ae`） | 正式版は相対モードを切らない可能性がある | Wintab のドライバーによっては、ペンの座標が飛ぶ、またはカーソルが相対移動になるおそれ | `7bb46828ae`（https://github.com/dimula73/qtbase/commit/7bb46828ae）、`docs/perf/qt-fork-patches.md` の「保留」 | 実際の Wintab ドライバーで確認する。Surface の合成入力は WM_POINTER なので、この確認には別のタブレットが要る |
 | Windows Ink の押下と Enter/Leave | 押下がツールに届き、長押しが右クリックにならず、ホバーの状態が途切れない | 押下が届かない、長押しが右クリックになる、ホバーが途切れるおそれ | キャンバスが描き直されない、線が始まらない、メニューの操作が誤る | `33a49f25d1`、`f5a75c4071`、`41adadd8db`、`8f8eabfb72`、`c132390390`、`0027358f20`、KDE bug 409613 / 424319 | 必要 9 件を公式に取り込むか、LibrePaint 側で Enter の復帰（`176a8164a3`）と押下の処理を作り直す |
 | タッチの受理 | ウィジェットがタッチを受理し、Windows のグローバルなジェスチャーや合成マウスを抑えられる | 受理の制御ができない | タッチのパン・ズームと描画が、ペンの操作と競合するおそれ | `a60ed01a25`（https://github.com/dimula73/qtbase/commit/a60ed01a25） | Surface のタッチで確認する。失ってよいかの判断は利用者 |
@@ -212,7 +331,8 @@ Krita の公式マニュアルが利用者に約束している機能と、独�
 1. Windows のペンの「必要」9 件（Wintab の対応範囲、Windows Ink の押下、Enter/Leave、合成マウス）
    を、公式に取り込むか、LibrePaint 側で作り直すか。外すとキャンバスが描き直されない、線が
    始まらない、メニューの操作が誤るため、Q4（フォークをやめ、全プラットフォームで正式版の
-   同じ Qt にする）の前に必須である。
+   同じ Qt にする）の前に必須である。見積もりは 2.7：P は 305 行（Windows だけのパッチ）、
+   L は共通ガードで 3 件をまとめて約 190〜310 行、全部を L で作ると約 500〜700 行である。
 2. ANGLE をやめて desktop の OpenGL を既定にする。H7（フォークなし・ANGLE を使わない OpenGL）
    の前段で遅れは大きく下がった。表示の正しさ、HDR、Wintab、CPU・電力を確認してから決める。
 3. HDR を残すか。残すなら LibrePaint 側の色変換が必要で、コード量が増える。CHARTER の
