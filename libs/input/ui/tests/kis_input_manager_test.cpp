@@ -427,6 +427,49 @@ void KisInputManagerTest::testMouseMoves()
     m.leaveEvent();
 }
 
+void KisInputManagerTest::testMoveEventCompressionDecision()
+{
+    KisShortcutMatcher m;
+    m.enterEvent();
+
+    TestingAction *a = new TestingAction();
+
+    m.addShortcut(
+        createStrokeShortcut(a, 13,
+                             QSet<Qt::Key>(),
+                             Qt::LeftButton));
+
+    QMouseEvent moveEvent(QEvent::MouseMove, QPoint(),
+                          Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent pressEvent(QEvent::MouseButtonPress, QPoint(),
+                           Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+
+    // Hover: no action is running, so every move must reach the canvas
+    // immediately. This is H5 (hover event decimation) removed by default.
+    QVERIFY(!m.hasRunningShortcut());
+    QVERIFY(!m.supportsHiResInputEvents());
+    QVERIFY(!m.compressesMoveEvents());
+
+    // A running action that does not consume hi-res input keeps the
+    // compression that Krita added for BUG:327581.
+    QVERIFY(m.buttonPressed(Qt::LeftButton, &pressEvent));
+    QVERIFY(m.hasRunningShortcut());
+    QVERIFY(!m.supportsHiResInputEvents());
+    QVERIFY(m.compressesMoveEvents());
+    QVERIFY(m.buttonReleased(Qt::LeftButton, &moveEvent));
+    QVERIFY(!m.compressesMoveEvents());
+
+    // Freehand painting consumes hi-res input, so its moves are already
+    // dispatched directly; the ink path is unchanged.
+    a->setHighResInputEvents(true);
+    QVERIFY(m.buttonPressed(Qt::LeftButton, &pressEvent));
+    QVERIFY(m.supportsHiResInputEvents());
+    QVERIFY(!m.compressesMoveEvents());
+    QVERIFY(m.buttonReleased(Qt::LeftButton, &moveEvent));
+
+    m.leaveEvent();
+}
+
 void KisInputManagerTest::testSuppressionEventNormalization()
 {
     using Event = KisInputEventSuppressor::Event;

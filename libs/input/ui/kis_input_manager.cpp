@@ -280,11 +280,17 @@ bool KisInputManager::compressMoveEventCommon(Event *event)
     if ((event->type() == QEvent::MouseMove ||
          event->type() == QEvent::TabletMove ||
          event->type() == QEvent::TouchUpdate) &&
-            (!d->matcher.supportsHiResInputEvents() ||
+            (d->matcher.compressesMoveEvents() ||
              d->testingCompressBrushEvents) &&
-            // H5 (hover event decimation): dispatch every move immediately.
-            // LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION is for the L1
-            // measurements only; KisL1Switches.h owns the removal condition.
+            // H5 (hover event decimation): hover moves are dispatched
+            // immediately by the condition above. The compression stays for
+            // a running action that does not consume hi-res input, because
+            // Krita added it for BUG:327581 (the warp transform on Windows
+            // blocked when every tablet move was processed). Freehand paint
+            // already bypassed it through supportsHiResInputEvents, so the
+            // ink path is unchanged. LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION
+            // is for the L1 measurements only; KisL1Switches.h owns the
+            // removal condition.
             !KisL1Switches::disableMoveCompression()) {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         KoPointerEvent::copyQtPointerEvent(event, d->compressedMoveEvent);

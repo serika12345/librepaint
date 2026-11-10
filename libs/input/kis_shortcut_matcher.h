@@ -96,6 +96,18 @@ public:
     bool supportsHiResInputEvents();
 
     /**
+     * Returns true when a move event should be compressed before dispatch.
+     *
+     * Hover moves arrive without a running shortcut and are dispatched
+     * immediately. A running action that consumes hi-res input (the freehand
+     * paint tool) also receives every event. Krita added the 10 ms
+     * compression for the remaining case: a running action that does not
+     * consume hi-res input, such as the warp transform on Windows
+     * (BUG:327581).
+     */
+    bool compressesMoveEvents();
+
+    /**
      * Handles a key press event.
      * No autorepeat events should be passed to this method.
      *

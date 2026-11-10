@@ -218,6 +218,11 @@ bool KisShortcutMatcher::supportsHiResInputEvents()
             && m_d->nativeGestureShortcut->action()->supportsHiResInputEvents(m_d->nativeGestureShortcut->shortcutIndex()));
 }
 
+bool KisShortcutMatcher::compressesMoveEvents()
+{
+    return hasRunningShortcut() && !supportsHiResInputEvents();
+}
+
 bool KisShortcutMatcher::keyPressed(Qt::Key key)
 {
     Private::RecursionNotifier notifier(this);
