@@ -178,12 +178,14 @@ def l1_max_frame_latency(events):
     egl = events.get("l1_h1_egl_context")
     if not egl:
         return None
+    extension = events.get("l1_h1_device_query_ext")
     device = events.get("l1_h1_device")
     query = events.get("l1_h1_query_interface")
     setter = events.get("l1_h1_set_max_frame_latency")
     getter = events.get("l1_h1_get_max_frame_latency")
     return {
         "egl_context": int(egl[-1][3]),
+        "device_query_ext": int(extension[-1][3]) if extension else None,
         "device": int(device[-1][3]) if device else None,
         "query_interface_hresult": query[-1][3] if query else None,
         "set_hresult": setter[-1][3] if setter else None,
@@ -444,8 +446,9 @@ def format_l1_h1(entry):
     def hresult(value):
         return "none" if value is None else "0x%08X" % (value & 0xFFFFFFFF)
 
-    return ("egl=%s device=%s query_interface=%s set=%s requested=%s readback=%s"
-            % (flag(entry.get("egl_context")), flag(entry.get("device")),
+    return ("egl=%s device_query=%s device=%s query_interface=%s set=%s requested=%s readback=%s"
+            % (flag(entry.get("egl_context")), flag(entry.get("device_query_ext")),
+               flag(entry.get("device")),
                hresult(entry.get("query_interface_hresult")),
                hresult(entry.get("set_hresult")), flag(entry.get("requested")),
                flag(entry.get("readback"))))

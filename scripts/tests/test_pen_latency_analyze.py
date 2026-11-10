@@ -214,10 +214,11 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             self.write_outcome(directory, [
                 (ms(1000), "l1_h1_egl_context", 1),
-                (ms(1001), "l1_h1_device", 1),
-                (ms(1002), "l1_h1_query_interface", 0),
-                (ms(1003), "l1_h1_set_max_frame_latency", 0, 1),
-                (ms(1004), "l1_h1_get_max_frame_latency", 1, 1),
+                (ms(1001), "l1_h1_device_query_ext", 3),
+                (ms(1002), "l1_h1_device", 1),
+                (ms(1003), "l1_h1_query_interface", 0),
+                (ms(1004), "l1_h1_set_max_frame_latency", 0, 1),
+                (ms(1005), "l1_h1_get_max_frame_latency", 1, 1),
             ])
             result = analyze.Run(directory).analyze()
             output = io.StringIO()
@@ -225,6 +226,7 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
                 self.assertEqual(analyze.main([directory]), 0)
         self.assertEqual(result["l1_h1"], {
             "egl_context": 1,
+            "device_query_ext": 3,
             "device": 1,
             "query_interface_hresult": 0,
             "set_hresult": 0,
@@ -232,7 +234,7 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
             "readback": 1,
         })
         self.assertIn(
-            "egl=1 device=1 query_interface=0x00000000 set=0x00000000 requested=1 readback=1",
+            "egl=1 device_query=3 device=1 query_interface=0x00000000 set=0x00000000 requested=1 readback=1",
             output.getvalue())
 
     def test_failed_device_lookup_stops_before_the_set_call(self):
@@ -246,13 +248,36 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
                 analyze.main([directory])
         self.assertEqual(result["l1_h1"], {
             "egl_context": 0,
+            "device_query_ext": None,
             "device": None,
             "query_interface_hresult": None,
             "set_hresult": None,
             "requested": None,
             "readback": None,
         })
-        self.assertIn("egl=0 device=none query_interface=none set=none", output.getvalue())
+        self.assertIn("egl=0 device_query=none device=none query_interface=none set=none", output.getvalue())
+
+    def test_a_missing_device_query_extension_is_reported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_outcome(directory, [
+                (ms(1000), "l1_h1_egl_context", 1),
+                (ms(1001), "l1_h1_device_query_ext", 1),
+                (ms(1002), "l1_h1_device", 0),
+            ])
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        self.assertEqual(result["l1_h1"], {
+            "egl_context": 1,
+            "device_query_ext": 1,
+            "device": 0,
+            "query_interface_hresult": None,
+            "set_hresult": None,
+            "requested": None,
+            "readback": None,
+        })
+        self.assertIn("egl=1 device_query=1 device=0", output.getvalue())
 
     def test_the_newest_call_describes_the_run(self):
         with tempfile.TemporaryDirectory() as directory:
