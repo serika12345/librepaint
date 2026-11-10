@@ -410,6 +410,7 @@ class Run:
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
             }
             result["canvas_path"] = summarize_canvas_path(self.events)
+            result["focus_gate"] = summarize_focus_gate(self.events)
             result["l1_events"] = {
                 event: len(self.events.get(event, []))
                 for event in ("last_frame_completed_on_gpu", "qt_update_deferred",
@@ -606,6 +607,125 @@ def format_canvas_path(entry):
     return " ".join(parts)
 
 
+FOCUS_GATE_EVENTS = ("qt_event", "outline_gate", "tool_action")
+
+QT_EVENT_CODES = {
+    1: "focus_in",
+    2: "focus_out",
+    3: "tablet_press",
+    4: "tablet_release",
+    5: "mouse_press",
+    6: "mouse_release",
+}
+
+TOOL_MODES = {
+    0: "hover",
+    1: "paint",
+    2: "secondary_paint",
+    3: "mirror_axis_setup",
+    4: "gesture",
+    5: "pan",
+    6: "other",
+    7: "other_1",
+}
+
+TOOL_ACTIONS = {
+    0: "primary",
+    1: "alternate_change_size",
+    2: "alternate_change_size_snap",
+    3: "alternate_sample_fg_node",
+    4: "alternate_sample_bg_node",
+    5: "alternate_sample_fg_image",
+    6: "alternate_sample_bg_image",
+    7: "secondary",
+    8: "third",
+    9: "fourth",
+    10: "fifth",
+}
+
+
+def summarize_focus_gate(events):
+    """Focus and tool-action state around the presses, from the probe markers.
+
+    They separate a press that reached the tool from one that was dropped
+    before it, and an empty outline caused by a deactivated action from one
+    caused by a degenerate zoom.
+    """
+    summary = {name: len(events.get(name, [])) for name in FOCUS_GATE_EVENTS}
+
+    qt = events.get("qt_event", [])
+    if qt:
+        summary["qt_event_codes"] = dict(sorted(collections.Counter(int(entry[1]) for entry in qt).items()))
+        summary["qt_event_modes"] = dict(sorted(collections.Counter(int(entry[2]) for entry in qt).items()))
+        summary["qt_event_extra"] = dict(sorted(collections.Counter(int(entry[3]) for entry in qt).items()))
+
+    gate = events.get("outline_gate", [])
+    if gate:
+        summary["outline_gate_extra"] = dict(sorted(collections.Counter(int(entry[3]) for entry in gate).items()))
+        summary["outline_gate_view_zoom"] = {"min": min(entry[1] for entry in gate),
+                                             "max": max(entry[1] for entry in gate)}
+        summary["outline_gate_physical_zoom"] = {"min": min(entry[2] for entry in gate),
+                                                 "max": max(entry[2] for entry in gate)}
+
+    actions = events.get("tool_action", [])
+    if actions:
+        summary["tool_action_actions"] = dict(sorted(collections.Counter(int(entry[1]) for entry in actions).items()))
+        summary["tool_action_extra"] = dict(sorted(collections.Counter(int(entry[3]) for entry in actions).items()))
+
+    return summary
+
+
+def _pair_list(values):
+    return ",".join("%d:%d" % (key, count) for key, count in values.items())
+
+
+def _named_list(values, names):
+    return ",".join("%s:%d" % (names.get(key, str(key)), count) for key, count in values.items())
+
+
+def _zoom_range(values):
+    low, high = values["min"], values["max"]
+    if abs(high - low) < 1e-9:
+        return "%.2f" % low
+    return "%.2f-%.2f" % (low, high)
+
+
+def format_focus_gate(entry):
+    """One line per run: focus/press events, outline gates and tool actions."""
+    if not entry or not any(entry.get(name, 0) for name in FOCUS_GATE_EVENTS):
+        return "none"
+    parts = []
+
+    count = entry.get("qt_event", 0)
+    if count:
+        text = "qt_event=%d{%s}" % (count, _named_list(entry.get("qt_event_codes", {}), QT_EVENT_CODES))
+        if entry.get("qt_event_modes"):
+            text += " modes{%s}" % _named_list(entry["qt_event_modes"], TOOL_MODES)
+        if entry.get("qt_event_extra"):
+            text += " extra{%s}" % _pair_list(entry["qt_event_extra"])
+        parts.append(text)
+
+    count = entry.get("outline_gate", 0)
+    if count:
+        text = "outline_gate=%d" % count
+        if entry.get("outline_gate_extra"):
+            text += "{extra %s}" % _pair_list(entry["outline_gate_extra"])
+        view = entry.get("outline_gate_view_zoom")
+        physical = entry.get("outline_gate_physical_zoom")
+        if view and physical:
+            text += " zoom=%s/%s" % (_zoom_range(view), _zoom_range(physical))
+        parts.append(text)
+
+    count = entry.get("tool_action", 0)
+    if count:
+        text = "tool_action=%d{%s}" % (count, _named_list(entry.get("tool_action_actions", {}), TOOL_ACTIONS))
+        if entry.get("tool_action_extra"):
+            text += " extra{%s}" % _pair_list(entry["tool_action_extra"])
+        parts.append(text)
+
+    return " ; ".join(parts)
+
+
 def format_l1_last_frame_completed(entry):
     """Share of frames whose predecessor had finished on the GPU."""
     n = entry.get("n", 0)
@@ -685,6 +805,9 @@ def main(argv):
                 continue
             if key == "canvas_path":
                 print("   %-44s %s" % (key, format_canvas_path(stat)))
+                continue
+            if key == "focus_gate":
+                print("   %-44s %s" % (key, format_focus_gate(stat)))
                 continue
             if key == "l1_last_frame_completed":
                 print("   %-44s %s" % (key, format_l1_last_frame_completed(stat)))

@@ -233,6 +233,26 @@ function Get-KritarcValues($names) {
     return $values
 }
 
+function Get-KritarcGroupValues($group, $names) {
+    # Read keys of one named group (for example [General]). The scenario's
+    # newOutlineStyle and fpsLimit live there, and the run must record the
+    # values that were actually in effect, not the ones the scenario expects.
+    $path = Join-Path $env:LOCALAPPDATA 'kritarc'
+    $values = @{}
+    if (-not (Test-Path $path)) { return $values }
+    $current = ''
+    foreach ($line in [System.IO.File]::ReadAllLines($path)) {
+        $header = [regex]::Match($line, '^\s*\[(.*)\]\s*$')
+        if ($header.Success) { $current = $header.Groups[1].Value; continue }
+        if ($current -ne $group) { continue }
+        foreach ($name in $names) {
+            $match = [regex]::Match($line, '^\s*' + [regex]::Escape($name) + '\s*=(.*)$')
+            if ($match.Success) { $values[$name] = $match.Groups[1].Value.Trim() }
+        }
+    }
+    return $values
+}
+
 function Send-ZoomKeys($app, [int]$percent) {
     # Use the application shortcuts (krita_default.shortcuts): Ctrl+0 puts the
     # canvas at 100 %, and Ctrl+= steps through the standard zoom levels
@@ -394,6 +414,17 @@ try {
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
         $kritarcState = Set-TargetKritarc $dir $request.kritarc
+        # Record the values that are actually in effect after the target's
+        # overrides. The scenario's newOutlineStyle and fpsLimit are not
+        # written by the Windows runner, so the run has to state what it read
+        # instead of assuming the scenario was applied.
+        $effective = Get-KritarcGroupValues 'General' @('newOutlineStyle', 'fpsLimit')
+        $effectiveLines = @()
+        foreach ($key in @('newOutlineStyle', 'fpsLimit')) {
+            $value = if ($effective -and $effective.ContainsKey($key)) { $effective[$key] } else { 'absent' }
+            $effectiveLines += "kritarc_effective.$key=$value"
+        }
+        Add-Content -Path (Join-Path $dir 'meta.txt') -Value $effectiveLines
         $appImage = if ($displayCheck) { [string]$displayCheck.image } else { $canvas }
         $app = $null
         $appOut = Join-Path $dir 'app.out'
@@ -439,7 +470,15 @@ try {
             Write-LaunchFacts $dir 'capture' $app
             if ($displayCheck) { Invoke-DisplayCheck $dir $app ([string]$displayCheck.image) }
             elseif ($capture) { Invoke-Capture $dir }
-            else { [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null }
+            else {
+                [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null
+                # PenInject records the window in front right before the first
+                # sample (and after one retry), so the run separates "the app
+                # was in front when the capture began" from "it was still in
+                # front when the input began".
+                Add-Content -Path (Join-Path $dir 'meta.txt') `
+                    -Value "foreground_inject_start=$([PenInject]::ForegroundInjectStart)"
+            }
             # The probe writer flushes every 500 ms; leave time for the last batch.
             Start-Sleep -Milliseconds 1500
         }

@@ -213,6 +213,7 @@ def frame_samples(directory):
 
 
 META_FOREGROUND = "app_foreground_capture"
+META_FOREGROUND_INJECT = "foreground_inject_start"
 PRESENTATION_MIN_RATIO = 0.8
 
 
@@ -241,6 +242,35 @@ def foreground_state(directory):
     if value is None:
         return {"known": False, "foreground": None}
     return {"known": True, "foreground": value.lower() == "true"}
+
+
+def inject_foreground_state(directory):
+    """Whether the application was in front just before the first sample.
+
+    PenInject.cs records pid, name, visible, same_window, app and retried after
+    it retried SetForegroundWindow. The capture-time value above only says
+    that the app was in front when the capture started; this one says that it
+    was still in front when the synthetic input began, which a run whose
+    canvas stopped repainting needs to separate from a tool that dropped the
+    press.
+    """
+    value = read_meta(directory).get(META_FOREGROUND_INJECT)
+    if value is None:
+        return {"known": False, "foreground": None, "retried": None}
+    fields = {}
+    for part in value.split():
+        name, separator, field = part.partition("=")
+        if separator:
+            fields[name] = field
+    app = fields.get("app")
+    retried = fields.get("retried")
+    return {
+        "known": app is not None,
+        "foreground": None if app is None else app.lower() == "true",
+        "retried": None if retried is None else retried.lower() == "true",
+        "pid": fields.get("pid"),
+        "name": fields.get("name"),
+    }
 
 
 def presentation_state(directory, frame_interval_ms):
@@ -382,6 +412,7 @@ def analyze_run(directory):
     foreground = foreground_state(directory)
     presentation = presentation_state(directory, result["frames"]["interval"].get("p50"))
     result["foreground"] = foreground
+    result["foreground_inject"] = inject_foreground_state(directory)
     result["presentation"] = presentation
     result["excluded"] = exclusion_reason(foreground, presentation)
     return result
@@ -535,9 +566,12 @@ def main(argv):
             "ok" if foreground["foreground"] else "not-foreground")
         presentation = result.get("presentation") or {}
         ratio = presentation.get("ratio")
-        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s  foreground=%s%s" % (
+        inject = result.get("foreground_inject") or {}
+        inject_text = "-" if not inject.get("known") else (
+            "ok" if inject.get("foreground") else "not-foreground")
+        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s  foreground=%s inject-foreground=%s%s" % (
             name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"],
-            presentmon, foreground_text,
+            presentmon, foreground_text, inject_text,
             "" if ratio is None else " presented=%.0f%%" % (100 * ratio)))
         if result.get("excluded"):
             print("   left out: %s" % result["excluded"])
@@ -545,7 +579,8 @@ def main(argv):
         for kind, entry in result["calibration"].items():
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
         for key, stat in result.items():
-            if key in ("frames", "calibration", "state", "presentmon", "foreground", "presentation", "excluded"):
+            if key in ("frames", "calibration", "state", "presentmon", "foreground",
+                       "foreground_inject", "presentation", "excluded"):
                 continue
             if key == "ink.speed_groups":
                 print("   %-28s %s" % (key, format_speed_groups(stat)))

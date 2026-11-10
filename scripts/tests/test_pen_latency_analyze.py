@@ -249,6 +249,68 @@ class CanvasPathTest(unittest.TestCase):
         self.assertNotIn("canvas_path                                  n=0", text)
 
 
+class FocusGateTest(unittest.TestCase):
+    """Focus, outline gate and tool-action markers around a pen press.
+
+    The values reproduce the shape of the 2026-11-11 stalled official Qt run:
+    the outline stays enabled but is not visible, and the tool action is
+    deactivated after the focus changes while the presses still reach the
+    window.
+    """
+
+    def write_gate(self, directory, rows):
+        with open(os.path.join(directory, "probe.csv"), "w") as handle:
+            handle.write("# frequency=%d\n" % (TICKS_PER_MS * 1000))
+            handle.write("time,event,x,y,extra,thread\n")
+            for time, event, x, y, extra in rows:
+                handle.write("%d,%s,%.2f,%.2f,%d,1\n" % (time, event, x, y, extra))
+
+    def rows(self):
+        base = ms(1000)
+        rows = []
+        for index in range(12):
+            rows.append((base + index, "qt_event", 3, 4, 3))   # tablet press, gesture
+            rows.append((base + index, "qt_event", 4, 4, 3))   # tablet release
+        rows.append((base, "qt_event", 1, 0, 1))               # focus in, hover
+        rows.append((base + 1, "qt_event", 2, 0, 1))           # focus out, hover
+        for index in range(7845):
+            rows.append((base + index, "outline_gate", 1.0, 2.0, 3))
+        rows.append((base, "tool_action", 0, 1, 1))            # primary activated
+        rows.append((base + 1, "tool_action", 0, 1, 0))        # primary deactivated
+        return rows
+
+    def test_counts_codes_modes_and_gate_bits(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_gate(directory, self.rows())
+            result = analyze.Run(directory).analyze()
+        gate = result["focus_gate"]
+        self.assertEqual(gate["qt_event"], 26)
+        self.assertEqual(gate["qt_event_codes"], {1: 1, 2: 1, 3: 12, 4: 12})
+        self.assertEqual(gate["qt_event_modes"], {0: 2, 4: 24})
+        self.assertEqual(gate["qt_event_extra"], {1: 2, 3: 24})
+        self.assertEqual(gate["outline_gate"], 7845)
+        self.assertEqual(gate["outline_gate_extra"], {3: 7845})
+        self.assertEqual(gate["outline_gate_view_zoom"], {"min": 1.0, "max": 1.0})
+        self.assertEqual(gate["outline_gate_physical_zoom"], {"min": 2.0, "max": 2.0})
+        self.assertEqual(gate["tool_action_actions"], {0: 2})
+        self.assertEqual(gate["tool_action_extra"], {0: 1, 1: 1})
+
+    def test_summary_prints_the_gate_instead_of_an_empty_statistic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_gate(directory, self.rows())
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        text = output.getvalue()
+        self.assertIn("focus_gate", text)
+        self.assertIn("tablet_press:12", text)
+        self.assertIn("focus_out:1", text)
+        self.assertIn("outline_gate=7845{extra 3:7845}", text)
+        self.assertIn("zoom=1.00/2.00", text)
+        self.assertIn("tool_action=2{primary:2}", text)
+        self.assertNotIn("focus_gate                                   n=0", text)
+
+
 class L1MaxFrameLatencyTest(unittest.TestCase):
     """H1 (frames queued ahead) outcome from the probe log.
 

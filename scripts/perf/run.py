@@ -238,6 +238,7 @@ def summarize(run_root, hosts, scenario):
                 "state": result.get("state", {"label": "unknown"}),
                 "presentmon": result.get("presentmon", {"present": False}),
                 "foreground": result.get("foreground", {}),
+                "foreground_inject": result.get("foreground_inject", {}),
                 "excluded": result.get("excluded"),
                 "speed_groups": result.get("ink.speed_groups", []),
                 "speed_change": result.get("ink.speed_change", []),
@@ -245,6 +246,8 @@ def summarize(run_root, hosts, scenario):
         for target, data in entry["targets"].items():
             valid = usable_runs(data)
             data["excluded"] = len(data["runs"]) - len(valid)
+            data["foreground_inject_lost"] = sum(
+                1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
             data["metrics"] = aggregate(valid, scenario["metrics"])
             data["presentmon"] = {
                 status: sum(1 for run in valid if presentmon_status(run) == status)
@@ -312,6 +315,8 @@ def judge(summary, scenario, baseline=None):
                         problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
                     if data.get("excluded"):
                         notes.append("%d run(s) left out: app not foreground or not presenting" % data["excluded"])
+                    if data.get("foreground_inject_lost"):
+                        notes.append("%d run(s) lost the foreground before input" % data["foreground_inject_lost"])
                     partial = sum(1 for run in valid if presentmon_status(run) == "partial")
                     if metric_needs_presentmon(metric) and partial:
                         notes.append("%d partial PresentMon run(s) left out" % partial)

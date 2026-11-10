@@ -9,7 +9,9 @@ pointer.
 """
 
 import csv
+import contextlib
 import importlib.util
+import io
 import os
 import sys
 import tempfile
@@ -184,6 +186,39 @@ class ForegroundStateTest(unittest.TestCase):
     def test_a_not_foreground_run_without_a_probe_is_excluded(self):
         result = self.analyze(["app_foreground_capture=False"], swap_interval_ns=None)
         self.assertEqual(result["excluded"], "app not foreground")
+
+    def test_the_foreground_at_inject_start_is_read_from_the_meta(self):
+        # PenInject records the window in front right before the first sample,
+        # after one retry. It separates "in front when the capture began" from
+        # "still in front when the input began".
+        result = self.analyze([
+            "app_foreground_capture=True",
+            "foreground_inject_start=pid=1788 name=LibrePaint visible=True "
+            "same_window=True app=False retried=True",
+        ], swap_interval_ns=None)
+        self.assertEqual(result["foreground_inject"], {
+            "known": True, "foreground": False, "retried": True,
+            "pid": "1788", "name": "LibrePaint",
+        })
+
+    def test_a_run_without_the_inject_line_reports_unknown(self):
+        result = self.analyze(["app_foreground_capture=True"], swap_interval_ns=None)
+        self.assertEqual(result["foreground_inject"],
+                         {"known": False, "foreground": None, "retried": None})
+
+    def test_the_summary_shows_the_inject_foreground(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            with open(os.path.join(directory, "meta.txt"), "w") as handle:
+                handle.write("app_foreground_capture=True\n")
+                handle.write("foreground_inject_start=pid=1 name=explorer "
+                             "visible=True same_window=False app=False retried=True\n")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                capture_analyze.main([directory])
+        text = output.getvalue()
+        self.assertIn("foreground=ok", text)
+        self.assertIn("inject-foreground=not-foreground", text)
 
 
 class SimulatedDisplayTest(unittest.TestCase):
