@@ -247,7 +247,7 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 完了後に次の更新を出す。交換の信号が2表示周期来ない場合だけ、退避のタイマーで待ちを解く。
 フォーク版Qtの圧縮があるビルドは、これまでどおりQtの圧縮に任せる。
 
-隠し設定`useCanvasFrameAlignedUpdates`（kritarcの`[General]`、既定`true`）を`false`にすると、
+隠し設定`useCanvasFrameAlignedUpdates`（kritarcの空のグループ（最初の`[Group]`より前）、既定`true`）を`false`にすると、
 正式版Qtでは以前のアプリ側の圧縮に戻る。起動時に読み、再起動で反映する。設計の比較と
 出典は[`docs/perf/q4-canvas-updates.md`](../perf/q4-canvas-updates.md)にある。
 
