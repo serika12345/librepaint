@@ -232,8 +232,9 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
 L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの
 `meta.txt`の`env.*`は、集計で回ごとの切り替えを確かめるために使う。計測の開始時に
-アプリが最前面でない回（`meta.txt`の`app_foreground_capture=False`）は、ほかの窓を
-測っているため、`capture_analyze.py`が`foreground.excluded`とし、`run.py`がすべての
+アプリが最前面でなく（`app_foreground_capture=False`）、合成入力の区間の`frame_swapped`
+が表示の間隔から見た回数の80%未満の回は、覆われた窓が間引かれて入力に追従していない。
+`capture_analyze.py`はこれを`presentation.ratio`と`excluded`に残し、`run.py`がすべての
 指標の集計から外して表に「left out」の数を出す。
 
 ```sh
