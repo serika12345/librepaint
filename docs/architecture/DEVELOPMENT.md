@@ -474,6 +474,23 @@ nix build .#librepaint-windows-archive
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
 
+Q4（Qtのフォークをやめる）の準備として、正式版Qt 6.11.3で構築する別の出力を持つ。
+Qtの定義はLinuxとmacOSと同じ`nix/qt/overlay.nix`を使い、MinGWの交差構築だけを
+`nix/windows/krita.nix`の`useQtFork = false`で切り替える。フォーク版の出力と
+キャッシュは変えない。
+
+```sh
+nix build .#windows-upstream-qt-dependencies --no-link
+nix build .#librepaint-windows-upstream-qt-archive
+```
+
+依存だけの出力`windows-upstream-qt-dependencies`は、Qt・KDE Frameworks・コーデックを
+アプリの束ねから分けて構築する。中断しても、完了した依存はストアに残り、
+`librepaint-windows-upstream-qt-archive`の再実行はその続きから進む。
+正式版QtにはANGLEがないため、この版はdesktopのOpenGLだけを使う。
+HDR（`setTextureColorSpace`）は正式版にないAPIなので、この版では
+`HAVE_HDR`を強制せず、CMakeの検出結果に任せる。
+
 パッケージ構築は`scripts/platform/audit-windows-package.py`を実行し、全PEファイルが
 x86_64であること、DLLのベース名が一意であること、各インポートが同梱DLLまたは
 WindowsのシステムDLLとして解決することを確認する。同梱DLLは製品の探索先である

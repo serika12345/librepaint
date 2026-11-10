@@ -16,6 +16,23 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 根拠は、改変の差分（`gh api repos/dimula73/qtbase/commits/<sha>`）、LibrePaint の依存箇所（`git grep` の結果）、正式版 Qt 6.11.3 での扱いの3つで示す。判断は CHARTER の「一般的な水準を超えて作り込まない」に従い、公式 Krita が全プラットフォームでその改変を使っていることと、LibrePaint が既に正式版の Qt で動いている環境（Linux、macOS）を基準にする。
 
+## 正式版 Qt で構築するときのフォーク固有 API
+
+2026-11-10 に、正式版 Qt 6.11.3 の Windows 版を構築するため、LibrePaint のソースが
+フォークの API に頼る箇所を一覧にした。正式版の側を選ぶ分岐は、フォーク版の動作を
+変えない。
+
+| 箇所 | フォークの API | 正式版での扱い |
+| --- | --- | --- |
+| `plugins/dockers/smallcolorselector/KisGLImageWidget.cpp` | `QOpenGLWidget::setTextureColorSpace` | CMake の `HAVE_HDR` の検出が偽になる。Windows の正式版の構築では `-DHAVE_HDR=ON` を渡さない（`nix/windows/krita.nix` はフォーク版だけに渡す） |
+| `libs/ui/opengl/kis_opengl_canvas2.cpp`（更新の間引き、H2（表示待ちの歯止め）、H6（フォークの更新の間引きの歯止め）） | `QRhi::isLastFrameCompletedOnGPU` と `QOpenGLWidget` の更新の圧縮 | CMake の `KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH` が偽になり、LibrePaint 自身の `KisCanvas2` の圧縮を使う |
+| `libs/ui/canvas/kis_canvas2.cpp`、`libs/input/ui/*` | `QT_HAS_ENTER_LEAVE_PATCH`、`QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH` | CMake の `check_cxx_symbol_exists` が偽になり、LibrePaint 側の回避策を使う |
+| `libs/ui/opengl/kis_opengl_canvas2.cpp`（H1（先積みのフレーム数）） | ANGLE の EGL と `IDXGIDevice1` | `QT_CONFIG(egl)` が偽なのでコンパイルされない。正式版には ANGLE の経路がない |
+| `krita/main.cc` | `OpenGLRenderer` の既定 `angle` | 正式版では OpenGL ES の構成が支持されず、desktop の OpenGL に落ちる。計測では `OpenGLRenderer=desktop` を明示できる |
+
+正式版 Qt で構築する出力は `librepaint-windows-upstream-qt-archive` で、依存だけを
+構築する `windows-upstream-qt-dependencies` と分けてある（`docs/architecture/DEVELOPMENT.md`）。
+
 | まとまり | 件数 | 判定 |
 | --- | --- | --- |
 | Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（11件）、不要（7件）。H7 前段で desktop はホバー 35.4→13.6ms、インク 39.1→17.9ms（16:37 の 10 回）。ANGLE を残すかと、表示の正しさ・HDR・Wintab の確認で決める |
