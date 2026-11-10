@@ -409,6 +409,7 @@ class Run:
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
             }
+            result["canvas_path"] = summarize_canvas_path(self.events)
             result["l1_events"] = {
                 event: len(self.events.get(event, []))
                 for event in ("last_frame_completed_on_gpu", "qt_update_deferred",
@@ -554,6 +555,57 @@ def format_l1_events(events):
     return " ".join("%s=%d" % (name, count) for name, count in events.items())
 
 
+CANVAS_PATH_EVENTS = (
+    "outline_request",
+    "outline_state",
+    "canvas_outline_doc",
+    "canvas_outline_wdg",
+    "canvas_update_dispatch",
+    "canvas_update_issued",
+    "canvas_busy_defer",
+    "canvas_paint_event",
+    "canvas_initialize_gl",
+    "canvas_resize_gl",
+)
+
+CANVAS_PATH_STATES = (
+    "outline_state",
+    "canvas_outline_doc",
+    "canvas_outline_wdg",
+    "canvas_update_issued",
+    "canvas_paint_event",
+)
+
+
+def summarize_canvas_path(events):
+    """Where the canvas update path stopped, from the probe markers.
+
+    The counts alone separate "no update was requested" from "the request was
+    dropped before the canvas", and the extra bit histograms name the state
+    that stopped it (no paint op preset, an empty widget rect, a dropped paint
+    event).
+    """
+    summary = {name: len(events.get(name, [])) for name in CANVAS_PATH_EVENTS}
+    for name in CANVAS_PATH_STATES:
+        values = collections.Counter(int(entry[3]) for entry in events.get(name, []))
+        if values:
+            summary[name + "_extra"] = dict(sorted(values.items()))
+    return summary
+
+
+def format_canvas_path(entry):
+    """One line per run: counts and extra-bit histograms of the update path."""
+    parts = []
+    for name in CANVAS_PATH_EVENTS:
+        text = "%s=%d" % (name, entry.get(name, 0))
+        values = entry.get(name + "_extra")
+        if values:
+            text += "{%s}" % ",".join(
+                "%d:%d" % (key, count) for key, count in values.items())
+        parts.append(text)
+    return " ".join(parts)
+
+
 def format_l1_last_frame_completed(entry):
     """Share of frames whose predecessor had finished on the GPU."""
     n = entry.get("n", 0)
@@ -630,6 +682,9 @@ def main(argv):
                 continue
             if key == "l1_events":
                 print("   %-44s %s" % (key, format_l1_events(stat)))
+                continue
+            if key == "canvas_path":
+                print("   %-44s %s" % (key, format_canvas_path(stat)))
                 continue
             if key == "l1_last_frame_completed":
                 print("   %-44s %s" % (key, format_l1_last_frame_completed(stat)))

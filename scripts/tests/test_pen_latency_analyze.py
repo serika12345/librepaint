@@ -198,6 +198,57 @@ class L1SignalTest(unittest.TestCase):
         self.assertNotIn("l1_events                                    n=0", text)
 
 
+class CanvasPathTest(unittest.TestCase):
+    """Where the canvas update path stopped, from the probe markers.
+
+    The values reproduce the 2026-11-10 22:55 official Qt run: 7845 outline
+    requests, but only 31 canvas updates (only the first few reached
+    slotDoCanvasUpdate) and 8 paints, with the canvas widget size missing.
+    """
+
+    def write_path(self, directory, outline_requests, dispatch, paint_events, widget_size):
+        width, height = widget_size
+        rows = []
+        for index in range(outline_requests):
+            rows.append((ms(1000) + index, "outline_request", 2))
+            rows.append((ms(1000) + index, "outline_state", 7))
+        for index in range(dispatch):
+            rows.append((ms(1000) + index, "canvas_update_dispatch", 0))
+            rows.append((ms(1000) + index, "canvas_outline_wdg", 1, width))
+            rows.append((ms(1000) + index, "canvas_outline_doc", 0, 1800.0))
+        for index in range(paint_events):
+            rows.append((ms(1000) + index, "canvas_paint_event", 1))
+        write_run(directory, rows, [])
+        return height
+
+    def test_counts_and_state_bits_come_from_the_probe_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_path(directory, 7845, 31, 8, (0, 0))
+            result = analyze.Run(directory).analyze()
+        path = result["canvas_path"]
+        self.assertEqual(path["outline_request"], 7845)
+        self.assertEqual(path["outline_state"], 7845)
+        self.assertEqual(path["outline_state_extra"], {7: 7845})
+        self.assertEqual(path["canvas_update_dispatch"], 31)
+        self.assertEqual(path["canvas_outline_wdg_extra"], {1: 31})
+        self.assertEqual(path["canvas_paint_event"], 8)
+        self.assertEqual(path["canvas_paint_event_extra"], {1: 8})
+
+    def test_summary_prints_the_path_instead_of_an_empty_statistic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_path(directory, 7845, 31, 8, (0, 0))
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        text = output.getvalue()
+        self.assertIn("canvas_path", text)
+        self.assertIn("outline_request=7845", text)
+        self.assertIn("outline_state=7845{7:7845}", text)
+        self.assertIn("canvas_update_dispatch=31", text)
+        self.assertIn("canvas_paint_event=8{1:8}", text)
+        self.assertNotIn("canvas_path                                  n=0", text)
+
+
 class L1MaxFrameLatencyTest(unittest.TestCase):
     """H1 (frames queued ahead) outcome from the probe log.
 
