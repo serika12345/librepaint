@@ -118,11 +118,29 @@ Android・iOS の現在の構築での値である。
 | Windows の ANGLE と OpenGL ES の経路（18：保留 11、不要 7） | `QT_CONFIG(egl)`（`libs/ui/opengl/kis_opengl_canvas2.cpp:77, 526`）、`KisOpenGL::RendererOpenGLES`、`OpenGLRenderer` の既定 `angle`（`krita/main.cc:657`）、`QT_USE_PREMATURE_RESIZE_EVENTS` ほか、`nix/windows/krita.nix:99, 653` | ANGLE をやめるなら 11 件は不要になる。HDR の 2 件（`7ad4a8bc17`、`70086804f9`）は HDR の判断に従う。desktop の表示の正しさと CPU・電力を確認する |
 | 画面更新の間引き（10：保留 3、不要 7） | `KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH`、`main.cc:737`、`kis_canvas2.cpp` の圧縮、`kis_opengl_canvas2.cpp` の飛ばし | Qt の圧縮を外し、`KisCanvas2` の 1 系統にする。部分再描画（`e121cb08e5`）、fast transfer（`fb923e4a97`）、クリップ（`f1cf04e958`）の 3 件は個別に確認する |
 | HDR と色変換（4：保留 4） | `HAVE_HDR`、`QOpenGLWidget::setTextureColorSpace`、`KisSurfaceColorSpaceWrapper` の色空間 | HDR を残すなら色変換を LibrePaint 側に作る。やめるなら `HAVE_HDR` の分岐と設定ページを外す。利用者の判断が要る |
-| Windows のペン入力（14：必要 9、保留 2、不要 3） | `KRITA_QT_HAS_ENTER_LEAVE_PATCH`、`QT_WINTAB_DESKTOP_RECT` / `QT_IGNORE_WINTAB_MAPPING`、タッチの受理（`a60ed01a25`） | 必要 9 件を公式に取り込むか、LibrePaint 側で作り直す。Wintab の相対モードとタッチは実機で確認する |
+| Windows のペン入力（14：必要 9、保留 2、不要 3） | `KRITA_QT_HAS_ENTER_LEAVE_PATCH`、`QT_WINTAB_DESKTOP_RECT` / `QT_IGNORE_WINTAB_MAPPING`、タッチの受理（`a60ed01a25`） | 必要 9 件を公式に取り込むか、LibrePaint 側で作り直す。Wintab の相対モードとタッチは実機で確認する。Wintab の対応範囲は Qt6 で実際に使われているかを先に確認する（2.6） |
 | Wayland のペン入力とウィンドウ（10：正式版で解決済み 3、保留 4、不要 3） | ソース側の分岐はない（Qt の内部の修正）。`KRITA_QT_HAS_XKB_CONTEXT_IN_NATIVE_INTERFACE` はキーボード用で別 | 正式版で解決済みの 3 件はそのまま。保留 4 件は Wayland で実際のペンを使って確認する |
 | キーボードとショートカット（12：必要 2、LibrePaint 側で代替 3、保留 5、不要 2） | `KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH`、`KisShortcutMatcher` の ShortcutOverride の扱い | 代替 3 件は Windows でも回避コードを有効にする。必要 2 件は公式に取り込むか、`KisShortcutMatcher` 側で対処する。日本語配列で確認する |
 | 不具合とクラッシュの修正（13：正式版で解決済み 2、保留 2、不要 9） | なし（`d850335b2d` はクリップボード、`8dadf099b8` はドック） | Chrome / Edge への貼り付けと、ドックを外して戻す操作を確認する |
 | その他（11：LibrePaint 側で代替 1、正式版で解決済み 1、不要 9） | `HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE`、`QT_DISABLE_ACCESSIBILITY`、`KRITA_QSCROLLER_PATCH`（検出だけ） | 窓の題名を `KisMainWindow` 側で設定する。アクセシビリティの設定項目の扱いを決める。`QScroller` の検出は消す |
+
+### 2.6 ソースを読んで分かった確認点
+
+- `KisDlgCustomTabletResolution`（Wintab の対応範囲のダイアログ）は、Qt5 の起動時の
+  `krita/main.cc:895-910` と、ダイアログの `accept()`（`KisDlgCustomTabletResolution.cpp:99`）から
+  だけ呼ばれている。Qt6 でこのダイアログを開く入口は、ソースの検索では見つからなかった。
+  したがって `051139ed72` の「必要」は、Qt5 のコードと過去の UI に基づく判定である。Q4（フォークを
+  やめ、全プラットフォームで正式版の同じ Qt にする）の前に、Qt6 でこの設定が実際に使われているか
+  （設定の読み込みと `QT_WINTAB_DESKTOP_RECT` の適用が起きているか）を確かめる。
+- Qt6 で Wintab と Windows Ink のどちらを使うかを切り替えるコードも、`QT_VERSION < 6.0` の
+  分岐（`krita/main.cc:896, 1144`）にしかない。Qt6 の設定画面は `useWin8PointerInput` を表示するが、
+  それが Qt6 の入力経路に反映されるかを確かめる必要がある。反映されていないなら、この設定項目は
+  Q4（フォークをやめ、全プラットフォームで正式版の同じ Qt にする）の前後で同じ（効かない）である。
+- Android の 5 つのマクロは、現在の Android の構築が使う正式版 Qt 6.11.3 では偽になる。Q4（フォークを
+  やめ、全プラットフォームで正式版の同じ Qt にする）で新たに失う機能ではない。
+- `HAVE_HDR` は Windows だけで検査する。Linux と macOS は、Wayland の画面色管理を使う場合を除き、
+  8bit の sRGB である。HDR の確認は外部の HDR 画面が要る。
+
 
 ## 3. 正式版 Qt にしたときに失われる機能（利用者に見える違い）
 
@@ -134,7 +152,7 @@ Android、iOS は「今」も正式版なので、この表の「後」と同じ
 | ANGLE（OpenGL ES を Direct3D に変換する経路） | Windows の既定。`OpenGLRenderer=angle` | ANGLE がない。desktop の OpenGL に落ちる | GPU とドライバーによっては起動しない、または表示が違うおそれ。遅れは desktop の方が小さい（H7（フォークなし・ANGLE を使わない OpenGL）の前段で −21.8 / −21.2ms） | Krita Manual「Display Settings」の ANGLE の説明（https://docs.krita.org/en/reference_manual/preferences/display_settings.html）、DECISIONS.md 2026-11-10、`nix/windows/krita.nix:99, 653` | desktop を既定にする案を推奨。表示の正しさ、HDR、Wintab、CPU・電力を確認してから決める |
 | ANGLE のリサイズ・ダイアログのちらつきの回避 | `QT_USE_PREMATURE_RESIZE_EVENTS` ほかを設定 | 環境変数は無視される。ANGLE がないので通常は関係しない | desktop の OpenGL でリサイズやダイアログのちらつきが出るかは未確認 | `1a543f2832`、`02216d26ba`、`77d2b02daf` のコミットメッセージ（https://github.com/dimula73/qtbase/commit/1a543f2832） | desktop でリサイズとダイアログを確認する |
 | HDR（10bit、scRGB、Rec.2020 PQ） | HDR の設定ページがあり、HDR の画面を選べる | 8bit の sRGB だけ（Wayland の画面色管理を使う場合は 10bit まで）。HDR の設定ページは無効 | HDR の画面で、明るい色と階調の見え方が SDR になる | Krita Manual「HDR Display」（https://docs.krita.org/en/reference_manual/hdr_display.html）、`HAVE_HDR` の使用箇所、`7ad4a8bc17`、`70086804f9` | 利用者の判断。残すなら色変換を LibrePaint 側に作る。やめるなら設定ページと `HAVE_HDR` の分岐を外す |
-| Wintab の対応範囲の設定 | 「タブレットが提供する情報」「仮想画面全体」「任意の矩形」を選べる | 環境変数が無視され、設定が効かない | Surface Pro 5 のような内蔵タブレットの機器や複数画面で、ペンの位置がずれるおそれ | Krita Manual「Tablet Settings」の Advanced Tablet Settings（https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html）、`051139ed72`、`KisDlgCustomTabletResolution.cpp:149-161` | 公式に取り込むか、LibrePaint 側でタブレットの座標を変換する。Surface で確認する |
+| Wintab の対応範囲の設定 | 「タブレットが提供する情報」「仮想画面全体」「任意の矩形」を選べる（Qt6 でこのダイアログを開く入口はソースの検索では見つからない。2.6） | 環境変数が無視され、設定が効かない | Surface Pro 5 のような内蔵タブレットの機器や複数画面で、ペンの位置がずれるおそれ。Qt6 で設定自体が使われていないなら、この差は出ない | Krita Manual「Tablet Settings」の Advanced Tablet Settings（https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html）、`051139ed72`、`KisDlgCustomTabletResolution.cpp:149-161` | 公式に取り込むか、LibrePaint 側でタブレットの座標を変換する。Qt6 で設定が使われているかを先に確認する |
 | Wintab の相対モード | フォークは相対モードを切っている（`7bb46828ae`） | 正式版は相対モードを切らない可能性がある | Wintab のドライバーによっては、ペンの座標が飛ぶ、またはカーソルが相対移動になるおそれ | `7bb46828ae`（https://github.com/dimula73/qtbase/commit/7bb46828ae）、`docs/perf/qt-fork-patches.md` の「保留」 | 実際の Wintab ドライバーで確認する。Surface の合成入力は WM_POINTER なので、この確認には別のタブレットが要る |
 | Windows Ink の押下と Enter/Leave | 押下がツールに届き、長押しが右クリックにならず、ホバーの状態が途切れない | 押下が届かない、長押しが右クリックになる、ホバーが途切れるおそれ | キャンバスが描き直されない、線が始まらない、メニューの操作が誤る | `33a49f25d1`、`f5a75c4071`、`41adadd8db`、`8f8eabfb72`、`c132390390`、`0027358f20`、KDE bug 409613 / 424319 | 必要 9 件を公式に取り込むか、LibrePaint 側で Enter の復帰（`176a8164a3`）と押下の処理を作り直す |
 | タッチの受理 | ウィジェットがタッチを受理し、Windows のグローバルなジェスチャーや合成マウスを抑えられる | 受理の制御ができない | タッチのパン・ズームと描画が、ペンの操作と競合するおそれ | `a60ed01a25`（https://github.com/dimula73/qtbase/commit/a60ed01a25） | Surface のタッチで確認する。失ってよいかの判断は利用者 |
