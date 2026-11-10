@@ -59,8 +59,19 @@ import capture_analyze  # noqa: E402
 
 
 def kritarc_text(scenario):
-    lines = []
-    for section, values in scenario.get("kritarc", {}).items():
+    """Render the scenario's kritarc for the Linux and macOS runners.
+
+    LibrePaint reads KisConfig and KisImageConfig from the empty group, which
+    KConfig keeps before the first "[Group]" line; Krita does not read
+    "General". The scenario names its runtime settings "General", so those
+    keys are written as root keys and any other section follows as a group.
+    """
+    sections = scenario.get("kritarc", {})
+    general = sections.get("General", {})
+    lines = ["%s=%s" % (key, value) for key, value in general.items()]
+    for section, values in sections.items():
+        if section == "General":
+            continue
         lines.append("[%s]" % section)
         lines.extend("%s=%s" % (key, value) for key, value in values.items())
     return "\n".join(lines) + "\n"

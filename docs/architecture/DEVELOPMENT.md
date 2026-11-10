@@ -380,6 +380,12 @@ MACOS_CAPTURE=/path/macos_capture \
   scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
 ```
 
+`run-linux.sh`と`run-macos.sh`は、既定のkritarcを空のグループ（最初の`[Group]`より前）に
+書く。LibrePaintの`KisConfig`と`KisImageConfig`は`KConfigGroup::group(QString())`を読むため、
+`[General]`に書いた`newOutlineStyle`、`fpsLimit`、`newCursorStyle`は効かない（2026-11-09以前の
+Linuxの計測はこの状態で、設定は既定のままだった）。`run.py`はシナリオの`General`のキーを
+空のグループのキーとして書き出す。
+
 複数の機器と対象をまとめて計測するときは、`scripts/perf/run.py`を使う。シナリオ
 （`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、ばらつきの上限、悪化と判定する差を定め、
 手元の機器の設定（`scripts/perf/hosts.example.json`を写した`build/perf/hosts.json`。Git の管理外）が

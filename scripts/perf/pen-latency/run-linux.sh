@@ -10,13 +10,16 @@
 # Usage: run-linux.sh NAME RUNS WORK OUT_DIR -- COMMAND [ARGS...]
 #   COMMAND receives the canvas path as its last argument.
 # Environment: KRITARC (default: newCursorStyle=0, newOutlineStyle=2,
-#   fpsLimit=100), SETTLE_SECONDS before the capture tool starts waiting for
-#   the canvas (default 5), TRAJECTORY_JSON. The application receives
-#   REFERENCE_LOG=<run>/reference.log (used by the reference applications).
+#   fpsLimit=100 in the empty group), SETTLE_SECONDS before the capture tool
+#   starts waiting for the canvas (default 5), TRAJECTORY_JSON. The
+#   application receives REFERENCE_LOG=<run>/reference.log (used by the
+#   reference applications). LibrePaint reads KisConfig and KisImageConfig
+#   from the empty group (the keys before the first [Group] line), so the
+#   defaults and the scenario settings must not be written to [General].
 set -euo pipefail
 
 if [ "$#" -lt 6 ] || [ "$5" != "--" ]; then
-  sed -n '4,13p' "$0" >&2
+  sed -n '4,18p' "$0" >&2
   exit 2
 fi
 name=$1 runs=$2 work=$3 out=$4
@@ -28,7 +31,7 @@ eval "$(systemctl --user show-environment | grep -E '^(DISPLAY|WAYLAND_DISPLAY|X
 settle=${SETTLE_SECONDS:-5}
 trajectory=${TRAJECTORY_JSON:-}
 [ -n "$trajectory" ] || trajectory='{}'
-kritarc=${KRITARC:-$'[General]\nnewCursorStyle=0\nnewOutlineStyle=2\nfpsLimit=100\n'}
+kritarc=${KRITARC:-$'newCursorStyle=0\nnewOutlineStyle=2\nfpsLimit=100\n'}
 mkdir -p "$work" "$out"
 python3 -I "$here/canvas.py" "$work/canvas.png"
 

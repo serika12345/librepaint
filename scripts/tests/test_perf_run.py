@@ -261,6 +261,14 @@ class RunnerCommandTest(unittest.TestCase):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
 
+    def test_linux_scenario_kritarc_lands_in_the_empty_group(self):
+        scenario = {"kritarc": {"General": {"newOutlineStyle": "2", "fpsLimit": "100"}}}
+        self.assertEqual(run.kritarc_text(scenario), "newOutlineStyle=2\nfpsLimit=100\n")
+        scenario["kritarc"]["Other"] = {"key": "value"}
+        self.assertEqual(run.kritarc_text(scenario),
+                         "newOutlineStyle=2\nfpsLimit=100\n[Other]\nkey=value\n")
+
+
 class PresentMonAggregateTest(unittest.TestCase):
     def run_result(self, status, hover, display):
         return {
