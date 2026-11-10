@@ -239,18 +239,6 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 `capture_analyze.py`はこれを`presentation.ratio`と`excluded`に残し、`run.py`がすべての
 指標の集計から外して表に「left out」の数を出す。
 
-### キャンバスの更新のまとめ方
-
-正式版QtのOpenGLキャンバスでは、`KisCanvasFrameUpdateGate`がすべてのキャンバス更新を
-まとめ、`QOpenGLWidget::frameSwapped`（画面合成と交換の完了）を契機に表示1回につき最大1回
-だけ`slotDoCanvasUpdate()`を呼ぶ。前のフレームの表示中に来た更新は領域だけを溜め、交換の
-完了後に次の更新を出す。交換の信号が2表示周期来ない場合だけ、退避のタイマーで待ちを解く。
-フォーク版Qtの圧縮があるビルドは、これまでどおりQtの圧縮に任せる。
-
-隠し設定`useCanvasFrameAlignedUpdates`（kritarcの空のグループ（最初の`[Group]`より前）、既定`true`）を`false`にすると、
-正式版Qtでは以前のアプリ側の圧縮に戻る。起動時に読み、再起動で反映する。設計の比較と
-出典は[`docs/perf/q4-canvas-updates.md`](../perf/q4-canvas-updates.md)にある。
-
 `hosts.json`のWindowsの対象には、`env`とは別に`kritarc`を書ける。値はkritarcの
 空のグループ（最初の`[Group]`より前）のキーで、L2（Windowsの遅れを直す）の
 `useMaximumFrameLatencyOne=false`のように隠し設定を回ごとに変えるために使う。
