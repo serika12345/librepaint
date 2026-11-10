@@ -2,13 +2,20 @@
   pkgs,
   source,
   auditWindowsPackage,
+  useQtFork ? true,
+  pnameSuffix ? "",
 }:
 
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
   librepaintUnwrapped = import ./krita.nix {
-    inherit pkgs source;
+    inherit
+      pkgs
+      source
+      useQtFork
+      pnameSuffix
+      ;
   };
   incrementalDiscardedHooks = [
     "preUnpack"
@@ -96,7 +103,7 @@ let
     rootPaths = [ librepaintUnwrapped ] ++ portableRuntimeDependencies;
   };
 
-  librepaint = buildPkgs.runCommand "librepaint-windows-${librepaintUnwrapped.version}"
+  librepaint = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-${librepaintUnwrapped.version}"
     {
       nativeBuildInputs = [
         buildPkgs.coreutils
@@ -340,7 +347,7 @@ let
         --objdump ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}objdump
     '';
 
-  librepaintArchive = buildPkgs.runCommand "librepaint-windows-archive-${librepaintUnwrapped.version}"
+  librepaintArchive = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-archive-${librepaintUnwrapped.version}"
     {
       nativeBuildInputs = [
         buildPkgs.coreutils
@@ -354,7 +361,17 @@ let
       find . -print | LC_ALL=C sort | zip -X -9 "$out/LibrePaint-${librepaintUnwrapped.version}-x86_64-windows.zip" -@
     '';
 
-  windowsDependencies = buildPkgs.runCommand "librepaint-windows-dependencies"
+  # Dependency-only output: forces the Qt, KDE and codec builds without the
+  # application, so a failed or interrupted bundle build can resume after the
+  # dependencies are in the store.
+  dependencyInputs = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-dependency-inputs"
+    { }
+    ''
+      mkdir -p "$out/nix-support"
+      printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
+        > "$out/nix-support/dependency-members"
+    '';
+  windowsDependencies = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-dependencies"
     { }
     ''
       mkdir -p "$out/nix-support"
@@ -384,6 +401,7 @@ let
 in
 {
   inherit
+    dependencyInputs
     devShell
     incrementalEnv
     librepaint

@@ -1003,6 +1003,16 @@
         source = linuxBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
       };
+      # Q4 (removing the Qt fork) uses official Qt 6.11.3 from the shared
+      # overlay.  Keep it a separate package set so the fork build and its
+      # cached dependencies stay untouched.
+      windowsUpstreamQtPackages = import ./nix/windows {
+        pkgs = windowsPkgs;
+        source = linuxBuildSource;
+        auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
+        useQtFork = false;
+        pnameSuffix = "-upstream-qt";
+      };
       policyTools =
         packageSet: with packageSet; [
           bash
@@ -1253,6 +1263,10 @@
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
         windows-dependencies = windowsPackages.windowsDependencies;
+        librepaint-windows-upstream-qt = windowsUpstreamQtPackages.librepaint;
+        librepaint-windows-upstream-qt-archive = windowsUpstreamQtPackages.librepaintArchive;
+        librepaint-windows-upstream-qt-unwrapped = windowsUpstreamQtPackages.librepaintUnwrapped;
+        windows-upstream-qt-dependencies = windowsUpstreamQtPackages.dependencyInputs;
       };
 
       checks.${system} = {
