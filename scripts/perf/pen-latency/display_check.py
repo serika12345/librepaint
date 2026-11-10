@@ -394,9 +394,10 @@ def analyze(capture_path, original_path):
     color_row = best_row(capture, saturated, wants_gray=False)
     gray_row = best_row(capture, grays, wants_gray=True)
     stripe = stripe_row(capture)
+    width = capture.width
 
     color_stats = None
-    if color_row and color_row[1]:
+    if color_row and color_row[1] and sum(run[1] for run in color_row[1]) >= width * 0.15:
         runs = _full_runs(color_row[1])
         diffs = [max(abs(run[3][i] - run[2][i]) for i in range(3)) for run in runs]
         color_stats = {
@@ -408,7 +409,7 @@ def analyze(capture_path, original_path):
         }
 
     gray_stats = None
-    if gray_row and gray_row[1]:
+    if gray_row and gray_row[1] and sum(run[1] for run in gray_row[1]) >= width * 0.15:
         runs = gray_row[1]
         levels = [run[2][0] for run in runs]
         diffs = [abs(run[3][0] - run[2][0]) for run in runs]
@@ -424,20 +425,28 @@ def analyze(capture_path, original_path):
     if stripe:
         line_stats = stripe_metrics(capture, stripe[0], stripe[1])
 
-    scale_candidates = []
-    if color_row and color_row[1]:
-        for run in _full_runs(color_row[1]):
-            scale_candidates.append(run[1] / source["color_width"])
+    # The grey band is wider than one 100 % capture can show, so its full runs
+    # give the most reliable scale. The colour bands and the line grid are
+    # fallbacks for a capture that shows only one grey level.
+    scale_runs = []
+    scale_width = None
     if gray_row and gray_row[1]:
-        for run in _full_runs(gray_row[1]):
-            scale_candidates.append(run[1] / source["gray_width"])
-    scale = round(sorted(scale_candidates)[len(scale_candidates) // 2], 3) if scale_candidates else None
+        scale_runs = _full_runs(gray_row[1])
+        scale_width = source["gray_width"]
+    if len(scale_runs) < 2 and color_row and color_row[1]:
+        scale_runs = _full_runs(color_row[1])
+        scale_width = source["color_width"]
+    if len(scale_runs) < 1 and gray_row and gray_row[1]:
+        scale_runs = _full_runs(gray_row[1])
+        scale_width = source["gray_width"]
+    scale = (round(sorted(run[1] for run in scale_runs)[len(scale_runs) // 2] / scale_width, 3)
+             if scale_runs else None)
 
     if line_stats and scale:
         line_stats["source_line_px"] = round(line_stats["line_px"] / scale, 2)
 
     edge_stats = None
-    edge_source = color_row if color_row and color_row[1] else gray_row
+    edge_source = color_row if color_stats else (gray_row if gray_stats else None)
     if edge_source and edge_source[1]:
         widths = transition_widths(capture, edge_source[0], edge_source[1])
         if widths:
