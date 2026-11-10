@@ -394,6 +394,16 @@ void KisShortcutMatcher::enterEvent()
     }
 }
 
+bool KisShortcutMatcher::cursorEntered() const
+{
+    return m_d->cursorEntered;
+}
+
+bool KisShortcutMatcher::suppressAllActions() const
+{
+    return m_d->suppressAllActions;
+}
+
 void KisShortcutMatcher::leaveEvent()
 {
     Private::RecursionNotifier notifier(this);

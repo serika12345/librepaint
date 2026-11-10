@@ -80,10 +80,16 @@ class QCoreApplication;
  * one that was dropped before it (2026-11-11: official Qt Windows builds
  * stopped repainting after the first press in 2 of 8 runs). qt_event records
  * FocusIn (x = 1), FocusOut (2), TabletPress (3), TabletRelease (4),
- * MouseButtonPress (5) and MouseButtonRelease (6); y = the active tool mode
- * (-1 without a tool) and extra bit 1 = the pointer is inside the canvas,
- * bit 2 = mouse events are blocked. outline_gate records one outline request:
- * x = the view zoom, y = the effective physical zoom, extra bit 1 = the tool
+ * MouseButtonPress (5), MouseButtonRelease (6), Enter (7) and Leave (8);
+ * y = the active tool mode (-1 without a tool) and extra bit 1 = the pointer
+ * is inside the canvas, bit 2 = mouse events are blocked, bit 4 = the
+ * shortcut matcher has seen the pointer enter, bit 8 = all actions are
+ * suppressed, bit 16 = a popup widget is registered. A TabletPress records
+ * one row when it is seen and, when it survives the popup check, a second
+ * row just before the shortcut matcher is called with extra bit 32 set; a
+ * press without that second row never reached the matcher. outline_gate
+ * records one outline request: x = the view zoom, y = the effective physical
+ * zoom, extra bit 1 = the tool
  * supports an outline, bit 2 = the outline is enabled, bit 4 = it is visible,
  * bit 8 = the configured outline style is visible, bit 16 = hover mode,
  * bit 32 = paint mode, bit 64 = the outline is shown while painting,

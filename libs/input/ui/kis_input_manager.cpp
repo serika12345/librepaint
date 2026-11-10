@@ -347,7 +347,10 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
     // canvas stopped repainting after the first press, and the probe log could
     // not tell a lost focus from a press that never reached the tool.
     // x = event code, y = the active tool mode, extra bit 1 = the pointer is
-    // inside the canvas, bit 2 = mouse events are blocked.
+    // inside the canvas, bit 2 = mouse events are blocked, bit 4 = the
+    // shortcut matcher has seen the pointer enter, bit 8 = all actions are
+    // suppressed, bit 16 = a popup widget is registered, bit 32 = the press
+    // reached the matcher (recorded again just before the call).
     {
         int code = 0;
         switch (event->type()) {
@@ -357,13 +360,18 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         case QEvent::TabletRelease: code = 4; break;
         case QEvent::MouseButtonPress: code = 5; break;
         case QEvent::MouseButtonRelease: code = 6; break;
+        case QEvent::Enter: code = 7; break;
+        case QEvent::Leave: code = 8; break;
         default: break;
         }
         if (code) {
             KisLatencyProbe::mark("qt_event", code,
                 d->toolProxy ? d->toolProxy->activeToolMode() : -1,
                 (d->containsPointer ? 1 : 0) |
-                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0));
+                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0) |
+                    (d->matcher.cursorEntered() ? 4 : 0) |
+                    (d->matcher.suppressAllActions() ? 8 : 0) |
+                    (d->popupWidget ? 16 : 0));
         }
     }
 
@@ -700,17 +708,34 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
                 KoInputDevice::convertPointerType(tabletEvent),
                 uniqueId);
             KoToolManager::instance()->switchInputDeviceRequested(inputDevice);
+#endif
 
+#ifndef Q_OS_ANDROID
             // A tablet press delivered to this event filter proves that the
-            // pointer is inside the canvas. Qt iOS does not synthesize Enter
-            // for a non-hovering Pencil, while the shortcut matcher requires
-            // it before enabling the Tool Invocation action.
+            // pointer is inside the canvas. Qt sometimes drops the Enter event
+            // (2026-11-11: 2 of 8 official Qt Windows runs stopped repainting
+            // after the first press because the matcher never saw the pointer
+            // enter), while the shortcut matcher requires it before enabling
+            // the Tool Invocation action. Recover before the press; a run
+            // where Enter arrived already has containsPointer set and takes
+            // the same path as before. L1 experiment for the Q4 (official Qt)
+            // preset; remove it once a measurement session of 10 runs shows no
+            // stalled first press.
             if (!d->containsPointer) {
                 d->containsPointer = true;
                 d->touchHasBlockedPressEvents = false;
                 d->matcher.enterEvent();
             }
 #endif
+
+            KisLatencyProbe::mark("qt_event", 3,
+                d->toolProxy ? d->toolProxy->activeToolMode() : -1,
+                (d->containsPointer ? 1 : 0) |
+                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0) |
+                    (d->matcher.cursorEntered() ? 4 : 0) |
+                    (d->matcher.suppressAllActions() ? 8 : 0) |
+                    (d->popupWidget ? 16 : 0) |
+                    32);
 
             retval = d->matcher.buttonPressed(tabletEvent->button(), tabletEvent);
             if (!d->containsPointer) {

@@ -335,6 +335,30 @@ class FocusGateTest(unittest.TestCase):
         self.assertEqual(gate["tool_action_actions"], {0: 2})
         self.assertEqual(gate["tool_action_extra"], {0: 1, 1: 1})
 
+    def test_counts_a_delivered_press_and_enter_leave_separately(self):
+        rows = self.rows()
+        base = ms(1000)
+        for index in range(12):
+            rows.append((base + index, "qt_event", 3, 4, 3 | 32))
+        rows.append((base, "qt_event", 7, 0, 5))     # enter, inside + matcher entered
+        rows.append((base + 1, "qt_event", 8, 0, 0))  # leave
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_gate(directory, rows)
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        gate = result["focus_gate"]
+        self.assertEqual(gate["qt_event"], 28)
+        self.assertEqual(gate["qt_event_delivered"], 12)
+        self.assertEqual(gate["qt_event_delivered_extra"], {35: 12})
+        self.assertEqual(gate["qt_event_codes"],
+                         {1: 1, 2: 1, 3: 12, 4: 12, 7: 1, 8: 1})
+        text = output.getvalue()
+        self.assertIn("qt_event_delivered=12{extra 35:12}", text)
+        self.assertIn("enter:1", text)
+        self.assertIn("leave:1", text)
+
     def test_summary_prints_the_gate_instead_of_an_empty_statistic(self):
         with tempfile.TemporaryDirectory() as directory:
             self.write_gate(directory, self.rows())

@@ -773,6 +773,8 @@ QT_EVENT_CODES = {
     4: "tablet_release",
     5: "mouse_press",
     6: "mouse_release",
+    7: "enter",
+    8: "leave",
 }
 
 TOOL_MODES = {
@@ -811,10 +813,19 @@ def summarize_focus_gate(events):
     summary = {name: len(events.get(name, [])) for name in FOCUS_GATE_EVENTS}
 
     qt = events.get("qt_event", [])
+    # A press records one row when it is seen and one when it reaches the
+    # shortcut matcher (extra bit 32). Keep the delivered rows apart so the
+    # press count stays one per press and a missing delivery is visible.
+    delivered = [entry for entry in qt if int(entry[3]) & 32]
+    qt = [entry for entry in qt if not int(entry[3]) & 32]
+    summary["qt_event"] = len(qt)
     if qt:
         summary["qt_event_codes"] = dict(sorted(collections.Counter(int(entry[1]) for entry in qt).items()))
         summary["qt_event_modes"] = dict(sorted(collections.Counter(int(entry[2]) for entry in qt).items()))
         summary["qt_event_extra"] = dict(sorted(collections.Counter(int(entry[3]) for entry in qt).items()))
+    if delivered:
+        summary["qt_event_delivered"] = len(delivered)
+        summary["qt_event_delivered_extra"] = dict(sorted(collections.Counter(int(entry[3]) for entry in delivered).items()))
 
     gate = events.get("outline_gate", [])
     if gate:
@@ -860,6 +871,13 @@ def format_focus_gate(entry):
             text += " modes{%s}" % _named_list(entry["qt_event_modes"], TOOL_MODES)
         if entry.get("qt_event_extra"):
             text += " extra{%s}" % _pair_list(entry["qt_event_extra"])
+        parts.append(text)
+
+    delivered = entry.get("qt_event_delivered")
+    if delivered:
+        text = "qt_event_delivered=%d" % delivered
+        if entry.get("qt_event_delivered_extra"):
+            text += "{extra %s}" % _pair_list(entry["qt_event_delivered_extra"])
         parts.append(text)
 
     count = entry.get("outline_gate", 0)

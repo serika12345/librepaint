@@ -181,6 +181,20 @@ public:
     void enterEvent();
 
     /**
+     * Return whether the matcher has seen the pointer enter the canvas.
+     *
+     * Actions cannot start while this is false, so a lost Enter leaves the
+     * canvas without a tool action. KisInputManager records this state before
+     * and after a pen press to tell a lost Enter from a swallowed press.
+     */
+    bool cursorEntered() const;
+
+    /**
+     * Return whether all actions are suppressed from outside.
+     */
+    bool suppressAllActions() const;
+
+    /**
      * Handle cursor's Leave event.
      * We never eat it because it might be used by someone else
      */
