@@ -62,6 +62,30 @@ def scaled(picture, factor):
     return display.Picture(width, height, rgb)
 
 
+def cropped(picture, x0, y0, width, height):
+    rgb = bytearray(width * height * 3)
+    for y in range(height):
+        source = 3 * ((y0 + y) * picture.width + x0)
+        target = 3 * y * width
+        rgb[target:target + 3 * width] = picture.rgb[source:source + 3 * width]
+    return display.Picture(width, height, rgb)
+
+
+def on_screen(picture, screen_width, screen_height, x0, y0):
+    """Paste a canvas into a desktop-like picture with a UI and wallpaper."""
+    background = (12, 34, 56)
+    rgb = bytearray(bytes(background) * (screen_width * screen_height))
+    for y in range(picture.height):
+        source = 3 * y * picture.width
+        target = 3 * ((y0 + y) * screen_width + x0)
+        rgb[target:target + 3 * picture.width] = picture.rgb[source:source + 3 * picture.width]
+    # A window border and a menu strip, neither of which uses a source colour.
+    for y in range(y0 - 8, y0):
+        target = 3 * (y * screen_width)
+        rgb[target:target + 3 * screen_width] = bytes((70, 70, 70)) * screen_width
+    return display.Picture(screen_width, screen_height, rgb)
+
+
 class DecodeTest(unittest.TestCase):
     def test_png_and_bmp_round_trip(self):
         picture = synthetic(32, 32)
@@ -132,6 +156,38 @@ class AnalyzeTest(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertFalse(result["checks"]["lines"])
 
+
+class CanvasTest(unittest.TestCase):
+    def analyze(self, capture, original):
+        with tempfile.TemporaryDirectory() as root:
+            original_path = os.path.join(root, "original.png")
+            capture_path = os.path.join(root, "capture.bmp")
+            display.write_png(original_path, original)
+            display.write_bmp(capture_path, capture)
+            return display.analyze(capture_path, original_path)
+
+    def test_the_canvas_is_cropped_from_the_desktop(self):
+        original = synthetic()
+        screen = on_screen(original, 480, 360, 120, 80)
+        result = self.analyze(screen, original)
+        self.assertTrue(result["ok"], display.report(result))
+        self.assertEqual(result["canvas"]["box"], [120, 80, 215, 175])
+        self.assertEqual(result["canvas"]["width"], 96)
+        self.assertEqual(result["canvas"]["height"], 96)
+        self.assertAlmostEqual(result["scale"], 1.0)
+
+    def test_400_percent_canvas_is_cropped_and_scaled_from_the_line_width(self):
+        original = synthetic()
+        zoomed = scaled(original, 4)
+        visible = cropped(zoomed, 100, 100, 140, 140)
+        screen = on_screen(visible, 480, 360, 120, 80)
+        result = self.analyze(screen, original)
+        self.assertTrue(result["ok"], display.report(result))
+        self.assertEqual(result["canvas"]["box"], [120, 80, 259, 219])
+        # The grey runs are clipped by the canvas edge, so the 4 px line width
+        # is what fixes the scale.
+        self.assertAlmostEqual(result["scale"], 4.0)
+        self.assertAlmostEqual(result["lines"]["source_line_px"], 1.0)
 
 if __name__ == "__main__":
     unittest.main()

@@ -258,12 +258,19 @@ TARGET_DISPLAY_CHECK='{"image":"C:\\Users\\masato\\pen-latency\\l2-display-check
 scripts/perf/pen-latency/display_check.py <出力先>/<回> --image build/perf/l2-display-check.png
 ```
 
-`run-surface.ps1`はCtrl+0で100%にし、Ctrl+=を4回送って400%にする
-（`krita_default.shortcuts`の`zoom_to_100pct`と`view_zoom_in`）。`meta.txt`に
-`display_check_foreground_100/400`を残す。`display_check.py`は、色の帯とグレーの段の
-差が8bitで8階調以下、1pxの線が残る（線の幅が元の画素の0.5〜2.5倍、コントラストが
-128以上、遷移が8回以上）、隣り合う色の遷移の幅が`max(2, 倍率×1.5)`px以下であることを
-合格とする。100%と400%の両方が合格したときだけ終了コードは0になる。
+`run-surface.ps1`は窓を最大化し、Ctrl+0で100%にし、Ctrl+=を4回送って400%にする
+（`krita_default.shortcuts`の`zoom_to_100pct`と`view_zoom_in`）。ズームは画像の中央を
+保つので、100%と400%のどちらも画像の中央が画面の中央に来る。`meta.txt`に
+`display_check_foreground_100/400`、`display_check_window=maximized`、
+`display_check_anchor=image-center`を残す。
+
+`display_check.py`は、画面全体の取り込みから、元の画像の色（色の帯、グレーの段、
+線の格子）が続く矩形をキャンバスとして見つけ、その中だけを比べる。見つからない場合は
+画面全体を比べる。倍率は線の幅から求め、線が見えない場合はグレーの段か色の帯の幅から
+求める。色の帯とグレーの段の差が8bitで8階調以下、1pxの線が残る（線の幅が元の画素の
+0.5〜2.5倍、コントラストが128以上、遷移が8回以上）、隣り合う色の遷移の幅が
+`max(2, 倍率×1.5)`px以下であることを合格とする。100%と400%の両方が合格したときだけ
+終了コードは0になる。
 
 ```sh
 # 計測機で一度だけ（管理者のPowerShell）

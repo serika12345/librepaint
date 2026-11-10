@@ -5,8 +5,9 @@
 The display check opens build/perf/l2-display-check.png in LibrePaint and
 captures the whole screen at 100 % and 400 % zoom (run-surface.ps1 writes
 display-100.bmp and display-400.bmp). This tool reads those BMP files and the
-original PNG, finds the solid colour bands, the grey steps and the 1 px line
-grid in the capture, and reports:
+original PNG, finds the canvas (the part of the window that shows the image),
+and then finds the solid colour bands, the grey steps and the 1 px line grid
+inside that canvas. It reports:
 
 - the colour difference of every solid band and grey step in 8-bit levels;
 - whether the 1 px lines survive (line width, gap and contrast);
@@ -216,6 +217,90 @@ def dominant_colors(picture):
             if count >= threshold]
 
 
+def longest_palette_run(picture, y, palette):
+    """Longest horizontal run of pixels that use one of the source colours."""
+    best = 0
+    best_start = 0
+    current = 0
+    start = 0
+    for x in range(picture.width):
+        if picture.pixel(x, y) in palette:
+            if current == 0:
+                start = x
+            current += 1
+            if current > best:
+                best = current
+                best_start = start
+        else:
+            current = 0
+    return best, best_start
+
+
+def _groups(indices):
+    """Contiguous ranges in a sorted list of integers, as inclusive pairs."""
+    groups = []
+    if not indices:
+        return groups
+    start = previous = indices[0]
+    for value in indices[1:]:
+        if value > previous + 1:
+            groups.append((start, previous))
+            start = value
+        previous = value
+    groups.append((start, previous))
+    return groups
+
+
+def find_canvas(capture, palette):
+    """Return the box (x0, y0, x1, y1) that shows the source image.
+
+    The capture is the whole desktop, so the colour bands, grey steps and line
+    grid of the source image are surrounded by the window, menus, panels and
+    the desktop. The canvas rows are the long horizontal runs of source
+    colours; the canvas columns are the columns where those colours continue
+    through the row band. A capture without a recognisable canvas returns
+    None and the whole picture is compared, as before.
+    """
+    if not palette:
+        return None
+    minimum_run = max(16, capture.width // 32)
+    rows = []
+    for y in range(capture.height):
+        rows.append(longest_palette_run(capture, y, palette)[0])
+    row_groups = [group for group in _groups([y for y, run in enumerate(rows) if run >= minimum_run])
+                  if group[1] - group[0] + 1 >= 32]
+    if not row_groups:
+        return None
+    y0, y1 = max(row_groups, key=lambda group: group[1] - group[0])
+    threshold = (y1 - y0 + 1) * 0.6
+    columns = []
+    for x in range(capture.width):
+        count = 0
+        for y in range(y0, y1 + 1):
+            if capture.pixel(x, y) in palette:
+                count += 1
+        columns.append(count)
+    column_groups = [group for group in _groups([x for x, count in enumerate(columns) if count >= threshold])
+                     if group[1] - group[0] + 1 >= 32]
+    if not column_groups:
+        return None
+    x0, x1 = max(column_groups, key=lambda group: group[1] - group[0])
+    return x0, y0, x1, y1
+
+
+def crop_picture(picture, box):
+    x0, y0, x1, y1 = box
+    width = x1 - x0 + 1
+    height = y1 - y0 + 1
+    rgb = bytearray(width * height * 3)
+    for y in range(height):
+        target = 3 * y * width
+        for x in range(width):
+            source = 3 * ((y0 + y) * picture.width + x0 + x)
+            rgb[target + 3 * x:target + 3 * x + 3] = picture.rgb[source:source + 3]
+    return Picture(width, height, rgb)
+
+
 def classify(color, palette, tolerance):
     best = None
     best_distance = 256
@@ -391,10 +476,13 @@ def analyze(capture_path, original_path):
     saturated = [color for color in colors if not is_gray(color)]
     source = source_metrics(original, colors)
 
-    color_row = best_row(capture, saturated, wants_gray=False)
-    gray_row = best_row(capture, grays, wants_gray=True)
-    stripe = stripe_row(capture)
-    width = capture.width
+    canvas = find_canvas(capture, set(colors))
+    shown = crop_picture(capture, canvas) if canvas else capture
+
+    color_row = best_row(shown, saturated, wants_gray=False)
+    gray_row = best_row(shown, grays, wants_gray=True)
+    stripe = stripe_row(shown)
+    width = shown.width
 
     color_stats = None
     if color_row and color_row[1] and sum(run[1] for run in color_row[1]) >= width * 0.15:
@@ -423,24 +511,28 @@ def analyze(capture_path, original_path):
 
     line_stats = None
     if stripe:
-        line_stats = stripe_metrics(capture, stripe[0], stripe[1])
+        line_stats = stripe_metrics(shown, stripe[0], stripe[1])
 
-    # The grey band is wider than one 100 % capture can show, so its full runs
-    # give the most reliable scale. The colour bands and the line grid are
-    # fallbacks for a capture that shows only one grey level.
-    scale_runs = []
-    scale_width = None
-    if gray_row and gray_row[1]:
-        scale_runs = _full_runs(gray_row[1])
-        scale_width = source["gray_width"]
-    if len(scale_runs) < 2 and color_row and color_row[1]:
-        scale_runs = _full_runs(color_row[1])
-        scale_width = source["color_width"]
-    if len(scale_runs) < 1 and gray_row and gray_row[1]:
-        scale_runs = _full_runs(gray_row[1])
-        scale_width = source["gray_width"]
-    scale = (round(sorted(run[1] for run in scale_runs)[len(scale_runs) // 2] / scale_width, 3)
-             if scale_runs else None)
+    # The line width is the most reliable scale at 400 %, where the visible
+    # grey steps are clipped by the canvas edge. The widths of the full grey
+    # steps or colour bands are the fallback when the grid is not in view.
+    scale = None
+    if line_stats and source["line_px"]:
+        scale = round(line_stats["line_px"] / source["line_px"], 3)
+    if not scale:
+        scale_runs = []
+        scale_width = None
+        if gray_row and gray_row[1]:
+            scale_runs = _full_runs(gray_row[1])
+            scale_width = source["gray_width"]
+        if len(scale_runs) < 2 and color_row and color_row[1]:
+            scale_runs = _full_runs(color_row[1])
+            scale_width = source["color_width"]
+        if len(scale_runs) < 1 and gray_row and gray_row[1]:
+            scale_runs = _full_runs(gray_row[1])
+            scale_width = source["gray_width"]
+        if scale_runs:
+            scale = round(sorted(run[1] for run in scale_runs)[len(scale_runs) // 2] / scale_width, 3)
 
     if line_stats and scale:
         line_stats["source_line_px"] = round(line_stats["line_px"] / scale, 2)
@@ -448,7 +540,7 @@ def analyze(capture_path, original_path):
     edge_stats = None
     edge_source = color_row if color_stats else (gray_row if gray_stats else None)
     if edge_source and edge_source[1]:
-        widths = transition_widths(capture, edge_source[0], edge_source[1])
+        widths = transition_widths(shown, edge_source[0], edge_source[1])
         if widths:
             edge_stats = {
                 "max_px": max(widths),
@@ -485,9 +577,20 @@ def analyze(capture_path, original_path):
     definite = [value for value in checks.values() if value is not None]
     ok = visible and bool(definite) and all(definite)
 
+    canvas_info = None
+    if canvas:
+        canvas_info = {
+            "box": list(canvas),
+            "width": canvas[2] - canvas[0] + 1,
+            "height": canvas[3] - canvas[1] + 1,
+            "capture_width": capture.width,
+            "capture_height": capture.height,
+        }
+
     return {
         "capture": os.path.abspath(capture_path),
         "original": os.path.abspath(original_path),
+        "canvas": canvas_info,
         "scale": scale,
         "colors": color_stats,
         "gray": gray_stats,
@@ -499,8 +602,15 @@ def analyze(capture_path, original_path):
 
 
 def report(result):
-    lines = ["display check: %s" % result["capture"],
-             "  scale: %s" % ("unknown" if result["scale"] is None else "%.3f px/source px" % result["scale"])]
+    lines = ["display check: %s" % result["capture"]]
+    canvas = result.get("canvas")
+    if canvas:
+        lines.append("  canvas: x %d..%d, y %d..%d (%dx%d of %dx%d)" % (
+            canvas["box"][0], canvas["box"][2], canvas["box"][1], canvas["box"][3],
+            canvas["width"], canvas["height"], canvas["capture_width"], canvas["capture_height"]))
+    else:
+        lines.append("  canvas: not found (whole capture compared)")
+    lines.append("  scale: %s" % ("unknown" if result["scale"] is None else "%.3f px/source px" % result["scale"]))
     colors = result["colors"]
     if colors:
         lines.append("  colours: %d bands (%d full), max diff %s levels, mean %s -> %s" % (

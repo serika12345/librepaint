@@ -218,9 +218,12 @@ function Send-ZoomKeys($app, [int]$percent) {
     # Use the application shortcuts (krita_default.shortcuts): Ctrl+0 puts the
     # canvas at 100 %, and Ctrl+= steps through the standard zoom levels
     # 4/3, 2, 8/3, 4. The window must be in front; record whether it was.
-    [void][L1Probe]::ShowWindow($app.MainWindowHandle, 9)
+    # Maximize the window so the 100 % capture shows most of the test image.
+    # The zoom actions keep the image centre in the middle of the canvas, so
+    # both captures show the centre of the image (the fixed position).
+    [void][L1Probe]::ShowWindow($app.MainWindowHandle, 3)
     [void][L1Probe]::SetForegroundWindow($app.MainWindowHandle)
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds 1000
     $shell = New-Object -ComObject WScript.Shell
     $shell.SendKeys('^0')
     Start-Sleep -Milliseconds 800
@@ -253,7 +256,9 @@ function Invoke-Frame($dir, [string]$name) {
 function Invoke-DisplayCheck($dir, $app, [string]$image) {
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value @(
         "display_check_image=$image",
-        'display_check_captures=100,400'
+        'display_check_captures=100,400',
+        'display_check_window=maximized',
+        'display_check_anchor=image-center'
     )
     $foreground = Send-ZoomKeys $app 100
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value "display_check_foreground_100=$foreground"
