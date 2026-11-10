@@ -283,16 +283,29 @@ OpenGLのキャンバスの初期化と大きさの変更を表す。`analyze.py
 押下が届いていないのか、層が描けないのかを分ける。
 
 焦点とツールの状態は、次の印で追う。`qt_event`はFocusIn（x=1）、FocusOut（2）、
-TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButtonRelease（6）を
-記録し、yが有効なツールのモード（`KisTool::ToolMode`、ツールがなければ-1）、extraのbit 1が
-ポインターがキャンバスの中にある、bit 2がマウスのイベントを抑止していることを表す。
+TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButtonRelease（6）、
+Enter（7）、Leave（8）を記録し、yが有効なツールのモード（`KisTool::ToolMode`、ツールが
+なければ-1）、extraのbit 1がポインターがキャンバスの中にある、bit 2がマウスのイベントを
+抑止している、bit 4が`KisShortcutMatcher`がポインターの進入を見た（`cursorEntered()`）、
+bit 8がすべてのactionを外から抑止している、bit 16がポップアップが登録されていることを
+表す。TabletPressは、イベントを見た時点の行と、ポップアップの判定を越えて
+`buttonPressed()`を呼ぶ直前の行の2回を記録し、後の行のextraのbit 32が1になる。bit 32の
+行がない押下は、ショートカットの照合に届いていない。
 `outline_gate`は輪郭の要求ごとに、xが表示のズーム、yが実効の物理ズーム、extraのbit 1が
 輪郭を持つ道具、bit 2が`isOutlineEnabled()`、bit 4が`isOutlineVisible()`、bit 8が設定の
 輪郭の様式が見える、bit 16がホバーのモード、bit 32が描画のモード、bit 64が描画中に輪郭を
 出す設定、bit 128がジェスチャーのモードを表す。`tool_action`はツールのactionが有効（extra=1）
 または無効（0）になったことを、xに`KisTool::ToolAction`の値、yに有効なツールがあったかで
 残す。`analyze.py`はこれらを`focus_gate`の1行（`qt_event`の種類・モード・extraの内訳、
-`outline_gate`のextraの内訳とズーム、`tool_action`のactionと有効・無効の数）にまとめる。
+bit 32の行の数、`outline_gate`のextraの内訳とズーム、`tool_action`のactionと有効・無効の数）
+にまとめる。
+
+`KisInputManager`は、キャンバスに届いたTabletPressをポインターが内側にある証明として扱い、
+`containsPointer`がfalseのときは`KisShortcutMatcher::enterEvent()`を呼んでから
+`buttonPressed()`を呼ぶ。Enterが正常に届いた回は`containsPointer`が既にtrueなので動作は
+変わらない。Enterを落とした回でも、押下から1回でツールのactionが戻る。この復帰はQ4（フォークを
+やめ、全プラットフォームで正式版の同じQtにする）の前段の実験で、正式版Qtで止まらないことを
+1セッション（10回）で確かめた後に削除する。
 `run-surface.ps1`は`PenInject.cs`が最初のサンプルの直前に取った最前面の窓
 （アプリでなければ`SetForegroundWindow`を1回やり直す）を`foreground_inject_start`として
 `meta.txt`に残し、`capture_analyze.py`が`foreground_inject`と`inject-foreground`に出す。
