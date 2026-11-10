@@ -243,7 +243,27 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 `run.py`が`TARGET_KRITARC`に載せ、`run-surface.ps1`がアプリの起動前にキーを書き、
 `kritarc-before.txt`に元のファイルを控えて、アプリの終了後に必ず戻す。`meta.txt`には
 `kritarc_original.<キー>`（元の値、なければ`absent`）、`kritarc_override.<キー>`、
-`kritarc_restored`を残す。kritarcはWindowsの対象だけで使える。
+`kritarc_restored`を残す。kritarcはWindowsの対象だけで使える。`meta.txt`には、復元の後に
+アプリがkritarcへ残した値（`kritarc_after.canvasState`、`kritarc_after.OpenGLRenderer`、
+`kritarc_after.useOpenGL`、`kritarc_after.useMaximumFrameLatencyOne`）と、アプリの標準出力・
+標準エラーの大きさ（`app_log_bytes`、`app_err_bytes`）も残す。アプリの標準出力と標準エラーは
+回のディレクトリーの`app.out`と`app.err`に取る。キャンバスが描き直されない回は、
+`canvasState`とアプリのログが、OpenGLの起動に失敗したのか更新の経路が止まったのかを分ける。
+
+キャンバスの更新の経路は、時刻記録の次の印で追う。`outline_request`は輪郭の更新の要求、
+`outline_state`はその要求の終わりの状態（extraのbit 1が輪郭を持つ道具、bit 2がPaintOp
+プリセットがある、bit 4が輪郭の矩形が空でない、bit 8が前の輪郭の矩形が残っている、bit 16が
+色のプレビューの矩形がある）、`canvas_outline_doc`はキャンバスのウィジェットに切り取った後の
+矩形（x/yが幅と高さ、extraのbit 1が文書の矩形が空）、`canvas_outline_wdg`はキャンバスの
+ウィジェットの大きさ（x/y）と切り取りの結果（extraのbit 1が空、bit 2が可視）、
+`canvas_update_dispatch`と`canvas_update_issued`は`KisCanvas2`が更新を出した回
+（`canvas_update_issued`のx/yはウィジェットの大きさ、extraのbit 1は更新の矩形が空）、
+`canvas_paint_event`はQtが届けた描画イベント（x/yが矩形、extraのbit 1が可視、bit 2が最小化、
+bit 4が前の`updateRect`が残っている）、`canvas_initialize_gl`と`canvas_resize_gl`は
+OpenGLのキャンバスの初期化と大きさの変更を表す。`analyze.py`はこれらを`canvas_path`の1行
+（回数とextraの内訳）にまとめる。ストロークが始まらなかった回は、`stroke_begin`のextra
+（bit 1が編集できるノード、bit 2が描けるノード、bit 4がPaintOpプリセットがある）で、
+押下が届いていないのか、層が描けないのかを分ける。
 
 表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
 `build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を
