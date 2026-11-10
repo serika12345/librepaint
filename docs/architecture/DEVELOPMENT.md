@@ -237,6 +237,34 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 `capture_analyze.py`はこれを`presentation.ratio`と`excluded`に残し、`run.py`がすべての
 指標の集計から外して表に「left out」の数を出す。
 
+`hosts.json`のWindowsの対象には、`env`とは別に`kritarc`を書ける。値はkritarcの
+空のグループ（最初の`[Group]`より前）のキーで、L2（Windowsの遅れを直す）の
+`useMaximumFrameLatencyOne=false`のように隠し設定を回ごとに変えるために使う。
+`run.py`が`TARGET_KRITARC`に載せ、`run-surface.ps1`がアプリの起動前にキーを書き、
+`kritarc-before.txt`に元のファイルを控えて、アプリの終了後に必ず戻す。`meta.txt`には
+`kritarc_original.<キー>`（元の値、なければ`absent`）、`kritarc_override.<キー>`、
+`kritarc_restored`を残す。kritarcはWindowsの対象だけで使える。
+
+表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
+`build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を
+`windows_capture.exe --snapshot-frame`で取り込んで、元の画像と比べる。
+
+```sh
+# Surfaceへ送るのは run-remote.sh が行う。DISPLAY_CHECK_IMAGEはSurface上のパス
+CAPTURE_TOOL=/path/windows_capture.exe \
+TARGET_DISPLAY_CHECK='{"image":"C:\\Users\\masato\\pen-latency\\l2-display-check.png"}' \
+  scripts/perf/pen-latency/run-remote.sh <host> LibrePaint 1 '<LibrePaint.exeのパス>' <出力先>
+# 取り込んだ display-100.bmp / display-400.bmp を比べる（開発機）
+scripts/perf/pen-latency/display_check.py <出力先>/<回> --image build/perf/l2-display-check.png
+```
+
+`run-surface.ps1`はCtrl+0で100%にし、Ctrl+=を4回送って400%にする
+（`krita_default.shortcuts`の`zoom_to_100pct`と`view_zoom_in`）。`meta.txt`に
+`display_check_foreground_100/400`を残す。`display_check.py`は、色の帯とグレーの段の
+差が8bitで8階調以下、1pxの線が残る（線の幅が元の画素の0.5〜2.5倍、コントラストが
+128以上、遷移が8回以上）、隣り合う色の遷移の幅が`max(2, 倍率×1.5)`px以下であることを
+合格とする。100%と400%の両方が合格したときだけ終了コードは0になる。
+
 ```sh
 # 計測機で一度だけ（管理者のPowerShell）
 powershell -NoProfile -ExecutionPolicy Bypass -File setup-surface.ps1

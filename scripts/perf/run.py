@@ -21,8 +21,10 @@ Hover latency alternates between two states from one launch to the next
 (L1 of Issue #108). The summary carries each run's state and every run's
 PresentMon presence. Hover metrics are judged within a state; ink is judged
 over all runs. A Windows target can set "presentmon": "off" to leave
-PresentMon out for a comparison, and "env" to pass environment variables to
-the measured application (run-surface.ps1 records them in meta.txt). A run
+PresentMon out for a comparison, "env" to pass environment variables to the
+measured application (run-surface.ps1 records them in meta.txt), and
+"kritarc" to set root kritarc keys for one run (the file is restored after
+the run). A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
 application was not the foreground window when the capture began and that
@@ -69,6 +71,7 @@ def run_command(argv, env=None, cwd=None):
 
 
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+KRITARC_KEY = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
 
 
 def target_environment(target):
@@ -87,6 +90,27 @@ def target_environment(target):
     return checked
 
 
+def target_kritarc(target):
+    """Return the target's root kritarc keys after checking names and values.
+
+    The keys are written to the empty group of kritarc, where LibrePaint reads
+    the hidden useMaximumFrameLatencyOne switch. run-surface.ps1 backs the file
+    up before the run and restores it afterwards.
+    """
+    kritarc = target.get("kritarc", {})
+    if not isinstance(kritarc, dict):
+        raise SystemExit("target %s: kritarc must be an object" % target["name"])
+    checked = {}
+    for name, value in kritarc.items():
+        if not KRITARC_KEY.match(name):
+            raise SystemExit("target %s: invalid kritarc key: %s" % (target["name"], name))
+        text = str(value)
+        if any(ch in text for ch in "\x00\r\n\\[]="):
+            raise SystemExit("target %s: invalid value for kritarc key %s" % (target["name"], name))
+        checked[name] = text
+    return checked
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -98,10 +122,13 @@ def runner_for(host, target, scenario, run_root):
                 target.get("app", "none"), out]
         env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"],
                "PRESENTMON": target.get("presentmon", "on"),
-               "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True)}
+               "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True),
+               "TARGET_KRITARC": json.dumps(target_kritarc(target), sort_keys=True)}
         return argv, env, None
     if kind in ("linux", "macos") and target.get("env"):
         raise SystemExit("target %s: env is supported only for Windows targets" % target["name"])
+    if kind in ("linux", "macos") and target.get("kritarc"):
+        raise SystemExit("target %s: kritarc is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]

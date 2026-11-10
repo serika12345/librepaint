@@ -45,6 +45,25 @@ class RequestTest(unittest.TestCase):
         self.assertEqual(request["presentmon"], "off")
         self.assertEqual(request["presentmon_session"], "LibrePaintPenLatency")
 
+    def test_kritarc_keys_reach_the_request(self):
+        request = request_module.build_request(
+            "LibrePaint", 1, "C:/LibrePaint.exe", name="T",
+            kritarc={"useMaximumFrameLatencyOne": "false"})
+        self.assertEqual(request["kritarc"], {"useMaximumFrameLatencyOne": "false"})
+
+    def test_invalid_kritarc_keys_and_values_are_rejected(self):
+        for kritarc in ({"[Group]": "x"}, {"KEY": "line\nbreak"}, {"KEY": "a=b"}, {"KEY": "a\\b"}):
+            with self.assertRaises(ValueError):
+                request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", kritarc=kritarc)
+        self.assertNotIn("kritarc", request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe"))
+
+    def test_display_check_needs_an_image(self):
+        request = request_module.build_request(
+            "LibrePaint", 1, "C:/LibrePaint.exe", display_check={"image": "C:/image.png"})
+        self.assertEqual(request["displayCheck"], {"image": "C:/image.png"})
+        with self.assertRaises(ValueError):
+            request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", display_check={"image": ""})
+
 
 if __name__ == "__main__":
     unittest.main()

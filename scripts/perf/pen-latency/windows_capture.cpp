@@ -5,6 +5,9 @@
 //   windows_capture --out DIR --snapshot
 //       Saves first-frame.bmp and canvas.json (the white canvas rectangle in
 //       desktop pixels of the primary output).
+//   windows_capture --out DIR --snapshot-frame NAME
+//       Saves one full desktop frame as <OUT>\<NAME>.bmp and exits. The
+//       display check uses it to compare the screen with the original image.
 //   windows_capture --out DIR --plan plan.csv [--mouse]
 //       Takes the snapshot, applies plan.csv (trajectory.py, relative to the
 //       canvas) to the detected canvas, replays it as synthetic pen input
@@ -18,7 +21,9 @@
 // interactive desktop session (run-surface.ps1).
 //
 // Build: x86_64-w64-mingw32-g++ -std=c++17 -O2 -static windows_capture.cpp
-//        -ld3d11 -ldxgi -o windows_capture.exe
+//        -ld3d11 -ldxgi -lwinmm -o windows_capture.exe
+// A cross wrapper that links iconv/intl statically may also need their -L
+// directories.
 
 #define WINVER 0x0A00
 #define _WIN32_WINNT 0x0A00
@@ -230,18 +235,20 @@ int main(int argc, char **argv)
     QueryPerformanceFrequency(&frequency);
     std::string out, planPath;
     bool snapshot = false, mouse = false;
+    std::string snapshotFrame;
     int threshold = 128, dense = 6;
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
         if (a == "--out" && i + 1 < argc) out = argv[++i];
         else if (a == "--plan" && i + 1 < argc) planPath = argv[++i];
+        else if (a == "--snapshot-frame" && i + 1 < argc) snapshotFrame = argv[++i];
         else if (a == "--dark" && i + 1 < argc) threshold = atoi(argv[++i]);
         else if (a == "--dense" && i + 1 < argc) dense = atoi(argv[++i]);
         else if (a == "--snapshot") snapshot = true;
         else if (a == "--mouse") mouse = true;
     }
-    if (out.empty() || (!snapshot && planPath.empty())) {
-        fprintf(stderr, "usage: windows_capture --out DIR (--snapshot | --plan plan.csv [--mouse])\n");
+    if (out.empty() || (!snapshot && snapshotFrame.empty() && planPath.empty())) {
+        fprintf(stderr, "usage: windows_capture --out DIR (--snapshot | --snapshot-frame NAME | --plan plan.csv [--mouse])\n");
         return 2;
     }
     CreateDirectoryA(out.c_str(), nullptr);
@@ -268,6 +275,13 @@ int main(int argc, char **argv)
             for (int i = 0; i < 50 && !got; ++i) got = dup.next(full, &frameNs, &mapped, 100);
         }
         if (!got) { fprintf(stderr, "no frame captured\n"); return 1; }
+        if (!snapshotFrame.empty()) {
+            saveBmp(out + "\\" + snapshotFrame + ".bmp", (const unsigned char *)mapped.pData, mapped.RowPitch,
+                    dup.width, dup.height);
+            dup.unmap();
+            printf("%s\\%s.bmp\n", out.c_str(), snapshotFrame.c_str());
+            return 0;
+        }
         saveBmp(out + "\\first-frame.bmp", (const unsigned char *)mapped.pData, mapped.RowPitch, dup.width, dup.height);
         bool found = findCanvas((const unsigned char *)mapped.pData, mapped.RowPitch, dup.width, dup.height, rect);
         dup.unmap();

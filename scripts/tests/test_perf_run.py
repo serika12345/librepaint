@@ -142,6 +142,31 @@ class RunnerCommandTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
+    def test_windows_target_passes_kritarc_to_the_runner(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "kritarc": {"useMaximumFrameLatencyOne": "false"}}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+        self.assertEqual(json.loads(env["TARGET_KRITARC"]), {"useMaximumFrameLatencyOne": "false"})
+
+    def test_invalid_kritarc_key_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "kritarc": {"BAD KEY": "x"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_kritarc_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "kritarc": {"useMaximumFrameLatencyOne": "false"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
 
 class PresentMonAggregateTest(unittest.TestCase):
     def run_result(self, status, hover, display):

@@ -1,5 +1,5 @@
 {
-  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement). A Windows target can set \"presentmon\": \"off\" to measure without PresentMon (the default is on) and \"env\" to pass environment variables to the measured application. The L1 experiments use names such as LIBREPAINT_L1_MAX_FRAME_LATENCY; the runner records them in meta.txt.",
+  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement). A Windows target can set \"presentmon\": \"off\" to measure without PresentMon (the default is on), \"env\" to pass environment variables to the measured application, and \"kritarc\" to set root kritarc keys for one run. The L1 experiments use names such as LIBREPAINT_L1_MAX_FRAME_LATENCY; the runner records them in meta.txt. kritarc keys are backed up and restored around every run; useMaximumFrameLatencyOne=false restores the driver default for the L2 low-latency default.",
   "hosts": [
     {
       "name": "windows",
@@ -13,6 +13,9 @@
         {"name": "LibrePaint-1.0.3-noPM", "runner_target": "LibrePaint", "app": "<same path>", "presentmon": "off"},
         {"name": "LibrePaint-L1-H1-latency-1", "runner_target": "LibrePaint", "app": "<same path>",
          "env": {"LIBREPAINT_L1_MAX_FRAME_LATENCY": "1"}},
+        {"name": "LibrePaint-L2-default", "runner_target": "LibrePaint", "app": "<same path>"},
+        {"name": "LibrePaint-L2-driver-default", "runner_target": "LibrePaint", "app": "<same path>",
+         "kritarc": {"useMaximumFrameLatencyOne": "false"}},
         {"name": "Krita", "runner_target": "Krita", "app": "<Windows path of krita.exe>"},
         {"name": "PenProbe", "runner_target": "PenProbe"}
       ]

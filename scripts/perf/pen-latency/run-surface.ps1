@@ -55,6 +55,10 @@ public static class L1Probe
     public static extern bool IsWindowVisible(IntPtr window);
     [DllImport("user32.dll")]
     public static extern bool IsIconic(IntPtr window);
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr window, int command);
 }
 '@
 try { Add-Type -TypeDefinition $probeSource } catch { Log ("probe type unavailable: " + $_.Exception.Message) }
@@ -139,6 +143,127 @@ function Set-TargetEnvironment($envMap) {
     }
 }
 
+function Set-TargetKritarc($dir, $map) {
+    # Apply root kritarc keys (the empty KConfig group) for one run. The file
+    # is backed up next to meta.txt and restored after the application exits.
+    # Root keys must go before the first [Group] line, so an existing key is
+    # replaced in place and a new key is appended to the root block.
+    if (-not $map) { return $null }
+    $path = Join-Path $env:LOCALAPPDATA 'kritarc'
+    $backup = Join-Path $dir 'kritarc-before.txt'
+    $existed = Test-Path $path
+    $lines = @()
+    if ($existed) {
+        Copy-Item -Force $path $backup
+        $lines = @([System.IO.File]::ReadAllLines($path))
+    }
+    $section = $lines.Count
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match '^\s*\[') { $section = $i; break }
+    }
+    $root = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt $section; $i++) { $root.Add($lines[$i]) }
+    $rest = New-Object System.Collections.Generic.List[string]
+    for ($i = $section; $i -lt $lines.Count; $i++) { $rest.Add($lines[$i]) }
+
+    $meta = @(
+        'kritarc_override=applied',
+        "kritarc_existed=$existed",
+        "kritarc_backup=$backup"
+    )
+    foreach ($property in $map.PSObject.Properties) {
+        $name = [string]$property.Name
+        $value = [string]$property.Value
+        $pattern = '^\s*' + [regex]::Escape($name) + '\s*=(.*)$'
+        $found = $false
+        $original = 'absent'
+        for ($i = 0; $i -lt $root.Count; $i++) {
+            $match = [regex]::Match($root[$i], $pattern)
+            if ($match.Success) {
+                if (-not $found) { $original = $match.Groups[1].Value.Trim() }
+                $root[$i] = "$name=$value"
+                $found = $true
+            }
+        }
+        if (-not $found) { $root.Add("$name=$value") }
+        $meta += "kritarc_original.$name=$original"
+        $meta += "kritarc_override.$name=$value"
+    }
+    $out = @($root) + @($rest)
+    [System.IO.File]::WriteAllLines($path, [string[]]$out, (New-Object System.Text.UTF8Encoding($false)))
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value $meta
+    return [pscustomobject]@{ Path = $path; Backup = $backup; Existed = $existed }
+}
+
+function Restore-TargetKritarc($dir, $state) {
+    if (-not $state) { return }
+    $ok = $true
+    $message = ''
+    try {
+        if ($state.Existed) {
+            Copy-Item -Force $state.Backup $state.Path
+        } elseif (Test-Path $state.Path) {
+            Remove-Item -Force $state.Path
+        }
+    } catch {
+        $ok = $false
+        $message = $_.Exception.Message
+    }
+    $lines = @("kritarc_restored=$ok")
+    if (-not $ok) { $lines += "kritarc_restore_error=$message" }
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
+}
+
+function Send-ZoomKeys($app, [int]$percent) {
+    # Use the application shortcuts (krita_default.shortcuts): Ctrl+0 puts the
+    # canvas at 100 %, and Ctrl+= steps through the standard zoom levels
+    # 4/3, 2, 8/3, 4. The window must be in front; record whether it was.
+    [void][L1Probe]::ShowWindow($app.MainWindowHandle, 9)
+    [void][L1Probe]::SetForegroundWindow($app.MainWindowHandle)
+    Start-Sleep -Milliseconds 500
+    $shell = New-Object -ComObject WScript.Shell
+    $shell.SendKeys('^0')
+    Start-Sleep -Milliseconds 800
+    if ($percent -ge 400) {
+        for ($i = 0; $i -lt 4; $i++) {
+            $shell.SendKeys('^{=}')
+            Start-Sleep -Milliseconds 250
+        }
+        Start-Sleep -Milliseconds 800
+    }
+    $foreground = Get-Foreground
+    return ($foreground.pid -eq $app.Id)
+}
+
+function Invoke-Frame($dir, [string]$name) {
+    # Save one full desktop frame through windows_capture.exe. It uses the
+    # same DXGI Desktop Duplication clock as the latency capture, so the
+    # images contain exactly what the display showed.
+    $tool = Join-Path $here 'windows_capture.exe'
+    if (-not (Test-Path $tool)) { throw 'windows_capture.exe is missing' }
+    $log = Join-Path $dir ("frame-$name.log")
+    $err = Join-Path $dir ("frame-$name.err")
+    $process = Start-Process -FilePath $tool -ArgumentList @('--out', "`"$dir`"", '--snapshot-frame', $name) `
+        -PassThru -Wait -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $err
+    if ($process.ExitCode -ne 0) {
+        throw "windows_capture --snapshot-frame failed: $(Get-Content $err -Raw)"
+    }
+}
+
+function Invoke-DisplayCheck($dir, $app, [string]$image) {
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value @(
+        "display_check_image=$image",
+        'display_check_captures=100,400'
+    )
+    $foreground = Send-ZoomKeys $app 100
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value "display_check_foreground_100=$foreground"
+    Invoke-Frame $dir 'display-100'
+    $foreground = Send-ZoomKeys $app 400
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value "display_check_foreground_400=$foreground"
+    Invoke-Frame $dir 'display-400'
+    Log 'display check captured 100 and 400'
+}
+
 function Write-Meta($dir, $request, $target) {
     $lines = @(
         "target=$target",
@@ -172,6 +297,7 @@ try {
     $settle = if ($request.settleSeconds) { [int]$request.settleSeconds } else { 12 }
 
     $capture = [bool]$request.capture
+    $displayCheck = $request.displayCheck
     $captureTool = Join-Path $here 'windows_capture.exe'
     $plan = Join-Path $here 'plan.csv'
     function Invoke-Capture([string]$dir) {
@@ -189,7 +315,7 @@ try {
         foreach ($property in $request.inject.PSObject.Properties) { $options.($property.Name) = $property.Value }
     }
     $presentMon = Join-Path (Split-Path -Parent $here) 'PresentMon.exe'
-    $presentMonEnabled = -not ([string]$request.presentmon -eq 'off')
+    $presentMonEnabled = (-not ([string]$request.presentmon -eq 'off')) -and (-not $displayCheck)
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -243,8 +369,11 @@ try {
         Set-TargetEnvironment $request.env
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
-        $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$canvas`"") -PassThru
+        $kritarcState = Set-TargetKritarc $dir $request.kritarc
+        $appImage = if ($displayCheck) { [string]$displayCheck.image } else { $canvas }
+        $app = $null
         try {
+            $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$appImage`"") -PassThru
             $hwnd = Wait-MainWindow $app 120
             Write-LaunchFacts $dir 'window' $app
 
@@ -277,13 +406,14 @@ try {
 
             Start-Sleep -Seconds $settle
             Write-LaunchFacts $dir 'capture' $app
-            if ($capture) { Invoke-Capture $dir }
+            if ($displayCheck) { Invoke-DisplayCheck $dir $app ([string]$displayCheck.image) }
+            elseif ($capture) { Invoke-Capture $dir }
             else { [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null }
             # The probe writer flushes every 500 ms; leave time for the last batch.
             Start-Sleep -Milliseconds 1500
         }
         finally {
-            if (-not $app.HasExited) {
+            if ($app -and -not $app.HasExited) {
                 Stop-Process -Id $app.Id -Force
                 [void]$app.WaitForExit(5000)
             }
@@ -302,6 +432,7 @@ try {
                 }
                 $pmStoppedAt = Get-Date
             }
+            Restore-TargetKritarc $dir $kritarcState
         }
         if ($presentMonEnabled) {
             $recorded = (Test-Path $presentMonCsv) -and ((Get-Item $presentMonCsv).Length -gt 0)
