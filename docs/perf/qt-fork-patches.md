@@ -32,6 +32,8 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 正式版 Qt で構築する出力は `librepaint-windows-upstream-qt-archive` で、依存だけを
 構築する `windows-upstream-qt-dependencies` と分けてある（`docs/architecture/DEVELOPMENT.md`）。
+フォーク固有の API と分岐の全一覧、失われる機能、他の編集ソフトの扱いの比較は
+[`q4-fork-removal.md`](q4-fork-removal.md) にある。
 
 | まとまり | 件数 | 判定 |
 | --- | --- | --- |
