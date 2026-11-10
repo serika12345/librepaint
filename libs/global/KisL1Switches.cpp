@@ -54,6 +54,12 @@ int readMaxFrameLatency()
     return value >= 1 && value <= 3 ? value : 0;
 }
 
+int resolveMaxFrameLatency(int switchedValue, bool useLowLatencyByDefault)
+{
+    if (switchedValue > 0) return switchedValue;
+    return useLowLatencyByDefault ? 1 : 0;
+}
+
 int readSwapInterval()
 {
     if (!isSet("LIBREPAINT_L1_SWAP_INTERVAL")) return -1;

@@ -109,9 +109,14 @@ void writeEglExtensionDump(const char *clientExtensions, const char *displayExte
 void applyMaximumFrameLatency(QOpenGLContext *context)
 {
     // H1 (frames queued ahead): ask the D3D11 device behind ANGLE to keep
-    // fewer frames in flight. The value comes from
-    // LIBREPAINT_L1_MAX_FRAME_LATENCY (KisL1Switches.h owns the removal
-    // condition); 0 leaves the driver default.
+    // one frame in flight. L1 measured that this removes about 13 ms of the
+    // hover delay and about 22 ms of the ink delay, so it is now the normal
+    // behaviour of the ANGLE path. LIBREPAINT_L1_MAX_FRAME_LATENCY still
+    // overrides the value for the L1 comparisons (KisL1Switches.h owns its
+    // removal condition). The hidden kritarc option
+    // useMaximumFrameLatencyOne=false restores the driver default; official
+    // Krita also keeps graphics workarounds behind hidden kritarc options
+    // (for example useBufferInvalidation) instead of the UI.
     //
     // The D3D11 device is behind the EGL device, not the EGL display:
     // eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT) returns the
@@ -124,7 +129,9 @@ void applyMaximumFrameLatency(QOpenGLContext *context)
     // l1_h1_client_extensions and l1_h1_display_extensions (extra = bit 1 for
     // EGL_EXT_device_query, bit 2 for EGL_ANGLE_device_d3d),
     // l1_h1_device_query_ext (the display bits, kept for older analyses),
-    // l1_h1_entry_points (bit 1 for eglQueryDisplayAttribEXT, bit 2 for
+    // l1_h1_setting (x = requested value, extra = 1 when the hidden kritarc
+    // option allows the low-latency default), l1_h1_entry_points (bit 1 for
+    // eglQueryDisplayAttribEXT, bit 2 for
     // eglQueryDeviceAttribEXT), l1_h1_display_attrib (extra = EGLBoolean of
     // eglQueryDisplayAttribEXT, x = 1 when it returned a device),
     // l1_h1_device_attrib (extra = EGLBoolean of eglQueryDeviceAttribEXT, x =
@@ -138,12 +145,18 @@ void applyMaximumFrameLatency(QOpenGLContext *context)
     // eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS), not necessarily in the
     // display extension list. Both lists are checked and written once to
     // probe.egl.txt beside the probe log.
-    const int latency = KisL1Switches::maxFrameLatency();
-    if (latency <= 0 || !context) return;
+    if (!context) return;
 
     auto *egl = context->nativeInterface<QNativeInterface::QEGLContext>();
     KisLatencyProbe::mark("l1_h1_egl_context", 0, 0, egl ? 1 : 0);
     if (!egl) return;
+
+    KisConfig cfg(true);
+    const bool useLowLatencyByDefault = cfg.readEntry("useMaximumFrameLatencyOne", true);
+    const int latency = KisL1Switches::Detail::resolveMaxFrameLatency(
+        KisL1Switches::maxFrameLatency(), useLowLatencyByDefault);
+    KisLatencyProbe::mark("l1_h1_setting", latency, 0, useLowLatencyByDefault ? 1 : 0);
+    if (latency <= 0) return;
 
     auto queryString = reinterpret_cast<EglQueryString>(context->getProcAddress("eglQueryString"));
     const char *clientExtensions = queryString ? queryString(nullptr, EGL_EXTENSIONS) : nullptr;

@@ -71,6 +71,17 @@ private Q_SLOTS:
         }
     }
 
+    void maxFrameLatencyUsesOneForAngleUnlessDisabled()
+    {
+        // H1 (frames queued ahead) is the normal ANGLE behaviour now: an
+        // unset L1 switch asks for one frame. A switch value still wins, and
+        // the hidden kritarc option restores the driver default.
+        QCOMPARE(KisL1Switches::Detail::resolveMaxFrameLatency(0, true), 1);
+        QCOMPARE(KisL1Switches::Detail::resolveMaxFrameLatency(0, false), 0);
+        QCOMPARE(KisL1Switches::Detail::resolveMaxFrameLatency(2, true), 2);
+        QCOMPARE(KisL1Switches::Detail::resolveMaxFrameLatency(3, false), 3);
+    }
+
     void swapIntervalAcceptsZeroAndOne()
     {
         qputenv("LIBREPAINT_L1_SWAP_INTERVAL", "0");

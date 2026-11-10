@@ -27,7 +27,8 @@
  */
 namespace KisL1Switches
 {
-/// H1 (frames queued ahead): 1, 2 or 3; 0 keeps the driver default.
+/// H1 (frames queued ahead): 1, 2 or 3; 0 keeps the normal default, which
+/// is 1 on the ANGLE path unless the hidden kritarc option turns it off.
 KRITAGLOBAL_EXPORT int maxFrameLatency();
 /// H3 (vertical sync): 0 or 1; -1 keeps the normal surface setting.
 KRITAGLOBAL_EXPORT int swapInterval();
@@ -48,6 +49,10 @@ namespace Detail
 /// accessors above keep the first result; the contract test uses these
 /// functions to check every accepted form in one process.
 KRITAGLOBAL_EXPORT int readMaxFrameLatency();
+/// Combine the L1 switch with the normal default: a switch value wins,
+/// otherwise the ANGLE path asks for one frame unless it is disabled.
+KRITAGLOBAL_EXPORT int resolveMaxFrameLatency(int switchedValue,
+                                             bool useLowLatencyByDefault);
 KRITAGLOBAL_EXPORT int readSwapInterval();
 KRITAGLOBAL_EXPORT bool readWaitForGpuBeforeNextFrame();
 KRITAGLOBAL_EXPORT QSize readWindowSize();
