@@ -23,6 +23,7 @@ Nix（Flakes有効）とdirenvを用意し、シェルのdirenv連携を有効�
 | macOS | macOS | `native` |
 | Linux | Linux | `native` |
 | Windows | x86_64 Linux | `windows` |
+| Windows（正式版Qt、Q4の前段） | x86_64 Linux | `windows-upstream-qt` |
 | Android ARM64／x86_64 | x86_64 Linux | `android`／`android-x86_64` |
 | iOS／iPadOS arm64 | Apple Silicon Macと固定Xcode | `ios` |
 
@@ -500,6 +501,23 @@ nix build .#librepaint-windows-archive
 アプリ出力は`result/bin/LibrePaint.exe`を含む可搬ディレクトリー。
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
+
+正式版Qt版も同じ増分構築の入口を使う。依存は`windows-upstream-qt-dependencies`の
+構築結果を再利用し、`krita`ターゲットで`krita.dll`と`libkrita*.dll`だけを作り直す。
+
+```sh
+nix build .#windows-upstream-qt-dependencies --no-link
+build-incremental windows-upstream-qt configure
+build-incremental windows-upstream-qt build krita
+build-incremental windows-upstream-qt path
+```
+
+構成指紋がフォーク版と異なるため、ソース配置とNinja木は
+`build/windows/x86_64/<構成指紋>/`の別のディレクトリーになる。コンパイラーキャッシュは
+フォーク版と同じ`.cache/librepaint/ccache/windows`を共有する。初回だけ`configure`が
+ソース配置とCMake構成を作り、以後は`build krita`が変更された翻訳単位とDLLだけを更新する。
+構成指紋にはQtの定義、CMakeフラグ、ソース準備が含まれるため、`nix/windows`を変えたときは
+新しい木が作られる。配布用のZIPは`nix build .#librepaint-windows-upstream-qt-archive`で作る。
 
 Q4（Qtのフォークをやめる）の準備として、正式版Qt 6.11.3で構築する別の出力を持つ。
 Qtの定義はLinuxとmacOSと同じ`nix/qt/overlay.nix`を使い、MinGWの交差構築だけを

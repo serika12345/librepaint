@@ -9,6 +9,7 @@
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
+  incrementalPlatform = if pnameSuffix == "" then "windows" else "windows-upstream-qt";
   librepaintUnwrapped = import ./krita.nix {
     inherit
       pkgs
@@ -395,7 +396,7 @@ let
       export LIBREPAINT_WINDOWS_BUILD_PREPARER=${librepaintUnwrapped.buildPreparer}
       export PYTHONPATH=${librepaintUnwrapped.PYTHONPATH}
       echo "LibrePaint Windows cross environment (x86_64-w64-mingw32)"
-      echo "  build: build-incremental windows build"
+      echo "  build: build-incremental ${incrementalPlatform} build"
     '';
   };
 in

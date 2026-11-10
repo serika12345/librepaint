@@ -1419,6 +1419,7 @@
         librepaint-android = linuxAndroidPackages.devShell;
         librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
+        librepaint-windows-upstream-qt = windowsUpstreamQtPackages.devShell;
       };
 
       formatter.${system} = pkgs.nixfmt;

@@ -6,7 +6,8 @@ usage() {
     cat >&2 <<'EOF'
 usage: build-incremental <platform> <operation> [target]
 
-platforms: native, macos, linux, ios, android, android-x86_64, windows
+platforms: native, macos, linux, ios, android, android-x86_64, windows,
+           windows-upstream-qt
 
 native, macos, linux operations:
   path                 Print the persistent Ninja build tree.
@@ -51,10 +52,10 @@ case "$platform" in
                 ;;
         esac
         ;;
-    macos | linux | ios | android | android-x86_64 | windows)
+    macos | linux | ios | android | android-x86_64 | windows | windows-upstream-qt)
         ;;
     *)
-        echo "supported platforms: native, macos, linux, ios, android, android-x86_64, windows" >&2
+        echo "supported platforms: native, macos, linux, ios, android, android-x86_64, windows, windows-upstream-qt" >&2
         exit 2
         ;;
 esac
@@ -90,6 +91,13 @@ case "$platform" in
         ;;
     windows)
         exec "$repo_root/scripts/platform/build-windows-incremental" \
+            "$operation" "$@"
+        ;;
+    windows-upstream-qt)
+        exec env \
+            LIBREPAINT_WINDOWS_PLATFORM=windows-upstream-qt \
+            LIBREPAINT_WINDOWS_FLAKE_SHELL=librepaint-windows-upstream-qt \
+            "$repo_root/scripts/platform/build-windows-incremental" \
             "$operation" "$@"
         ;;
 esac
