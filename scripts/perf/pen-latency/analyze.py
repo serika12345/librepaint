@@ -24,6 +24,7 @@ import bisect
 import collections
 import csv
 import json
+import math
 import os
 import statistics
 import sys
@@ -32,6 +33,7 @@ POINTER_FLAG_INCONTACT = 0x4
 WM_POINTERUP = 0x0247
 MAX_LINK_MS = 200.0
 MAX_PAINT_TO_PRESENT_MS = 100.0
+MAX_STROKE_QUEUE_MS = 500.0
 
 # Share of the synthetic pen activity that presentmon.csv must cover. A
 # PresentMon session can stop early (2026-11-10: 1.2 s of a 33 s run), and
@@ -79,12 +81,14 @@ def load_inject(path, probe_frequency=None):
     for row in rows:
         if "qpc" in row:
             samples.append({"time": int(row["qpc"]), "phase": row["phase"],
-                            "flags": int(row["flags"]), "ok": row["ok"] == "1"})
+                            "flags": int(row["flags"]), "ok": row["ok"] == "1",
+                            "x": float(row.get("x") or 0.0), "y": float(row.get("y") or 0.0)})
         else:
             if probe_frequency is None:
                 raise SystemExit("%s: time_ns samples need the probe clock frequency" % path)
             samples.append({"time": int(row["time_ns"]) * probe_frequency // 1_000_000_000, "phase": row["phase"],
-                            "flags": POINTER_FLAG_INRANGE_CONTACT if row["pressed"] == "1" else 0x2, "ok": True})
+                            "flags": POINTER_FLAG_INRANGE_CONTACT if row["pressed"] == "1" else 0x2,
+                            "ok": True, "x": float(row["x"]), "y": float(row["y"])})
             frequency = probe_frequency
     return frequency, samples
 
@@ -222,6 +226,23 @@ def describe(values):
     }
 
 
+def speed_clusters(entries):
+    """Group (speed_px_ms, payload) into clusters of similar pointer speed.
+
+    Speeds that differ by less than a fifth belong together; a stroke that
+    changes speed therefore gives one cluster per speed instead of one value
+    per sample. Clusters are returned in increasing speed order.
+    """
+    clusters = []
+    for speed, payload in sorted(entries, key=lambda entry: entry[0]):
+        if not clusters or speed > clusters[-1]["speeds"][-1] * 1.2:
+            clusters.append({"speeds": [], "payloads": []})
+        clusters[-1]["speeds"].append(speed)
+        clusters[-1]["payloads"].append(payload)
+    return [{"speed": statistics.median(cluster["speeds"]), "payloads": cluster["payloads"]}
+            for cluster in clusters]
+
+
 def last_before(times, limit):
     index = bisect.bisect_right(times, limit) - 1
     return times[index] if index >= 0 else None
@@ -243,17 +264,21 @@ class Run:
         self.frequency = None
         self.events = None
         self.inject = None
+        self.inject_times = []
         if os.path.exists(probe_path):
             self.frequency, self.events = load_probe(probe_path)
         if os.path.exists(inject_path):
             inject_frequency, self.inject = load_inject(inject_path, self.frequency)
             self.frequency = self.frequency or inject_frequency
+            self.inject_times = [sample["time"] for sample in self.inject]
         if self.frequency is None:
             raise SystemExit("%s: probe.csv or inject.csv with a '# frequency=' header is required" % directory)
         presentmon_path = os.path.join(directory, "presentmon.csv")
         self.presentmon_present = os.path.exists(presentmon_path)
         self.presents = load_presents(presentmon_path) if self.presentmon_present else []
         self.ticks_per_ms = self.frequency / 1000.0
+        self.stroke_queue_by_speed = None
+        self.stroke_queue_counts = None
 
     def ms(self, ticks):
         return ticks / self.ticks_per_ms
@@ -279,6 +304,63 @@ class Run:
             return index >= 0 and states[index]
 
         return in_contact
+
+    def inject_speed(self, time):
+        """Pointer speed in px/ms near a probe time, from injected samples."""
+        if not self.inject or len(self.inject) < 2:
+            return None
+        times = self.inject_times
+        index = bisect.bisect_right(times, time)
+        index = min(max(index, 1), len(self.inject) - 1)
+        first, second = self.inject[index - 1], self.inject[index]
+        duration = self.ms(second["time"] - first["time"])
+        if duration <= 0:
+            return None
+        return math.hypot(second["x"] - first["x"], second["y"] - first["y"]) / duration
+
+    def stroke_queue(self, stats):
+        """Time from queueing a stroke job to painting its dab.
+
+        stroke_paint records the point entering the stroke queue;
+        stroke_dab records the same job after the paint device has drawn it.
+        The two series are paired in order because both run first in, first
+        out. The delay is grouped by the pointer speed at the queueing time.
+        """
+        paints = self.events.get("stroke_paint", [])
+        dabs = self.events.get("stroke_dab", [])
+        if not paints or not dabs:
+            return
+        self.stroke_queue_counts = {"paint": len(paints), "dab": len(dabs), "paired": 0}
+        durations = []
+        speed_entries = []
+        index = 0
+        for paint in paints:
+            while index < len(dabs) and dabs[index][0] < paint[0]:
+                index += 1
+            if index >= len(dabs):
+                break
+            duration = self.ms(dabs[index][0] - paint[0])
+            index += 1
+            if not 0.0 <= duration <= MAX_STROKE_QUEUE_MS:
+                continue
+            durations.append(duration)
+            speed = self.inject_speed(paint[0])
+            if speed is not None:
+                speed_entries.append((speed, duration))
+        if durations:
+            stats["contact.stroke_paint_to_dab"] = durations
+            self.stroke_queue_counts["paired"] = len(durations)
+        if speed_entries:
+            self.stroke_queue_by_speed = [
+                {
+                    "speed_px_ms": cluster["speed"],
+                    "n": len(cluster["payloads"]),
+                    "p50": statistics.median(cluster["payloads"]),
+                    "p95": percentile(cluster["payloads"], 0.95),
+                    "max": max(cluster["payloads"]),
+                }
+                for cluster in speed_clusters(speed_entries)
+            ]
 
     def analyze(self):
         stats = collections.defaultdict(list)
@@ -353,6 +435,10 @@ class Run:
             h1 = l1_max_frame_latency(self.events)
             if h1:
                 result["l1_h1"] = h1
+            if self.stroke_queue_by_speed:
+                result["contact.stroke_paint_to_dab_speed"] = self.stroke_queue_by_speed
+            if self.stroke_queue_counts:
+                result["stroke_queue"] = self.stroke_queue_counts
         if self.inject:
             result["inject"] = {
                 "n": len(self.inject),
@@ -424,6 +510,8 @@ class Run:
                 if index < len(wait_end):
                     durations.append(self.ms(wait_end[index] - begin))
             stats["gpu_wait.duration"] = durations
+
+        self.stroke_queue(stats)
 
 
 def compare(results, metrics=PRIMARY_METRICS, require_presentmon=True):
@@ -507,6 +595,16 @@ def format_l1_h1(entry):
                flag(entry.get("readback"))))
 
 
+def format_stroke_queue_by_speed(groups):
+    """Stroke queue delay (stroke_paint to stroke_dab) by pointer speed."""
+    if not groups:
+        return "none"
+    return " ; ".join(
+        "%.2f px/ms n=%d p50=%.1f p95=%.1f max=%.1f" % (
+            group["speed_px_ms"], group["n"], group["p50"], group["p95"], group["max"])
+        for group in groups)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("runs", nargs="+", help="run directories")
@@ -541,6 +639,13 @@ def main(argv):
                 continue
             if key == "l1_h2":
                 print("   %-44s %s" % (key, format_l1_h2(stat)))
+                continue
+            if key == "contact.stroke_paint_to_dab_speed":
+                print("   %-44s %s" % (key, format_stroke_queue_by_speed(stat)))
+                continue
+            if key == "stroke_queue":
+                print("   %-44s paint=%d dab=%d paired=%d" % (
+                    key, stat.get("paint", 0), stat.get("dab", 0), stat.get("paired", 0)))
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 

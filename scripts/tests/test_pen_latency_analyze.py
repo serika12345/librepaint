@@ -381,6 +381,47 @@ class L1WaitForGpuTest(unittest.TestCase):
         self.assertNotIn("l1_h2", result)
 
 
+class StrokeQueueTest(unittest.TestCase):
+    """Time from queueing a stroke job to painting its dab.
+
+    stroke_paint is recorded when the point enters the stroke queue;
+    stroke_dab is recorded after the stroke thread has painted it. The delay
+    is grouped by the pointer speed at the queueing time, so a fast stroke
+    that backs up the queue is visible.
+    """
+
+    def test_queue_delay_is_paired_and_grouped_by_speed(self):
+        base = ms(1000)
+        rows = [
+            (base + ms(50), "stroke_paint", 0),
+            (base + ms(55), "stroke_dab", 0),
+            (base + ms(150), "stroke_paint", 0),
+            (base + ms(158), "stroke_dab", 0),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, rows, [])
+            with open(os.path.join(directory, "inject.csv"), "w") as handle:
+                handle.write("time_ns,phase,band,x,y,pressed\n")
+                # 0-100 ms: 1 px/ms. 100-200 ms: 4 px/ms.
+                for index in range(51):
+                    time = 1_000_000_000 + index * 4_000_000
+                    x = index * 4.0 if time < 1_100_000_000 else 96.0 + (time - 1_100_000_000) / 1e6 * 4.0
+                    handle.write("%d,move,stroke0,%.2f,0.00,1\n" % (time, x))
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(analyze.main([directory]), 0)
+        self.assertEqual(result["contact.stroke_paint_to_dab"]["n"], 2)
+        self.assertAlmostEqual(result["contact.stroke_paint_to_dab"]["p50"], 6.5)
+        groups = result["contact.stroke_paint_to_dab_speed"]
+        self.assertEqual(len(groups), 2)
+        self.assertAlmostEqual(groups[0]["speed_px_ms"], 1.0, delta=0.1)
+        self.assertAlmostEqual(groups[0]["p50"], 5.0)
+        self.assertAlmostEqual(groups[1]["speed_px_ms"], 4.0, delta=0.2)
+        self.assertAlmostEqual(groups[1]["p50"], 8.0)
+        self.assertIn("contact.stroke_paint_to_dab_speed", output.getvalue())
+
+
 class RunComparisonTest(unittest.TestCase):
     def test_spread_is_range_of_run_medians_over_their_median(self):
         results = {

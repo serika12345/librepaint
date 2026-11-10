@@ -27,6 +27,7 @@ class QCoreApplication;
  * native_pointer (Windows WM_POINTER message; extra = message << 32 | pointer
  * flags), native_wintab, native_mouse, qt_tablet_move, qt_mouse_move,
  * move_compressed, compressed_dispatch, outline_request, stroke_paint,
+ * stroke_dab (the stroke job has painted its dab into the paint device),
  * projection_update, canvas_update_dispatch, canvas_busy_defer,
  * paintgl_begin, paintgl_end and frame_swapped.
  *
