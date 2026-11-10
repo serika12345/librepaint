@@ -212,6 +212,8 @@ def summarize(run_root, hosts, scenario):
                 "presentmon": result.get("presentmon", {"present": False}),
                 "foreground": result.get("foreground", {}),
                 "excluded": result.get("excluded"),
+                "speed_groups": result.get("ink.speed_groups", []),
+                "speed_change": result.get("ink.speed_change", []),
             })
         for target, data in entry["targets"].items():
             valid = usable_runs(data)
@@ -313,6 +315,55 @@ def table(rows):
     return "\n".join(lines)
 
 
+def speed_table(runs):
+    """Median and spread of the delay for each pointer speed across runs.
+
+    capture_analyze.py already groups each run's ink frames by the speed that
+    applied where the frame's drawing was made. This collects those groups
+    across runs so a speed series shows its trend without reading every
+    per-run log.
+    """
+    entries = []
+    for run in runs:
+        for group in run.get("speed_groups", []):
+            if group.get("n") and group.get("input_to_capture", {}).get("n"):
+                entries.append((group["speed_px_ms"], group["input_to_capture"]["p50"],
+                                group["input_to_capture"]["p95"],
+                                group.get("pen_tip_to_edge_px", {}).get("p50")))
+    clusters = []
+    for speed, p50, p95, tip in sorted(entries, key=lambda entry: entry[0]):
+        if not clusters or speed > clusters[-1]["speeds"][-1] * 1.2:
+            clusters.append({"speeds": [], "p50": [], "p95": [], "tip": []})
+        clusters[-1]["speeds"].append(speed)
+        clusters[-1]["p50"].append(p50)
+        clusters[-1]["p95"].append(p95)
+        if tip is not None:
+            clusters[-1]["tip"].append(tip)
+    rows = []
+    for cluster in clusters:
+        center = statistics.median(cluster["p50"])
+        rows.append((statistics.median(cluster["speeds"]), len(cluster["p50"]), center,
+                     statistics.median(cluster["p95"]),
+                     (max(cluster["p50"]) - min(cluster["p50"])) / center if center else None,
+                     statistics.median(cluster["tip"]) if cluster["tip"] else None))
+    return rows
+
+
+def speed_change_lines(runs):
+    """Largest delay just after a speed change and its settling time per run."""
+    lines = []
+    for run in runs:
+        changes = run.get("speed_change") or []
+        if not changes:
+            continue
+        worst = max(changes, key=lambda change: change["max_latency_ms"])
+        lines.append("%.1f ms (steady %.1f, settle %s, after %.2f px/ms)" % (
+            worst["max_latency_ms"], worst["steady_latency_ms"],
+            "none" if worst["settle_ms"] is None else "%.1f ms" % worst["settle_ms"],
+            worst["after_speed_px_ms"]))
+    return lines
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--scenario", required=True)
@@ -376,6 +427,24 @@ def main(argv):
     if present_lines:
         print("== PresentMon records")
         print("\n".join(present_lines))
+    speed_lines = []
+    for host, entry in summary["hosts"].items():
+        for target, data in entry["targets"].items():
+            valid = usable_runs(data) if isinstance(data.get("runs"), list) else []
+            rows = speed_table(valid)
+            if rows:
+                speed_lines.append("   %s/%s (speed px/ms, runs, median ms, P95 ms, spread, tip px)" % (
+                    host, target))
+                for speed, count, median, p95, spread, tip in rows:
+                    speed_lines.append("      %.2f  %d  %.1f  %.1f  %s  %s" % (
+                        speed, count, median, p95, "-" if spread is None else "%.1f%%" % (100 * spread),
+                        "-" if tip is None else "%.0f" % tip))
+            changes = speed_change_lines(valid)
+            if changes:
+                speed_lines.append("   %s/%s speed changes: %s" % (host, target, " ; ".join(changes)))
+    if speed_lines:
+        print("== ink speed groups")
+        print("\n".join(speed_lines))
     destination = args.summary or os.path.join(run_root, "summary.json")
     os.makedirs(os.path.dirname(os.path.abspath(destination)), exist_ok=True)
     with open(destination, "w") as handle:

@@ -184,12 +184,12 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 | 部品 | 役割 |
 | --- | --- |
-| `trajectory.py` | 全OS共通の軌跡（ホバーの往復、左から右への線）と、キャンバスに対する相対の再生計画 |
+| `trajectory.py` | 全OS共通の軌跡（ホバーの往復、左から右への線）と、キャンバスに対する相対の再生計画。`speed_profiles`で1本の線の中の速さを変えられる |
 | `windows_capture.cpp` | Windows。合成ペン入力（PT_PEN）とDXGI Desktop Duplication。時刻はQueryPerformanceCounter |
 | `mutter_capture.py` | Linux（GNOME）。mutterのRemoteDesktopとScreenCast（PipeWire）。時刻はCLOCK_MONOTONIC |
 | `macos_capture.mm` | macOS。Quartzのマウスイベントと ScreenCaptureKit。時刻はmach_absolute_time |
-| `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す |
-| `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す |
+| `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す。速さごとの値と、速さが変わった直後の値も出す |
+| `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
@@ -289,6 +289,26 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。CSVはあるが
   `TimeInQPC`の範囲が合成入力の期間の95%未満しか覆っていない回は`PresentMon=partial`と出し、
   同じく内訳の比較から外す（`run.py`の表には`present`/`partial`/`none`の回数を出す）。
+- 速さの比較には`pen-light-speed-0p5.json`、`pen-light-speed-1p5.json`、
+  `pen-light-speed-3p0.json`を使う。軌跡と設定は`pen-light.json`と同じで、`speed`だけが違う。
+  `pen-light-speed-varied.json`は1本の線の中で速さを変える（前半を遅くして後半を一気に速くする線と、
+  速いまま急に止める線を交互に置く）。`trajectory.py`の`speed_profiles`が、線の距離の割合
+  （`until`）ごとに速さと`label`を指定する。`capture_analyze.py`は`label`を`move`で始まる
+  フェーズとして1本の線にまとめ、位置から入力の時刻を求める。
+- `capture_analyze.py`はインクのフレームを、その位置を通ったときのポインターの速さ
+  （px/ms）で`ink.speed_groups`に分ける。各群に入力から表示までの時間と、ペン先と線の端の
+  距離（`ink.pen_tip_to_edge_px`。取り込みの画素で、速さ×遅れ）を出す。速さが2倍以上または
+  半分以下に変わり、それが続く箇所を`ink.speed_change`とし、変わった直後の80msの最大の遅れ、
+  その後の安定した遅れ、安定した値に戻るまでの時間（`settle_ms`、3サンプル連続で
+  安定値+max(3ms, 10%)以下）を出す。`run.py`は回をまたいで速さごとの中央値とばらつきを
+  「ink speed groups」に出す。80msと250msの窓は、半本を3.0で描く時間（約167ms）に収まる
+  解析上の値である。
+- ストロークの待ち行列の遅れは、`stroke_paint`（点を待ち行列に入れた時刻）と`stroke_dab`
+  （ストロークの処理がペイントデバイスに dab を描いた時刻）の組で測る。`analyze.py`は
+  先入れ先出しで組にし、`contact.stroke_paint_to_dab`と、待ち行列に入れた時点の
+  ポインターの速さごとの`contact.stroke_paint_to_dab_speed`を出す。`stroke_queue`に
+  記録と組の数を出す。`stroke_dab`は`libs/painting/strokes/freehand_stroke.cpp`が
+  `maskedPainter`の描画の後に記録する。
 
 ## デスクトップ
 

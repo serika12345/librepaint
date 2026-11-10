@@ -44,6 +44,39 @@ class TargetAssignmentTest(unittest.TestCase):
         self.assertIsNone(run.target_of("Krita-20261108-120000-1", targets))
 
 
+class SpeedTableTest(unittest.TestCase):
+    def test_speed_groups_are_collected_across_runs(self):
+        runs = [
+            {"speed_groups": [
+                {"speed_px_ms": 0.9, "n": 10, "input_to_capture": {"n": 10, "p50": 50.0, "p95": 55.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 45.0}},
+                {"speed_px_ms": 5.0, "n": 10, "input_to_capture": {"n": 10, "p50": 52.0, "p95": 58.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 260.0}},
+            ]},
+            {"speed_groups": [
+                {"speed_px_ms": 0.9, "n": 10, "input_to_capture": {"n": 10, "p50": 51.0, "p95": 56.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 46.0}},
+                {"speed_px_ms": 5.0, "n": 10, "input_to_capture": {"n": 10, "p50": 53.0, "p95": 59.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 265.0}},
+            ]},
+        ]
+        rows = run.speed_table(runs)
+        self.assertEqual(len(rows), 2)
+        self.assertAlmostEqual(rows[0][0], 0.9)
+        self.assertAlmostEqual(rows[0][2], 50.5)
+        self.assertAlmostEqual(rows[1][0], 5.0)
+        self.assertAlmostEqual(rows[1][2], 52.5)
+
+    def test_speed_change_reports_the_worst_change(self):
+        runs = [{"speed_change": [
+            {"max_latency_ms": 60.0, "steady_latency_ms": 50.0, "settle_ms": 20.0, "after_speed_px_ms": 5.0},
+            {"max_latency_ms": 70.0, "steady_latency_ms": 50.0, "settle_ms": None, "after_speed_px_ms": 0.4},
+        ]}]
+        line = run.speed_change_lines(runs)[0]
+        self.assertIn("70.0 ms", line)
+        self.assertIn("settle none", line)
+
+
 class SummaryTest(unittest.TestCase):
     def test_capture_offset_is_subtracted_from_every_run(self):
         with tempfile.TemporaryDirectory() as root:
