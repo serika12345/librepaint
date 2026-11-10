@@ -76,7 +76,7 @@ def check(directory):
     sources = [s for s, _ in shown]
 
     _, _, _, samples = capture_analyze.frame_samples(directory)
-    for kind, frame_ns, crossed, _ in samples:
+    for kind, frame_ns, crossed, _, _ in samples:
         # The captured frame shows the input injected at `crossed` (interpolated);
         # the matching presented frame drew the newest injection at or before it.
         i = bisect.bisect_right(sources, crossed + MATCH_NS) - 1

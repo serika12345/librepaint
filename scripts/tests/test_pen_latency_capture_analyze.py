@@ -31,6 +31,7 @@ def load(name):
 
 trajectory = load("trajectory")
 capture_analyze = load("capture_analyze")
+presentation_check = load("presentation_check")
 
 RECT = (100, 100, 1000, 600)
 OPTIONS = {"hover_passes": 2, "strokes": 2}
@@ -269,6 +270,28 @@ class SimulatedDisplayTest(unittest.TestCase):
         self.assertGreaterEqual(changes[0]["steady_latency_ms"], 48.5)
         self.assertIsNotNone(changes[0]["settle_ms"])
         self.assertLessEqual(changes[0]["settle_ms"], 50.0)
+
+
+class PresentationCheckTest(unittest.TestCase):
+    def test_check_reads_the_capture_frames_and_reports_the_presented_delay(self):
+        # presentation_check consumes capture_analyze.frame_samples, whose
+        # tuple gained the pointer speed. A simulated run with a reference
+        # log keeps that contract observable.
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 30_000_000)
+            injected = capture_analyze.read_inject(os.path.join(directory, "inject.csv"))
+            with open(os.path.join(directory, "reference.log"), "w") as handle:
+                for index, (time_ns, *_rest) in enumerate(injected, start=1):
+                    shown = time_ns + 12_000_000
+                    handle.write("input,%d,0,0\n" % time_ns)
+                    handle.write("commit,%d,%d,%d\n" % (time_ns, index, time_ns))
+                    handle.write("presented,%d,%d,16666667,7\n" % (index, shown))
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                presentation_check.check(directory)
+        text = output.getvalue()
+        self.assertIn("presented=", text)
+        self.assertRegex(text, r"inject_to_presented\s+p05=.*p50=\s*12\.0")
 
 
 if __name__ == "__main__":
