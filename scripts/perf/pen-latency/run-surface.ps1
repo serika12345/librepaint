@@ -214,6 +214,25 @@ function Restore-TargetKritarc($dir, $state) {
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
 }
 
+function Get-KritarcValues($names) {
+    # Read root kritarc keys written by the application during the run. The
+    # canvas records its OpenGL state there (canvasState), so a run that never
+    # repainted can be told apart from one that never started OpenGL.
+    $path = Join-Path $env:LOCALAPPDATA 'kritarc'
+    $values = @{}
+    if (-not (Test-Path $path)) { return $values }
+    $section = $true
+    foreach ($line in [System.IO.File]::ReadAllLines($path)) {
+        if ($line -match '^\s*\[') { $section = $false }
+        if (-not $section) { continue }
+        foreach ($name in $names) {
+            $match = [regex]::Match($line, '^\s*' + [regex]::Escape($name) + '\s*=(.*)$')
+            if ($match.Success) { $values[$name] = $match.Groups[1].Value.Trim() }
+        }
+    }
+    return $values
+}
+
 function Send-ZoomKeys($app, [int]$percent) {
     # Use the application shortcuts (krita_default.shortcuts): Ctrl+0 puts the
     # canvas at 100 %, and Ctrl+= steps through the standard zoom levels
@@ -377,8 +396,15 @@ try {
         $kritarcState = Set-TargetKritarc $dir $request.kritarc
         $appImage = if ($displayCheck) { [string]$displayCheck.image } else { $canvas }
         $app = $null
+        $appOut = Join-Path $dir 'app.out'
+        $appErr = Join-Path $dir 'app.err'
         try {
-            $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$appImage`"") -PassThru
+            # Keep the application's own log: it names the OpenGL mode, failed
+            # plugins and the canvas state, which the probe cannot show. A run
+            # whose canvas stopped repainting (2026-11-10 22:55) needs these
+            # lines to tell a failed GL start from a stalled update path.
+            $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$appImage`"") -PassThru `
+                -RedirectStandardOutput $appOut -RedirectStandardError $appErr
             $hwnd = Wait-MainWindow $app 120
             Write-LaunchFacts $dir 'window' $app
 
@@ -439,6 +465,17 @@ try {
             }
             Restore-TargetKritarc $dir $kritarcState
         }
+        # State the application left in kritarc, after the overrides are
+        # restored: the canvas writes canvasState and the chosen renderer.
+        $afterKeys = Get-KritarcValues @('canvasState', 'OpenGLRenderer', 'useOpenGL', 'useMaximumFrameLatencyOne')
+        $afterLines = @()
+        foreach ($key in @('canvasState', 'OpenGLRenderer', 'useOpenGL', 'useMaximumFrameLatencyOne')) {
+            $value = if ($afterKeys -and $afterKeys.ContainsKey($key)) { $afterKeys[$key] } else { 'absent' }
+            $afterLines += "kritarc_after.$key=$value"
+        }
+        $afterLines += "app_log_bytes=$(if (Test-Path $appOut) { (Get-Item $appOut).Length } else { 0 })"
+        $afterLines += "app_err_bytes=$(if (Test-Path $appErr) { (Get-Item $appErr).Length } else { 0 })"
+        Add-Content -Path (Join-Path $dir 'meta.txt') -Value $afterLines
         if ($presentMonEnabled) {
             $recorded = (Test-Path $presentMonCsv) -and ((Get-Item $presentMonCsv).Length -gt 0)
             $presentMonState = if ($recorded) { 'present' } else { 'none' }
