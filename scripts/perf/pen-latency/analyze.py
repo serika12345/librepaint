@@ -255,6 +255,130 @@ def float_or_none(text):
         return None
 
 
+PAINT_INTERVAL_BINS = (("<4", 4.0), ("<8", 8.0), ("<12", 12.0), ("<16", 16.0))
+PHASE_BINS = 10
+
+
+def interval_histogram(values, bins=PAINT_INTERVAL_BINS):
+    """Count intervals into the bands that separate the paint cadences.
+
+    The official Qt Windows runs paint both shortly after an input burst and
+    about one display period later, so a median alone hides the two groups.
+    """
+    counts = collections.OrderedDict((label, 0) for label, _ in bins)
+    counts[">=" + bins[-1][0][1:]] = 0
+    for value in values:
+        for label, limit in bins:
+            if value < limit:
+                counts[label] += 1
+                break
+        else:
+            counts[">=" + bins[-1][0][1:]] += 1
+    return dict(counts)
+
+
+def display_change_times(presents, ticks_per_ms):
+    """Times of the display changes that PresentMon reported.
+
+    PresentMon gives the present time and the wait until the display change,
+    so display = TimeInQPC + MsUntilDisplayed. Rows without a display change
+    are left out; they carry no phase information.
+    """
+    times = []
+    for present, row in presents:
+        until_displayed = float_or_none(row.get("MsUntilDisplayed"))
+        if until_displayed is not None:
+            times.append(present + until_displayed * ticks_per_ms)
+    times.sort()
+    return times
+
+
+def summarize_paint_cycle(presents, events, ticks_per_ms):
+    """Paint cadence, presentation cadence and the paint/display phase.
+
+    The L1 Windows measurements need to separate the fast and slow ink states.
+    These values name the difference: how often paintGL ran between two
+    display changes, how the paint interval is distributed, and where in the
+    display period the paint started.
+    """
+    paints = [entry[0] for entry in events.get("paintgl_begin", [])]
+    presents_sorted = [present for present, _ in presents]
+    displays = display_change_times(presents, ticks_per_ms)
+
+    window = None
+    if displays:
+        window = (displays[0], displays[-1])
+
+    def inside(times):
+        if window is None:
+            return list(times)
+        return [time for time in times if window[0] <= time <= window[1]]
+
+    paint_times = inside(paints)
+    present_times = inside(presents_sorted)
+    paint_intervals = [
+        (b - a) / ticks_per_ms for a, b in zip(paint_times, paint_times[1:])
+        if (b - a) / ticks_per_ms < MAX_LINK_MS
+    ]
+    present_intervals = [
+        (b - a) / ticks_per_ms for a, b in zip(present_times, present_times[1:])
+        if (b - a) / ticks_per_ms < MAX_LINK_MS
+    ]
+
+    period = None
+    intervals = [
+        (b - a) / ticks_per_ms for a, b in zip(displays, displays[1:])
+        if (b - a) / ticks_per_ms < MAX_LINK_MS
+    ]
+    if intervals:
+        period = statistics.median(intervals)
+
+    result = {
+        "paint_interval": describe(paint_intervals),
+        "paint_interval_bins": interval_histogram(paint_intervals),
+        "present_interval": describe(present_intervals),
+        "paint": len(paint_times),
+        "present": len(present_times),
+        "display": len(displays),
+        "display_period_ms": period,
+        "paint_per_display": (len(paint_times) / len(displays)) if displays else None,
+        "present_per_display": (len(present_times) / len(displays)) if displays else None,
+    }
+
+    modes = collections.Counter(
+        row.get("PresentMode") for _, row in presents if row.get("PresentMode"))
+    if modes:
+        result["present_modes"] = dict(sorted(modes.items()))
+
+    until_displayed = [
+        value for value in (float_or_none(row.get("MsUntilDisplayed")) for _, row in presents)
+        if value is not None
+    ]
+    if until_displayed:
+        result["ms_until_displayed"] = describe(until_displayed)
+
+    if period and period > 0:
+        phases = []
+        for time in paints:
+            index = bisect.bisect_right(displays, time) - 1
+            if index < 0:
+                continue
+            elapsed = (time - displays[index]) / ticks_per_ms
+            if 0.0 <= elapsed < period:
+                phases.append(elapsed / period)
+        if phases:
+            angles = [phase * 2.0 * math.pi for phase in phases]
+            x = sum(math.cos(angle) for angle in angles) / len(angles)
+            y = sum(math.sin(angle) for angle in angles) / len(angles)
+            result["phase"] = describe(phases)
+            result["phase"]["concentration"] = math.hypot(x, y)
+            result["phase"]["mean"] = (math.atan2(y, x) / (2.0 * math.pi)) % 1.0
+            hist = collections.Counter(min(PHASE_BINS - 1, int(phase * PHASE_BINS)) for phase in phases)
+            result["phase"]["bins"] = [hist.get(index, 0) for index in range(PHASE_BINS)]
+
+    return result
+
+
 class Run:
     def __init__(self, directory):
         self.directory = directory
@@ -405,6 +529,8 @@ class Run:
             os.path.join(self.directory, "presentmon.csv"), self.presents,
             measurement_window(self.inject, self.events))
         if self.events:
+            result["paint_cycle"] = summarize_paint_cycle(
+                self.presents, self.events, self.ticks_per_ms)
             result["input_path"] = {
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
@@ -547,6 +673,37 @@ def format_stat(stat):
     if not stat.get("n"):
         return "n=0"
     return "p05=%6.1f p50=%6.1f p95=%6.1f n=%d" % (stat["p05"], stat["p50"], stat["p95"], stat["n"])
+
+
+def format_paint_cycle(entry):
+    """One line per run: paint cadence, display cadence and phase."""
+    if not entry or not entry.get("paint"):
+        return "none"
+    parts = [
+        "paint %s bins{%s}" % (
+            format_stat(entry.get("paint_interval", {})),
+            ",".join("%s:%d" % (label, count)
+                     for label, count in entry.get("paint_interval_bins", {}).items())),
+        "present %s" % format_stat(entry.get("present_interval", {})),
+    ]
+    period = entry.get("display_period_ms")
+    paint_per_display = entry.get("paint_per_display")
+    present_per_display = entry.get("present_per_display")
+    parts.append("display=%s ms paint/display=%s present/display=%s" % (
+        "n/a" if period is None else "%.2f" % period,
+        "n/a" if paint_per_display is None else "%.2f" % paint_per_display,
+        "n/a" if present_per_display is None else "%.2f" % present_per_display))
+    if entry.get("ms_until_displayed"):
+        parts.append("until_displayed %s" % format_stat(entry["ms_until_displayed"]))
+    if entry.get("present_modes"):
+        parts.append("modes{%s}" % ",".join(
+            "%s=%d" % (name, count) for name, count in entry["present_modes"].items()))
+    phase = entry.get("phase")
+    if phase:
+        parts.append("phase %s R=%.2f mean=%.2f bins=%s" % (
+            format_stat(phase), phase.get("concentration", 0.0), phase.get("mean", 0.0),
+            ",".join(str(count) for count in phase.get("bins", []))))
+    return " ".join(parts)
 
 
 def format_l1_events(events):
@@ -799,6 +956,9 @@ def main(argv):
             print("   injected samples=%d failed=%d" % (result["inject"]["n"], result["inject"]["failed"]))
         for key, stat in result.items():
             if key in ("presents", "inject", "presentmon", "input_path"):
+                continue
+            if key == "paint_cycle":
+                print("   %-44s %s" % (key, format_paint_cycle(stat)))
                 continue
             if key == "l1_events":
                 print("   %-44s %s" % (key, format_l1_events(stat)))

@@ -286,6 +286,14 @@ TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButto
 これで、取り込みの開始時に最前面だったこと（`app_foreground_capture`）と、入力の直前にも
 最前面だったことを分けられる。
 
+描画の周期は`paint_cycle`の1行で追う。`paint_interval`は`paintgl_begin`の間隔（4ms未満、
+8ms未満、12ms未満、16ms未満、16ms以上の内訳付き）、`present_interval`はPresentMonの
+`TimeInQPC`の間隔、`display_period_ms`は表示の変化の間隔の中央値である。`paint/display`と
+`present/display`は、表示の変化1回あたりに描画と受け渡しが何回あったかを表す。
+`phase`は、直前の表示の変化から`paintgl_begin`までの時間を表示の周期で割った値で、
+`concentration`（0が一様、1が同じ位相）と10個の区間のヒストグラムを添える。
+`present_modes`はPresentMonの表示方式の回数、`until_displayed`は`MsUntilDisplayed`の分布である。
+
 表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
 `build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を
 `windows_capture.exe --snapshot-frame`で取り込んで、元の画像と比べる。

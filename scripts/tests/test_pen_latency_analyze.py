@@ -33,7 +33,7 @@ def ms(value):
     return int(value * TICKS_PER_MS)
 
 
-def write_run(directory, probe_rows, presents):
+def write_run(directory, probe_rows, presents, modes=None):
     with open(os.path.join(directory, "probe.csv"), "w") as handle:
         handle.write("# frequency=%d\n" % (TICKS_PER_MS * 1000))
         handle.write("time,event,x,y,extra,thread\n")
@@ -42,9 +42,16 @@ def write_run(directory, probe_rows, presents):
             x = row[3] if len(row) > 3 else 0.0
             handle.write("%d,%s,%.2f,0.00,%d,1\n" % (time, event, x, extra))
     with open(os.path.join(directory, "presentmon.csv"), "w") as handle:
-        handle.write(PRESENTMON_HEADER)
-        for present, until_displayed in presents:
-            handle.write("LibrePaint.exe,1,%d,%s,%d,1.0,0.5\n" % (present, until_displayed, present - ms(10)))
+        if modes is None:
+            handle.write(PRESENTMON_HEADER)
+        else:
+            handle.write(PRESENTMON_HEADER.rstrip("\n") + ",PresentMode\n")
+        for index, (present, until_displayed) in enumerate(presents):
+            line = "LibrePaint.exe,1,%d,%s,%d,1.0,0.5" % (
+                present, until_displayed, present - ms(10))
+            if modes is not None:
+                line += ",%s" % modes[index]
+            handle.write(line + "\n")
 
 
 def pointer(flags):
@@ -137,6 +144,39 @@ class PresentMonTest(unittest.TestCase):
             result = analyze.Run(directory).analyze()
         self.assertEqual(result["presentmon"]["status"], "partial")
         self.assertAlmostEqual(result["presentmon"]["coverage"], 0.02, places=2)
+
+
+class PaintCycleTest(unittest.TestCase):
+    def test_paint_cadence_display_period_phase_and_present_mode(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(
+                directory,
+                [
+                    (base + ms(15), "paintgl_begin", 0),
+                    (base + ms(31.68), "paintgl_begin", 0),
+                    (base + ms(48.36), "paintgl_begin", 0),
+                ],
+                [(base, "10.0"), (base + ms(16.68), "10.0"), (base + ms(33.36), "10.0")],
+                modes=["Composed: Copy with GPU GDI",
+                       "Composed: Copy with GPU GDI",
+                       "Hardware Composed: Independent Flip"],
+            )
+            result = analyze.Run(directory).analyze()
+
+        cycle = result["paint_cycle"]
+        self.assertAlmostEqual(cycle["display_period_ms"], 16.68, places=2)
+        self.assertAlmostEqual(cycle["paint_interval"]["p50"], 16.68, places=2)
+        # Only the paints between the first and last display change form a
+        # paint interval in the ratio window: 15 -> 31.68 ms.
+        self.assertEqual(cycle["paint_interval_bins"][">=16"], 1)
+        # Every paint starts 5 ms after a display change: phase 5/16.68.
+        self.assertAlmostEqual(cycle["phase"]["p50"], 5.0 / 16.68, places=2)
+        self.assertAlmostEqual(cycle["phase"]["concentration"], 1.0, places=2)
+        self.assertEqual(cycle["present_modes"], {
+            "Composed: Copy with GPU GDI": 2,
+            "Hardware Composed: Independent Flip": 1,
+        })
 
 
 class PresentMonCoverageComparisonTest(unittest.TestCase):
