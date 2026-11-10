@@ -404,8 +404,8 @@ def main(argv):
     summary["commit"] = subprocess.run(["git", "-C", ROOT, "rev-parse", "--short=10", "HEAD"],
                                        capture_output=True, text=True).stdout.strip()
     baseline = json.load(open(args.baseline)) if args.baseline else None
-    rows = judge(summary, scenario, baseline)
-    print(table(rows))
+    verdict_rows = judge(summary, scenario, baseline)
+    print(table(verdict_rows))
     present_lines = []
     for host, entry in summary["hosts"].items():
         if entry.get("kind") != "windows":
@@ -431,11 +431,11 @@ def main(argv):
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():
             valid = usable_runs(data) if isinstance(data.get("runs"), list) else []
-            rows = speed_table(valid)
-            if rows:
+            speed_rows = speed_table(valid)
+            if speed_rows:
                 speed_lines.append("   %s/%s (speed px/ms, runs, median ms, P95 ms, spread, tip px)" % (
                     host, target))
-                for speed, count, median, p95, spread, tip in rows:
+                for speed, count, median, p95, spread, tip in speed_rows:
                     speed_lines.append("      %.2f  %d  %.1f  %.1f  %s  %s" % (
                         speed, count, median, p95, "-" if spread is None else "%.1f%%" % (100 * spread),
                         "-" if tip is None else "%.0f" % tip))
@@ -450,7 +450,7 @@ def main(argv):
     with open(destination, "w") as handle:
         json.dump(summary, handle, indent=2, sort_keys=True)
     print("summary: " + destination)
-    return 1 if any(row[7] != "ok" for row in rows) else 0
+    return 1 if any(row[7] != "ok" for row in verdict_rows) else 0
 
 
 if __name__ == "__main__":

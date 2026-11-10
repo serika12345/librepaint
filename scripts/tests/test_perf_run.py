@@ -9,11 +9,13 @@ more than the scenario threshold.
 """
 
 import importlib.util
+import io
 import json
 import os
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -255,6 +257,63 @@ class VerdictTest(unittest.TestCase):
         row = self.verdict(summary_with(30.0), summary_with(40.0))
         self.assertEqual(row[7], "ok")
         self.assertIn("improvement", row[8])
+
+
+class MainExitTest(unittest.TestCase):
+    """The process status follows the verdict rows, also when speed rows are printed."""
+
+    SPEEDS = [{"speed_px_ms": 0.9, "n": 10,
+               "input_to_capture": {"n": 10, "p50": 50.0, "p95": 55.0},
+               "pen_tip_to_edge_px": {"n": 10, "p50": 45.0}},
+              {"speed_px_ms": 5.0, "n": 10,
+               "input_to_capture": {"n": 10, "p50": 52.0, "p95": 58.0},
+               "pen_tip_to_edge_px": {"n": 10, "p50": 260.0}}]
+
+    def run_main(self, hovers):
+        scenario = {
+            "name": "test",
+            "runs": len(hovers),
+            "spread_limit": 0.05,
+            "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
+        }
+        with tempfile.TemporaryDirectory() as root:
+            run_root = os.path.join(root, "runs")
+            for index, _ in enumerate(hovers, start=1):
+                path = os.path.join(run_root, "h", "T-20261108-120000-%d" % index)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+            scenario_path = os.path.join(root, "scenario.json")
+            hosts_path = os.path.join(root, "hosts.json")
+            with open(scenario_path, "w") as handle:
+                json.dump(scenario, handle)
+            with open(hosts_path, "w") as handle:
+                json.dump({"hosts": [{"name": "h", "kind": "linux", "capture_offset_ms": 0,
+                                      "targets": [{"name": "T"}]}]}, handle)
+            results = []
+            for hover in hovers:
+                result = fake_run("low", hover, 40.0)
+                result["ink.speed_groups"] = self.SPEEDS
+                result["speed_change"] = []
+                results.append(result)
+            output = io.StringIO()
+            with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results), \
+                    mock.patch.object(run.subprocess, "run",
+                                      return_value=mock.Mock(stdout="0123456789\n")), \
+                    redirect_stdout(output):
+                status = run.main(["--scenario", scenario_path, "--hosts", hosts_path,
+                                   "--analyze-only", run_root])
+        return status, output.getvalue()
+
+    def test_speed_rows_do_not_change_a_passing_status(self):
+        status, output = self.run_main([40.0, 40.5])
+        self.assertIn("== ink speed groups", output)
+        self.assertEqual(status, 0)
+
+    def test_a_flagged_metric_still_exits_nonzero_with_speed_rows(self):
+        status, output = self.run_main([40.0, 50.0])
+        self.assertIn("== ink speed groups", output)
+        self.assertIn("| check |", output)
+        self.assertEqual(status, 1)
 
 
 if __name__ == "__main__":
