@@ -193,6 +193,7 @@ def frame_samples(directory):
 
 
 META_FOREGROUND = "app_foreground_capture"
+PRESENTATION_MIN_RATIO = 0.8
 
 
 def read_meta(directory):
@@ -213,14 +214,55 @@ def foreground_state(directory):
     """Whether the application was the foreground window when capture began.
 
     run-surface.ps1 records app_foreground_capture=True or False. A run whose
-    application was not in front measures another window, so it is left out of
-    the aggregation. Runs before that line existed stay usable (known False).
+    application was not in front is a candidate for leaving out of the
+    aggregation. Runs before that line existed stay usable (known False).
     """
     value = read_meta(directory).get(META_FOREGROUND)
     if value is None:
-        return {"known": False, "foreground": None, "excluded": False}
-    foreground = value.lower() == "true"
-    return {"known": True, "foreground": foreground, "excluded": not foreground}
+        return {"known": False, "foreground": None}
+    return {"known": True, "foreground": value.lower() == "true"}
+
+
+def presentation_state(directory, frame_interval_ms):
+    """How often the application presented frames while the pen was moving.
+
+    The probe records frame_swapped. Windows throttles a window that another
+    window covers, so it presents far fewer frames than the display refresh
+    and its frames no longer follow the input. A rate near the display rate
+    means the application stayed visible even when it did not hold the
+    keyboard focus (for example while a shell surface did).
+    """
+    probe = os.path.join(directory, "probe.csv")
+    inject = os.path.join(directory, "inject.csv")
+    if not os.path.exists(probe) or not os.path.exists(inject) or not frame_interval_ms:
+        return None
+    frequency, events = analyze.load_probe(probe)
+    with open(inject) as handle:
+        times = [int(row["time_ns"]) for row in csv.DictReader(handle)]
+    if len(times) < 2 or not frequency:
+        return None
+    begin, end = min(times), max(times)
+    to_ns = 1_000_000_000 / frequency
+    swaps = [t for t, *_ in events.get("frame_swapped", []) if begin <= t * to_ns <= end]
+    span = (end - begin) / 1e9
+    if span <= 0:
+        return None
+    expected = 1000.0 / frame_interval_ms
+    rate = len(swaps) / span
+    return {"n": len(swaps), "span_s": span, "per_s": rate,
+            "expected_per_s": expected, "ratio": rate / expected}
+
+
+def exclusion_reason(foreground, presentation):
+    """Why a run measured another window, or None when it stays usable."""
+    if foreground.get("foreground") is not False:
+        return None
+    ratio = (presentation or {}).get("ratio")
+    if ratio is None:
+        return "app not foreground"
+    if ratio < PRESENTATION_MIN_RATIO:
+        return "app not foreground and presented at %.0f%% of the display rate" % (100 * ratio)
+    return None
 
 
 def presentmon_state(directory):
@@ -310,7 +352,11 @@ def analyze_run(directory):
         "tablet_move_interval_p05_ms": tablet_interval,
     }
     result["presentmon"] = presentmon_state(directory)
-    result["foreground"] = foreground_state(directory)
+    foreground = foreground_state(directory)
+    presentation = presentation_state(directory, result["frames"]["interval"].get("p50"))
+    result["foreground"] = foreground
+    result["presentation"] = presentation
+    result["excluded"] = exclusion_reason(foreground, presentation)
     return result
 
 
@@ -335,14 +381,19 @@ def main(argv):
         foreground = result["foreground"]
         foreground_text = "-" if not foreground["known"] else (
             "ok" if foreground["foreground"] else "not-foreground")
-        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s  foreground=%s" % (
+        presentation = result.get("presentation") or {}
+        ratio = presentation.get("ratio")
+        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s  foreground=%s%s" % (
             name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"],
-            presentmon, foreground_text))
+            presentmon, foreground_text,
+            "" if ratio is None else " presented=%.0f%%" % (100 * ratio)))
+        if result.get("excluded"):
+            print("   left out: %s" % result["excluded"])
         print("   state: %s" % result["state"]["reason"])
         for kind, entry in result["calibration"].items():
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
         for key, stat in result.items():
-            if key in ("frames", "calibration", "state", "presentmon"):
+            if key in ("frames", "calibration", "state", "presentmon", "foreground", "presentation", "excluded"):
                 continue
             print("   %-28s %s" % (key, analyze.format_stat(stat)))
     comparison = analyze.compare(results, PRIMARY, require_presentmon=False)

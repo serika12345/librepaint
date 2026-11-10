@@ -60,13 +60,13 @@ class SummaryTest(unittest.TestCase):
         self.assertAlmostEqual(metric["spread"], 0.0, places=6)
 
 
-def fake_run(state, hover, ink, presentmon_status="present", foreground=None):
+def fake_run(state, hover, ink, presentmon_status="present", excluded=None):
     return {
         "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
         "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
         "state": {"label": state},
         "presentmon": {"present": presentmon_status != "none", "status": presentmon_status},
-        "foreground": foreground or {"known": True, "foreground": True, "excluded": False},
+        "excluded": excluded,
     }
 
 
@@ -180,11 +180,10 @@ class StateSummaryTest(unittest.TestCase):
         self.assertEqual(data["presentmon"], {"present": 2, "partial": 1, "none": 1})
 
     def test_a_run_whose_app_was_not_in_front_is_left_out(self):
-        excluded = {"known": True, "foreground": False, "excluded": True}
         summary = self.summarize([
             fake_run("high", 60.0, 61.0),
             fake_run("high", 62.0, 61.0),
-            fake_run("high", 120.0, 61.0, "partial", foreground=excluded),
+            fake_run("high", 120.0, 61.0, "partial", excluded="app not foreground and presented at 39% of the display rate"),
             fake_run("high", 61.0, 61.0),
         ])
         data = summary["hosts"]["h"]["targets"]["T"]
@@ -194,7 +193,7 @@ class StateSummaryTest(unittest.TestCase):
         self.assertEqual(data["presentmon"], {"present": 3, "partial": 0, "none": 0})
         rows = run.judge(summary, self.SCENARIO)
         notes = "; ".join(row[8] for row in rows)
-        self.assertIn("1 run(s) left out: app not foreground", notes)
+        self.assertIn("1 run(s) left out: app not foreground or not presenting", notes)
         self.assertIn("high state: 3 of 3 runs", notes)
 
 

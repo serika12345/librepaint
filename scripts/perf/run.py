@@ -25,9 +25,10 @@ PresentMon out for a comparison, and "env" to pass environment variables to
 the measured application (run-surface.ps1 records them in meta.txt). A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
-application was not the foreground window when the capture began
-(app_foreground_capture=False in meta.txt) measures another window; it is
-left out of every metric and counted in the table.
+application was not the foreground window when the capture began and that
+presented far fewer frames than the display refresh (Windows throttles a
+covered window) measured another window; it is left out of every metric and
+counted in the table.
 
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
@@ -144,14 +145,14 @@ def presentmon_status(run):
     return status
 
 
-def run_foreground_excluded(run):
-    """Whether a run measured another window because the app was not in front."""
-    return bool((run.get("foreground") or {}).get("excluded"))
+def run_excluded(run):
+    """Whether a run measured another window and is left out of the aggregation."""
+    return bool(run.get("excluded"))
 
 
 def usable_runs(data):
     """Runs of one target that took part in the measurement and can be aggregated."""
-    return [run for run in data.get("runs", []) if not run_foreground_excluded(run)]
+    return [run for run in data.get("runs", []) if not run_excluded(run)]
 
 
 def metric_needs_presentmon(metric):
@@ -210,6 +211,7 @@ def summarize(run_root, hosts, scenario):
                 "state": result.get("state", {"label": "unknown"}),
                 "presentmon": result.get("presentmon", {"present": False}),
                 "foreground": result.get("foreground", {}),
+                "excluded": result.get("excluded"),
             })
         for target, data in entry["targets"].items():
             valid = usable_runs(data)
@@ -280,7 +282,7 @@ def judge(summary, scenario, baseline=None):
                     if total_runs < scenario["runs"]:
                         problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
                     if data.get("excluded"):
-                        notes.append("%d run(s) left out: app not foreground" % data["excluded"])
+                        notes.append("%d run(s) left out: app not foreground or not presenting" % data["excluded"])
                     partial = sum(1 for run in valid if presentmon_status(run) == "partial")
                     if metric_needs_presentmon(metric) and partial:
                         notes.append("%d partial PresentMon run(s) left out" % partial)
@@ -369,7 +371,7 @@ def main(argv):
                     host, target, counts["present"], len(valid), counts["partial"], counts["none"]))
             if data.get("excluded"):
                 present_lines.append(
-                    "   %s/%s: %d run(s) left out: app not foreground" % (
+                    "   %s/%s: %d run(s) left out: app not foreground or not presenting" % (
                         host, target, data["excluded"]))
     if present_lines:
         print("== PresentMon records")

@@ -90,6 +90,23 @@ def write_probe(directory, intervals_ns):
             time += gap // 100  # the probe clock is 10 MHz
 
 
+def write_frame_swaps(directory, interval_ns=FRAME_NS):
+    """Append frame_swapped events over the injected span (probe clock 10 MHz)."""
+    with open(os.path.join(directory, "inject.csv")) as handle:
+        times = [int(row["time_ns"]) for row in csv.DictReader(handle)]
+    begin, end = min(times), max(times)
+    path = os.path.join(directory, "probe.csv")
+    if not os.path.exists(path):
+        with open(path, "w") as handle:
+            handle.write("# frequency=10000000\n")
+            handle.write("time,event,x,y,extra,thread\n")
+    with open(path, "a") as handle:
+        time = begin
+        while time <= end:
+            handle.write("%d,frame_swapped,0.00,0.00,0,1\n" % (time // 100))
+            time += interval_ns
+
+
 class HoverStateTest(unittest.TestCase):
     def test_indicators_of_the_two_states_are_recognised(self):
         self.assertEqual(capture_analyze.classify_hover_state(11.2, 3.1)[0], "low")
@@ -130,25 +147,42 @@ class HoverStateTest(unittest.TestCase):
 
 
 class ForegroundStateTest(unittest.TestCase):
-    def analyze(self, meta_lines):
+    def analyze(self, meta_lines, swap_interval_ns=FRAME_NS):
         with tempfile.TemporaryDirectory() as directory:
             simulate(directory, 50_000_000)
             if meta_lines is not None:
                 with open(os.path.join(directory, "meta.txt"), "w") as handle:
                     handle.write("\n".join(meta_lines) + "\n")
-            return capture_analyze.analyze_run(directory)["foreground"]
+            if swap_interval_ns:
+                write_frame_swaps(directory, swap_interval_ns)
+            return capture_analyze.analyze_run(directory)
 
-    def test_a_run_whose_app_was_not_in_front_is_excluded(self):
-        state = self.analyze(["presentmon_result=present", "app_foreground_capture=False"])
-        self.assertEqual(state, {"known": True, "foreground": False, "excluded": True})
+    def test_a_run_whose_app_was_not_in_front_and_stopped_presenting_is_excluded(self):
+        result = self.analyze(["app_foreground_capture=False"], swap_interval_ns=50_000_000)
+        self.assertEqual(result["foreground"], {"known": True, "foreground": False})
+        self.assertLess(result["presentation"]["ratio"], 0.5)
+        self.assertIn("presented at 33% of the display rate", result["excluded"])
+
+    def test_a_covered_window_that_still_presents_at_the_display_rate_stays(self):
+        # 2026-11-10 14:42: a shell surface held the focus in every run while
+        # the application stayed visible and presented at the display rate.
+        result = self.analyze(["app_foreground_capture=False"])
+        self.assertGreater(result["presentation"]["ratio"], 0.9)
+        self.assertIsNone(result["excluded"])
 
     def test_a_foreground_run_stays_usable(self):
-        state = self.analyze(["app_foreground_capture=True"])
-        self.assertEqual(state, {"known": True, "foreground": True, "excluded": False})
+        result = self.analyze(["app_foreground_capture=True"], swap_interval_ns=None)
+        self.assertEqual(result["foreground"], {"known": True, "foreground": True})
+        self.assertIsNone(result["excluded"])
 
     def test_a_run_without_the_line_stays_usable(self):
-        state = self.analyze(None)
-        self.assertEqual(state, {"known": False, "foreground": None, "excluded": False})
+        result = self.analyze(None, swap_interval_ns=None)
+        self.assertEqual(result["foreground"], {"known": False, "foreground": None})
+        self.assertIsNone(result["excluded"])
+
+    def test_a_not_foreground_run_without_a_probe_is_excluded(self):
+        result = self.analyze(["app_foreground_capture=False"], swap_interval_ns=None)
+        self.assertEqual(result["excluded"], "app not foreground")
 
 
 class SimulatedDisplayTest(unittest.TestCase):
