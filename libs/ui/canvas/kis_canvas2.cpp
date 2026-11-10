@@ -1204,6 +1204,12 @@ void KisCanvas2::slotDoCanvasUpdate()
 #endif
 
     QRect combinedUpdateRect = m_d->savedCanvasProjectionUpdateRect | m_d->savedOverlayUpdateRect;
+    // x/y = the canvas widget size at the moment the update is issued. An
+    // empty rect here (with a dispatch already recorded) means the request
+    // never had a region to update.
+    KisLatencyProbe::mark("canvas_update_issued", m_d->canvasWidget->widget()->width(),
+                          m_d->canvasWidget->widget()->height(),
+                          (combinedUpdateRect.isEmpty() ? 1 : 0) | (m_d->updateSceneRequested ? 2 : 0));
     if (!combinedUpdateRect.isEmpty()) {
         // TODO: Remove this signal (only used by the old KisSketchView)
         Q_EMIT updateCanvasRequested(combinedUpdateRect);
@@ -1304,6 +1310,10 @@ void KisCanvas2::updateCanvasDecorations(const QRectF &docRect)
 void KisCanvas2::updateCanvasToolOutlineDoc(const QRectF &docRect)
 {
     QRect widgetRect = m_d->docUpdateRectToWidget(docRect);
+    // x/y = the widget rect after clipping to the canvas widget, extra bit 1 =
+    // the document rect was empty.
+    KisLatencyProbe::mark("canvas_outline_doc", widgetRect.width(), widgetRect.height(),
+                          docRect.isEmpty() ? 1 : 0);
     if (!widgetRect.isEmpty()) {
         updateCanvasToolOutlineWdg(widgetRect);
     }
@@ -1312,6 +1322,14 @@ void KisCanvas2::updateCanvasToolOutlineDoc(const QRectF &docRect)
 void KisCanvas2::updateCanvasToolOutlineWdg(const QRect &widgetRect)
 {
     QRect rect = widgetRect & m_d->canvasWidget->widget()->rect();
+    // x/y = the canvas widget size. A zero size (or an empty intersection)
+    // stops every outline update before slotDoCanvasUpdate(), which looked
+    // like "the update path stopped" in the 2026-11-10 official Qt run.
+    // extra bit 1 = the clipped rect is empty, bit 2 = the widget is visible.
+    KisLatencyProbe::mark("canvas_outline_wdg", m_d->canvasWidget->widget()->width(),
+                          m_d->canvasWidget->widget()->height(),
+                          (rect.isEmpty() ? 1 : 0) |
+                          (m_d->canvasWidget->widget()->isVisible() ? 2 : 0));
     if (!rect.isEmpty()) {
         m_d->savedOverlayUpdateRect |= rect;
 #ifdef HAVE_NO_QT_UPDATE_COMPRESSIO

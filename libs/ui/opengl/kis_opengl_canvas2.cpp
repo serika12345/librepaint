@@ -519,6 +519,10 @@ void KisOpenGLCanvas2::initializeGL()
 
     d->renderer->initializeGL();
     KisOpenGLSync::init(context());
+    // Counts the canvas initializations and records the context format. The
+    // official Qt Windows run painted a few frames and then stopped; a second
+    // initialization would mean the canvas was recreated.
+    KisLatencyProbe::mark("canvas_initialize_gl", 0, 0, context() ? 1 : 0);
 #if defined(Q_OS_WIN) && QT_CONFIG(egl)
     applyMaximumFrameLatency(context());
 #endif
@@ -544,6 +548,7 @@ void KisOpenGLCanvas2::resizeGL(int width, int height)
 
     d->renderer->resizeGL(width, height);
     d->canvasImageDirtyRect = QRect(0, 0, width, height);
+    KisLatencyProbe::mark("canvas_resize_gl", width, height);
 }
 
 void KisOpenGLCanvas2::paintGL()
@@ -649,6 +654,15 @@ void KisOpenGLCanvas2::paintEvent(QPaintEvent *e)
         return;
     }
 #endif
+
+    // x/y = the paint event rect, extra bit 1 = the widget is visible, bit 2 =
+    // the widget is minimized, bit 4 = the previous updateRect was still set
+    // (the assert below drops the paint in that case). Together with
+    // canvas_update_issued this separates "Qt never delivered a paint event"
+    // from "a paint event arrived but painted nothing".
+    KisLatencyProbe::mark("canvas_paint_event", e->rect().width(), e->rect().height(),
+                          (isVisible() ? 1 : 0) | (isMinimized() ? 2 : 0) |
+                          (d->updateRect ? 4 : 0));
 
     KIS_SAFE_ASSERT_RECOVER_RETURN(!d->updateRect);
 

@@ -10,6 +10,7 @@
  */
 
 #include "kis_tool_freehand.h"
+#include <KisLatencyProbe.h>
 #include <klocalizedstring.h>
 #include <QPainter>
 #include <QRect>
@@ -224,6 +225,14 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
     requestUpdateOutline(event->point, event);
 
     NodePaintAbility paintability = nodePaintAbility();
+    // Record why a press did or did not start a stroke. With the official Qt
+    // Windows build no stroke started at all (2026-11-10 22:55), and the probe
+    // log cannot tell a blocked layer apart from a press that never arrived.
+    // extra bit 1 = the node is editable, bit 2 = the node is paintable, bit 4
+    // = a paint op preset exists.
+    KisLatencyProbe::mark("stroke_begin", event->point.x(), event->point.y(),
+        (nodeEditable() ? 1 : 0) | (paintability == PAINT ? 2 : 0) |
+        (currentPaintOpPreset() ? 4 : 0));
     // XXX: move this to KisTool and make it work properly for clone layers: for clone layers, the shape paint tools don't work either
     if (!nodeEditable() || paintability != PAINT) {
         if (paintability == KisToolPaint::VECTOR || paintability == KisToolPaint::CLONE){

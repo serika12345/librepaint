@@ -26,10 +26,27 @@ class QCoreApplication;
  * scripts/perf/pen-latency/analyze.py consumes the file. The events are:
  * native_pointer (Windows WM_POINTER message; extra = message << 32 | pointer
  * flags), native_wintab, native_mouse, qt_tablet_move, qt_mouse_move,
- * move_compressed, compressed_dispatch, outline_request, stroke_paint,
- * stroke_dab (the stroke job has painted its dab into the paint device),
- * projection_update, canvas_update_dispatch, canvas_busy_defer,
- * paintgl_begin, paintgl_end and frame_swapped.
+ * move_compressed, compressed_dispatch, outline_request, stroke_begin,
+ * stroke_paint, stroke_dab (the stroke job has painted its dab into the paint
+ * device), projection_update, canvas_update_dispatch, canvas_busy_defer,
+ * canvas_update_issued, outline_state, canvas_outline_doc,
+ * canvas_outline_wdg, canvas_paint_event, canvas_initialize_gl,
+ * canvas_resize_gl, paintgl_begin, paintgl_end and frame_swapped.
+ *
+ * The canvas update path records where an update stopped before a paint.
+ * outline_state (one per outline request) uses extra bit 1 = the tool supports
+ * an outline, bit 2 = a paint op preset exists, bit 4 = the brush outline rect
+ * is not empty, bit 8 = the previous outline rect is still set and bit 16 = a
+ * color preview rect exists. canvas_outline_doc carries the widget rect after
+ * clipping in x/y and extra bit 1 = the document rect was empty.
+ * canvas_outline_wdg carries the canvas widget size in x/y and extra bit 1 =
+ * the clipped rect is empty, bit 2 = the widget is visible.
+ * canvas_update_issued carries the canvas widget size and extra bit 1 = the
+ * combined update rect was empty. canvas_paint_event carries the paint event
+ * rect and extra bit 1 = the widget is visible, bit 2 = it is minimized,
+ * bit 4 = the previous updateRect was still set. canvas_initialize_gl (extra =
+ * 1 when a context was current) and canvas_resize_gl (x/y = the GL size) show
+ * whether the canvas was recreated or resized during a run.
  *
  * The L1 experiments add last_frame_completed_on_gpu (extra = 1 when the
  * previous frame finished on the GPU), qt_update_deferred (Qt's frame

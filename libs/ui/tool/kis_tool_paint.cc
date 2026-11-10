@@ -479,6 +479,21 @@ void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const Ko
         kiscanvas->updateCanvasToolOutlineDoc(colorPreviewDocUpdateRect);
     }
 
+    // Record which state this outline request ended in. The official Qt
+    // Windows build never repainted the canvas (2026-11-10 22:55), and an
+    // empty outline (no paint op preset) and a rect outside the canvas widget
+    // both look like "no update" in the probe log alone. extra bit 1 =
+    // supportsOutline(), bit 2 = a paint op preset exists, bit 4 = the brush
+    // outline is not empty, bit 8 = the previous outline is still set, bit 16
+    // = a color preview rect exists.
+    qint64 outlineState = 0;
+    if (supportsOutline()) outlineState |= 1;
+    if (currentPaintOpPreset()) outlineState |= 2;
+    if (!outlineDocRect.isEmpty()) outlineState |= 4;
+    if (!m_oldOutlineRect.isEmpty()) outlineState |= 8;
+    if (!colorPreviewDocUpdateRect.isEmpty()) outlineState |= 16;
+    KisLatencyProbe::mark("outline_state", 0, 0, outlineState);
+
     m_oldOutlineRect = outlineDocRect;
     m_oldColorPreviewUpdateRect = colorPreviewDocUpdateRect;
 }
