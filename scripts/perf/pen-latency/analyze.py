@@ -394,6 +394,21 @@ def format_stat(stat):
     return "p05=%6.1f p50=%6.1f p95=%6.1f n=%d" % (stat["p05"], stat["p50"], stat["p95"], stat["n"])
 
 
+def format_l1_events(events):
+    """Event counts from the probe log (no distribution, so format_stat does not apply)."""
+    if not events:
+        return "none"
+    return " ".join("%s=%d" % (name, count) for name, count in events.items())
+
+
+def format_l1_last_frame_completed(entry):
+    """Share of frames whose predecessor had finished on the GPU."""
+    n = entry.get("n", 0)
+    if not n:
+        return "n=0"
+    return "completed=%d/%d (%.1f%%)" % (entry.get("completed", 0), n, 100.0 * entry.get("completed", 0) / n)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("runs", nargs="+", help="run directories")
@@ -416,6 +431,12 @@ def main(argv):
             print("   injected samples=%d failed=%d" % (result["inject"]["n"], result["inject"]["failed"]))
         for key, stat in result.items():
             if key in ("presents", "inject", "presentmon", "input_path"):
+                continue
+            if key == "l1_events":
+                print("   %-44s %s" % (key, format_l1_events(stat)))
+                continue
+            if key == "l1_last_frame_completed":
+                print("   %-44s %s" % (key, format_l1_last_frame_completed(stat)))
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 

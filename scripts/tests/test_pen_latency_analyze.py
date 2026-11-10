@@ -7,7 +7,9 @@ it reflects, so a change in the attribution shows up as a test failure rather
 than as an apparent latency change.
 """
 
+import contextlib
 import importlib.util
+import io
 import os
 import tempfile
 import unittest
@@ -148,6 +150,50 @@ class PresentMonCoverageComparisonTest(unittest.TestCase):
         entry = analyze.compare(results)["hover.input_to_display"]
         self.assertEqual(entry["runs"], 2)
         self.assertAlmostEqual(entry["median_of_medians"], 50.5)
+
+
+class L1SignalTest(unittest.TestCase):
+    """H6 (frame update throttle) signal from the probe log.
+
+    The values reproduce the 2026-11-10 l1-h6-throttle runs: with the
+    throttle in place 829 of 1967 frames deferred the update; with it
+    disabled 1868 of 1968 frames painted without deferring.
+    """
+
+    def write_signal(self, directory, frames, completed, deferred, skipped):
+        rows = []
+        for index in range(frames):
+            rows.append((ms(1000) + index, "last_frame_completed_on_gpu", 1 if index < completed else 0))
+        rows.extend((ms(1000) + index, "qt_update_deferred", 0) for index in range(deferred))
+        rows.extend((ms(1000) + index, "qt_update_deferred_skipped", 0) for index in range(skipped))
+        write_run(directory, rows, [])
+
+    def test_counts_come_from_the_probe_log(self):
+        with tempfile.TemporaryDirectory() as base_dir, tempfile.TemporaryDirectory() as off_dir:
+            self.write_signal(base_dir, 1967, 1138, 829, 0)
+            self.write_signal(off_dir, 1968, 100, 0, 1868)
+            base = analyze.Run(base_dir).analyze()
+            disabled = analyze.Run(off_dir).analyze()
+        self.assertEqual(base["l1_events"]["last_frame_completed_on_gpu"], 1967)
+        self.assertEqual(base["l1_events"]["qt_update_deferred"], 829)
+        self.assertEqual(base["l1_last_frame_completed"], {"n": 1967, "completed": 1138})
+        self.assertEqual(disabled["l1_events"]["qt_update_deferred_skipped"], 1868)
+        self.assertEqual(disabled["l1_events"]["qt_update_deferred"], 0)
+        self.assertEqual(disabled["l1_last_frame_completed"], {"n": 1968, "completed": 100})
+
+    def test_summary_prints_counts_instead_of_an_empty_statistic(self):
+        with tempfile.TemporaryDirectory() as base_dir, tempfile.TemporaryDirectory() as off_dir:
+            self.write_signal(base_dir, 1967, 1138, 829, 0)
+            self.write_signal(off_dir, 1968, 100, 0, 1868)
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(analyze.main([base_dir, off_dir]), 0)
+        text = output.getvalue()
+        self.assertIn("qt_update_deferred=829", text)
+        self.assertIn("completed=1138/1967 (57.9%)", text)
+        self.assertIn("qt_update_deferred_skipped=1868", text)
+        self.assertIn("completed=100/1968 (5.1%)", text)
+        self.assertNotIn("l1_events                                    n=0", text)
 
 
 class RunComparisonTest(unittest.TestCase):
