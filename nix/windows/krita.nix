@@ -134,18 +134,15 @@ let
       libGL = null;
       vulkan-loader = null;
     }).overrideAttrs (old: {
-      postPatch = (old.postPatch or "") + ''
-        substituteInPlace src/plugins/platforms/windows/qwindowseglcontext.cpp \
-          --replace-fail '<VersionHelpers.h>' '<versionhelpers.h>'
-      '';
-    } // lib.optionalAttrs useQtFork {
       # Krita's official Windows builds use its Qt fork.  In addition to the
       # HDR texture colour-space API consumed by the small colour selector,
       # this carries the ANGLE, tablet, shortcut and backing-store fixes that
       # are part of Krita's Windows feature set.  The fork branch
       # for-krita/6.11.3 matches the Qt release of the other platforms
       # (nix/qt/overlay.nix).  The upstream variant keeps the official Qt
-      # 6.11.3 sources from that overlay and has no ANGLE path.
+      # 6.11.3 sources from that overlay and has no ANGLE path, so it also
+      # has no qwindowseglcontext.cpp.
+    } // lib.optionalAttrs useQtFork {
       version = "6.11.3";
       src = pkgs.fetchFromGitHub {
         owner = "dimula73";
@@ -153,6 +150,10 @@ let
         rev = "d918f368da8df4c682874ed6d018c59aa79210c2";
         hash = "sha256-adfqI0r0/1ppK0I+TpoBCe8SF20RNl/DzHJalRYj/rI=";
       };
+      postPatch = (old.postPatch or "") + ''
+        substituteInPlace src/plugins/platforms/windows/qwindowseglcontext.cpp \
+          --replace-fail '<VersionHelpers.h>' '<versionhelpers.h>'
+      '';
       propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ angle ];
       cmakeFlags = (old.cmakeFlags or [ ]) ++ [
         "-DQT_FEATURE_opengl=ON"
