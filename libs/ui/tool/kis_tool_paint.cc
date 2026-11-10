@@ -349,6 +349,14 @@ void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const Ko
 
     QPointF outlineMoveVector;
 
+    // Captured for outline_gate below: the configured style and the
+    // "show while painting" option only exist inside the supportsOutline()
+    // branch, but the markers record them for every request.
+    bool outlineStyleVisible = false;
+    bool showOutlineWhilePainting = false;
+    qreal outlineZoomX = 0.0;
+    qreal outlineZoomY = 0.0;
+
     if (supportsOutline()) {
         KisConfig cfg(true);
         KisPaintOpSettings::OutlineMode outlineMode;
@@ -364,11 +372,13 @@ void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const Ko
         const auto shouldShowOutlineWhilePainting = [&]() {
             return !useSeparateEraserCursor ? cfg.showOutlineWhilePainting() : cfg.showEraserOutlineWhilePainting();
         };
+        outlineStyleVisible = outlineStyleIsVisible();
+        showOutlineWhilePainting = shouldShowOutlineWhilePainting();
         if (isOutlineEnabled() && isOutlineVisible() &&
                 (mode() == KisTool::GESTURE_MODE ||
-                    (outlineStyleIsVisible() &&
+                    (outlineStyleVisible &&
                         (mode() == HOVER_MODE ||
-                         (mode() == PAINT_MODE && shouldShowOutlineWhilePainting()))))) { // lisp forever!
+                         (mode() == PAINT_MODE && showOutlineWhilePainting))))) { // lisp forever!
 
             outlineMode.isVisible = true;
 
@@ -401,6 +411,8 @@ void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const Ko
         qreal zoomX;
         qreal zoomY;
         canvas()->viewConverter()->zoom(&zoomX, &zoomY);
+        outlineZoomX = zoomX;
+        outlineZoomY = zoomY;
         qreal xoffset = 2.0/zoomX;
         qreal yoffset = 2.0/zoomY;
 
@@ -493,6 +505,28 @@ void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const Ko
     if (!m_oldOutlineRect.isEmpty()) outlineState |= 8;
     if (!colorPreviewDocUpdateRect.isEmpty()) outlineState |= 16;
     KisLatencyProbe::mark("outline_state", 0, 0, outlineState);
+
+    // The same request seen through the conditions that decide whether an
+    // outline is drawn at all. The 2026-11-11 comparison could tell that the
+    // outline rect was empty but not whether the tool action had been
+    // deactivated or the zoom had degenerated; both look like an empty rect.
+    // x = the view zoom, y = the effective physical zoom, extra bit 1 = the
+    // tool supports an outline, bit 2 = the outline is enabled, bit 4 = it is
+    // visible, bit 8 = the configured style is visible, bit 16 = hover mode,
+    // bit 32 = paint mode, bit 64 = the outline is shown while painting,
+    // bit 128 = gesture mode.
+    qint64 outlineGate = 0;
+    if (supportsOutline()) outlineGate |= 1;
+    if (isOutlineEnabled()) outlineGate |= 2;
+    if (isOutlineVisible()) outlineGate |= 4;
+    if (outlineStyleVisible) outlineGate |= 8;
+    if (mode() == HOVER_MODE) outlineGate |= 16;
+    if (mode() == PAINT_MODE) outlineGate |= 32;
+    if (showOutlineWhilePainting) outlineGate |= 64;
+    if (mode() == GESTURE_MODE) outlineGate |= 128;
+    const qreal physicalZoom =
+        canvas()->resourceManager()->resource(KoCanvasResource::EffectivePhysicalZoom).toReal();
+    KisLatencyProbe::mark("outline_gate", outlineZoomX, physicalZoom, outlineGate);
 
     m_oldOutlineRect = outlineDocRect;
     m_oldColorPreviewUpdateRect = colorPreviewDocUpdateRect;

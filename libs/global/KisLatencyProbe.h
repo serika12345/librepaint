@@ -75,6 +75,21 @@ class QCoreApplication;
  * latency, extra = read-back latency, -1 when the read failed). The raw client
  * and display extension lists are written once to probe.egl.txt beside the
  * probe log.
+ *
+ * The focus and tool markers separate a pen press that reached the tool from
+ * one that was dropped before it (2026-11-11: official Qt Windows builds
+ * stopped repainting after the first press in 2 of 8 runs). qt_event records
+ * FocusIn (x = 1), FocusOut (2), TabletPress (3), TabletRelease (4),
+ * MouseButtonPress (5) and MouseButtonRelease (6); y = the active tool mode
+ * (-1 without a tool) and extra bit 1 = the pointer is inside the canvas,
+ * bit 2 = mouse events are blocked. outline_gate records one outline request:
+ * x = the view zoom, y = the effective physical zoom, extra bit 1 = the tool
+ * supports an outline, bit 2 = the outline is enabled, bit 4 = it is visible,
+ * bit 8 = the configured outline style is visible, bit 16 = hover mode,
+ * bit 32 = paint mode, bit 64 = the outline is shown while painting,
+ * bit 128 = gesture mode. tool_action records a tool action becoming active
+ * (extra = 1) or inactive (0); x = the KisTool::ToolAction value and y = 1
+ * when a tool was active.
  */
 namespace KisLatencyProbe
 {

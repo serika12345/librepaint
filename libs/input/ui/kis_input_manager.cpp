@@ -342,6 +342,31 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
 {
     bool retval = false;
 
+    // Record the focus and press events that decide whether a pen press can
+    // start a stroke. In 2 of 8 official Qt Windows runs (2026-11-11) the
+    // canvas stopped repainting after the first press, and the probe log could
+    // not tell a lost focus from a press that never reached the tool.
+    // x = event code, y = the active tool mode, extra bit 1 = the pointer is
+    // inside the canvas, bit 2 = mouse events are blocked.
+    {
+        int code = 0;
+        switch (event->type()) {
+        case QEvent::FocusIn: code = 1; break;
+        case QEvent::FocusOut: code = 2; break;
+        case QEvent::TabletPress: code = 3; break;
+        case QEvent::TabletRelease: code = 4; break;
+        case QEvent::MouseButtonPress: code = 5; break;
+        case QEvent::MouseButtonRelease: code = 6; break;
+        default: break;
+        }
+        if (code) {
+            KisLatencyProbe::mark("qt_event", code,
+                d->toolProxy ? d->toolProxy->activeToolMode() : -1,
+                (d->containsPointer ? 1 : 0) |
+                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0));
+        }
+    }
+
     // Try closing any open popup widget and
     // consume input if possible.
     if (d->popupWidget) {

@@ -264,6 +264,14 @@ protected:
      */
     virtual void listenToModifiers(bool listen);
 
+public:
+    /**
+     * The current mode as a plain integer (KisTool::ToolMode), for the
+     * latency probe's focus and press markers. This is an L1/L2 (pen latency)
+     * measurement aid: remove it with the probe markers that read it.
+     */
+    int latencyProbeToolMode() const;
+
 protected:
     KisImageWSP image() const;
     QCursor cursor() const;

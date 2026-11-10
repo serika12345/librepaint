@@ -9,6 +9,8 @@
 #include "kis_types.h"
 #include <kis_image.h>
 
+#include <KisLatencyProbe.h>
+
 #include <KisToolCanvas.h>
 #include <kis_coordinates_converter.h>
 
@@ -235,6 +237,12 @@ bool KisToolProxy::alternateActionSupportsHiResEvents(KisTool::AlternateAction a
     return activeTool && activeTool->alternateActionSupportsHiResEvents(action);
 }
 
+int KisToolProxy::activeToolMode() const
+{
+    KisTool *activeTool = dynamic_cast<KisTool*>(const_cast<KisToolProxy*>(this)->priv()->activeTool);
+    return activeTool ? activeTool->latencyProbeToolMode() : -1;
+}
+
 void KisToolProxy::setActiveTool(KoToolBase *tool)
 {
     if (!tool) return;
@@ -252,6 +260,12 @@ void KisToolProxy::activateToolAction(KisTool::ToolAction action)
 {
     KisTool *activeTool = dynamic_cast<KisTool*>(const_cast<KisToolProxy*>(this)->priv()->activeTool);
 
+    // A press that never reached activatePrimaryAction looks the same as a
+    // dropped update in the probe log. Record every tool action transition;
+    // x = KisTool::ToolAction, y = 1 when a tool was active, extra = 1 for
+    // activation and 0 for deactivation.
+    KisLatencyProbe::mark("tool_action", int(action), activeTool ? 1 : 0, 1);
+
     if (activeTool) {
         if (action == KisTool::Primary) {
             activeTool->activatePrimaryAction();
@@ -267,6 +281,8 @@ void KisToolProxy::activateToolAction(KisTool::ToolAction action)
 void KisToolProxy::deactivateToolAction(KisTool::ToolAction action)
 {
     KisTool *activeTool = dynamic_cast<KisTool*>(const_cast<KisToolProxy*>(this)->priv()->activeTool);
+
+    KisLatencyProbe::mark("tool_action", int(action), activeTool ? 1 : 0, 0);
 
     if (activeTool) {
         if (action == KisTool::Primary) {

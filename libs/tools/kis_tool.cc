@@ -395,6 +395,14 @@ KisTool::ToolMode KisTool::mode() const {
     return d->m_mode;
 }
 
+int KisTool::latencyProbeToolMode() const
+{
+    // The latency probe records the mode of the active tool for every focus
+    // and press event. L1/L2 (pen latency) measurement aid: remove with the
+    // probe markers that read it.
+    return int(mode());
+}
+
 void KisTool::setCursor(const QCursor &cursor)
 {
     d->cursor = cursor;
