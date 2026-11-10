@@ -250,6 +250,9 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 標準エラーの大きさ（`app_log_bytes`、`app_err_bytes`）も残す。アプリの標準出力と標準エラーは
 回のディレクトリーの`app.out`と`app.err`に取る。キャンバスが描き直されない回は、
 `canvasState`とアプリのログが、OpenGLの起動に失敗したのか更新の経路が止まったのかを分ける。
+回の前に実際に効いていた`[General]`の`newOutlineStyle`と`fpsLimit`は
+`kritarc_effective.<キー>`に残す（シナリオのkritarcはWindowsのrunnerが書かないため、
+想定ではなく実際の値を残す）。
 
 キャンバスの更新の経路は、時刻記録の次の印で追う。`outline_request`は輪郭の更新の要求、
 `outline_state`はその要求の終わりの状態（extraのbit 1が輪郭を持つ道具、bit 2がPaintOp
@@ -265,6 +268,23 @@ OpenGLのキャンバスの初期化と大きさの変更を表す。`analyze.py
 （回数とextraの内訳）にまとめる。ストロークが始まらなかった回は、`stroke_begin`のextra
 （bit 1が編集できるノード、bit 2が描けるノード、bit 4がPaintOpプリセットがある）で、
 押下が届いていないのか、層が描けないのかを分ける。
+
+焦点とツールの状態は、次の印で追う。`qt_event`はFocusIn（x=1）、FocusOut（2）、
+TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButtonRelease（6）を
+記録し、yが有効なツールのモード（`KisTool::ToolMode`、ツールがなければ-1）、extraのbit 1が
+ポインターがキャンバスの中にある、bit 2がマウスのイベントを抑止していることを表す。
+`outline_gate`は輪郭の要求ごとに、xが表示のズーム、yが実効の物理ズーム、extraのbit 1が
+輪郭を持つ道具、bit 2が`isOutlineEnabled()`、bit 4が`isOutlineVisible()`、bit 8が設定の
+輪郭の様式が見える、bit 16がホバーのモード、bit 32が描画のモード、bit 64が描画中に輪郭を
+出す設定、bit 128がジェスチャーのモードを表す。`tool_action`はツールのactionが有効（extra=1）
+または無効（0）になったことを、xに`KisTool::ToolAction`の値、yに有効なツールがあったかで
+残す。`analyze.py`はこれらを`focus_gate`の1行（`qt_event`の種類・モード・extraの内訳、
+`outline_gate`のextraの内訳とズーム、`tool_action`のactionと有効・無効の数）にまとめる。
+`run-surface.ps1`は`PenInject.cs`が最初のサンプルの直前に取った最前面の窓
+（アプリでなければ`SetForegroundWindow`を1回やり直す）を`foreground_inject_start`として
+`meta.txt`に残し、`capture_analyze.py`が`foreground_inject`と`inject-foreground`に出す。
+これで、取り込みの開始時に最前面だったこと（`app_foreground_capture`）と、入力の直前にも
+最前面だったことを分けられる。
 
 表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
 `build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を
