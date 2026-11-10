@@ -17,9 +17,13 @@
 #include <QApplication>
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QElapsedTimer>
+#include <QEvent>
+#include <QPointer>
 #include <QTime>
 #include <QMouseEvent>
 #include <QScreen>
+#include <QTimer>
 #include <QWindow>
 
 #include <kis_debug.h>
@@ -74,6 +78,7 @@
 #include "kis_exposure_gamma_correction_interface.h"
 #include "application/ui/workspace/KisView.h"
 #include "kis_canvas_controller.h"
+#include "kis_canvas_frame_update_gate.h"
 #include "kis_grid_config.h"
 #include "application/ui/workspace/KisMainWindow.h"
 
@@ -244,6 +249,11 @@ public:
 
 #if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     KisSignalCompressor canvasUpdateCompressor;
+    KisCanvasFrameUpdateGate frameUpdateGate;
+    QTimer frameFallbackTimer;
+    QPointer<QWindow> canvasWindow;
+    QElapsedTimer lastCanvasDispatch;
+    bool windowUpdateRequested = false;
 #endif
     QRect savedCanvasProjectionUpdateRect;
     QRect savedOverlayUpdateRect;
@@ -296,6 +306,32 @@ public:
     void setActiveShapeManager(KoShapeManager *shapeManager);
 
     QRect docUpdateRectToWidget(const QRectF &docRect);
+
+    bool frameAlignedUpdatesActive() const {
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+        return canvasWidget &&
+                frameUpdateGate.isEnabled() &&
+                currentCanvasIsOpenGL;
+#else
+        return false;
+#endif
+    }
+
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    int refreshPeriodMs() const {
+        QScreen *screen = nullptr;
+        if (canvasWidget && canvasWidget->widget()->windowHandle()) {
+            screen = canvasWidget->widget()->windowHandle()->screen();
+        }
+        if (!screen && view) {
+            screen = view->screen();
+        }
+
+        const qreal rate = screen ? screen->refreshRate() : 0.0;
+        const qreal safeRate = (rate >= 20.0 && rate <= 360.0) ? rate : 60.0;
+        return qBound(4, qRound(1000.0 / safeRate), 100);
+    }
+#endif
 
     int currentScreenId() const {
         int canvasScreenNumber = qApp->screens().indexOf(view->currentScreen());
@@ -355,6 +391,16 @@ KisCanvas2::KisCanvas2(KisCoordinatesConverter *coordConverter, KoCanvasResource
 #if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     m_d->canvasUpdateCompressor.setDelay(1000 / config.fpsLimit());
     m_d->canvasUpdateCompressor.setMode(KisSignalCompressor::FIRST_ACTIVE);
+
+    // Frame-aligned canvas updates are the normal behaviour when Qt has no
+    // frame-rate compression patch. The hidden kritarc option restores the
+    // previous app-side compressor for comparisons and for troubleshooting.
+    // Read it at startup; LibrePaint applies hidden graphics options on
+    // restart, like useMaximumFrameLatencyOne.
+    KisConfig frameUpdateConfig(true);
+    m_d->frameUpdateGate.setEnabled(
+        frameUpdateConfig.readEntry("useCanvasFrameAlignedUpdates", true));
+    m_d->frameFallbackTimer.setSingleShot(true);
 #endif
 
     m_d->frameRenderStartCompressor.setDelay(1000 / config.fpsLimit());
@@ -406,6 +452,8 @@ void KisCanvas2::setup()
 
 #if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     connect(&m_d->canvasUpdateCompressor, SIGNAL(timeout()), SLOT(slotDoCanvasUpdate()));
+    connect(&m_d->frameFallbackTimer, &QTimer::timeout,
+            this, &KisCanvas2::slotCanvasFrameFallback);
 #endif
 
     connect(this, SIGNAL(sigCanvasCacheUpdated()), &m_d->frameRenderStartCompressor, SLOT(start()));
@@ -478,6 +526,21 @@ void KisCanvas2::setCanvasWidget(KisAbstractCanvasWidget *widget)
     widget->widget()->setAttribute(Qt::WA_OpaquePaintEvent);
     widget->widget()->setMouseTracking(true);
     widget->widget()->setAcceptDrops(true);
+
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    m_d->frameFallbackTimer.stop();
+    m_d->frameUpdateGate.reset();
+    if (m_d->canvasWindow) {
+        m_d->canvasWindow->removeEventFilter(this);
+        m_d->canvasWindow = nullptr;
+    }
+    m_d->windowUpdateRequested = false;
+    if (auto *glWidget = qobject_cast<QOpenGLWidget *>(widget->widget())) {
+        connect(glWidget, &QOpenGLWidget::frameSwapped,
+                this, &KisCanvas2::slotCanvasFrameSwapped,
+                Qt::UniqueConnection);
+    }
+#endif
 
     KoCanvasControllerWidget *controller = dynamic_cast<KoCanvasControllerWidget*>(canvasController());
     if (controller && controller->canvas() == this) {
@@ -1079,13 +1142,15 @@ void KisCanvas2::updateCanvasProjection()
             if (m_d->currentCanvasIsOpenGL) {
                 m_d->savedCanvasProjectionUpdateRect |= vRect;
 
-                // we already had a compression in frameRenderStartCompressor, so force the update directly
-                slotDoCanvasUpdate();
+                // frameRenderStartCompressor already waited for the image
+                // tiles; the frame gate only decides when the widget paints.
+                requestCanvasUpdateMaybeCompressed();
             } else if (/* !m_d->currentCanvasIsOpenGL && */ !vRect.isEmpty()) {
                 m_d->savedCanvasProjectionUpdateRect |= m_d->coordinatesConverter->viewportToWidget(vRect).toAlignedRect();
 
-                // we already had a compression in frameRenderStartCompressor, so force the update directly
-                slotDoCanvasUpdate();
+                // frameRenderStartCompressor already waited for the image
+                // tiles; the frame gate only decides when the widget paints.
+                requestCanvasUpdateMaybeCompressed();
             }
         }
     };
@@ -1177,11 +1242,176 @@ void KisCanvas2::requestCanvasUpdateMaybeCompressed()
     /**
     * If Qt has our custom patch for global updates compression, then we shouldn't do
     * our own compression here in the canvas. Everything will be done in Qt.
+    *
+    * Without the patch, one gate owns all canvas updates. The first request
+    * paints immediately; later requests wait for QWindow::requestUpdate(),
+    * which is synchronized to the display where the platform supports it, and
+    * for at least one display period. The hidden kritarc option
+    * useCanvasFrameAlignedUpdates=false restores the previous app-side
+    * compressor.
     */
 #if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    m_d->canvasUpdateCompressor.start();
+    if (m_d->frameAlignedUpdatesActive()) {
+        if (m_d->frameUpdateGate.requestUpdate()) {
+            dispatchFrameAlignedCanvasUpdate();
+        } else {
+            scheduleFrameAlignedCanvasUpdate();
+        }
+    } else {
+        m_d->canvasUpdateCompressor.start();
+    }
 #else
     slotDoCanvasUpdate();
+#endif
+}
+
+void KisCanvas2::attachCanvasWindow()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (!m_d->canvasWidget || !m_d->canvasWidget->widget()) {
+        return;
+    }
+
+    QWindow *window = m_d->canvasWidget->widget()->windowHandle();
+    if (m_d->canvasWindow == window) {
+        return;
+    }
+
+    if (m_d->canvasWindow) {
+        m_d->canvasWindow->removeEventFilter(this);
+    }
+    m_d->canvasWindow = window;
+    m_d->windowUpdateRequested = false;
+    if (m_d->canvasWindow) {
+        m_d->canvasWindow->installEventFilter(this);
+    }
+#endif
+}
+
+void KisCanvas2::scheduleFrameAlignedCanvasUpdate()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (!m_d->frameAlignedUpdatesActive()) {
+        return;
+    }
+
+    if (m_d->windowUpdateRequested) {
+        return;
+    }
+
+    attachCanvasWindow();
+    if (!m_d->canvasWindow) {
+        // The widget is not shown yet. Retry after the event loop has created
+        // the native window.
+        m_d->frameFallbackTimer.start(0);
+        return;
+    }
+
+    m_d->windowUpdateRequested = true;
+    m_d->canvasWindow->requestUpdate();
+#endif
+}
+
+void KisCanvas2::dispatchFrameAlignedCanvasUpdate()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    m_d->lastCanvasDispatch.restart();
+    m_d->frameFallbackTimer.stop();
+#endif
+    slotDoCanvasUpdate();
+}
+
+void KisCanvas2::dispatchFrameAlignedUpdateFromWindow()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (!m_d->frameAlignedUpdatesActive()) {
+        return;
+    }
+
+    const qint64 period = m_d->refreshPeriodMs();
+    if (m_d->frameUpdateGate.isInFlight() &&
+        m_d->lastCanvasDispatch.isValid() &&
+        m_d->lastCanvasDispatch.elapsed() > period * 2) {
+        // The composition never reported frameSwapped. Let the update proceed
+        // instead of holding it forever.
+        m_d->frameUpdateGate.frameSwapped();
+    }
+
+    if (m_d->frameUpdateGate.isInFlight()) {
+        // The previous paint has not reported frameSwapped yet. Check again
+        // shortly; the update stays pending.
+        m_d->frameFallbackTimer.start(1);
+        return;
+    }
+
+    if (m_d->frameUpdateGate.takePendingUpdateForDispatch()) {
+        dispatchFrameAlignedCanvasUpdate();
+    }
+#endif
+}
+
+bool KisCanvas2::eventFilter(QObject *watched, QEvent *event)
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (event->type() == QEvent::UpdateRequest &&
+        watched == m_d->canvasWindow &&
+        m_d->windowUpdateRequested) {
+
+        m_d->windowUpdateRequested = false;
+        if (!m_d->frameAlignedUpdatesActive()) {
+            return false;
+        }
+
+        // QWindow::requestUpdate() coalesces requests. On platforms without
+        // a vsync callback it can arrive sooner than one display period, so
+        // keep at least that period between dispatches.
+        const qint64 period = m_d->refreshPeriodMs();
+        const qint64 elapsed = m_d->lastCanvasDispatch.isValid()
+                ? m_d->lastCanvasDispatch.elapsed()
+                : period;
+        if (elapsed + 1 < period) {
+            m_d->frameFallbackTimer.start(static_cast<int>(period - elapsed));
+        } else {
+            dispatchFrameAlignedUpdateFromWindow();
+        }
+        return true;
+    }
+#endif
+    return QObject::eventFilter(watched, event);
+}
+
+void KisCanvas2::slotCanvasFrameSwapped()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (!m_d->frameAlignedUpdatesActive()) {
+        return;
+    }
+
+    m_d->frameUpdateGate.frameSwapped();
+#endif
+}
+
+void KisCanvas2::slotCanvasFrameFallback()
+{
+#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+    if (!m_d->frameAlignedUpdatesActive()) {
+        return;
+    }
+
+    if (!m_d->canvasWindow) {
+        // The native window may appear after the first request (the canvas is
+        // created before it is shown). Keep the pending region and retry.
+        attachCanvasWindow();
+    }
+
+    if (!m_d->canvasWindow) {
+        if (m_d->frameUpdateGate.hasPendingUpdate()) {
+            m_d->frameFallbackTimer.start(5);
+        }
+        return;
+    }
+
+    dispatchFrameAlignedUpdateFromWindow();
 #endif
 }
 
@@ -1194,8 +1424,11 @@ void KisCanvas2::slotDoCanvasUpdate()
      * WARNING: in isBusy() we access openGL functions without making the painting
      * context current. We hope that currently active context will be Qt's one,
      * which is shared with our own.
+     *
+     * The frame-aligned gate already waits for the previous composition, so
+     * the busy check only belongs to the app-side compressor fallback.
      */
-    if (m_d->canvasWidget->isBusy()) {
+    if (!m_d->frameAlignedUpdatesActive() && m_d->canvasWidget->isBusy()) {
         KisLatencyProbe::mark("canvas_busy_defer");
         // just restarting the timer
         m_d->canvasUpdateCompressor.start();
@@ -1332,11 +1565,16 @@ void KisCanvas2::updateCanvasToolOutlineWdg(const QRect &widgetRect)
                           (m_d->canvasWidget->widget()->isVisible() ? 2 : 0));
     if (!rect.isEmpty()) {
         m_d->savedOverlayUpdateRect |= rect;
-#ifdef HAVE_NO_QT_UPDATE_COMPRESSIO
-        m_d->canvasUpdateCompressor.start();
-#else
-        slotDoCanvasUpdate();
-#endif
+        // The outline used to bypass the canvas compressor because the Qt
+        // patch compressed QWidget::update() itself. Without the patch the
+        // same request must go through the frame-aligned gate, otherwise every
+        // input group starts its own paint. Disabling the gate restores the
+        // old direct dispatch.
+        if (m_d->frameAlignedUpdatesActive()) {
+            requestCanvasUpdateMaybeCompressed();
+        } else {
+            slotDoCanvasUpdate();
+        }
     }
 }
 

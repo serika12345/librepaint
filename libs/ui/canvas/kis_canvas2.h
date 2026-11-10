@@ -77,6 +77,8 @@ public:
 
     ~KisCanvas2() override;
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
     void disconnectCanvasObserver(QObject *object) override;
 
 public: // KoCanvasBase implementation
@@ -329,6 +331,9 @@ private Q_SLOTS:
 
     void slotDoCanvasUpdate();
 
+    void slotCanvasFrameSwapped();
+    void slotCanvasFrameFallback();
+
     void bootstrapFinished();
 
     void slotUpdateRegionOfInterest();
@@ -364,6 +369,10 @@ private:
     Q_DISABLE_COPY(KisCanvas2)
 
     void requestCanvasUpdateMaybeCompressed();
+    void scheduleFrameAlignedCanvasUpdate();
+    void dispatchFrameAlignedCanvasUpdate();
+    void dispatchFrameAlignedUpdateFromWindow();
+    void attachCanvasWindow();
     void connectCurrentCanvas();
     void createCanvas(bool useOpenGL);
     void createQPainterCanvas();

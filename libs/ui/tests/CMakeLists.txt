@@ -149,6 +149,13 @@ kis_add_test(
     )
 
 kis_add_test(
+    KisCanvasFrameUpdateGateContractTest.cpp
+    ../canvas/kis_canvas_frame_update_gate.cpp
+    TEST_NAME KisCanvasFrameUpdateGateContractTest
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+    )
+
+kis_add_test(
     KisQPainterCanvasDrawImageContractTest.cpp
     TEST_NAME KisQPainterCanvasDrawImageContractTest
     LINK_LIBRARIES kritacanvas kritatestsdk
