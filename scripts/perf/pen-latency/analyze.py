@@ -412,6 +412,19 @@ class Run:
             gaps = [self.ms(b - a) for a, b in zip(times, times[1:]) if self.ms(b - a) < MAX_LINK_MS]
             stats["rate." + event + "_interval"] = gaps
 
+        # H2 (waiting for the display handoff): pair each recorded wait with
+        # the end marker that follows it, so the analysis shows how long the
+        # GUI thread actually blocked on the previous frame.
+        wait_begin = self.times("gpu_wait_begin")
+        wait_end = self.times("gpu_wait_end")
+        if wait_begin:
+            durations = []
+            for begin in wait_begin:
+                index = bisect.bisect_left(wait_end, begin)
+                if index < len(wait_end):
+                    durations.append(self.ms(wait_end[index] - begin))
+            stats["gpu_wait.duration"] = durations
+
 
 def compare(results, metrics=PRIMARY_METRICS, require_presentmon=True):
     """Spread of run medians: (max - min) / median of the run medians.

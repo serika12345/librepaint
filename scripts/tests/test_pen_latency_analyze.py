@@ -359,7 +359,7 @@ class L1WaitForGpuTest(unittest.TestCase):
         rows += [(ms(2000) + index, "l1_h2_state", 27) for index in range(40)]
         rows += [(ms(2000) + index, "gpu_wait_begin", 0) for index in range(40)]
         rows += [(ms(2000) + index, "gpu_wait_end", 1) for index in range(39)]
-        rows += [(ms(2000) + index, "gpu_wait_end", 0) for index in range(1)]
+        rows += [(ms(2000) + index, "gpu_wait_end", 0) for index in range(39, 40)]
         with tempfile.TemporaryDirectory() as directory:
             write_run(directory, rows, [])
             result = analyze.Run(directory).analyze()
@@ -370,6 +370,7 @@ class L1WaitForGpuTest(unittest.TestCase):
             "n": 100, "fence": 100, "complete": 60, "waited": 40, "deferred": 40,
             "wait_completed": 39,
         })
+        self.assertEqual(result["gpu_wait.duration"]["n"], 40)
         self.assertIn("n=100 fence=100 complete=60 waited=40 deferred=40 wait_done=39",
                       output.getvalue())
 

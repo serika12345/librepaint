@@ -222,7 +222,7 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 | 変数 | 仮説 | 値 | 効果 |
 | --- | --- | --- | --- |
 | `LIBREPAINT_L1_MAX_FRAME_LATENCY` | H1（先積みのフレーム数） | 1〜3 | ANGLEのD3D11デバイスに`SetMaximumFrameLatency`を設定する。クライアントの拡張一覧（`eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS)`）とディスプレイの一覧を別々に調べ、EGLのデバイス（`EGL_EXT_device_query`の`EGL_DEVICE_EXT`）からD3D11デバイス（`EGL_ANGLE_device_d3d`の`EGL_D3D11_DEVICE_ANGLE`）を取る。拡張の有無、`eglQueryDisplayAttribEXT`と`eglQueryDeviceAttribEXT`の関数アドレス、拡張の判定にかかわらず呼び出した戻り値、EGLコンテキストとデバイスの取得、`IDXGIDevice1`の成否、設定のHRESULT、読み戻した値を`l1_h1_*`として時刻記録に残す。一覧の文字列は`probe.egl.txt`に1回だけ書く。`analyze.py`が`l1_h1 egl=… client_ext=… display_ext=… device_query=… entry=… display_attrib=… device_attrib=… device=… set=… readback=…`と出す |
-| `LIBREPAINT_L1_WAIT_FOR_GPU` | H2（表示待ちの歯止め） | 1 | 前のフレームのGPU完了を待ってから次を描く。待ちは更新の間引きの早期の戻りより前に置き、間引かれた描画でも待ちに入る。待ったかどうかにかかわらず判定を`l1_h2_state`に残し（extraのbit 1が切り替え、bit 2がフェンスの有無、bit 4が完了済み、bit 8が待った、bit 16が間引かれた描画）、待ったときは`gpu_wait_begin`/`gpu_wait_end`も出す（`gpu_wait_end`のextraは1が時間内の完了）。`analyze.py`が`l1_h2 n=… fence=… complete=… waited=… deferred=… wait_done=…`と出す |
+| `LIBREPAINT_L1_WAIT_FOR_GPU` | H2（表示待ちの歯止め） | 1 | 前のフレームのGPU完了を待ってから次を描く。待ちは更新の間引きの早期の戻りより前に置き、間引かれた描画でも待ちに入る。待ったかどうかにかかわらず判定を`l1_h2_state`に残し（extraのbit 1が切り替え、bit 2がフェンスの有無、bit 4が完了済み、bit 8が待った、bit 16が間引かれた描画）、待ったときは`gpu_wait_begin`/`gpu_wait_end`も出す（`gpu_wait_end`のextraは1が時間内の完了）。`analyze.py`が`l1_h2 n=… fence=… complete=… waited=… deferred=… wait_done=…`と出し、待ちの長さを`gpu_wait.duration`に出す |
 | `LIBREPAINT_L1_SWAP_INTERVAL` | H3（垂直同期） | 0または1 | サーフェスの交換間隔を上書きする |
 | `LIBREPAINT_L1_WINDOW_SIZE` | H4（1フレームのGPU負荷） | `幅x高さ` | 起動後の窓の大きさを変える。保存された配置が最大化または全画面なら、その状態を解いてから大きさを設定する |
 | `LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION` | H5（ホバーの間引き） | 1 | 10msの移動イベントの圧縮を通さない（`tabletEventsDelay=0`はkritarcで設定する） |
