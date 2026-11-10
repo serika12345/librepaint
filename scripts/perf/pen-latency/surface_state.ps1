@@ -24,12 +24,22 @@
 # Called by run-surface.ps1:
 #   - before each run, to wait until the device has recovered from a throttled
 #     state (-WaitForProcessorPerformance): it reads % Processor Performance
-#     with one Get-Counter call every five seconds and returns as soon as the
+#     from the language-independent Win32_PerfFormattedData_Counters_
+#     ProcessorInformation class every five seconds and returns as soon as the
 #     value is at least 70 for two samples in a row. A device that took the
 #     2026-11-11 measurements stayed at 42-50 % for minutes; starting a run
 #     there produced values that cannot be compared (progress.md, q4-cpu).
 #     The wait is capped (120 s by default) so a device that does not recover
 #     still produces a run, and the result is written to meta.txt.
+#     run-surface.ps1 starts this mode in its own powershell.exe process and
+#     stops it at a hard wall-clock limit: a single WMI or Get-Counter read
+#     can block without returning when the performance-counter subsystem is
+#     unhealthy, so an in-process deadline is not enough (2026-11-11: the
+#     first wait hung the runner for 36 minutes before the app started).
+#     The wait reads WMI, not Get-Counter, so it needs neither Perflib nor a
+#     localized counter path. $Out is optional so the wait mode never prompts
+#     for a missing mandatory parameter: run-surface.ps1 starts this mode in a
+#     hidden console, where such a prompt waited for ever (2026-11-11).
 #   - one sample before the application starts (-Phase before -Samples 1)
 #   - while the run happens (-Phase during -IntervalMs 1000 -Mode on|light
 #     -StopFile <path>), in a separate powershell.exe process
@@ -46,7 +56,11 @@
 # Docs: docs/architecture/DEVELOPMENT.md, "性能計測（ペン入力から表示まで）".
 
 param(
-    [Parameter(Mandatory = $true)][string]$Out,
+    # -Out is only needed by the sampling modes. The wait mode does not write a
+    # CSV, and run-surface.ps1 calls it from a hidden, non-interactive console:
+    # a mandatory parameter there makes PowerShell prompt for it and blocks for
+    # ever before the wait starts (2026-11-11, the first wait hung 36 minutes).
+    [string]$Out = '',
     [string]$Phase = 'during',
     [int]$Samples = 1,
     [int]$IntervalMs = 1000,
@@ -189,35 +203,25 @@ function Resolve-CounterPath([string]$setName, [string]$counterName) {
     return ('\{0}(_Total)\{1}' -f $setLocal, $counterLocal)
 }
 
-function Resolve-ProcessorPerformancePath {
-    $path = Resolve-CounterPath 'Processor Information' '% Processor Performance'
-    if (-not $path) { $path = '\Processor Information(_Total)\% Processor Performance' }
-    return $path
-}
-
-function Read-ProcessorPerformancePct([string]$path) {
-    try {
-        $set = Get-Counter -Counter $path -MaxSamples 1 -ErrorAction Stop
-        $sample = @($set.CounterSamples)[0]
-        if ($null -eq $sample -or $null -eq $sample.CookedValue) { return $null }
-        return [int][math]::Round([double]$sample.CookedValue)
-    } catch {
-        return $null
-    }
-}
-
 function Wait-ForProcessorPerformance {
     # Wait for the device to leave a throttled state before a measurement.
     # Only the final result is printed (key=value lines) so run-surface.ps1
     # can append it to meta.txt. A counter that cannot be read is recorded as
     # "unavailable" and does not block the measurement.
-    $path = Resolve-ProcessorPerformancePath
+    #
+    # The reading comes from the WMI formatted class, the same source as the
+    # "on" samples: on a Japanese Windows the English Get-Counter path does
+    # not resolve and building the localized path reads the large Perflib
+    # lists. Either call can block for ever when the counter subsystem is
+    # unhealthy, so run-surface.ps1 also bounds this whole mode with a
+    # separate process and a hard timeout.
+    $source = 'Win32_PerfFormattedData_Counters_ProcessorInformation'
     $started = Get-Date
     $readings = @()
     $consecutive = 0
     $state = 'timeout'
     while ($true) {
-        $value = Read-ProcessorPerformancePct $path
+        $value = Get-ProcessorPerformancePct
         if ($null -eq $value) {
             $consecutive = 0
         } else {
@@ -240,7 +244,8 @@ function Wait-ForProcessorPerformance {
     Write-Output "surface_state_wait_minimum_pct=$WaitMinimumPct"
     Write-Output "surface_state_wait_min_pct=$minimum"
     Write-Output "surface_state_wait_last_pct=$last"
-    Write-Output "surface_state_wait_path=$path"
+    Write-Output "surface_state_wait_source=wmi"
+    Write-Output "surface_state_wait_path=$source"
 }
 
 function Add-LightSamples([string]$stopFile) {
@@ -294,6 +299,10 @@ function Add-LightSamples([string]$stopFile) {
             $written++
         }
     }
+}
+
+if (-not $WaitForProcessorPerformance -and -not $Out) {
+    throw '-Out is required unless -WaitForProcessorPerformance is used'
 }
 
 if ($WaitForProcessorPerformance) {

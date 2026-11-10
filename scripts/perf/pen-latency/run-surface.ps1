@@ -168,6 +168,60 @@ function Wait-MainWindow($process, [int]$seconds) {
     throw "no main window after $seconds s"
 }
 
+function Invoke-SurfaceStateWait($surfaceScript, $dir, [int]$timeoutSeconds, [int]$minimumPct) {
+    # The wait must never hold the runner. On 2026-11-11 the first wait hung
+    # the runner for 36 minutes before the application started: the call did
+    # not pass -Out, which used to be a mandatory parameter, so the hidden,
+    # non-interactive console waited at a parameter prompt. The wait's own
+    # 120 s cap never started. -Out is now optional, and this still passes a
+    # path and runs the wait in its own powershell.exe with a wall-clock
+    # limit: one blocked WMI read must not hold the runner either.
+    $graceSeconds = 15
+    $out = Join-Path $dir 'surface-state-wait.out'
+    $err = Join-Path $dir 'surface-state-wait.err'
+    $waitCsv = Join-Path $dir 'surface-state-wait.csv'
+    $started = Get-Date
+    $process = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+        -ArgumentList @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+            '-File', "`"$surfaceScript`"", '-Out', "`"$waitCsv`"", '-WaitForProcessorPerformance',
+            '-WaitMinimumPct', [string]$minimumPct, '-WaitTimeoutSeconds', [string]$timeoutSeconds) `
+        -RedirectStandardOutput $out -RedirectStandardError $err
+    $finished = $process.WaitForExit(($timeoutSeconds + $graceSeconds) * 1000)
+    $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+    if (-not $finished) {
+        # Kill the blocked reader so the run can start. The result is recorded
+        # as a timeout; the next run tries again.
+        try { $process.Kill() } catch { }
+        try { [void]$process.WaitForExit(5000) } catch { }
+        Log ("surface state wait process stopped after $elapsed s")
+    }
+    $lines = @()
+    if (Test-Path $out) {
+        $lines = @(Get-Content -Path $out | Where-Object { $_ -match '^surface_state_wait' })
+    }
+    if (-not $finished -and -not ($lines | Where-Object { $_ -match '^surface_state_wait=' })) {
+        $lines = @(
+            'surface_state_wait=timeout',
+            "surface_state_wait_seconds=$elapsed",
+            'surface_state_wait_samples=0',
+            'surface_state_wait_min_pct=unavailable',
+            'surface_state_wait_last_pct=unavailable',
+            'surface_state_wait_source=wmi',
+            'surface_state_wait_timed_out=process'
+        )
+    }
+    if (-not $lines.Count) {
+        $message = ''
+        if (Test-Path $err) { $message = (@(Get-Content -Path $err -TotalCount 2) -join ' ') }
+        $lines = @(
+            'surface_state_wait=failed',
+            ('surface_state_wait_error=' + $message)
+        )
+        Log ("surface state wait failed: " + $message)
+    }
+    return $lines
+}
+
 function Set-TargetEnvironment($envMap) {
     # Environment variables from hosts.json reach the measured application.
     # They are applied to this PowerShell process before Start-Process, so no
@@ -430,11 +484,13 @@ try {
         Write-Meta $dir $request $target $surfaceStateMode $surfaceStateWait
         Write-LaunchFacts $dir 'start' $null
         # Wait for the device to recover before it is measured. The wait runs
-        # before the sampler and the application start, so a throttled device
-        # delays the run instead of changing its values.
+        # in a separate process before the sampler and the application start,
+        # so a throttled device delays the run instead of changing its values,
+        # and a blocked counter read stops at a hard limit instead of holding
+        # the runner.
         if ($surfaceStateWait -eq 'on' -and (Test-Path $surfaceScript)) {
             try {
-                $waitLines = @(& $surfaceScript -WaitForProcessorPerformance -WaitMinimumPct 70 -WaitTimeoutSeconds 120)
+                $waitLines = @(Invoke-SurfaceStateWait $surfaceScript $dir 120 70)
                 if ($waitLines.Count) {
                     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $waitLines
                     Log ("surface state wait: " + ($waitLines -join ' '))
