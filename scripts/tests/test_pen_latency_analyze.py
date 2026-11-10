@@ -214,11 +214,16 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             self.write_outcome(directory, [
                 (ms(1000), "l1_h1_egl_context", 1),
-                (ms(1001), "l1_h1_device_query_ext", 3),
-                (ms(1002), "l1_h1_device", 1),
-                (ms(1003), "l1_h1_query_interface", 0),
-                (ms(1004), "l1_h1_set_max_frame_latency", 0, 1),
-                (ms(1005), "l1_h1_get_max_frame_latency", 1, 1),
+                (ms(1001), "l1_h1_client_extensions", 3),
+                (ms(1002), "l1_h1_display_extensions", 2),
+                (ms(1003), "l1_h1_device_query_ext", 2),
+                (ms(1004), "l1_h1_entry_points", 3),
+                (ms(1005), "l1_h1_display_attrib", 1, 1),
+                (ms(1006), "l1_h1_device_attrib", 1, 1),
+                (ms(1007), "l1_h1_device", 1),
+                (ms(1008), "l1_h1_query_interface", 0),
+                (ms(1009), "l1_h1_set_max_frame_latency", 0, 1),
+                (ms(1010), "l1_h1_get_max_frame_latency", 1, 1),
             ])
             result = analyze.Run(directory).analyze()
             output = io.StringIO()
@@ -226,7 +231,14 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
                 self.assertEqual(analyze.main([directory]), 0)
         self.assertEqual(result["l1_h1"], {
             "egl_context": 1,
-            "device_query_ext": 3,
+            "client_extensions": 3,
+            "display_extensions": 2,
+            "device_query_ext": 2,
+            "entry_points": 3,
+            "display_attrib_result": 1,
+            "display_attrib_device": 1,
+            "device_attrib_result": 1,
+            "device_attrib_device": 1,
             "device": 1,
             "query_interface_hresult": 0,
             "set_hresult": 0,
@@ -234,7 +246,9 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
             "readback": 1,
         })
         self.assertIn(
-            "egl=1 device_query=3 device=1 query_interface=0x00000000 set=0x00000000 requested=1 readback=1",
+            "egl=1 client_ext=3 display_ext=2 device_query=2 entry=3 "
+            "display_attrib=1/1 device_attrib=1/1 device=1 query_interface=0x00000000 "
+            "set=0x00000000 requested=1 readback=1",
             output.getvalue())
 
     def test_failed_device_lookup_stops_before_the_set_call(self):
@@ -248,21 +262,33 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
                 analyze.main([directory])
         self.assertEqual(result["l1_h1"], {
             "egl_context": 0,
+            "client_extensions": None,
+            "display_extensions": None,
             "device_query_ext": None,
+            "entry_points": None,
+            "display_attrib_result": None,
+            "display_attrib_device": None,
+            "device_attrib_result": None,
+            "device_attrib_device": None,
             "device": None,
             "query_interface_hresult": None,
             "set_hresult": None,
             "requested": None,
             "readback": None,
         })
-        self.assertIn("egl=0 device_query=none device=none query_interface=none set=none", output.getvalue())
+        self.assertIn("egl=0 client_ext=none display_ext=none device_query=none entry=none",
+                      output.getvalue())
 
     def test_a_missing_device_query_extension_is_reported(self):
         with tempfile.TemporaryDirectory() as directory:
             self.write_outcome(directory, [
                 (ms(1000), "l1_h1_egl_context", 1),
-                (ms(1001), "l1_h1_device_query_ext", 1),
-                (ms(1002), "l1_h1_device", 0),
+                (ms(1001), "l1_h1_client_extensions", 1),
+                (ms(1002), "l1_h1_display_extensions", 1),
+                (ms(1003), "l1_h1_device_query_ext", 1),
+                (ms(1004), "l1_h1_entry_points", 3),
+                (ms(1005), "l1_h1_display_attrib", 0, 0),
+                (ms(1006), "l1_h1_device", 0),
             ])
             result = analyze.Run(directory).analyze()
             output = io.StringIO()
@@ -270,14 +296,23 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
                 analyze.main([directory])
         self.assertEqual(result["l1_h1"], {
             "egl_context": 1,
+            "client_extensions": 1,
+            "display_extensions": 1,
             "device_query_ext": 1,
+            "entry_points": 3,
+            "display_attrib_result": 0,
+            "display_attrib_device": 0,
+            "device_attrib_result": None,
+            "device_attrib_device": None,
             "device": 0,
             "query_interface_hresult": None,
             "set_hresult": None,
             "requested": None,
             "readback": None,
         })
-        self.assertIn("egl=1 device_query=1 device=0", output.getvalue())
+        self.assertIn("egl=1 client_ext=1 display_ext=1 device_query=1 entry=3 "
+                      "display_attrib=0/0 device_attrib=none/none device=0",
+                      output.getvalue())
 
     def test_the_newest_call_describes_the_run(self):
         with tempfile.TemporaryDirectory() as directory:
