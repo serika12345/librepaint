@@ -507,10 +507,22 @@ DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、
 
 ```sh
 nix build .#windows-upstream-qt-dependencies --no-link
-build-incremental windows-upstream-qt configure
-build-incremental windows-upstream-qt build krita
-build-incremental windows-upstream-qt path
+systemd-run --user --unit=librepaint-win-upstream-qt-configure --collect --wait \
+  --working-directory "$PWD" \
+  bash -lc './scripts/build-incremental windows-upstream-qt configure'
+systemd-run --user --unit=librepaint-win-upstream-qt-build --collect --wait \
+  --working-directory "$PWD" \
+  bash -lc 'CMAKE_BUILD_PARALLEL_LEVEL=5 ./scripts/build-incremental windows-upstream-qt build krita'
+./scripts/build-incremental windows-upstream-qt path
 ```
+
+構築の前に、ほかの構築や`verify`が動いていないことを確かめる。
+
+```sh
+systemctl --user list-units "q*" "librepaint-*" "l1-*" "l2-*" "win-*" --no-legend
+```
+
+構築は1本のsystemdのuser unitで動かし、終了を待ってから次を始める。
 
 構成指紋がフォーク版と異なるため、ソース配置とNinja木は
 `build/windows/x86_64/<構成指紋>/`の別のディレクトリーになる。コンパイラーキャッシュは
