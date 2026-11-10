@@ -193,6 +193,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
 | `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が70以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
+| `run-surface.ps1`の待ち | `surface_state_wait`が`on`（既定）の回は、アプリの起動前に`surface_state.ps1 -WaitForProcessorPerformance`を別の`powershell.exe`で動かす。待ちの中は言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`から`% Processor Performance`を読む。`-Out`は待ちでは不要（省略できる）。親は120秒に15秒を足した実時間で打ち切り、止まらない読み取りを`Stop-Process`で終わらせる。結果は`surface-state-wait.out`と`meta.txt`の`surface_state_wait_*`に残す |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
 | 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
@@ -324,12 +325,19 @@ CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中
 `== environment changes`に並べる（判定は変えない）。
 
 各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
-`% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに`Get-Counter`1回、
-最大120秒。既定で有効）。2026-11-11の`q4-cpu`では、回によって`% Processor Performance`が
-42〜50%に落ち、同じ設定の回でも遅れが比較できなかった。待ちの有無は`hosts.json`の
-Windowsの対象の`surface_state_wait`で切り、`off`のときは待たない（待ちの効果を測る比較用）。
-待った結果は`meta.txt`の`surface_state_wait`（`ready`/`timeout`/`unavailable`/`off`）、
-`surface_state_wait_seconds`、`surface_state_wait_min_pct`に残し、`run.py`は
+`% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。
+既定で有効）。読み取りは言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`
+から行う。待ちは`run-surface.ps1`が別の`powershell.exe`で動かし、120秒に15秒を足した
+実時間で止まらなければそのプロセスを終了する。2026-11-11の最初の待ちでは、呼び出しが
+必須だった`-Out`を渡していなかったため、隠れたコンソールがパラメーターの入力待ちで止まり、
+120秒の打ち切りまで届かなかった（runnerは36分進まなかった）。`-Out`は待ちでは不要にし、
+呼び出しでも渡す。1回の読み取りが返らない場合にも備え、待ちをrunnerと同じプロセスで
+動かさない。2026-11-11の`q4-cpu`では、
+回によって`% Processor Performance`が42〜50%に落ち、同じ設定の回でも遅れが比較できなかった。
+待ちの有無は`hosts.json`のWindowsの対象の`surface_state_wait`で切り、`off`のときは待たない
+（待ちの効果を測る比較用）。待った結果は`meta.txt`の`surface_state_wait`（`ready`/`timeout`/`unavailable`/`off`）、
+`surface_state_wait_seconds`、`surface_state_wait_min_pct`、`surface_state_wait_source`
+（`wmi`）、`surface_state_wait_timed_out`（親が打ち切ったとき`process`）に残し、`run.py`は
 `== device recovery waits`に回数を出す。計測中の最小が60%未満だった回は、`run.py`が
 `== device state below 60% (left out)`に回の名前と値で並べ、集計から外して表に
 `N run(s) left out: processor performance below 60% during the run`と出す
