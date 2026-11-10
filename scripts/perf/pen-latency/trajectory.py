@@ -10,6 +10,14 @@ coordinate space:
   height, always left to right with the primary button held; the ink's
   leading edge follows the pointer.
 
+A stroke can change speed inside the line through "speed_profiles": a list of
+profiles, one per stroke in turn. Each profile is a list of segments with an
+optional "until" (fraction of the stroke distance, default 1.0 for the last
+segment), "speed" (fraction of the rectangle width per second) and "label".
+The moving samples then carry the label as their phase, so capture_analyze.py
+can group the delay before and after a speed change. Constant-speed strokes
+keep the phase "move".
+
 Every pass starts and ends with a still dwell. capture_analyze.py uses the
 dwells to map injector coordinates to captured pixels and the moving parts
 to measure latency. Rows are separated so that each one gets its own capture
@@ -20,10 +28,37 @@ DEFAULTS = {
     "hover_passes": 8,
     "strokes": 6,
     "speed": 0.5,  # fraction of the rectangle width per second
+    "speed_profiles": [],  # per-stroke lists of {until, speed, label}
     "dwell": 0.3,  # seconds of still pointer at both ends of every pass
     "rate": 240.0,  # injected samples per second
     "margin": 0.1,  # fraction of the width left unused at each end
 }
+
+
+def profile_segments(profile):
+    """Normalise one speed profile into contiguous distance fractions."""
+    segments = []
+    previous = 0.0
+    for index, entry in enumerate(profile):
+        until = float(entry.get("until", 1.0))
+        speed = float(entry["speed"])
+        if until <= previous or until > 1.0:
+            raise ValueError("speed profile 'until' must increase and end at 1.0")
+        if speed <= 0.0:
+            raise ValueError("speed profile 'speed' must be positive")
+        label = entry.get("label") or "move%d" % (index + 1)
+        if not label.startswith("move"):
+            label = "move_" + label
+        segments.append({
+            "start": previous,
+            "end": until,
+            "speed": speed,
+            "label": label,
+        })
+        previous = until
+    if segments and previous < 1.0:
+        raise ValueError("the last speed profile segment must end at 1.0")
+    return segments
 
 
 def options(overrides=None):
@@ -60,17 +95,28 @@ def samples(left, top, width, height, overrides=None):
     step = 1.0 / o["rate"]
     dwell = int(o["dwell"] / step)
     hover_y, stroke_ys = rows(top, height, o)
+    profiles = [profile_segments(profile) for profile in (o.get("speed_profiles") or [])]
     t = 0.0
 
-    def run(band, y, start, end, pressed):
+    def run(band, y, start, end, pressed, profile=None):
         nonlocal t
         for _ in range(dwell):
             yield t, "dwell", band, start, y, pressed
             t += step
-        steps = int(duration / step)
-        for i in range(steps + 1):
-            yield t, "move", band, start + (end - start) * i / steps, y, pressed
-            t += step
+        if profile:
+            span = end - start
+            for segment in profile:
+                segment_seconds = abs(span) * (segment["end"] - segment["start"]) / (segment["speed"] * width)
+                steps = max(1, int(round(segment_seconds / step)))
+                for i in range(1, steps + 1):
+                    fraction = segment["start"] + (segment["end"] - segment["start"]) * i / steps
+                    yield t, segment["label"], band, start + span * fraction, y, pressed
+                    t += step
+        else:
+            steps = int(duration / step)
+            for i in range(steps + 1):
+                yield t, "move", band, start + (end - start) * i / steps, y, pressed
+                t += step
         for _ in range(dwell):
             yield t, "dwell", band, end, y, pressed
             t += step
@@ -84,7 +130,8 @@ def samples(left, top, width, height, overrides=None):
         for _ in range(dwell):
             yield t, "dwell", band, x0, y, False
             t += step
-        yield from run(band, y, x0, x1, True)
+        profile = profiles[k % len(profiles)] if profiles else None
+        yield from run(band, y, x0, x1, True, profile)
         yield t, "release", band, x1, y, False
         t += step
 

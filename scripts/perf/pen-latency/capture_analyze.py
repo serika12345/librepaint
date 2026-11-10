@@ -76,11 +76,16 @@ def read_capture(path):
     return dict(sorted(frames.items()))
 
 
+def phase_kind(phase):
+    """Classify a phase; speed profiles name their moving parts move*."""
+    return "move" if phase.startswith("move") else phase
+
+
 def segments(samples):
-    """Split the injected samples into consecutive runs with the same band, phase and pressed state."""
+    """Split the injected samples into consecutive runs with the same band, phase kind and pressed state."""
     result = []
     for sample in samples:
-        key = (sample[2], sample[1], sample[5])
+        key = (sample[2], phase_kind(sample[1]), sample[5])
         if result and result[-1]["key"] == key:
             result[-1]["samples"].append(sample)
         else:
@@ -99,8 +104,13 @@ class Pass:
         self.start_x, self.end_x = self.xs[0], self.xs[-1]
         self.direction = 1 if self.end_x > self.start_x else -1
 
-    def time_at(self, x):
-        """Time at which the pointer crossed x on this pass, or None outside the moving range."""
+    def locate(self, x):
+        """Return (input time, pointer speed in px/ms) where the pointer crossed x.
+
+        The speed comes from the two injected samples that bracket the
+        crossing, so a trajectory that changes speed inside the line still
+        gets the speed that applied at that position.
+        """
         lo, hi = sorted((self.start_x, self.end_x))
         if not lo + EDGE_PX < x < hi - EDGE_PX:
             return None
@@ -111,7 +121,14 @@ class Pass:
             return None
         x0, x1 = keys[i - 1], keys[i]
         t0, t1 = self.times[i - 1], self.times[i]
-        return t0 + (t1 - t0) * (target - x0) / (x1 - x0) if x1 != x0 else t0
+        duration_ms = (t1 - t0) / 1e6
+        speed = abs(x1 - x0) / duration_ms if duration_ms > 0 else 0.0
+        time = t0 + (t1 - t0) * (target - x0) / (x1 - x0) if x1 != x0 else t0
+        return time, speed
+
+    def time_at(self, x):
+        located = self.locate(x)
+        return None if located is None else located[0]
 
 
 def passes(samples):
@@ -159,9 +176,9 @@ def dwell_offsets(pass_, frames, frame_times):
 def frame_samples(directory):
     """Return (frames, offsets, samples) for a run.
 
-    samples lists (kind, frame_ns, crossed_ns, arrival_ns): a captured frame
-    and the time at which the injected pointer was at the position the frame
-    shows.
+    samples lists (kind, frame_ns, crossed_ns, arrival_ns, speed_px_ms): a
+    captured frame, the time at which the injected pointer was at the
+    position the frame shows, and the pointer's speed then.
     """
     injected = read_inject(os.path.join(directory, "inject.csv"))
     frames = read_capture(os.path.join(directory, "capture.csv"))
@@ -185,10 +202,13 @@ def frame_samples(directory):
             value = position(pass_.kind, detection)
             if value is None:
                 continue
-            crossed = pass_.time_at(value - offset[pass_.kind])
-            if crossed is None or not 0 <= t - crossed < MAX_LATENCY_NS:
+            located = pass_.locate(value - offset[pass_.kind])
+            if located is None:
                 continue
-            samples.append((pass_.kind, t, crossed, detection["arrival"]))
+            crossed, speed = located
+            if not 0 <= t - crossed < MAX_LATENCY_NS:
+                continue
+            samples.append((pass_.kind, t, crossed, detection["arrival"], speed))
     return frame_times, offsets, offset, samples
 
 
@@ -330,9 +350,13 @@ def classify_hover_state(frame_to_arrival_p50_ms, tablet_interval_p05_ms):
 def analyze_run(directory):
     frame_times, offsets, offset, samples = frame_samples(directory)
     stats = collections.defaultdict(list)
-    for kind, t, crossed, arrival in samples:
+    ink_samples = []
+    for kind, t, crossed, arrival, speed in samples:
         stats[kind + ".input_to_capture"].append((t - crossed) / 1e6)
         stats[kind + ".frame_to_arrival"].append((arrival - t) / 1e6)
+        if kind == "ink":
+            ink_samples.append((kind, t, crossed, arrival, speed))
+            stats["ink.pen_tip_to_edge_px"].append((t - crossed) / 1e6 * speed)
 
     intervals = [(b - a) / 1e6 for a, b in zip(frame_times, frame_times[1:]) if b - a < 100_000_000]
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
@@ -341,6 +365,9 @@ def analyze_run(directory):
         kind: {"offset_px": offset[kind], "spread_px": (max(v) - min(v)) if v else None, "n": len(v)}
         for kind, v in offsets.items()
     }
+    if ink_samples:
+        result["ink.speed_groups"] = ink_speed_groups(ink_samples)
+        result["ink.speed_change"] = speed_change_entries(ink_samples)
     frame_to_arrival = result.get("hover.frame_to_arrival", {}).get("p50")
     tablet_interval = tablet_move_interval_p05(directory)
     label, reason = classify_hover_state(frame_to_arrival, tablet_interval)
@@ -361,6 +388,131 @@ def analyze_run(directory):
 
 
 PRIMARY = ("hover.input_to_capture", "ink.input_to_capture")
+
+# A stroke that changes speed shows its delay just after the change and its
+# steady delay in the following stretch. These windows are analysis choices,
+# not measured constants: 80 ms covers several displayed frames and fits
+# inside the fast half of a stroke (3 widths per second lasts about 167 ms
+# for half a line), and 250 ms leaves room for the steady value.
+SPEED_CHANGE_RATIO = 2.0
+SPEED_CHANGE_WINDOW_MS = 80.0
+SPEED_STEADY_END_MS = 250.0
+SPEED_SETTLE_THRESHOLD_MS = 3.0
+
+
+def ink_speed_groups(samples):
+    """Latency and pen-tip-to-edge distance grouped by pointer speed.
+
+    A constant-speed stroke gives one group; a stroke that changes speed
+    gives one group per speed. The distance is the pointer's travel during
+    the measured delay, in captured pixels.
+    """
+    entries = []
+    for _, frame, crossed, _, speed in samples:
+        latency = (frame - crossed) / 1e6
+        entries.append((speed, (latency, latency * speed)))
+    groups = []
+    for cluster in analyze.speed_clusters(entries):
+        latencies = [payload[0] for payload in cluster["payloads"]]
+        distances = [payload[1] for payload in cluster["payloads"]]
+        groups.append({
+            "speed_px_ms": cluster["speed"],
+            "n": len(latencies),
+            "input_to_capture": analyze.describe(latencies),
+            "pen_tip_to_edge_px": analyze.describe(distances),
+        })
+    return groups
+
+
+def speed_change_entries(samples):
+    """Delay just after each speed change and the time to its steady value.
+
+    The pointer speed is smoothed over five injected samples so that the one
+    interval that straddles a change does not look like a change of its own.
+    A change is a sustained doubling or halving of the speed.
+    """
+    ordered = sorted(samples, key=lambda sample: sample[2])
+    if len(ordered) < 10:
+        return []
+    speeds = [sample[4] for sample in ordered]
+    smoothed = [statistics.median(speeds[max(0, i - 2): i + 3]) for i in range(len(speeds))]
+
+    changes = []
+    for i in range(3, len(ordered) - 1):
+        previous, current, following = smoothed[i - 1], smoothed[i], smoothed[i + 1]
+        if previous <= 0.0:
+            continue
+        ratio = current / previous
+        if ratio >= SPEED_CHANGE_RATIO:
+            sustained = following >= previous * 1.5
+        elif ratio <= 1.0 / SPEED_CHANGE_RATIO:
+            sustained = following <= previous / 1.5
+        else:
+            continue
+        if not sustained:
+            continue
+        if changes and ordered[i][2] - changes[-1]["time"] < 100_000_000:
+            if abs(ratio) <= changes[-1]["ratio"]:
+                continue
+            changes.pop()
+        changes.append({"time": ordered[i][2], "ratio": abs(ratio)})
+
+    result = []
+    for change in changes:
+        at = change["time"]
+        window_end = at + int(SPEED_CHANGE_WINDOW_MS * 1e6)
+        steady_end = at + int(SPEED_STEADY_END_MS * 1e6)
+        after = [s for s in ordered if at <= s[2] <= window_end]
+        before = [s for s in ordered if at - int(SPEED_CHANGE_WINDOW_MS * 1e6) <= s[2] < at]
+        steady = [s for s in ordered if window_end < s[2] <= steady_end]
+        if not after:
+            continue
+        reference = steady if len(steady) >= 5 else (before or after)
+        steady_ms = statistics.median((s[1] - s[2]) / 1e6 for s in reference)
+        threshold = steady_ms + max(SPEED_SETTLE_THRESHOLD_MS, 0.1 * steady_ms)
+        latencies = [(s[1] - s[2]) / 1e6 for s in after]
+        settle_ms = None
+        for index in range(len(after) - 2):
+            if all((after[index + offset][1] - after[index + offset][2]) / 1e6 <= threshold
+                   for offset in range(3)):
+                settle_ms = (after[index][2] - at) / 1e6
+                break
+        result.append({
+            "at_ms": (at - ordered[0][2]) / 1e6,
+            "before_speed_px_ms": statistics.median([s[4] for s in before]) if before else None,
+            "after_speed_px_ms": statistics.median([s[4] for s in after]),
+            "max_latency_ms": max(latencies),
+            "steady_latency_ms": steady_ms,
+            "settle_ms": settle_ms,
+            "max_pen_tip_to_edge_px": max((s[1] - s[2]) / 1e6 * s[4] for s in after),
+            "n": len(after),
+        })
+    return result
+
+
+
+def format_speed_groups(groups):
+    if not groups:
+        return "none"
+    return " ; ".join(
+        "%.2f px/ms n=%d %s tip=%s" % (
+            group["speed_px_ms"], group["n"],
+            analyze.format_stat(group["input_to_capture"]),
+            analyze.format_stat(group["pen_tip_to_edge_px"]))
+        for group in groups)
+
+
+def format_speed_changes(changes):
+    if not changes:
+        return "none"
+    return " ; ".join(
+        "at %.0fms %.2f->%.2f px/ms max %.1f steady %.1f settle %s tip %.0fpx n=%d" % (
+            change["at_ms"],
+            change["before_speed_px_ms"] if change["before_speed_px_ms"] is not None else 0.0,
+            change["after_speed_px_ms"], change["max_latency_ms"], change["steady_latency_ms"],
+            "none" if change["settle_ms"] is None else "%.1fms" % change["settle_ms"],
+            change["max_pen_tip_to_edge_px"], change["n"])
+        for change in changes)
 
 
 def main(argv):
@@ -394,6 +546,12 @@ def main(argv):
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
         for key, stat in result.items():
             if key in ("frames", "calibration", "state", "presentmon", "foreground", "presentation", "excluded"):
+                continue
+            if key == "ink.speed_groups":
+                print("   %-28s %s" % (key, format_speed_groups(stat)))
+                continue
+            if key == "ink.speed_change":
+                print("   %-28s %s" % (key, format_speed_changes(stat)))
                 continue
             print("   %-28s %s" % (key, analyze.format_stat(stat)))
     comparison = analyze.compare(results, PRIMARY, require_presentmon=False)

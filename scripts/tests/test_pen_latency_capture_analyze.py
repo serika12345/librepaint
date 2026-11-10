@@ -37,9 +37,10 @@ HOVER_OFFSET = 3
 INK_OFFSET = 20
 
 
-def simulate(directory, delay_ns, arrival_delay_ns=1_000_000):
-    samples = list(trajectory.samples(*RECT, OPTIONS))
-    bands = trajectory.bands(RECT[1], RECT[3], trajectory.options(OPTIONS))
+def simulate(directory, delay_ns, arrival_delay_ns=1_000_000, options=None):
+    options = options or OPTIONS
+    samples = list(trajectory.samples(*RECT, options))
+    bands = trajectory.bands(RECT[1], RECT[3], trajectory.options(options))
     start = 1_000_000_000
     injected = [(start + int(t * 1e9), phase, band, x, y, pressed) for t, phase, band, x, y, pressed in samples]
     with open(os.path.join(directory, "inject.csv"), "w", newline="") as handle:
@@ -200,6 +201,39 @@ class SimulatedDisplayTest(unittest.TestCase):
             self.assertTrue(49.0 <= result[metric]["p50"] <= 54.5, metric)
         self.assertAlmostEqual(result["calibration"]["hover"]["offset_px"], HOVER_OFFSET, delta=1)
         self.assertAlmostEqual(result["calibration"]["ink"]["offset_px"], INK_OFFSET, delta=1)
+
+    def test_a_line_that_changes_speed_keeps_the_time_mapping(self):
+        options = {
+            "hover_passes": 0,
+            "strokes": 1,
+            "speed_profiles": [[
+                {"until": 0.5, "speed": 0.3, "label": "move_slow"},
+                {"until": 1.0, "speed": 3.0, "label": "move_fast"},
+            ]],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000, options=options)
+            result = capture_analyze.analyze_run(directory)
+        groups = result["ink.speed_groups"]
+        self.assertGreaterEqual(len(groups), 2)
+        self.assertLess(groups[0]["speed_px_ms"], 0.5)
+        self.assertGreater(groups[-1]["speed_px_ms"], 2.5)
+        for group in groups:
+            self.assertGreater(group["n"], 2)
+            self.assertGreaterEqual(group["input_to_capture"]["p05"], 48.5)
+            self.assertLessEqual(group["input_to_capture"]["p95"], 55.5)
+            # The pointer travelled its speed times the delay while the
+            # display showed the older position.
+            self.assertAlmostEqual(group["pen_tip_to_edge_px"]["p50"],
+                                   group["input_to_capture"]["p50"] * group["speed_px_ms"], delta=1.0)
+        changes = result["ink.speed_change"]
+        self.assertEqual(len(changes), 1)
+        self.assertLess(changes[0]["before_speed_px_ms"], 0.5)
+        self.assertGreater(changes[0]["after_speed_px_ms"], 2.5)
+        self.assertGreaterEqual(changes[0]["max_latency_ms"], 48.5)
+        self.assertGreaterEqual(changes[0]["steady_latency_ms"], 48.5)
+        self.assertIsNotNone(changes[0]["settle_ms"])
+        self.assertLessEqual(changes[0]["settle_ms"], 50.0)
 
 
 if __name__ == "__main__":
