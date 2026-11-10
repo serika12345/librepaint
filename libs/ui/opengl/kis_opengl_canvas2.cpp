@@ -542,22 +542,43 @@ void KisOpenGLCanvas2::paintGL()
     }
 #endif
 
+    // H2 (waiting for the display handoff): finish the GPU work of the
+    // previous frame before starting the next one. The wait must come before
+    // the update-compression early return below. The frames whose previous
+    // GPU work is unfinished are exactly the frames that compression defers,
+    // and a wait placed after the early return is never reached from them.
+    // LIBREPAINT_L1_WAIT_FOR_GPU is for the L1 measurements only;
+    // KisL1Switches.h owns the removal condition.
+    if (KisL1Switches::waitForGpuBeforeNextFrame()) {
+        // l1_h2_state records the decision even when nothing is waited for:
+        // bit 1 = the switch is on, bit 2 = the previous frame's fence exists,
+        // bit 4 = the fence had already completed, bit 8 = the fence was
+        // waited for, bit 16 = this paint was deferred by update compression.
+        qint64 state = 1;
+#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
+        if (d->shouldSkipRenderingPass) {
+            state |= 16;
+        }
+#endif
+        if (d->glSyncObject) {
+            state |= 2;
+            if (!d->glSyncObject->isSignaled()) {
+                state |= 8;
+                KisLatencyProbe::mark("gpu_wait_begin");
+                const bool completed = d->glSyncObject->waitForCompletion(100 * 1000 * 1000LL);
+                KisLatencyProbe::mark("gpu_wait_end", 0, 0, completed ? 1 : 0);
+            } else {
+                state |= 4;
+            }
+        }
+        KisLatencyProbe::mark("l1_h2_state", 0, 0, state);
+    }
+
 #if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     if (d->shouldSkipRenderingPass) {
         return;
     }
 #endif
-
-    if (KisL1Switches::waitForGpuBeforeNextFrame() &&
-        d->glSyncObject && !d->glSyncObject->isSignaled()) {
-        // H2 (waiting for the display handoff): finish the GPU work of the
-        // previous frame before starting the next one. LIBREPAINT_L1_WAIT_FOR_GPU
-        // is for the L1 measurements only; KisL1Switches.h owns the removal
-        // condition.
-        KisLatencyProbe::mark("gpu_wait_begin");
-        d->glSyncObject->waitForCompletion(100 * 1000 * 1000LL);
-        KisLatencyProbe::mark("gpu_wait_end");
-    }
 
     KisLatencyProbe::mark("paintgl_begin");
     struct ProbePaintEnd {

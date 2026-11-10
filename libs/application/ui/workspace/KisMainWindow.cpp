@@ -3285,6 +3285,14 @@ void KisMainWindow::initializeGeometry()
     // KisL1Switches.h owns the removal condition.
     const QSize l1WindowSize = KisL1Switches::windowSize();
     if (l1WindowSize.isValid()) {
+        // The restored geometry can carry a maximized or full-screen state,
+        // and resize() on such a window only changes the normal geometry that
+        // is restored when the window is unmaximized. Clear the state first so
+        // the requested size reaches the window and its canvas.
+        const Qt::WindowStates state = windowState();
+        if (state & (Qt::WindowMaximized | Qt::WindowFullScreen)) {
+            setWindowState(state & ~(Qt::WindowMaximized | Qt::WindowFullScreen));
+        }
         resize(l1WindowSize);
     }
 #ifdef Q_OS_ANDROID

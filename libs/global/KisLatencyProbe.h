@@ -34,7 +34,13 @@ class QCoreApplication;
  * previous frame finished on the GPU), qt_update_deferred (Qt's frame
  * compressor deferred a paint), qt_update_deferred_skipped (H6 (frame update
  * throttle) painted despite the previous frame), gpu_wait_begin and
- * gpu_wait_end (H2 (waiting for the display handoff)).
+ * gpu_wait_end (H2 (waiting for the display handoff); extra = 1 when the
+ * fence completed within the timeout) and l1_h2_state (H2's
+ * decision for one paint call: extra bit 1 = the switch is on, bit 2 = the
+ * previous frame's fence exists, bit 4 = the fence had already completed,
+ * bit 8 = the fence was waited for, bit 16 = update compression deferred the
+ * paint). The H2 wait runs before the update-compression early return, so a
+ * deferred paint records its decision instead of skipping the wait.
  *
  * H1 (frames queued ahead) records whether its D3D11 call took effect:
  * l1_h1_egl_context (extra = 1 when Qt exposes the EGL context),

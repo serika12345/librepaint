@@ -339,6 +339,17 @@ class Run:
                     "n": len(completed),
                     "completed": sum(1 for entry in completed if entry[3] == 1),
                 }
+            h2_states = self.events.get("l1_h2_state", [])
+            if h2_states:
+                wait_end = self.events.get("gpu_wait_end", [])
+                result["l1_h2"] = {
+                    "n": len(h2_states),
+                    "fence": sum(1 for entry in h2_states if int(entry[3]) & 2),
+                    "complete": sum(1 for entry in h2_states if int(entry[3]) & 4),
+                    "waited": sum(1 for entry in h2_states if int(entry[3]) & 8),
+                    "deferred": sum(1 for entry in h2_states if int(entry[3]) & 16),
+                    "wait_completed": sum(1 for entry in wait_end if int(entry[3]) == 1),
+                }
             h1 = l1_max_frame_latency(self.events)
             if h1:
                 result["l1_h1"] = h1
@@ -450,6 +461,17 @@ def format_l1_last_frame_completed(entry):
     return "completed=%d/%d (%.1f%%)" % (entry.get("completed", 0), n, 100.0 * entry.get("completed", 0) / n)
 
 
+def format_l1_h2(entry):
+    """H2 (waiting for the display handoff) decisions from the probe log."""
+    n = entry.get("n", 0)
+    if not n:
+        return "n=0"
+    return "n=%d fence=%d complete=%d waited=%d deferred=%d wait_done=%d" % (
+        n, entry.get("fence", 0), entry.get("complete", 0),
+        entry.get("waited", 0), entry.get("deferred", 0),
+        entry.get("wait_completed", 0))
+
+
 def format_l1_h1(entry):
     """Outcome of the H1 (frames queued ahead) D3D11 call from the probe log."""
     def flag(value):
@@ -503,6 +525,9 @@ def main(argv):
                 continue
             if key == "l1_h1":
                 print("   %-44s %s" % (key, format_l1_h1(stat)))
+                continue
+            if key == "l1_h2":
+                print("   %-44s %s" % (key, format_l1_h2(stat)))
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 

@@ -343,6 +343,43 @@ class L1MaxFrameLatencyTest(unittest.TestCase):
         self.assertNotIn("l1_h1", output.getvalue())
 
 
+class L1WaitForGpuTest(unittest.TestCase):
+    """H2 (waiting for the display handoff) decisions from the probe log.
+
+    l1_h2_state carries the decision in extra: bit 1 = the switch is on,
+    bit 2 = the previous frame's fence exists, bit 4 = the fence had already
+    completed, bit 8 = the fence was waited for, bit 16 = update compression
+    deferred the paint. A deferred paint must be able to report a wait, which
+    is the case the probe could not see before the wait moved ahead of the
+    update-compression early return.
+    """
+
+    def test_waiting_and_already_complete_paints_are_counted(self):
+        rows = [(ms(1000) + index, "l1_h2_state", 7) for index in range(60)]
+        rows += [(ms(2000) + index, "l1_h2_state", 27) for index in range(40)]
+        rows += [(ms(2000) + index, "gpu_wait_begin", 0) for index in range(40)]
+        rows += [(ms(2000) + index, "gpu_wait_end", 1) for index in range(39)]
+        rows += [(ms(2000) + index, "gpu_wait_end", 0) for index in range(1)]
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, rows, [])
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(analyze.main([directory]), 0)
+        self.assertEqual(result["l1_h2"], {
+            "n": 100, "fence": 100, "complete": 60, "waited": 40, "deferred": 40,
+            "wait_completed": 39,
+        })
+        self.assertIn("n=100 fence=100 complete=60 waited=40 deferred=40 wait_done=39",
+                      output.getvalue())
+
+    def test_a_run_without_the_switch_reports_no_h2_entry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [(ms(1000), "paintgl_begin", 0)], [])
+            result = analyze.Run(directory).analyze()
+        self.assertNotIn("l1_h2", result)
+
+
 class RunComparisonTest(unittest.TestCase):
     def test_spread_is_range_of_run_medians_over_their_median(self):
         results = {
