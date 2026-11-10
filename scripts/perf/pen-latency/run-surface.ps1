@@ -347,7 +347,7 @@ function Invoke-DisplayCheck($dir, $app, [string]$image) {
     Log 'display check captured 100 and 400'
 }
 
-function Write-Meta($dir, $request, $target, $surfaceStateMode) {
+function Write-Meta($dir, $request, $target, $surfaceStateMode, $surfaceStateWait) {
     $lines = @(
         "target=$target",
         "app=$($request.app)",
@@ -355,7 +355,8 @@ function Write-Meta($dir, $request, $target, $surfaceStateMode) {
         "computer=$((Get-CimInstance Win32_ComputerSystem).Model)",
         "os=$([System.Environment]::OSVersion.VersionString)",
         "presentmon=$(if ($request.presentmon) { $request.presentmon } else { 'on' })",
-        "surface_state_mode=$surfaceStateMode"
+        "surface_state_mode=$surfaceStateMode",
+        "surface_state_wait_mode=$surfaceStateWait"
     )
     if ($request.env) {
         foreach ($property in $request.env.PSObject.Properties) {
@@ -408,6 +409,15 @@ try {
         Log ("unknown surface_state '" + $surfaceStateMode + "', recording nothing")
         $surfaceStateMode = 'off'
     }
+    # Waiting for the device to leave a throttled state is a setting of its
+    # own: it uses one Get-Counter read per five seconds before the run and
+    # changes nothing during it. It stays on when the state recording is off.
+    $surfaceStateWait = if ($null -ne $request.surface_state_wait) { [string]$request.surface_state_wait } else { 'on' }
+    if ($surfaceStateWait -notin @('off', 'on')) {
+        Log ("unknown surface_state_wait '" + $surfaceStateWait + "', waiting")
+        $surfaceStateWait = 'on'
+    }
+    $surfaceScript = Join-Path $here 'surface_state.ps1'
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -417,8 +427,31 @@ try {
         $script:runStatus = Join-Path $dir 'status.txt'
         Set-Content -Path $script:runStatus -Value 'starting'
         Log "run $n $dir"
-        Write-Meta $dir $request $target $surfaceStateMode
+        Write-Meta $dir $request $target $surfaceStateMode $surfaceStateWait
         Write-LaunchFacts $dir 'start' $null
+        # Wait for the device to recover before it is measured. The wait runs
+        # before the sampler and the application start, so a throttled device
+        # delays the run instead of changing its values.
+        if ($surfaceStateWait -eq 'on' -and (Test-Path $surfaceScript)) {
+            try {
+                $waitLines = @(& $surfaceScript -WaitForProcessorPerformance -WaitMinimumPct 70 -WaitTimeoutSeconds 120)
+                if ($waitLines.Count) {
+                    Add-Content -Path (Join-Path $dir 'meta.txt') -Value $waitLines
+                    Log ("surface state wait: " + ($waitLines -join ' '))
+                }
+            } catch {
+                Add-Content -Path (Join-Path $dir 'meta.txt') -Value @(
+                    'surface_state_wait=failed',
+                    ("surface_state_wait_error=" + $_.Exception.Message)
+                )
+                Log ("surface state wait failed: " + $_.Exception.Message)
+            }
+        } else {
+            Add-Content -Path (Join-Path $dir 'meta.txt') -Value @(
+                'surface_state_wait=off',
+                'surface_state_wait_seconds=0'
+            )
+        }
 
         if ($target -eq 'PenProbe') {
             if ($capture) {
@@ -477,7 +510,6 @@ try {
         # second while the run happens, and one after the application exits.
         # The sampler is a separate process so it keeps sampling while this
         # script waits for the capture tool.
-        $surfaceScript = Join-Path $here 'surface_state.ps1'
         $surfaceCsv = Join-Path $dir 'surface-state.csv'
         $surfaceStop = Join-Path $dir 'surface-state.stop'
         $surfaceSampler = $null

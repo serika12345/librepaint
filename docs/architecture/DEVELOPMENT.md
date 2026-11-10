@@ -192,7 +192,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す。速さごとの値と、速さが変わった直後の値も出す |
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
-| `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする |
+| `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が70以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
 | 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
@@ -322,6 +322,18 @@ CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中
 `during_max_temp_c`が5℃以上、`during_min_processor_performance_pct`が10ポイント以上、
 `during_max_total_cpu_pct`が10ポイント以上変わった回に`marked:`の印を付け、
 `== environment changes`に並べる（判定は変えない）。
+
+各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
+`% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに`Get-Counter`1回、
+最大120秒。既定で有効）。2026-11-11の`q4-cpu`では、回によって`% Processor Performance`が
+42〜50%に落ち、同じ設定の回でも遅れが比較できなかった。待ちの有無は`hosts.json`の
+Windowsの対象の`surface_state_wait`で切り、`off`のときは待たない（待ちの効果を測る比較用）。
+待った結果は`meta.txt`の`surface_state_wait`（`ready`/`timeout`/`unavailable`/`off`）、
+`surface_state_wait_seconds`、`surface_state_wait_min_pct`に残し、`run.py`は
+`== device recovery waits`に回数を出す。計測中の最小が60%未満だった回は、`run.py`が
+`== device state below 60% (left out)`に回の名前と値で並べ、集計から外して表に
+`N run(s) left out: processor performance below 60% during the run`と出す
+（`surface_state`が`off`の回は値がないため、この判定をしない）。
 
 描画の周期は`paint_cycle`の1行で追う。`paint_interval`は`paintgl_begin`の間隔（4ms未満、
 8ms未満、12ms未満、16ms未満、16ms以上の内訳付き）、`present_interval`はPresentMonの

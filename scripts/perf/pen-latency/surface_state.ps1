@@ -22,6 +22,14 @@
 #   off    nothing (the runner does not start this script).
 #
 # Called by run-surface.ps1:
+#   - before each run, to wait until the device has recovered from a throttled
+#     state (-WaitForProcessorPerformance): it reads % Processor Performance
+#     with one Get-Counter call every five seconds and returns as soon as the
+#     value is at least 70 for two samples in a row. A device that took the
+#     2026-11-11 measurements stayed at 42-50 % for minutes; starting a run
+#     there produced values that cannot be compared (progress.md, q4-cpu).
+#     The wait is capped (120 s by default) so a device that does not recover
+#     still produces a run, and the result is written to meta.txt.
 #   - one sample before the application starts (-Phase before -Samples 1)
 #   - while the run happens (-Phase during -IntervalMs 1000 -Mode on|light
 #     -StopFile <path>), in a separate powershell.exe process
@@ -43,7 +51,12 @@ param(
     [int]$Samples = 1,
     [int]$IntervalMs = 1000,
     [string]$StopFile,
-    [ValidateSet('on', 'light')][string]$Mode = 'on'
+    [ValidateSet('on', 'light')][string]$Mode = 'on',
+    [switch]$WaitForProcessorPerformance,
+    [int]$WaitMinimumPct = 70,
+    [int]$WaitConsecutiveSamples = 2,
+    [int]$WaitTimeoutSeconds = 120,
+    [int]$WaitSampleSeconds = 5
 )
 
 $ErrorActionPreference = 'Stop'
@@ -176,6 +189,60 @@ function Resolve-CounterPath([string]$setName, [string]$counterName) {
     return ('\{0}(_Total)\{1}' -f $setLocal, $counterLocal)
 }
 
+function Resolve-ProcessorPerformancePath {
+    $path = Resolve-CounterPath 'Processor Information' '% Processor Performance'
+    if (-not $path) { $path = '\Processor Information(_Total)\% Processor Performance' }
+    return $path
+}
+
+function Read-ProcessorPerformancePct([string]$path) {
+    try {
+        $set = Get-Counter -Counter $path -MaxSamples 1 -ErrorAction Stop
+        $sample = @($set.CounterSamples)[0]
+        if ($null -eq $sample -or $null -eq $sample.CookedValue) { return $null }
+        return [int][math]::Round([double]$sample.CookedValue)
+    } catch {
+        return $null
+    }
+}
+
+function Wait-ForProcessorPerformance {
+    # Wait for the device to leave a throttled state before a measurement.
+    # Only the final result is printed (key=value lines) so run-surface.ps1
+    # can append it to meta.txt. A counter that cannot be read is recorded as
+    # "unavailable" and does not block the measurement.
+    $path = Resolve-ProcessorPerformancePath
+    $started = Get-Date
+    $readings = @()
+    $consecutive = 0
+    $state = 'timeout'
+    while ($true) {
+        $value = Read-ProcessorPerformancePct $path
+        if ($null -eq $value) {
+            $consecutive = 0
+        } else {
+            $readings += $value
+            if ($value -ge $WaitMinimumPct) { $consecutive++ } else { $consecutive = 0 }
+        }
+        if ($consecutive -ge [math]::Max(1, $WaitConsecutiveSamples)) { $state = 'ready'; break }
+        $elapsed = ((Get-Date) - $started).TotalSeconds
+        if ($elapsed -ge $WaitTimeoutSeconds) { break }
+        Start-Sleep -Seconds ([math]::Max(1, $WaitSampleSeconds))
+    }
+    $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+    if ($readings.Count -eq 0) { $state = 'unavailable' }
+    $minimum = if ($readings.Count) { ($readings | Measure-Object -Minimum).Minimum } else { 'unavailable' }
+    $last = if ($readings.Count) { $readings[-1] } else { 'unavailable' }
+    Write-Output "surface_state_wait=$state"
+    Write-Output "surface_state_wait_seconds=$elapsed"
+    Write-Output "surface_state_wait_samples=$($readings.Count)"
+    Write-Output "surface_state_wait_consecutive_required=$([math]::Max(1, $WaitConsecutiveSamples))"
+    Write-Output "surface_state_wait_minimum_pct=$WaitMinimumPct"
+    Write-Output "surface_state_wait_min_pct=$minimum"
+    Write-Output "surface_state_wait_last_pct=$last"
+    Write-Output "surface_state_wait_path=$path"
+}
+
 function Add-LightSamples([string]$stopFile) {
     # One Get-Counter call collects a batch of samples inside the counter
     # subsystem; the loop only writes the rows. The temperature and the
@@ -229,7 +296,9 @@ function Add-LightSamples([string]$stopFile) {
     }
 }
 
-if ($StopFile -and $Mode -eq 'light') {
+if ($WaitForProcessorPerformance) {
+    Wait-ForProcessorPerformance
+} elseif ($StopFile -and $Mode -eq 'light') {
     Add-LightSamples $StopFile
 } elseif ($StopFile) {
     # Run until the runner writes the stop file, with a hard cap so a lost

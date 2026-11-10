@@ -27,7 +27,12 @@ measured application (run-surface.ps1 records them in meta.txt), and
 the run). A Windows target records the device state (surface_state.ps1) only
 when it sets "surface_state": "on" (one WMI sample per second) or "light"
 (one Get-Counter call per five seconds, no per-second process list); the
-default is off, so the recording tool does not perturb the measurement. A run
+default is off, so the recording tool does not perturb the measurement.
+Before every run the runner waits, unless the target sets
+"surface_state_wait": "off", for the device's % Processor Performance to reach
+70 % twice in a row (one Get-Counter read per five seconds, at most 120 s);
+a run whose reading stayed below 60 % during the measurement is marked and
+left out of the aggregation. A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
 application was not the foreground window when the capture began and that
@@ -87,6 +92,7 @@ def run_command(argv, env=None, cwd=None):
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KRITARC_KEY = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
 SURFACE_STATE_MODES = ("off", "on", "light")
+SURFACE_STATE_WAIT_MODES = ("on", "off")
 
 
 def target_environment(target):
@@ -144,6 +150,23 @@ def target_surface_state(target):
     return mode
 
 
+def target_surface_state_wait(target):
+    """Return whether the Windows runner waits for the device to recover.
+
+    The wait is on by default: each run starts only after % Processor
+    Performance reached 70 % twice in a row (one Get-Counter read every five
+    seconds, at most 120 s). The 2026-11-11 measurements showed the device at
+    42-50 % for minutes, and runs taken there were not comparable
+    (progress.md, q4-cpu). A target sets "surface_state_wait": "off" to
+    measure the same runs without the wait.
+    """
+    mode = target.get("surface_state_wait", "on")
+    if not isinstance(mode, str) or mode not in SURFACE_STATE_WAIT_MODES:
+        raise SystemExit("target %s: surface_state_wait must be one of %s" % (
+            target["name"], ", ".join(SURFACE_STATE_WAIT_MODES)))
+    return mode
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -156,6 +179,7 @@ def runner_for(host, target, scenario, run_root):
         env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"],
                "PRESENTMON": target.get("presentmon", "on"),
                "SURFACE_STATE": target_surface_state(target),
+               "SURFACE_STATE_WAIT": target_surface_state_wait(target),
                "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True),
                "TARGET_KRITARC": json.dumps(target_kritarc(target), sort_keys=True)}
         return argv, env, None
@@ -165,6 +189,8 @@ def runner_for(host, target, scenario, run_root):
         raise SystemExit("target %s: kritarc is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("surface_state"):
         raise SystemExit("target %s: surface_state is supported only for Windows targets" % target["name"])
+    if kind in ("linux", "macos") and target.get("surface_state_wait") is not None:
+        raise SystemExit("target %s: surface_state_wait is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
@@ -213,9 +239,27 @@ def run_excluded(run):
     return bool(run.get("excluded"))
 
 
+# A device that falls to this % Processor Performance during a run is far from
+# its nominal clock; the 2026-11-11 sessions showed runs at 42-50 % whose
+# latency did not match the runs around them (progress.md, q4-cpu).
+DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT = 60.0
+
+
+def device_performance_low(run):
+    """Whether the device's recorded % Processor Performance stayed below 60.
+
+    Runs without a recorded device state (Linux, macOS, surface_state off)
+    return False and stay in the aggregation.
+    """
+    state = run.get("surface_state") or {}
+    value = number_or_none(state.get("during_min_processor_performance_pct"))
+    return value is not None and value < DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT
+
+
 def usable_runs(data):
     """Runs of one target that took part in the measurement and can be aggregated."""
-    return [run for run in data.get("runs", []) if not run_excluded(run)]
+    return [run for run in data.get("runs", [])
+            if not run_excluded(run) and not device_performance_low(run)]
 
 
 def metric_needs_presentmon(metric):
@@ -234,6 +278,11 @@ SHIFT_TOTAL_CPU_PCT = 10.0
 
 SURFACE_STATE_KEYS = {
     "surface_state_mode": "mode",
+    "surface_state_wait_mode": "wait_mode",
+    "surface_state_wait": "wait",
+    "surface_state_wait_seconds": "wait_seconds",
+    "surface_state_wait_min_pct": "wait_min_pct",
+    "surface_state_wait_last_pct": "wait_last_pct",
     "surface_state_before_max_temp_c": "before_max_temp_c",
     "surface_state_before_processor_performance_pct": "before_processor_performance_pct",
     "surface_state_before_total_cpu_pct": "before_total_cpu_pct",
@@ -375,7 +424,10 @@ def summarize(run_root, hosts, scenario):
             })
         for target, data in entry["targets"].items():
             valid = usable_runs(data)
-            data["excluded"] = len(data["runs"]) - len(valid)
+            data["excluded"] = sum(1 for run in data["runs"] if run_excluded(run))
+            data["device_low"] = sum(
+                1 for run in data["runs"]
+                if not run_excluded(run) and device_performance_low(run))
             data["shifts"] = shift_notes(valid)
             data["foreground_inject_lost"] = sum(
                 1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
@@ -389,6 +441,11 @@ def summarize(run_root, hosts, scenario):
                           if (run.get("surface_state") or {}).get("mode") == mode)
                 for mode in SURFACE_STATE_MODES
             }
+            waits = {}
+            for run in data["runs"]:
+                key = (run.get("surface_state") or {}).get("wait") or "unrecorded"
+                waits[key] = waits.get(key, 0) + 1
+            data["surface_state_waits"] = waits
             groups = {}
             for run in valid:
                 groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
@@ -451,6 +508,9 @@ def judge(summary, scenario, baseline=None):
                         problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
                     if data.get("excluded"):
                         notes.append("%d run(s) left out: app not foreground or not presenting" % data["excluded"])
+                    if data.get("device_low"):
+                        notes.append("%d run(s) left out: processor performance below %.0f%% during the run" % (
+                            data["device_low"], DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT))
                     if data.get("foreground_inject_lost"):
                         notes.append("%d run(s) lost the foreground before input" % data["foreground_inject_lost"])
                     for shift in data.get("shifts", []):
@@ -611,6 +671,30 @@ def main(argv):
     if device_lines:
         print("== device state records")
         print("\n".join(device_lines))
+    wait_lines = []
+    low_lines = []
+    for host, entry in summary["hosts"].items():
+        if entry.get("kind") != "windows":
+            continue
+        for target, data in entry["targets"].items():
+            waits = data.get("surface_state_waits") or {}
+            if waits:
+                wait_lines.append("   %s/%s: recovery wait before the run: %s" % (
+                    host, target, ", ".join("%s %d" % (state, waits[state]) for state in sorted(waits))))
+            for run in data.get("runs", []):
+                if run_excluded(run) or not device_performance_low(run):
+                    continue
+                state = run.get("surface_state") or {}
+                low_lines.append("   %s/%s: %s %s%% (wait %s, below %.0f%%)" % (
+                    host, target, run.get("name", "?"),
+                    state.get("during_min_processor_performance_pct", "?"),
+                    state.get("wait", "unrecorded"), DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT))
+    if wait_lines:
+        print("== device recovery waits")
+        print("\n".join(wait_lines))
+    if low_lines:
+        print("== device state below %.0f%% (left out)" % DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT)
+        print("\n".join(low_lines))
     shift_lines = []
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():

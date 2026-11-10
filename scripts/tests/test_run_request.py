@@ -78,6 +78,21 @@ class RequestTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", surface_state=mode)
 
+    def test_recovery_wait_is_on_by_default(self):
+        request = request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", name="T")
+        self.assertEqual(request["surface_state_wait"], "on")
+
+    def test_recovery_wait_can_be_turned_off(self):
+        request = request_module.build_request(
+            "LibrePaint", 1, "C:/LibrePaint.exe", name="T", surface_state_wait="off")
+        self.assertEqual(request["surface_state_wait"], "off")
+
+    def test_unknown_recovery_wait_is_rejected(self):
+        for mode in ("ON", "light", "", 1):
+            with self.assertRaises(ValueError):
+                request_module.build_request(
+                    "LibrePaint", 1, "C:/LibrePaint.exe", surface_state_wait=mode)
+
 
 if __name__ == "__main__":
     unittest.main()

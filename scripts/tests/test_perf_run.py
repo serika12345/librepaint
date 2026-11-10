@@ -146,15 +146,32 @@ class DeviceShiftTest(unittest.TestCase):
             with open(os.path.join(root, "meta.txt"), "w") as handle:
                 handle.write("foreground_capture=pid=1 name=LibrePaint visible=True\n")
                 handle.write("surface_state_mode=light\n")
+                handle.write("surface_state_wait_mode=on\n")
+                handle.write("surface_state_wait=ready\n")
+                handle.write("surface_state_wait_seconds=13.4\n")
+                handle.write("surface_state_wait_min_pct=71\n")
                 handle.write("surface_state_during_max_temp_c=58.0\n")
                 handle.write("surface_state_during_min_processor_performance_pct=60\n")
                 handle.write("surface_state_top_process=MsMpEng 40%\n")
             state = run.surface_state(root)
         self.assertEqual(state["mode"], "light")
+        self.assertEqual(state["wait_mode"], "on")
+        self.assertEqual(state["wait"], "ready")
+        self.assertEqual(state["wait_seconds"], "13.4")
+        self.assertEqual(state["wait_min_pct"], "71")
         self.assertEqual(state["during_max_temp_c"], "58.0")
         self.assertEqual(state["during_min_processor_performance_pct"], "60")
         self.assertEqual(state["top_process"], "MsMpEng 40%")
         self.assertNotIn("foreground_capture", state)
+
+    def test_a_throttled_device_is_told_from_a_device_without_a_record(self):
+        self.assertFalse(run.device_performance_low({"surface_state": {}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "60"}}))
+        self.assertTrue(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "42"}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "unavailable"}}))
 
     def test_the_table_notes_carry_the_mark(self):
         summary = {"hosts": {"h": {"kind": "windows", "targets": {"T": {
@@ -198,6 +215,34 @@ class RunnerCommandTest(unittest.TestCase):
         host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
         target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
                   "surface_state": "heavy"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_the_recovery_wait_is_on_unless_the_target_turns_it_off(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE_WAIT"], "on")
+            target["surface_state_wait"] = "off"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE_WAIT"], "off")
+
+    def test_invalid_recovery_wait_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "surface_state_wait": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_recovery_wait_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "surface_state_wait": "off"}
         with tempfile.TemporaryDirectory() as root:
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
@@ -355,6 +400,32 @@ class StateSummaryTest(unittest.TestCase):
                 summary = run.summarize(root, [host], self.SCENARIO)
         self.assertEqual(summary["hosts"]["h"]["targets"]["T"]["surface_state_modes"],
                          {"off": 1, "on": 1, "light": 1})
+
+    def test_a_run_below_60_percent_is_left_out_and_marked(self):
+        with tempfile.TemporaryDirectory() as root:
+            values = ("77", "42", "75")
+            for n, value in enumerate(values, start=1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_wait=ready\n")
+                    handle.write("surface_state_during_min_processor_performance_pct=%s\n" % value)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0),
+                                                fake_run("low", 70.0, 61.0),
+                                                fake_run("low", 56.0, 61.0)]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["device_low"], 1)
+        self.assertEqual(data["excluded"], 0)
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 2)
+        self.assertAlmostEqual(data["metrics"]["hover.input_to_capture"]["median"], 55.5)
+        self.assertEqual(data["surface_state_waits"], {"ready": 3})
+        rows = run.judge(summary, self.SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("1 run(s) left out: processor performance below 60%", notes)
 
     def test_a_run_whose_app_was_not_in_front_is_left_out(self):
         summary = self.summarize([

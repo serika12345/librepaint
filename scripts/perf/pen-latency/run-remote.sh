@@ -20,6 +20,10 @@
 # SURFACE_STATE is off (the default), on or light: whether run-surface.ps1
 # records the device state around the run. run.py fills it from the target's
 # "surface_state" in hosts.json.
+# SURFACE_STATE_WAIT is on (the default) or off: whether run-surface.ps1 holds
+# each run until the device's % Processor Performance has recovered (two
+# samples of at least 70 %, at most 120 s). run.py fills it from the target's
+# "surface_state_wait" in hosts.json.
 # TARGET_ENV is a JSON object of environment variables for the measured
 # application; run.py fills it from the target's "env" in hosts.json.
 # TARGET_KRITARC is a JSON object of root kritarc keys (for example the hidden
@@ -45,6 +49,7 @@ target_env=${TARGET_ENV:-'{}'}
 target_kritarc=${TARGET_KRITARC:-'{}'}
 target_display_check=${TARGET_DISPLAY_CHECK:-'{}'}
 surface_state=${SURFACE_STATE:-off}
+surface_state_wait=${SURFACE_STATE_WAIT:-on}
 extra=()
 if [ -n "${CAPTURE_TOOL:-}" ]; then
   capture=true
@@ -56,7 +61,7 @@ fi
 python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" \
     "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
     "$(python3 -I "$here/presentmon_command.py")" "$target_env" "$target_kritarc" \
-    "$target_display_check" "$surface_state" > "$work/request.json"
+    "$target_display_check" "$surface_state" "$surface_state_wait" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
 scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"

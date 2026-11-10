@@ -18,6 +18,11 @@ the whole screen at 100 % and 400 % zoom (see display_check.py).
 A target can carry "surface_state": "on" or "light" to record the device state
 around the run; the default is "off" (no recording). This is a runner setting,
 not an environment variable for the application.
+
+A target can also carry "surface_state_wait": "off" to skip the wait that
+otherwise holds each run until the device's % Processor Performance has
+recovered (two samples of at least 70 %, one Get-Counter read every five
+seconds, at most 120 seconds). The wait is a runner setting as well.
 """
 
 import json
@@ -26,6 +31,7 @@ import sys
 ENV_NAME_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
 KRITARC_KEY_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-")
 SURFACE_STATE_MODES = ("off", "on", "light")
+SURFACE_STATE_WAIT_MODES = ("on", "off")
 
 
 def checked_env(env):
@@ -84,9 +90,23 @@ def checked_surface_state(mode):
     return text
 
 
+def checked_surface_state_wait(mode):
+    """Return whether the runner waits for the device to recover, or raise.
+
+    The wait is on by default so a throttled device delays a run instead of
+    producing a value that cannot be compared. A target turns it off to
+    measure how much the wait changes the result.
+    """
+    text = str(mode if mode is not None else "on")
+    if text not in SURFACE_STATE_WAIT_MODES:
+        raise ValueError("surface_state_wait must be one of %s: %r" % (
+            ", ".join(SURFACE_STATE_WAIT_MODES), mode))
+    return text
+
+
 def build_request(target, runs, app, inject=None, capture=False, name=None, presentmon="on",
                   presentmon_fields=None, env=None, kritarc=None, display_check=None,
-                  surface_state="off"):
+                  surface_state="off", surface_state_wait="on"):
     request = {
         "target": target,
         "runs": int(runs),
@@ -96,6 +116,7 @@ def build_request(target, runs, app, inject=None, capture=False, name=None, pres
         "name": name or target,
         "presentmon": presentmon or "on",
         "surface_state": checked_surface_state(surface_state),
+        "surface_state_wait": checked_surface_state_wait(surface_state_wait),
     }
     request.update(presentmon_fields or {})
     checked = checked_env(env)
@@ -111,18 +132,18 @@ def build_request(target, runs, app, inject=None, capture=False, name=None, pres
 
 
 def main(argv):
-    if len(argv) != 12:
+    if len(argv) != 13:
         raise SystemExit(
             "usage: run_request.py TARGET RUNS APP INJECT_JSON CAPTURE NAME PRESENTMON "
             "PRESENTMON_JSON TARGET_ENV_JSON TARGET_KRITARC_JSON TARGET_DISPLAY_CHECK_JSON "
-            "SURFACE_STATE")
+            "SURFACE_STATE SURFACE_STATE_WAIT")
     (target, runs, app, inject, capture, name, presentmon, presentmon_fields, target_env,
-     target_kritarc, target_display_check, surface_state) = argv
+     target_kritarc, target_display_check, surface_state, surface_state_wait) = argv
     request = build_request(target, runs, app, json.loads(inject), capture == "true", name,
                             presentmon, json.loads(presentmon_fields), json.loads(target_env or "{}"),
                             json.loads(target_kritarc or "{}"),
                             json.loads(target_display_check or "{}"),
-                            surface_state)
+                            surface_state, surface_state_wait)
     print(json.dumps(request))
     return 0
 
