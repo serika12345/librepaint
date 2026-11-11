@@ -261,7 +261,7 @@
                   "--with-keysymdefdir=${previous.xorgproto}/include/X11"
                 ];
                 NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "")
-                  + " -Wno-error=pointer-to-int-cast";
+                  + " -Wno-error=pointer-to-int-cast -include ws2tcpip.h";
                 postPatch = (old.postPatch or "") + ''
                   sed -i '/#include <config.h>/a #include <stdint.h>' \
                     modules/im/ximcp/imDefIc.c
@@ -512,72 +512,65 @@
                 sed -i 's/\<bool\>/boolValue/g' nspr/pr/src/io/prmapopt.c
                 sed -i 's/PRInt32 rvSent;/DWORD rvSent;/g' nspr/pr/src/io/prsocket.c
                 sed -i \
-                  -e 's/^  unsigned long bytes, key;$/  DWORD bytes;\n  ULONG_PTR key;/' \
-                  -e 's/^  int bytes;$/  DWORD bytes;/' \
-                  -e 's/^  PRUint32 bytes;$/  DWORD bytes;/' \
-                  -e 's/^  PRInt32 bytes;$/  DWORD bytes;/' \
+                  -e 's/^    unsigned long bytes, key;$/    DWORD bytes;\n    ULONG_PTR key;/' \
+                  -e 's/^    int bytes;$/    DWORD bytes;/' \
+                  -e 's/^    PRUint32 bytes;$/    DWORD bytes;/' \
+                  -e 's/^    PRInt32 bytes;$/    DWORD bytes;/' \
                   nspr/pr/src/md/windows/ntio.c
                 substituteInPlace nspr/pr/src/md/windows/ntio.c \
                   --replace-fail \
 'InterlockedCompareExchange((PVOID*)&desc->outcome, (PVOID)mwstatus,
-                                     (PVOID)PR_MW_PENDING) ==
-          (PVOID)PR_MW_PENDING' \
+                                           (PVOID)PR_MW_PENDING) ==
+                (PVOID)PR_MW_PENDING' \
 'InterlockedCompareExchange((LONG volatile*)&desc->outcome, (LONG)mwstatus,
-                                     (LONG)PR_MW_PENDING) ==
-          (LONG)PR_MW_PENDING' \
+                                           (LONG)PR_MW_PENDING) ==
+                (LONG)PR_MW_PENDING' \
                   --replace-fail \
-'PRInt32 _PR_MD_SOCKETAVAILABLE(PRFileDesc* fd) {
-  PRInt32 result;
+'PRInt32
+_PR_MD_SOCKETAVAILABLE(PRFileDesc* fd)
+{
+    PRInt32 result;
 
-  if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
-    PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
-    return -1;
-  }
-  return result;
-}' \
-'PRInt32 _PR_MD_SOCKETAVAILABLE(PRFileDesc* fd) {
-  u_long result;
-
-  if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
-    PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
-    return -1;
-  }
-  return (PRInt32)result;
-}'
-                substituteInPlace nspr/pr/src/md/windows/ntmisc.c \
-                  --replace-fail \
-'  if (exitCode != NULL &&
-      GetExitCodeProcess(process->md.handle, exitCode) == FALSE) {
-    PR_SetError(PR_UNKNOWN_ERROR, GetLastError());
-    return PR_FAILURE;
-  }' \
-'  if (exitCode != NULL) {
-    DWORD nativeExitCode;
-    if (GetExitCodeProcess(process->md.handle, &nativeExitCode) == FALSE) {
-      PR_SetError(PR_UNKNOWN_ERROR, GetLastError());
-      return PR_FAILURE;
+    if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
+        PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
+        return -1;
     }
-    *exitCode = (PRInt32)nativeExitCode;
-  }'
+    return result;
+}' \
+'PRInt32
+_PR_MD_SOCKETAVAILABLE(PRFileDesc* fd)
+{
+    u_long result;
+
+    if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
+        PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
+        return -1;
+    }
+    return (PRInt32)result;
+}'
                 substituteInPlace nspr/pr/src/md/windows/ntthread.c \
                   --replace-fail \
-'PRInt32 _PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask) {
-  PRInt32 rv, system_mask;
+'PRInt32
+_PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask)
+{
+    PRInt32 rv, system_mask;
 
-  rv = GetProcessAffinityMask(GetCurrentProcess(), mask, &system_mask);
+    rv = GetProcessAffinityMask(GetCurrentProcess(), mask, &system_mask);
 
-  return rv ? 0 : -1;
+    return rv ? 0 : -1;
 }' \
-'PRInt32 _PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask) {
-  DWORD_PTR processMask, systemMask;
-  PRInt32 rv;
+'PRInt32
+_PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask)
+{
+    DWORD_PTR processMask, systemMask;
+    PRInt32 rv;
 
-  rv = GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask);
-  if (rv) {
-    *mask = (PRUint32)processMask;
-  }
+    rv = GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask);
+    if (rv) {
+        *mask = (PRUint32)processMask;
+    }
 
-  return rv ? 0 : -1;
+    return rv ? 0 : -1;
 }'
               '';
               postConfigure = (old.postConfigure or "") + ''
