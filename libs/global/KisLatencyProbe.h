@@ -48,6 +48,14 @@ class QCoreApplication;
  * 1 when a context was current) and canvas_resize_gl (x/y = the GL size) show
  * whether the canvas was recreated or resized during a run.
  *
+ * The renderer choice and its first frame check are recorded because
+ * selectSurfaceConfig() runs before the usage logger is initialized, so a
+ * measurement launch has no other place for them. l1_renderer_selection
+ * carries x = the chosen renderer id, y = the number of candidates and
+ * extra bit 1 = the choice was explicit; l1_renderer_skipped carries x = a
+ * renderer id skipped by a failure mark; l1_first_frame_check carries x =
+ * the checked renderer id and y = 1 when the check passed.
+ *
  * The L1 experiments add last_frame_completed_on_gpu (extra = 1 when the
  * previous frame finished on the GPU), qt_update_deferred (Qt's frame
  * compressor deferred a paint), qt_update_deferred_skipped (H6 (frame update

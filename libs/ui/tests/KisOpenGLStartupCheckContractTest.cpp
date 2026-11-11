@@ -206,6 +206,39 @@ private Q_SLOTS:
                      configFilePath),
                  (QStringList{QStringLiteral("desktop"), QStringLiteral("angle")}));
     }
+
+    void selectionLineNamesTheChoiceAndTheSkippedRenderers()
+    {
+        // A measurement launch does not show the warning UI and initializes
+        // the usage logger after the choice, so this one line is what app.err
+        // and the latency log keep for the audit.
+        QCOMPARE(KisOpenGLStartupCheck::rendererSelectionLogLine(
+                     QStringLiteral("desktop"),
+                     {QStringLiteral("angle"), QStringLiteral("desktop"), QStringLiteral("software")},
+                     {QStringLiteral("angle")}),
+                 QStringLiteral("OpenGL renderer selection: chosen=desktop "
+                                "candidates=angle,desktop,software skipped=angle"));
+        QCOMPARE(KisOpenGLStartupCheck::rendererSelectionLogLine(
+                     QStringLiteral("angle"),
+                     {QStringLiteral("angle")},
+                     {}),
+                 QStringLiteral("OpenGL renderer selection: chosen=angle "
+                                "candidates=angle skipped=none"));
+        QCOMPARE(KisOpenGLStartupCheck::rendererSelectionLogLine(QString(), {}, {}),
+                 QStringLiteral("OpenGL renderer selection: chosen=none "
+                                "candidates=none skipped=none"));
+    }
+
+    void firstFrameLineKeepsTheResultAndTheReason()
+    {
+        QCOMPARE(KisOpenGLStartupCheck::firstFrameCheckLogLine(
+                     QStringLiteral("desktop"), true, QString()),
+                 QStringLiteral("OpenGL first frame check: renderer=desktop result=passed"));
+        QCOMPARE(KisOpenGLStartupCheck::firstFrameCheckLogLine(
+                     QStringLiteral("angle"), false, QStringLiteral("shader did not compile")),
+                 QStringLiteral("OpenGL first frame check: renderer=angle result=failed "
+                                "reason=shader did not compile"));
+    }
 };
 
 QTEST_GUILESS_MAIN(KisOpenGLStartupCheckContractTest)

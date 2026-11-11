@@ -287,4 +287,26 @@ bool verifyFirstFrameOnCurrentContext(const QString &rendererName,
     return true;
 }
 
+QString rendererSelectionLogLine(const QString &chosenRenderer,
+                                 const QStringList &candidateNames,
+                                 const QStringList &skippedNames)
+{
+    const QString chosen = chosenRenderer.isEmpty() ? QStringLiteral("none") : chosenRenderer;
+    const QString candidates =
+        candidateNames.isEmpty() ? QStringLiteral("none") : candidateNames.join(QLatin1Char(','));
+    const QString skipped =
+        skippedNames.isEmpty() ? QStringLiteral("none") : skippedNames.join(QLatin1Char(','));
+    return QStringLiteral("OpenGL renderer selection: chosen=%1 candidates=%2 skipped=%3")
+        .arg(chosen, candidates, skipped);
+}
+
+QString firstFrameCheckLogLine(const QString &rendererName, bool passed, const QString &failureReason)
+{
+    if (passed) {
+        return QStringLiteral("OpenGL first frame check: renderer=%1 result=passed").arg(rendererName);
+    }
+    return QStringLiteral("OpenGL first frame check: renderer=%1 result=failed reason=%2")
+        .arg(rendererName, failureReason);
+}
+
 }

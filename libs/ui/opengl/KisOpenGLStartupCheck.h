@@ -82,6 +82,22 @@ KRITAUI_EXPORT bool isForcedFailureForTesting();
 /// to build a mark for renderers that are not under test.
 KRITAUI_EXPORT void recordFailedRenderer(const QString &rendererName,
                                         const QString &configFilePath = QString());
+
+/// One line that says which renderer selectSurfaceConfig() chose and which
+/// candidates the failure marks skipped. The caller writes it to stderr and
+/// to the latency log, because on a measurement launch the usage logger is
+/// not initialized yet and the warning UI is not shown.
+KRITAUI_EXPORT QString rendererSelectionLogLine(const QString &chosenRenderer,
+                                                const QStringList &candidateNames,
+                                                const QStringList &skippedNames);
+
+/// One line that says whether the first frame check of @p rendererName
+/// passed. The caller writes it to stderr and to the latency log so a
+/// measurement run records the check even when the usage log stays in the
+/// user's data directory.
+KRITAUI_EXPORT QString firstFrameCheckLogLine(const QString &rendererName,
+                                              bool passed,
+                                              const QString &failureReason);
 }
 
 #endif // KIS_OPENGL_STARTUP_CHECK_H

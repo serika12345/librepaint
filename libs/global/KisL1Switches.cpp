@@ -101,13 +101,6 @@ int readTextureBuffers()
     if (value == "on" || value == "1" || value == "true" || value == "yes") return 1;
     return -1;
 }
-
-int readWidgetsRhi()
-{
-    if (!isSet("LIBREPAINT_L1_WIDGETS_RHI")) return -1;
-    const int value = integerValue("LIBREPAINT_L1_WIDGETS_RHI", -1);
-    return value == 0 || value == 1 ? value : -1;
-}
 }
 
 // The pen and frame paths call these accessors for every event and every
@@ -160,12 +153,6 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
-    return value;
-}
-
-int widgetsRhi()
-{
-    static const int value = Detail::readWidgetsRhi();
     return value;
 }
 }

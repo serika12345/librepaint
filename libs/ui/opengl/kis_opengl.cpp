@@ -316,18 +316,16 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
 
     const bool isDebugEnabled = ctx->format().testOption(QSurfaceFormat::DebugContext);
 
-    // One line per process: renderer, swap interval and the L2 CPU switches
-    // that can change the upload and composition paths. It lets a run state
-    // which path it measured without reading the environment again.
+    // One line per process: renderer, swap interval and the L2 CPU switch
+    // that can change the upload path. It lets a run state which path it
+    // measured without reading the environment again.
     {
         const int textureSwitch = KisL1Switches::textureBuffers();
-        const int rhiSwitch = KisL1Switches::widgetsRhi();
         qint64 flags = 0;
         if (hasOpenGLES()) flags |= 1;
         if (forceDisableTextureBuffers()) flags |= 2;
         if (textureSwitch == 0) flags |= 4;
         if (textureSwitch == 1) flags |= 8;
-        if (rhiSwitch == 0) flags |= 16;
         KisLatencyProbe::mark("l1_render_path",
                               static_cast<qint64>(getCurrentOpenGLRenderer()),
                               static_cast<qint64>(ctx->format().swapInterval()),
@@ -387,10 +385,21 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
         const QString rendererName =
             KisOpenGL::convertOpenGLRendererToConfig(KisOpenGL::getCurrentOpenGLRenderer());
         QString failureReason;
-        if (!KisOpenGLStartupCheck::verifyFirstFrameOnCurrentContext(rendererName, &failureReason)) {
-            const QString message =
-                QStringLiteral("OpenGL first frame check failed for %1: %2")
-                    .arg(rendererName, failureReason);
+        const bool passed =
+            KisOpenGLStartupCheck::verifyFirstFrameOnCurrentContext(rendererName, &failureReason);
+        const QString line =
+            KisOpenGLStartupCheck::firstFrameCheckLogLine(rendererName, passed, failureReason);
+        if (passed) {
+            qInfo().noquote() << line;
+        } else {
+            qWarning().noquote() << line;
+        }
+        KisLatencyProbe::mark("l1_first_frame_check",
+                              static_cast<double>(KisOpenGL::getCurrentOpenGLRenderer()),
+                              passed ? 1.0 : 0.0,
+                              0);
+        if (!passed) {
+            const QString message = line;
             warnUI << message;
             KisUsageLogger::writeSysInfo(message + QStringLiteral("\n"));
         }
@@ -944,6 +953,9 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
 {
     QVector<KLocalizedString> warningMessages;
 
+    QStringList candidateRendererNames;
+    QStringList skippedRendererNames;
+
     using Info = boost::optional<KisOpenGLModeProber::Result>;
 
     QHash<OpenGLRenderer, Info> renderersToTest;
@@ -1149,24 +1161,26 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
     // explicit choice in kritadisplayrc ignores the marks: that is the way
     // back when the mark is stale. See KisOpenGLStartupCheck.h.
     {
-        QStringList candidateNames;
         for (auto it = renderersToTest.constBegin(); it != renderersToTest.constEnd(); ++it) {
-            candidateNames << convertOpenGLRendererToConfig(it.key());
+            candidateRendererNames << convertOpenGLRendererToConfig(it.key());
         }
+        candidateRendererNames.sort();
 
         const QStringList keptNames =
-            KisOpenGLStartupCheck::renderersToTry(candidateNames, !userForcedRenderer);
+            KisOpenGLStartupCheck::renderersToTry(candidateRendererNames, !userForcedRenderer);
 
         for (auto it = renderersToTest.begin(); it != renderersToTest.end();) {
             const QString name = convertOpenGLRendererToConfig(it.key());
             if (!keptNames.contains(name)) {
                 dbgOpenGL << "Skipping" << name
                           << "because its first frame check failed in an earlier launch";
+                skippedRendererNames << name;
                 it = renderersToTest.erase(it);
             } else {
                 ++it;
             }
         }
+        skippedRendererNames.sort();
 
         // The fallback config must not point at a skipped renderer either.
         if (!renderersToTest.contains(defaultRenderer)) {
@@ -1269,6 +1283,33 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
 
     overrideSupportedRenderers(supportedRenderers, preferredByQt);
     overrideOpenGLWarningString(warningMessages);
+
+    // The usage logger is initialized after the renderer choice, so on a
+    // measurement launch its lines never reach app.err. Write the choice as
+    // one line on stderr and as a latency log marker instead; the contract
+    // test covers the text.
+    {
+        const QString chosenName =
+            preferredRenderer == RendererNone
+                ? QStringLiteral("none")
+                : convertOpenGLRendererToConfig(resultConfig.rendererId());
+        qInfo().noquote()
+            << KisOpenGLStartupCheck::rendererSelectionLogLine(chosenName,
+                                                               candidateRendererNames,
+                                                               skippedRendererNames);
+        if (preferredRenderer != RendererNone) {
+            KisLatencyProbe::mark("l1_renderer_selection",
+                                  static_cast<double>(resultConfig.rendererId()),
+                                  static_cast<double>(candidateRendererNames.size()),
+                                  userForcedRenderer ? 1 : 0);
+            Q_FOREACH (const QString &name, skippedRendererNames) {
+                KisLatencyProbe::mark("l1_renderer_skipped",
+                                      static_cast<double>(convertConfigToOpenGLRenderer(name)),
+                                      0.0,
+                                      0);
+            }
+        }
+    }
 
     return resultConfig;
 }

@@ -703,17 +703,9 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
         KisOpenGL::setDebugSynchronous(openGLDebugSynchronous);
 
 #if defined Q_OS_WIN || defined Q_OS_MACOS
-    // L2 CPU cause: LIBREPAINT_L1_WIDGETS_RHI=0 keeps Qt's widget
-    // composition on the legacy path instead of the RHI path. The variable
-    // is for the measurement only; KisL1Switches.h owns the removal
-    // condition.
-    if (KisL1Switches::widgetsRhi() == 0) {
-        qputenv("QT_WIDGETS_RHI", "0");
-    } else {
-        qputenv("QT_WIDGETS_RHI", "1");
-        qputenv("QT_WIDGETS_RHI_BACKEND", "opengl");
-        qputenv("QSG_RHI_BACKEND", "opengl");
-    }
+    qputenv("QT_WIDGETS_RHI", "1");
+    qputenv("QT_WIDGETS_RHI_BACKEND", "opengl");
+    qputenv("QSG_RHI_BACKEND", "opengl");
 #endif
 
 #if defined Q_OS_WIN && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)

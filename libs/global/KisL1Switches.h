@@ -45,9 +45,6 @@ KRITAGLOBAL_EXPORT QString openGLRenderer();
 /// L2 CPU cause: texture buffer (PBO) uploads; -1 keeps the renderer default,
 /// 0 disables them (the ANGLE default) and 1 enables them on every renderer.
 KRITAGLOBAL_EXPORT int textureBuffers();
-/// L2 CPU cause: Qt widget RHI composition; -1 keeps the normal Windows
-/// setting, 0 disables it so the legacy widget composition is used.
-KRITAGLOBAL_EXPORT int widgetsRhi();
 
 namespace Detail
 {
@@ -66,7 +63,6 @@ KRITAGLOBAL_EXPORT bool readDisableMoveCompression();
 KRITAGLOBAL_EXPORT bool readDisableUpdateThrottle();
 KRITAGLOBAL_EXPORT QString readOpenGLRenderer();
 KRITAGLOBAL_EXPORT int readTextureBuffers();
-KRITAGLOBAL_EXPORT int readWidgetsRhi();
 }
 }
 
