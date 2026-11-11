@@ -27,6 +27,9 @@ namespace
 
 constexpr int LogContextNameLength = 40; // LCNAMELEN
 
+// Wintab's context handle. windows.h has no HCTX.
+using WintabContextHandle = HANDLE;
+
 /**
  * LOGCONTEXTW from wintab.h 1.4. The layout is repeated here because the
  * project does not carry the Windows SDK's wintab header. Only the fields the
@@ -92,7 +95,7 @@ struct WintabPacket {
 
 static_assert(sizeof(WintabLogContext) == 212,
               "LOGCONTEXTW layout must match wintab.h");
-static_assert(sizeof(WintabPacket) == 40,
+static_assert(sizeof(WintabPacket) == 44,
               "PACKET layout must match pktdef.h");
 
 class WintabApiWindows : public KisWintabApi
@@ -123,7 +126,7 @@ public:
         WintabLogContext logContext;
         memset(&logContext, 0, sizeof(logContext));
 
-        if (!m_getContext(reinterpret_cast<HCTX>(context), &logContext)) {
+        if (!m_getContext(reinterpret_cast<WintabContextHandle>(context), &logContext)) {
             return false;
         }
 
@@ -146,7 +149,7 @@ public:
         }
 
         const int capped = qMin(maxPackets, int(m_rawPackets.size()));
-        const int count = m_packetsPeek(reinterpret_cast<HCTX>(context),
+        const int count = m_packetsPeek(reinterpret_cast<WintabContextHandle>(context),
                                         capped, m_rawPackets.data());
         const int copied = qBound(0, count, capped);
 
@@ -160,8 +163,8 @@ public:
     }
 
 private:
-    using GetContextFunction = BOOL (WINAPI *)(HCTX, WintabLogContext *);
-    using PacketsPeekFunction = int (WINAPI *)(HCTX, int, WintabPacket *);
+    using GetContextFunction = BOOL (WINAPI *)(WintabContextHandle, WintabLogContext *);
+    using PacketsPeekFunction = int (WINAPI *)(WintabContextHandle, int, WintabPacket *);
 
     QLibrary *m_library = nullptr;
     GetContextFunction m_getContext = nullptr;
