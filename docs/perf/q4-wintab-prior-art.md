@@ -80,6 +80,16 @@ Qt の外（LibrePaint のネイティブのイベントフィルターと KisIn
 | Qt の更新への依存 | WT_PACKET がネイティブのイベントフィルターに届くこと、イベントの時刻が pkTime であること、パケットの並び（PACKETDATA）が、Qt の内部の作りに依存する。Qt の更新で黙って壊れうる | パケットの並び（lcPktData）が一致しないときは何もしない（実装済み）。差し替えた割合を印に残し、Qt を更新したら実物のペンで確かめる手順を DEVELOPMENT.md に書く |
 | 挙動の維持（旧版との比較） | 1.0.3（フォークの Qt）と同じく、ドライバーの範囲に小数の画素で当てはめ、設定ページの 3 つの選択が効く | 範囲を画面の左半分にした設定で、線が左半分に収まることを実物のペンで確かめる。1.0.3 と同じ操作で同じ結果になることを比べる |
 
+## 試作：Windows のプラットフォームプラグインだけを改変して作る（2026-11-11）
+
+正式版 Qt の全体を作り直さずに、Windows のプラットフォームプラグイン（qwindows.dll、ソースは qtbase の src/plugins/platforms/windows/）だけを、改変したソースから作れるかを試した。作業はリポジトリーの外（Linux 開発機の /tmp/qwp）で、手で行った。
+
+- 方法：正式版 Qt 6.11.3 のソースの tar（Nix のストアにあるもの）から plugins/platforms/windows/ と 3rdparty/wintab/ を取り出す。Qt の内部用の CMake（Qt6BuildInternals）で小さな計画を作り、find_package に Core、CorePrivate、Gui、GuiPrivate、OpenGL、OpenGLPrivate を並べて add_subdirectory でプラグインを組む。相手の Qt は、LibrePaint の Windows の差分構築が使っている正式版 Qt の出力（qtbase-x86_64-w64-mingw32-6.11.3）で、コンパイラーも同じもの（gcc 15.3.0 の MinGW）。mcfgthread のヘッダーとライブラリー、Vulkan のヘッダー、Wintab のヘッダーの場所を Nix のコンパイラーの包みの環境変数で渡した。Qt の内部用の CMake の名前が、入っているプラグインと重ならないように、対象の名前を LibrePaintQWindowsPlugin に替えた。
+- 結果：プラグイン 1 つ（56 の段）が何もない状態から 134 秒（8 並列）で作れた。正式版の Qt6Core.dll、Qt6Gui.dll はそのまま使う。
+- 正式版の qwindows.dll を自作のもの（改変なし）に差し替えた LibrePaint は、Surface で起動し、合成入力の計測でホバー 11.0ms、インク 22.5ms（同じ時間帯の段 10 は 10.0〜15.0ms、20.8〜22.3ms）だった。
+- Krita のフォークの改変 051139ed72（Wintab の対応範囲を lcSys から読む、QT_WINTAB_DESKTOP_RECT と QT_IGNORE_WINTAB_MAPPING）は、正式版 6.11.3 のソースにずれなく当たり、作り直しは 16 秒（変わったファイルの 3 つのコンパイルとリンク）。続けて 7bb46828ae（相対モード、つまりカーソルの位置への切り替えの無効化）も当たり（84 行のずれ）、作り直しは 12 秒。両方を当てたプラグインでも Surface で起動した。Wintab の経路での効き目は、実物のワコムのペンで確かめていない。
+- 未確認：Drawpile が記録している「Qt 6 の Wintab のモードでメニューがペンの押下に時々しか反応しない」問題が、このプラグインの改変で直るかどうか。Krita のフォークのペンの改変のうち、プラグインの外（qguiapplication.cpp、qwidgetwindow.cpp）にあるものは、この方法では当てられない（LibrePaint 側で作り直し済み）。
+
 ## 出典
 
 - Qt qtbase dev の qwindowstabletsupport.cpp：https://raw.githubusercontent.com/qt/qtbase/dev/src/plugins/platforms/windows/qwindowstabletsupport.cpp
