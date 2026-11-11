@@ -678,27 +678,6 @@ endif()
 
 configure_file(cmake/config/config-use-surface-color-management-api.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-use-surface-color-management-api.h)
 
-#
-# Q4 (removing the Qt fork): the build no longer detects the custom patches of
-# Krita's Qt fork. The config headers are kept for now with false values so the
-# remaining branches can be removed one file at a time.
-#
-set(KRITA_QT_HAS_ENTER_LEAVE_PATCH FALSE)
-set(KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH FALSE)
-set(KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH FALSE)
-set(KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN FALSE)
-set(KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS FALSE)
-set(KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS FALSE)
-set(KRITA_QT_HAS_QSCROLLER_FILTER FALSE)
-set(KRITA_QT_HAS_ANDROID_INPUT_PLATFORM_DATA_SOFT_INPUT_ADJUST_NOTHING FALSE)
-set(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT FALSE)
-set(QT5_HAS_WINTAB_SWITCH FALSE)
-set(HAVE_HDR FALSE)
-set(HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE FALSE)
-
-configure_file(cmake/config/config_qt5_has_wintab_switch.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_qt5_has_wintab_switch.h)
-configure_file(cmake/config/config-hdr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hdr.h)
-
 set(CMAKE_REQUIRED_INCLUDES ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES})
 
@@ -714,8 +693,6 @@ HAVE_HIGH_DPI_SCALE_FACTOR_ROUNDING_POLICY
 )
 configure_file(cmake/config/config-high-dpi-scale-factor-rounding-policy.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-high-dpi-scale-factor-rounding-policy.h)
 
-configure_file(cmake/config/config-qmdiarea-always-show-subwindow-title.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qmdiarea-always-show-subwindow-title.h)
-
 if (WIN32)
     CHECK_CXX_SOURCE_COMPILES("
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
@@ -729,8 +706,6 @@ QWindowsWindowFunctions::setHasBorderInFullScreenDefault(true);
 
 endif (WIN32)
 
-
-configure_file(cmake/config/config-qt-patches-present.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qt-patches-present.h)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)

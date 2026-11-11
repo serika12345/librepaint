@@ -189,14 +189,9 @@
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"
 #include "KisWidgetConnectionUtils.h"
-#include <config-qmdiarea-always-show-subwindow-title.h>
-#include <config-qt-patches-present.h>
 
 #include <mutex>
 
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-#include <canvas/KisAndroidScaling.h>
-#endif
 
 class ToolDockerFactory : public KoDockFactoryBase
 {
@@ -248,9 +243,6 @@ public:
         mdiArea->setActivationOrder(QMdiArea::ActivationHistoryOrder);
         mdiArea->setDocumentMode(true);
         mdiArea->setOption(QMdiArea::DontMaximizeSubWindowOnActivation);
-#ifdef HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE
-        mdiArea->setOption(QMdiArea::AlwaysShowSubwindowNameInTitleBar);
-#endif /* HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE */
 
         commandBar = new KateCommandBar(parent);
     }
@@ -296,11 +288,7 @@ public:
     KisAction *toggleDockers {nullptr};
     KisAction *resetConfigurations {nullptr};
     KisAction *toggleDockerTitleBars {nullptr};
-#ifdef Q_OS_ANDROID
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAction *changeInterfaceScale {nullptr};
-#endif
-#else
+#ifndef Q_OS_ANDROID
     KisAction *toggleDetachCanvas {nullptr};
     KisAction *newWindow {nullptr};
 #endif
@@ -671,19 +659,6 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     s->setOrientationUpdateMask(Qt::LandscapeOrientation|Qt::InvertedLandscapeOrientation|Qt::PortraitOrientation|Qt::InvertedPortraitOrientation);
 #endif
     connect(s, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(orientationChanged()));
-
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    // When the screen's UI scale changes, we have to hide and show it to get
-    // its contents to update, otherwise it fails to re-render altogether.
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling) {
-        connect(androidScaling,
-                &KisAndroidScaling::sigInterfaceScaleChanged,
-                this,
-                &KisMainWindow::slotFlashWindowHack,
-                Qt::QueuedConnection);
-    }
-#endif
 
     // When Krita starts, Java side sends an event to set applicationState() to active. But, before
     // the event could reach KisApplication's platform integration, it is cleared by KisOpenGLModeProber::probeFormat.
@@ -1884,16 +1859,6 @@ void KisMainWindow::slotFileSave()
     if (saveDocument(d->activeView->document(), false, false,false)) {
         Q_EMIT documentSaved();
     }
-}
-
-void KisMainWindow::slotChangeInterfaceScale()
-{
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling) {
-        androidScaling->showDialog();
-    }
-#endif
 }
 
 void KisMainWindow::slotFileSaveAs()
@@ -3191,15 +3156,7 @@ void KisMainWindow::createActions()
     d->mdiPreviousWindow = actionManager->createAction("windows_previous");
     connect(d->mdiPreviousWindow, SIGNAL(triggered()), d->mdiArea, SLOT(activatePreviousSubWindow()));
 
-#ifdef Q_OS_ANDROID
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling && androidScaling->isSupported()) {
-        d->changeInterfaceScale = actionManager->createAction("change_interface_scale");
-        connect(d->changeInterfaceScale, &QAction::triggered, this, &KisMainWindow::slotChangeInterfaceScale);
-    }
-#endif
-#else
+#ifndef Q_OS_ANDROID
     d->newWindow = actionManager->createAction("view_newwindow");
     connect(d->newWindow, SIGNAL(triggered(bool)), this, SLOT(newWindow()));
 #endif

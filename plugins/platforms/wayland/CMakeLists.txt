@@ -5,17 +5,6 @@ endif()
 project( kritaplatformpluginwayland )
 
 ##
-## Check for the presence of custom Wayland patches in Qt
-##
-
-# Q4 (removing the Qt fork): upstream Qt has no xkbContext() in
-# QWaylandApplication, so the keyboard watcher uses the QWaylandIntegration
-# fallback. Keep the config header false until the branch is removed.
-set(KRITA_QT_HAS_XKB_CONTEXT_IN_NATIVE_INTERFACE FALSE)
-
-configure_file(config-qt-wayland-patches-present.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qt-wayland-patches-present.h)
-
-##
 ## Define the kritaplatformpluginwayland library
 ##
 

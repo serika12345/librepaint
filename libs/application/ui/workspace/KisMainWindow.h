@@ -251,8 +251,6 @@ public Q_SLOTS:
      */
     void slotFileSave();
 
-    void slotChangeInterfaceScale();
-
 
     void slotShowSessionManager();
 
