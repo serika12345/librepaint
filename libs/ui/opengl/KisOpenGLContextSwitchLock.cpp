@@ -6,6 +6,9 @@
 
 #include "KisOpenGLContextSwitchLock.h"
 
+#include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
+
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
 #include <QtGlobal>
@@ -40,13 +43,33 @@ KisOpenGLContextSwitchLockAdapter::KisOpenGLContextSwitchLockAdapter(QOpenGLWidg
 void KisOpenGLContextSwitchLockAdapter::lock() {
     m_oldContext = QOpenGLContext::currentContext();
     m_oldSurface = m_oldContext ? m_oldContext->surface() : nullptr;
+    const bool alreadyCurrent =
+        m_oldContext && m_oldContext == m_targetWidget->context();
+    m_skippedRedundant =
+        alreadyCurrent && KisL1Switches::skipRedundantMakeCurrent();
+
+    // The L1 context probe counts every activation so a frame can be charged
+    // for redundant switches. The switch is for the L1 measurements only;
+    // KisL1Switches.h owns the removal condition.
+    KisLatencyProbe::mark("gl_make_current", 0, 0,
+                          (alreadyCurrent ? 1 : 0) | 2 |
+                          (m_skippedRedundant ? 8 : 0));
+    if (m_skippedRedundant) return;
     m_targetWidget->makeCurrent();
 }
 
 void KisOpenGLContextSwitchLockAdapter::unlock() {
+    if (m_skippedRedundant) {
+        m_skippedRedundant = false;
+        KisLatencyProbe::mark("gl_done_current", 0, 0, 2);
+        return;
+    }
+
     if (m_oldContext) {
+        KisLatencyProbe::mark("gl_make_current", 0, 0, 4);
         m_oldContext->makeCurrent(m_oldSurface);
     } else {
+        KisLatencyProbe::mark("gl_done_current", 0, 0, 1);
         m_targetWidget->doneCurrent();
     }
 }

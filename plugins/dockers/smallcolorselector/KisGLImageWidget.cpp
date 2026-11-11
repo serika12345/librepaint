@@ -6,6 +6,9 @@
 
 #include "KisGLImageWidget.h"
 
+#include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
+
 #include <QPainter>
 #include <QFile>
 #include <QResizeEvent>
@@ -62,6 +65,9 @@ KisGLImageWidget::KisGLImageWidget(const KisSurfaceColorSpaceWrapper &colorSpace
     setTextureFormat(GL_RGBA16F);
 
     setUpdateBehavior(QOpenGLWidget::NoPartialUpdate);
+
+    connect(this, &QOpenGLWidget::aboutToResize, this,
+            [] { KisLatencyProbe::mark("gpu_fbo_recreate"); });
 }
 
 KisGLImageWidget::~KisGLImageWidget()
@@ -135,15 +141,18 @@ void KisGLImageWidget::initializeGL()
     m_vao.create();
     m_vao.bind();
 
+    KisLatencyProbe::mark("gpu_buffer_create");
     m_verticesBuffer.create();
     updateVerticesBuffer(this->rect());
 
     QVector<QVector2D> textureVertices(6);
     rectToTexCoords(textureVertices.data(), QRect(0.0, 0.0, 1.0, 1.0));
 
+    KisLatencyProbe::mark("gpu_buffer_create");
     m_textureVerticesBuffer.create();
     m_textureVerticesBuffer.bind();
     m_textureVerticesBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    KisLatencyProbe::mark("gpu_buffer_allocate");
     m_textureVerticesBuffer.allocate(2 * 3 * sizeof(QVector2D));
     m_verticesBuffer.write(0, textureVertices.data(), m_textureVerticesBuffer.size());
     m_textureVerticesBuffer.release();
@@ -158,15 +167,19 @@ void KisGLImageWidget::initializeGL()
 
 void KisGLImageWidget::slotOpenGLContextDestroyed()
 {
+    KisLatencyProbe::mark("gl_make_current", 0, 0, 2);
     this->makeCurrent();
 
     m_shader.reset();
+    KisLatencyProbe::mark("gpu_texture_destroy");
     m_texture.destroy();
+    KisLatencyProbe::mark("gpu_buffer_destroy", 0, 0, 2);
     m_verticesBuffer.destroy();
     m_textureVerticesBuffer.destroy();
     m_vao.destroy();
     m_havePendingTextureUpdate = false;
 
+    KisLatencyProbe::mark("gl_done_current", 0, 0, 1);
     this->doneCurrent();
 }
 
@@ -179,6 +192,7 @@ void KisGLImageWidget::updateVerticesBuffer(const QRect &rect)
 
     m_verticesBuffer.bind();
     m_verticesBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    KisLatencyProbe::mark("gpu_buffer_allocate");
     m_verticesBuffer.allocate(2 * 3 * sizeof(QVector3D));
     m_verticesBuffer.write(0, vertices.data(), m_verticesBuffer.size());
     m_verticesBuffer.release();
@@ -187,6 +201,11 @@ void KisGLImageWidget::updateVerticesBuffer(const QRect &rect)
 
 void KisGLImageWidget::paintGL()
 {
+    KisLatencyProbe::mark("color_selector_paint");
+    if (KisL1Switches::disableColorSelectorGl()) {
+        return;
+    }
+
     // TODO: fix conversion to the destination surface space
     // Fill with bright color as as default for debugging purposes
     // glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), 1.0f);
@@ -203,11 +222,13 @@ void KisGLImageWidget::paintGL()
             m_sourceImage.height() != m_texture.height()) {
 
             if (m_texture.isCreated()) {
+                KisLatencyProbe::mark("gpu_texture_destroy");
                 m_texture.destroy();
             }
 
             m_texture.setFormat(QOpenGLTexture::RGBA16F);
             m_texture.setSize(m_sourceImage.width(), m_sourceImage.height());
+            KisLatencyProbe::mark("gpu_texture_image");
             m_texture.allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::Float16);
             m_texture.setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
             m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
@@ -258,12 +279,19 @@ void KisGLImageWidget::paintGL()
 
 void KisGLImageWidget::loadImage(const KisGLImageF16 &image)
 {
+    KisLatencyProbe::mark("color_selector_update");
     if (m_sourceImage != image) {
         m_sourceImage = image;
     }
 
     m_havePendingTextureUpdate = true;
 
+    // The L1 switch keeps the last texture and skips the update, so the
+    // measurement can separate the color selector's GL work from the canvas.
+    // KisL1Switches.h owns the removal condition.
+    if (KisL1Switches::disableColorSelectorGl()) {
+        return;
+    }
 
     updateGeometry();
     update();

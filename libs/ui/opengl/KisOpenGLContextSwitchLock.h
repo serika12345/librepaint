@@ -26,6 +26,7 @@ private:
     QOpenGLWidget *m_targetWidget {nullptr};
     QOpenGLContext *m_oldContext {nullptr};
     QSurface *m_oldSurface {nullptr};
+    bool m_skippedRedundant {false};
 };
 
 class KRITAUI_EXPORT KisOpenGLContextSwitchLockAdapterSkipOnQt5 : public KisOpenGLContextSwitchLockAdapter
