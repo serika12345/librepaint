@@ -345,6 +345,13 @@ def dark_components(picture, box, minimum=2):
 
 DIFFERENCE_THRESHOLD = 48
 
+# The pen steps in run-surface.ps1 use 0.2..0.8 x at 0.25 y for the stroke and 0.3, 0.6 for the dot.
+PEN_STROKE_LEFT = 0.20
+PEN_COLUMN_STEP = 0.06
+PEN_DOT = (0.30, 0.60)
+PEN_DOT_OFFSET = 0.08
+PEN_DOT_SIZE = 0.16
+
 
 def difference_picture(after, before, threshold=DIFFERENCE_THRESHOLD):
     """Return a black/white picture of the pixels that changed.
@@ -575,17 +582,19 @@ def judge_pen(base, facts, checks):
     def changed_picture(name, picture):
         # When the run captured the same step before drawing, count only the
         # pixels that the stroke changed; otherwise the colours of the canvas
-        # are counted as line. A missing or unreadable capture keeps the
-        # picture as it is.
+        # are counted as line. Returns (picture, is_difference); a missing or
+        # unreadable capture keeps the picture as it is.
         before_path = before_capture(name)
         if not before_path:
-            return picture
+            return picture, False
         try:
             before = display_check.load(before_path)
         except ValueError:
-            return picture
+            return picture, False
         difference = difference_picture(picture, before)
-        return picture if difference is None else difference
+        if difference is None:
+            return picture, False
+        return difference, True
 
     # Stage 2/3 items 1 and 2: the outline follows the canvas edge.
     enter = action_time(actions, "enter")
@@ -623,7 +632,7 @@ def judge_pen(base, facts, checks):
     edge = capture("edge")
     if edge:
         try:
-            picture = changed_picture("edge", display_check.load(edge))
+            picture, _ = changed_picture("edge", display_check.load(edge))
         except ValueError:
             picture = None
     if not events:
@@ -647,11 +656,22 @@ def judge_pen(base, facts, checks):
     begins, paints = _probe_strokes(events, start or 0, end or 0)
     reasons = []
     runs = None
+    columns = None
     single = capture("single")
     if single:
         try:
-            picture = changed_picture("single", display_check.load(single))
-            if canvas:
+            picture, is_difference = changed_picture("single", display_check.load(single))
+            if is_difference:
+                # Count the stroke in nine columns where run-surface.ps1 draws
+                # it; a line seen in fewer than three columns is not counted.
+                columns = [dark_runs(picture,
+                                     int(picture.width * (PEN_STROKE_LEFT + PEN_COLUMN_STEP * k)),
+                                     int(picture.height * 0.17),
+                                     int(picture.height * 0.33))
+                           for k in range(1, 10)]
+                counted = sum(1 for value in columns if value >= 1)
+                runs = max(columns) if counted >= 3 else 0
+            elif canvas:
                 x = canvas[0] + int(canvas[2] * 0.5)
                 runs = dark_runs(picture, x, canvas[1] + int(canvas[3] * 0.15),
                                  canvas[1] + int(canvas[3] * 0.35))
@@ -667,7 +687,8 @@ def judge_pen(base, facts, checks):
         reasons.append("線が %d 本に分かれて写っている（二重の線）" % runs)
     items.append(item("pen.single_line", "二重の線がないこと", "pass" if not reasons else "fail",
                       reasons, [relative(base, probe_path), relative(base, single or probe_path)],
-                      {"stroke_begin": begins, "stroke_paint": paints, "dark_runs": runs}))
+                      {"stroke_begin": begins, "stroke_paint": paints, "dark_runs": runs,
+                       "dark_runs_columns": columns}))
 
     # Stage 3 item 13: a long press does not open the context menu.
     start = action_time(actions, "hold-start")
@@ -706,8 +727,13 @@ def judge_pen(base, facts, checks):
     dot = capture("dot")
     if dot:
         try:
-            picture = changed_picture("dot", display_check.load(dot))
-            if canvas:
+            picture, is_difference = changed_picture("dot", display_check.load(dot))
+            if is_difference:
+                box = [int(picture.width * PEN_DOT[0] - picture.width * PEN_DOT_OFFSET),
+                       int(picture.height * PEN_DOT[1] - picture.height * PEN_DOT_OFFSET),
+                       int(picture.width * PEN_DOT_SIZE), int(picture.height * PEN_DOT_SIZE)]
+                components = dark_components(picture, box)
+            elif canvas:
                 box = [canvas[0] + int(canvas[2] * 0.3) - 40,
                        canvas[1] + int(canvas[3] * 0.6) - 40, 80, 80]
                 components = dark_components(picture, box)

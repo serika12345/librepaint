@@ -347,6 +347,75 @@ class PenDifferenceTest(unittest.TestCase):
         self.assertEqual(dot["metrics"]["components"], 1)
 
 
+class PenDifferencePositionTest(unittest.TestCase):
+    """The line and the dot are counted where run-surface.ps1 draws them.
+
+    The pictures are 200 x 100 and the canvas.json rectangle is wrong on
+    purpose: the difference gives the positions, not the rectangle.
+    """
+
+    WIDTH, HEIGHT = 200, 100
+    CANVASES = ([0, 0, 200, 100], [1097, 231, 944, 918])
+
+    def _judged(self, name: str, draw, canvas: list) -> dict:
+        with tempfile.TemporaryDirectory() as root:
+            pen = os.path.join(root, "pen")
+            os.makedirs(pen)
+            before = display_check.Picture(self.WIDTH, self.HEIGHT,
+                                           bytearray(b"\xff" * (self.WIDTH * self.HEIGHT * 3)))
+            after = display_check.Picture(self.WIDTH, self.HEIGHT,
+                                          bytearray(b"\xff" * (self.WIDTH * self.HEIGHT * 3)))
+            draw(after)
+            display_check.write_png(os.path.join(pen, name + ".bmp"), after)
+            display_check.write_png(os.path.join(pen, name + "-before.bmp"), before)
+            with open(os.path.join(pen, "canvas.json"), "w", encoding="utf-8") as handle:
+                json.dump({"canvas": canvas}, handle)
+            facts = {"pen": {"captures": {
+                name: "pen/%s.bmp" % name,
+                name + "_before": "pen/%s-before.bmp" % name}}}
+            items = check.judge_pen(root, facts, SCENARIO["checks"])
+        return {entry["id"]: entry for entry in items}
+
+    @staticmethod
+    def _stroke(after) -> None:
+        # The stroke runs at 0.25 of the height; the middle 0.45..0.55 of the
+        # width is unchanged, as dark ink drawn over dark ink would be.
+        paint_box(after, 40, 24, 50, 4)
+        paint_box(after, 110, 24, 50, 4)
+
+    @staticmethod
+    def _double_stroke(after) -> None:
+        paint_box(after, 40, 18, 120, 4)
+        paint_box(after, 40, 28, 120, 4)
+
+    @staticmethod
+    def _dot(after) -> None:
+        paint_box(after, 58, 58, 5, 5)
+
+    def test_a_stroke_with_a_gap_between_them_is_one_line(self):
+        for canvas in self.CANVASES:
+            with self.subTest(canvas=canvas):
+                single = self._judged("single", self._stroke, canvas)["pen.single_line"]
+                self.assertEqual(single["metrics"]["dark_runs"], 1)
+                self.assertEqual(single["metrics"]["dark_runs_columns"],
+                                 [1, 1, 1, 1, 0, 1, 1, 1, 1])
+                self.assertNotIn("二重の線", " ".join(single["reasons"]))
+
+    def test_two_strokes_six_pixels_apart_fail(self):
+        for canvas in self.CANVASES:
+            with self.subTest(canvas=canvas):
+                single = self._judged("single", self._double_stroke, canvas)["pen.single_line"]
+                self.assertEqual(single["metrics"]["dark_runs"], 2)
+                self.assertIn("二重の線", " ".join(single["reasons"]))
+
+    def test_a_dot_at_the_pen_position_is_one_dot(self):
+        for canvas in self.CANVASES:
+            with self.subTest(canvas=canvas):
+                dot = self._judged("dot", self._dot, canvas)["pen.dot"]
+                self.assertEqual(dot["metrics"]["components"], 1)
+                self.assertNotIn("個に分かれて", " ".join(dot["reasons"]))
+
+
 class PopupListTest(unittest.TestCase):
     def test_an_empty_popup_list_means_no_menu_and_a_missing_list_is_reported(self):
         with tempfile.TemporaryDirectory() as root:
