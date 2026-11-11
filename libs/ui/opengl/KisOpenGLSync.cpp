@@ -127,14 +127,6 @@ KisOpenGLSync::~KisOpenGLSync()
     Sync::deleteSync(m_syncObject);
 }
 
-void KisOpenGLSync::renew()
-{
-    KisLatencyProbe::mark("gpu_sync_destroy");
-    Sync::deleteSync(m_syncObject);
-    KisLatencyProbe::mark("gpu_sync_create");
-    m_syncObject = Sync::getSync();
-}
-
 bool KisOpenGLSync::isSignaled()
 {
     return Sync::syncStatus(m_syncObject) == Sync::Signaled;

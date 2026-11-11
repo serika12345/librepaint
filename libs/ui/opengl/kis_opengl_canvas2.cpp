@@ -482,13 +482,7 @@ void KisOpenGLCanvas2::paintGL()
     // commands in a frame, not just the OpenGL canvas itself. Putting it
     // outside of KisOpenGLRenderer allows the canvas widget to do extra
     // rendering, which a QtQuick2-based canvas will need.
-    // The L1 switch reuses the C++ object and only renews the fence; the
-    // removal condition is in KisL1Switches.h.
-    if (KisL1Switches::reuseGlSync() && d->glSyncObject) {
-        d->glSyncObject->renew();
-    } else {
-        d->glSyncObject.reset(new KisOpenGLSync());
-    }
+    d->glSyncObject.reset(new KisOpenGLSync());
 
     if (!OPENGL_SUCCESS) {
         KisConfig cfg(false);

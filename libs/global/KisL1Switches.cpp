@@ -102,11 +102,6 @@ int readTextureBuffers()
     return -1;
 }
 
-bool readReuseGlSync()
-{
-    return flagValue("LIBREPAINT_L1_REUSE_GL_SYNC");
-}
-
 bool readSkipRedundantMakeCurrent()
 {
     return flagValue("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT");
@@ -168,12 +163,6 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
-    return value;
-}
-
-bool reuseGlSync()
-{
-    static const bool value = Detail::readReuseGlSync();
     return value;
 }
 
