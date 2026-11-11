@@ -72,6 +72,14 @@ public:
     bool eventFilter(QObject* object, QEvent* event ) override;
 
     /**
+     * Reports a pointer message from the non-client area of the window, such
+     * as the frame or the title bar, which Qt does not turn into a Qt event.
+     * \return true when this message entered the canvas, so the caller can
+     * restore the cursor that the window frame replaced.
+     */
+    bool notifyNonClientPointer(bool insideCanvas);
+
+    /**
      * @brief attachPriorityEventFilter
      * @param filter
      * @param priority

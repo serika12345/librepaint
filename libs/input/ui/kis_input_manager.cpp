@@ -59,6 +59,10 @@
 #include "kis_input_manager_p.h"
 #include "kis_algebra_2d.h"
 
+#ifdef Q_OS_WIN
+#include "KisWindowsPointerEventFilter.h"
+#endif
+
 
 template <typename T>
 uint qHash(QPointer<T> value) {
@@ -205,6 +209,23 @@ void KisInputManager::setupAsEventFilter(QObject *receiver)
     if (d->eventsReceiver) {
         d->eventsReceiver->installEventFilter(this);
     }
+
+#ifdef Q_OS_WIN
+    if (KisWindowsPointerEventFilter *windowsPointerFilter =
+            KisWindowsPointerEventFilter::instance()) {
+        windowsPointerFilter->setCanvas(this, qobject_cast<QWidget *>(receiver));
+    }
+#endif
+}
+
+bool KisInputManager::notifyNonClientPointer(bool insideCanvas)
+{
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(insideCanvas);
+    return false;
+#else
+    return d->handleNonClientPointer(insideCanvas);
+#endif
 }
 
 #if defined (__clang__)

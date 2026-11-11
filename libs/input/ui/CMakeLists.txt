@@ -58,6 +58,7 @@ set_target_properties(kritainputuiextendedmodifiersmapperobjects
 set(kritainputui_LIB_SRCS
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
+    KisWindowsPointerEventFilter.cpp
     kis_abstract_input_action.cpp
     kis_alternate_invocation_action.cpp
     kis_change_primary_setting_action.cpp

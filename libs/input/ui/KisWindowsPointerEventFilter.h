@@ -12,11 +12,11 @@
 #include <QPoint>
 #include <QPointer>
 #include <QSize>
+#include <QWidget>
 #include <QtGlobal>
 
 #include <array>
 
-class QWidget;
 class KisInputManager;
 
 /**
@@ -178,7 +178,9 @@ public:
     static KisWindowsPointerEventFilter *instance();
 
 private:
-    QPointer<KisInputManager> m_inputManager;
+    // Stored as QObject so this header stays usable without the input
+    // manager headers; the implementation casts back to KisInputManager.
+    QPointer<QObject> m_inputManager;
     QPointer<QWidget> m_canvasWidget;
     static KisWindowsPointerEventFilter *s_instance;
 };

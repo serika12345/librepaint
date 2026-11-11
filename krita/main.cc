@@ -56,6 +56,10 @@
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/kis_splash_screen.h"
 
+#ifdef Q_OS_WIN
+#include "KisWindowsPointerEventFilter.h"
+#endif
+
 #ifdef Q_OS_IOS
 #include <QAction>
 #include <QList>
@@ -1169,6 +1173,14 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 #endif
 
     KisLatencyProbe::installNativeFilter(&app);
+
+#ifdef Q_OS_WIN
+    // The window frame and the Windows Ink press-and-hold gesture never reach
+    // Qt as events. Q4 stage 3 (c41d66281e and 33a49f25d1) keeps the canvas
+    // Enter/Leave, the cursor and the long press working with official Qt.
+    app.installNativeEventFilter(new KisWindowsPointerEventFilter);
+#endif
+
     int state = KisApplication::exec();
 
     {

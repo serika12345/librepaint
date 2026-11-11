@@ -158,6 +158,7 @@ public:
     bool touchActive = false;
     bool pointerInsideCanvas() const;
     bool shouldIgnoreCanvasLeave() const;
+    bool handleNonClientPointer(bool insideCanvas);
     void confirmCanvasLeave();
     void synthesizeCanvasEnter();
     void setTabletInProximity(bool value);
