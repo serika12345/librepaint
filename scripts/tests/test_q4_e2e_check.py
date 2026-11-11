@@ -282,6 +282,65 @@ class PenEvidenceTest(unittest.TestCase):
         self.assertEqual(check._probe_strokes(events, 25, 35), (1, 1))
 
 
+class PenCapturePathTest(unittest.TestCase):
+    def test_a_capture_value_with_its_directory_is_used_as_written(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "pen"))
+            picture = display_check.Picture(200, 200, bytearray(b"\xff" * (200 * 200 * 3)))
+            for y in range(30, 70):
+                offset = 3 * (y * 200 + 100)
+                picture.rgb[offset:offset + 3] = b"\x00\x00\x00"
+            display_check.write_png(os.path.join(root, "pen", "single.bmp"), picture)
+            facts = {"pen": {"captures": {"single": "pen/single.bmp"},
+                             "canvas": [0, 0, 200, 200]}}
+            items = check.judge_pen(root, facts, SCENARIO["checks"])
+        single = next(entry for entry in items if entry["id"] == "pen.single_line")
+        self.assertEqual(single["metrics"]["dark_runs"], 1)
+        self.assertIn("pen/single.bmp", single["evidence"])
+
+
+class PopupListTest(unittest.TestCase):
+    def test_an_empty_popup_list_means_no_menu_and_a_missing_list_is_reported(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "pen"))
+            popups = os.path.join(root, "pen", "popups.txt")
+            open(popups, "w", encoding="utf-8").close()
+            empty = {entry["id"]: entry for entry in check.judge_pen(root, {}, SCENARIO["checks"])}
+            os.remove(popups)
+            missing = {entry["id"]: entry for entry in check.judge_pen(root, {}, SCENARIO["checks"])}
+        self.assertNotIn("長押しの間の窓の一覧がない", empty["pen.long_press"]["reasons"])
+        self.assertIn("長押しの間の窓の一覧がない", missing["pen.long_press"]["reasons"])
+
+
+class AnalyzeOnlyTest(unittest.TestCase):
+    def test_the_last_nested_run_is_judged_under_the_target_name(self):
+        with tempfile.TemporaryDirectory() as root:
+            for stamp, dialog in (("20260101-000000", False), ("20260102-000000", True)):
+                run_dir = os.path.join(root, "windows", "q4-e2e-fork", stamp)
+                os.makedirs(run_dir)
+                with open(os.path.join(run_dir, "facts.json"), "w", encoding="utf-8") as handle:
+                    json.dump({"flicker": {"dialog_opened": dialog, "monitor_exit": 0}}, handle)
+                with open(os.path.join(run_dir, "flicker.csv"), "w", encoding="utf-8") as handle:
+                    handle.write("frame_ns,arrival_ns,rect_x,rect_y,rect_w,rect_h,rect_changed,"
+                                 "canvas_white_ratio,canvas_dark_pixels,changed_ratio,"
+                                 "old_area_unchanged_ratio,frames\n")
+                    handle.write("1000,1000,0,0,100,100,1,0.1,0,0.0,0.0,0\n")
+            hosts = os.path.join(root, "hosts.json")
+            with open(hosts, "w", encoding="utf-8") as handle:
+                json.dump({"hosts": [{"name": "windows"}]}, handle)
+            with redirect_stdout(io.StringIO()):
+                status = check.main([
+                    "--scenario", str(REPO_ROOT / "scripts/perf/scenarios/q4-e2e.json"),
+                    "--hosts", hosts, "--analyze-only", root])
+            summary = json.loads((Path(root) / "checks.json").read_text(encoding="utf-8"))
+        self.assertEqual(status, 1)
+        self.assertEqual([entry["target"] for entry in summary["targets"]], ["q4-e2e-fork"])
+        flicker = next(entry for entry in summary["targets"][0]["items"]
+                       if entry["id"] == "flicker")
+        self.assertEqual(flicker["verdict"], "pass", flicker)
+        self.assertEqual(flicker["reasons"], ["基準（フォーク版）"])
+
+
 class StepEventTest(unittest.TestCase):
     """check.py copies the streamed step lines into the event log."""
 

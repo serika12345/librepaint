@@ -539,7 +539,9 @@ def judge_pen(base, facts, checks):
     items = []
 
     def capture(name):
-        path = os.path.join(base, pen.get("dir", "pen"), captures.get(name, name + ".bmp"))
+        value = captures.get(name)
+        path = os.path.join(base, value) if value else os.path.join(
+            base, pen.get("dir", "pen"), name + ".bmp")
         return path if os.path.exists(path) else None
 
     # Stage 2/3 items 1 and 2: the outline follows the canvas edge.
@@ -629,7 +631,8 @@ def judge_pen(base, facts, checks):
     end = action_time(actions, "hold-end")
     begins, paints = _probe_strokes(events, start or 0, end or 0)
     popup_path = os.path.join(base, pen.get("popups", "pen/popups.txt"))
-    popup_lines = read_text(popup_path).splitlines() if os.path.exists(popup_path) else []
+    popup_exists = os.path.exists(popup_path)
+    popup_lines = read_text(popup_path).splitlines() if popup_exists else []
     menu = []
     for line in popup_lines:
         parts = line.split("|")
@@ -640,7 +643,7 @@ def judge_pen(base, facts, checks):
                 or (title and cls not in ("tooltips_class32", "IME", "MSCTFIME UI"))):
             menu.append(line)
     reasons = []
-    if not popup_lines:
+    if not popup_exists:
         reasons.append("長押しの間の窓の一覧がない")
     if menu:
         reasons.append("長押しでメニューらしい窓が出た: %s" % "; ".join(menu[:3]))
@@ -975,8 +978,19 @@ def main(argv):
                 continue
             for name in sorted(os.listdir(host_dir)):
                 path = os.path.join(host_dir, name)
-                if os.path.isdir(path) and os.path.exists(os.path.join(path, "facts.json")):
-                    results.append(judge_run(path, scenario))
+                if not os.path.isdir(path):
+                    continue
+                if not os.path.exists(os.path.join(path, "facts.json")):
+                    nested = [
+                        os.path.join(path, entry) for entry in sorted(os.listdir(path))
+                        if os.path.isdir(os.path.join(path, entry))
+                        and os.path.exists(os.path.join(path, entry, "facts.json"))]
+                    if not nested:
+                        continue
+                    path = nested[-1]
+                result = judge_run(path, scenario)
+                result["target"] = name
+                results.append(result)
     else:
         for host in hosts:
             for target in host.get("targets", []):
