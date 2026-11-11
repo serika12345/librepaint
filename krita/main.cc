@@ -55,7 +55,6 @@
 #include "theme/KisUiFont.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/kis_splash_screen.h"
-#include "config-qt-patches-present.h"
 
 #ifdef Q_OS_IOS
 #include <QAction>
@@ -754,28 +753,6 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
         if (qEnvironmentVariableIntValue("QT_DISABLE_ACCESSIBILITY")) {
             qInfo() << "INFO: QT_DISABLE_ACCESSIBILITY is activated via environment...";
         }
-    }
-#endif
-
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    if (!qEnvironmentVariableIsSet("QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER")) {
-        qputenv("QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER", "1");
-    }
-
-    if (!qEnvironmentVariableIsSet("QT_FRAME_RATE_OVERRIDE")) {
-        KisImageConfig cfg(true);
-        if (!cfg.detectFpsLimit()) {
-            qputenv("QT_FRAME_RATE_OVERRIDE", QString::number(cfg.fpsLimit()).toLatin1());
-        }
-    }
-
-    // H6 (frame update throttle): Qt's frame rate compressor has mode 2 for
-    // "no compression". The canvas also paints while the last frame is on the
-    // GPU when LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE is set. This switch is
-    // for the L1 measurements only; KisL1Switches.h owns the removal
-    // condition.
-    if (KisL1Switches::disableUpdateThrottle() && !qEnvironmentVariableIsSet("QT_FRAME_COMPRESSION_MODE")) {
-        qputenv("QT_FRAME_COMPRESSION_MODE", "2");
     }
 #endif
 

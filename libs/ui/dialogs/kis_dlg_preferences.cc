@@ -2031,12 +2031,8 @@ void PerformanceTab::load(bool requestDefault)
     sliderThreadsLimit->setValue(m_lastUsedThreadsLimit);
     sliderFrameClonesLimit->setValue(m_lastUsedClonesLimit);
 
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    m_frameRateModel->data.set(std::make_tuple(cfg.detectFpsLimit(requestDefault), cfg.fpsLimit(requestDefault)));
-#else
     m_frameRateModel->data.set(std::make_tuple(false, cfg.fpsLimit(requestDefault)));
     chkDetectFps->setVisible(false);
-#endif
     {
         KisConfig cfg2(true);
         chkOpenGLFramerateLogging->setChecked(cfg2.enableOpenGLFramerateLogging(requestDefault));
@@ -2099,9 +2095,6 @@ void PerformanceTab::save()
     cfg.setFrameRenderingClones(sliderFrameClonesLimit->value());
     cfg.setFrameRenderingTimeout(sliderFrameTimeout->value() * 1000);
     cfg.setFpsLimit(std::get<int>(*m_frameRateModel->data));
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    cfg.setDetectFpsLimit(std::get<bool>(*m_frameRateModel->data));
-#endif
 
     {
         KisConfig cfg2(true);

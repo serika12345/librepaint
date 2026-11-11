@@ -66,8 +66,6 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
-#include "config-qt-patches-present.h"
-
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <d3d11.h>
@@ -263,9 +261,6 @@ public:
     }
 
     boost::optional<QRect> updateRect;
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    bool shouldSkipRenderingPass = false;
-#endif
     QRect canvasImageDirtyRect;
     KisOpenGLCanvasRenderer *renderer;
     QScopedPointer<KisOpenGLSync> glSyncObject;
@@ -587,13 +582,8 @@ void KisOpenGLCanvas2::paintGL()
         // l1_h2_state records the decision even when nothing is waited for:
         // bit 1 = the switch is on, bit 2 = the previous frame's fence exists,
         // bit 4 = the fence had already completed, bit 8 = the fence was
-        // waited for, bit 16 = this paint was deferred by update compression.
+        // waited for.
         qint64 state = 1;
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-        if (d->shouldSkipRenderingPass) {
-            state |= 16;
-        }
-#endif
         if (d->glSyncObject) {
             state |= 2;
             if (!d->glSyncObject->isSignaled()) {
@@ -607,12 +597,6 @@ void KisOpenGLCanvas2::paintGL()
         }
         KisLatencyProbe::mark("l1_h2_state", 0, 0, state);
     }
-
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    if (d->shouldSkipRenderingPass) {
-        return;
-    }
-#endif
 
     KisLatencyProbe::mark("paintgl_begin");
     struct ProbePaintEnd {
@@ -695,36 +679,6 @@ void KisOpenGLCanvas2::paintEvent(QPaintEvent *e)
         d->updateRect = this->rect();
     }
 
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    /**
-     * When using Qt with a proper update paint event compression, then we don't
-     * need to implement our own one in KisCanvas2, instead we should just skip
-     * frames in paintEvent(), when the previous frame hasn't completed yet.
-     */
-    const bool lastFrameCompleted = !isBusy();
-    KisLatencyProbe::mark("last_frame_completed_on_gpu", 0, 0, lastFrameCompleted ? 1 : 0);
-    if (!lastFrameCompleted && KisL1Switches::disableUpdateThrottle()) {
-        // H6 (frame update throttle): paint even though the last frame has not
-        // completed. LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE is for the L1
-        // measurements only; KisL1Switches.h owns the removal condition.
-        KisLatencyProbe::mark("qt_update_deferred_skipped");
-        QOpenGLWidget::paintEvent(e);
-    } else if (!lastFrameCompleted) {
-        //qWarning() << "WARNING: paint event delivered with the canvas non-ready, rescheduling...";
-        KisLatencyProbe::mark("qt_update_deferred");
-        d->shouldSkipRenderingPass = true;
-        QOpenGLWidget::paintEvent(e);
-        d->shouldSkipRenderingPass = false;
-        QTimer::singleShot(0, this,
-            [this, updateRect = *d->updateRect] () {
-                if (updateRect.isEmpty()) {
-                    this->update();
-                } else {
-                    this->update(updateRect);
-                }
-            });
-    } else
-#endif
     {
         QOpenGLWidget::paintEvent(e);
     }

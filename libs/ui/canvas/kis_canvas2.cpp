@@ -113,7 +113,6 @@
 
 #include "KisSnapPixelStrategy.h"
 #include "canvas/KisDisplayConfig.h"
-#include "config-qt-patches-present.h"
 #include <KoIcon.h>
 
 #include <config-use-surface-color-management-api.h>
@@ -242,9 +241,7 @@ public:
     KisToolProxy toolProxy;
     KisPrescaledProjectionSP prescaledProjection;
 
-#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     KisSignalCompressor canvasUpdateCompressor;
-#endif
     QRect savedCanvasProjectionUpdateRect;
     QRect savedOverlayUpdateRect;
     bool updateSceneRequested = false;
@@ -352,10 +349,8 @@ KisCanvas2::KisCanvas2(KisCoordinatesConverter *coordConverter, KoCanvasResource
 
     KisImageConfig config(false);
 
-#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     m_d->canvasUpdateCompressor.setDelay(1000 / config.fpsLimit());
     m_d->canvasUpdateCompressor.setMode(KisSignalCompressor::FIRST_ACTIVE);
-#endif
 
     m_d->frameRenderStartCompressor.setDelay(1000 / config.fpsLimit());
     m_d->frameRenderStartCompressor.setMode(KisSignalCompressor::FIRST_ACTIVE);
@@ -404,9 +399,7 @@ void KisCanvas2::setup()
     connect(kritaShapeController, SIGNAL(currentLayerChanged(const KoShapeLayer*)),
             selectedShapesProxy(), SIGNAL(currentLayerChanged(const KoShapeLayer*)));
 
-#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     connect(&m_d->canvasUpdateCompressor, SIGNAL(timeout()), SLOT(slotDoCanvasUpdate()));
-#endif
 
     connect(this, SIGNAL(sigCanvasCacheUpdated()), &m_d->frameRenderStartCompressor, SLOT(start()));
     connect(&m_d->frameRenderStartCompressor, SIGNAL(timeout()), SLOT(updateCanvasProjection()));
@@ -1175,21 +1168,16 @@ void KisCanvas2::slotSetLodUpdatesBlocked(bool value)
 void KisCanvas2::requestCanvasUpdateMaybeCompressed()
 {
     /**
-    * If Qt has our custom patch for global updates compression, then we shouldn't do
-    * our own compression here in the canvas. Everything will be done in Qt.
+    * Qt's own update compression is not part of the Qt fork anymore, so the
+    * canvas keeps its own compressor here.
     */
-#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     m_d->canvasUpdateCompressor.start();
-#else
-    slotDoCanvasUpdate();
-#endif
 }
 
 void KisCanvas2::slotDoCanvasUpdate()
 {
     KisLatencyProbe::mark("canvas_update_dispatch");
 
-#if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     /**
      * WARNING: in isBusy() we access openGL functions without making the painting
      * context current. We hope that currently active context will be Qt's one,
@@ -1201,7 +1189,6 @@ void KisCanvas2::slotDoCanvasUpdate()
         m_d->canvasUpdateCompressor.start();
         return;
     }
-#endif
 
     QRect combinedUpdateRect = m_d->savedCanvasProjectionUpdateRect | m_d->savedOverlayUpdateRect;
     // x/y = the canvas widget size at the moment the update is issued. An
