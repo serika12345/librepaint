@@ -33,6 +33,13 @@ class Q4Stage10Test(unittest.TestCase):
         self.assertIn("Q_OS_LINUX", block)
         self.assertIn("Q_OS_MACOS", block)
 
+    def test_accessibility_is_configured_only_at_startup(self):
+        source = read_source("krita/main.cc")
+        setter = source.index('qputenv("QT_DISABLE_ACCESSIBILITY", "1")')
+        application = source.index("KisApplication app(key, argc, argv)")
+        self.assertLess(setter, application)
+        self.assertEqual(source.count('qputenv("QT_DISABLE_ACCESSIBILITY"'), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

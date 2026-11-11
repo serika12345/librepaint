@@ -740,7 +740,11 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 
 #if defined Q_OS_WIN
     /**
-     * Disabling accessibility at the runtime is currently available on Windows only
+     * Official Qt 6.11.3 does not read QT_DISABLE_ACCESSIBILITY (the switch
+     * came from the fork patch 9dc7c77358). Keep the setting at startup only:
+     * it still applies to fork builds, and the environment value is left for
+     * the user. Do not add a runtime toggle, because changing accessibility
+     * after QApplication exists has no public Qt API.
      */
     if (!qEnvironmentVariableIsSet("QT_DISABLE_ACCESSIBILITY")) {
         if (kritarc.value("DisableAccessibilityInQt", false).toBool()) {
