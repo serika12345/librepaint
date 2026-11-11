@@ -584,6 +584,90 @@ function Stop-CheckWatchdog($watchdog) {
     } catch { }
 }
 
+function Quote-PowerShell([string]$text) {
+    return "'" + $text.Replace("'", "''") + "'"
+}
+
+# Each step of the automatic check has its own limit. A step that opens a
+# modal dialog used to hold the whole check until the 600 s watchdog
+# (2026-11-11). This hidden watchdog ends one step at its limit: it closes a
+# window of the application other than the main one (the settings dialog),
+# sends Escape, writes "step <name> end timeout" to the status files and
+# leaves a marker file. The runner records the timeout and goes on to the next
+# step. The watchdog never stops the application.
+function Start-StepWatchdog([string]$name, [int]$seconds, [string[]]$statusPaths,
+        [int]$processId, [long]$mainHandle, [string]$checkSource, [string]$marker) {
+    $source = New-Object System.Collections.Generic.List[string]
+    $source.Add('$parent = ' + $PID)
+    $source.Add('$name = ' + (Quote-PowerShell $name))
+    $source.Add('$seconds = ' + $seconds)
+    $source.Add('$marker = ' + (Quote-PowerShell $marker))
+    $source.Add('$processId = ' + $processId)
+    $source.Add('$mainHandle = ' + $mainHandle)
+    $source.Add('$checkSource = ' + (Quote-PowerShell $checkSource))
+    $paths = ($statusPaths | ForEach-Object { Quote-PowerShell $_ }) -join ','
+    $source.Add('$statusPaths = @(' + $paths + ')')
+    $source.Add('for ($i = 0; $i -lt $seconds; $i += 5) {')
+    $source.Add('    if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit 0 }')
+    $source.Add('    if (Test-Path -LiteralPath $marker) { exit 0 }')
+    $source.Add('    Start-Sleep -Seconds 5')
+    $source.Add('}')
+    $source.Add('if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit 0 }')
+    $source.Add('if (Test-Path -LiteralPath $marker) { exit 0 }')
+    $source.Add('Set-Content -Path $marker -Value ''timeout''')
+    $source.Add('try {')
+    $source.Add('    Add-Type -Path $checkSource')
+    $source.Add('    foreach ($line in ([Q4Check]::WindowList($processId) -split "`r?`n")) {')
+    $source.Add('        if (-not $line) { continue }')
+    $source.Add('        $parts = $line.Split("|")')
+    $source.Add('        if ($parts.Count -lt 3) { continue }')
+    $source.Add('        if ([int64]$parts[0] -eq $mainHandle) { continue }')
+    $source.Add('        if ($parts[1] -match ''tooltips|IME|MSCTF'') { continue }')
+    $source.Add('        if (-not $parts[2]) { continue }')
+    $source.Add('        [void][Q4Check]::CloseWindow([IntPtr][int64]$parts[0])')
+    $source.Add('    }')
+    $source.Add('} catch { }')
+    $source.Add('try { (New-Object -ComObject WScript.Shell).SendKeys(''{ESC}'') } catch { }')
+    $source.Add('foreach ($path in $statusPaths) {')
+    $source.Add('    Add-Content -Path $path -Value (''step '' + $name + '' end timeout'')')
+    $source.Add('}')
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes(($source -join "`r`n")))
+    return Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+        -ArgumentList @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)
+}
+
+function Invoke-CheckStep($app, [string]$name, [int]$seconds, [scriptblock]$body) {
+    # Run one step under its own limit and write "step <name> start" and
+    # "step <name> end <result>" to the status files, so the reader sees the
+    # step's progress without waiting for the whole check.
+    $marker = Join-Path (Split-Path -Parent $script:runStatus) ('step-' + $name + '.watch')
+    Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue
+    Log ('step ' + $name + ' start')
+    $watchdog = $null
+    try {
+        $watchdog = Start-StepWatchdog $name $seconds @($status, $script:runStatus) `
+            $app.Process.Id $app.Handle.ToInt64() (Join-Path $here 'Q4Check.cs') $marker
+    } catch { Log ('step watchdog did not start: ' + $_.Exception.Message) }
+    try {
+        & $body | Out-Null
+    } finally {
+        $timedOut = Test-Path -LiteralPath $marker
+        Stop-CheckWatchdog $watchdog
+        if ($timedOut) {
+            # The watchdog wrote the end line; write it here if it was stopped
+            # between the marker and the status files.
+            $pattern = '^step ' + [regex]::Escape($name) + ' end timeout$'
+            if (-not (Select-String -Path $script:runStatus -Pattern $pattern -Quiet)) {
+                Log ('step ' + $name + ' end timeout')
+            }
+        } else {
+            Log ('step ' + $name + ' end done')
+        }
+        Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue
+    }
+    return $timedOut
+}
+
 function Invoke-Q4Check($request, [string]$target) {
     $runName = if ($request.name) { [string]$request.name } else { 'q4-e2e' }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
@@ -633,171 +717,216 @@ function Invoke-Q4Check($request, [string]$target) {
         }
 
         # (a) Clipboard: select all and copy the alpha test image.
-        try {
-            $cleared = [Q4Check]::ClearClipboard()
-            [void][Q4Check]::SendCtrl([uint32]0x41)
-            Start-Sleep -Milliseconds 400
-            [void][Q4Check]::SendCtrl([uint32]0x43)
-            Start-Sleep -Milliseconds 1200
-            $saved = [Q4Check]::SaveClipboardFormats($dir, $clipSource)
-            $facts.clipboard = [ordered]@{ cleared = $cleared; saved = $saved;
-                formats = 'clipboard-formats.txt'; png = 'clipboard-png.png';
-                source = 'clipboard-source.png' }
-        } catch { $errors.Add('clipboard: ' + $_.Exception.Message) }
+        $timedOut = Invoke-CheckStep $app 'clipboard' 60 {
+            try {
+                $cleared = [Q4Check]::ClearClipboard()
+                [void][Q4Check]::SendCtrl([uint32]0x41)
+                Start-Sleep -Milliseconds 400
+                [void][Q4Check]::SendCtrl([uint32]0x43)
+                Start-Sleep -Milliseconds 1200
+                $saved = [Q4Check]::SaveClipboardFormats($dir, $clipSource)
+                $facts.clipboard = [ordered]@{ cleared = $cleared; saved = $saved;
+                    formats = 'clipboard-formats.txt'; png = 'clipboard-png.png';
+                    source = 'clipboard-source.png' }
+            } catch { $errors.Add('clipboard: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('clipboard: step timed out after 60 s') }
 
         # (b) Tab titles: two documents, switch tabs and read the window title.
-        try {
-            $titleInitial = [Q4Check]::WindowText($app.Handle)
-            [void][Q4Check]::SendCtrl([uint32]0x09)
-            Start-Sleep -Milliseconds 800
-            $titleAfter = [Q4Check]::WindowText($app.Handle)
-            [void][Q4Check]::SendCtrl([uint32]0x09)
-            Start-Sleep -Milliseconds 800
-            $titleBack = [Q4Check]::WindowText($app.Handle)
-            $lines = @("initial=$titleInitial", "after=$titleAfter", "back=$titleBack",
-                "expected_a=$([System.IO.Path]::GetFileNameWithoutExtension($docA))",
-                "expected_b=$([System.IO.Path]::GetFileNameWithoutExtension($docB))")
-            Set-Content -Path (Join-Path $dir 'tabs.txt') -Value $lines
-            $facts.tabs = [ordered]@{ file = 'tabs.txt'; initial = $titleInitial;
-                after = $titleAfter; back = $titleBack }
-        } catch { $errors.Add('tabs: ' + $_.Exception.Message) }
+        $timedOut = Invoke-CheckStep $app 'tabs' 60 {
+            try {
+                $titleInitial = [Q4Check]::WindowText($app.Handle)
+                [void][Q4Check]::SendCtrl([uint32]0x09)
+                Start-Sleep -Milliseconds 800
+                $titleAfter = [Q4Check]::WindowText($app.Handle)
+                [void][Q4Check]::SendCtrl([uint32]0x09)
+                Start-Sleep -Milliseconds 800
+                $titleBack = [Q4Check]::WindowText($app.Handle)
+                $lines = @("initial=$titleInitial", "after=$titleAfter", "back=$titleBack",
+                    "expected_a=$([System.IO.Path]::GetFileNameWithoutExtension($docA))",
+                    "expected_b=$([System.IO.Path]::GetFileNameWithoutExtension($docB))")
+                Set-Content -Path (Join-Path $dir 'tabs.txt') -Value $lines
+                $facts.tabs = [ordered]@{ file = 'tabs.txt'; initial = $titleInitial;
+                    after = $titleAfter; back = $titleBack }
+            } catch { $errors.Add('tabs: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('tabs: step timed out after 60 s') }
 
         # (c) Japanese layout: load 00000411 and send Ctrl+Tab with SendInput.
-        try {
-            $layout = [Q4Check]::LoadJapaneseLayout($app.Handle)
-            $titleBefore = [Q4Check]::WindowText($app.Handle)
-            $sent = [Q4Check]::SendCtrl([uint32]0x09)
-            Start-Sleep -Milliseconds 800
-            $titleAfter = [Q4Check]::WindowText($app.Handle)
-            $states = [Q4Check]::KeyStates()
-            $lines = @("layout=$layout", "send=$sent", "title_before=$titleBefore",
-                "title_after=$titleAfter", "key_states=$states",
-                "modifier_down=$([Q4Check]::ModifierDown($states))")
-            Set-Content -Path (Join-Path $dir 'keyboard.txt') -Value $lines
-            $facts.keyboard = [ordered]@{ file = 'keyboard.txt'; layout = $layout;
-                send = $sent; title_before = $titleBefore; title_after = $titleAfter;
-                key_states = $states; modifier_down = [Q4Check]::ModifierDown($states) }
-        } catch { $errors.Add('keyboard: ' + $_.Exception.Message) }
+        $timedOut = Invoke-CheckStep $app 'keyboard' 60 {
+            try {
+                $layout = [Q4Check]::LoadJapaneseLayout($app.Handle)
+                $titleBefore = [Q4Check]::WindowText($app.Handle)
+                $sent = [Q4Check]::SendCtrl([uint32]0x09)
+                Start-Sleep -Milliseconds 800
+                $titleAfter = [Q4Check]::WindowText($app.Handle)
+                $states = [Q4Check]::KeyStates()
+                $lines = @("layout=$layout", "send=$sent", "title_before=$titleBefore",
+                    "title_after=$titleAfter", "key_states=$states",
+                    "modifier_down=$([Q4Check]::ModifierDown($states))")
+                Set-Content -Path (Join-Path $dir 'keyboard.txt') -Value $lines
+                $facts.keyboard = [ordered]@{ file = 'keyboard.txt'; layout = $layout;
+                    send = $sent; title_before = $titleBefore; title_after = $titleAfter;
+                    key_states = $states; modifier_down = [Q4Check]::ModifierDown($states) }
+            } catch { $errors.Add('keyboard: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('keyboard: step timed out after 60 s') }
 
         # (d) Flicker: record frames while resizing the window and opening and
         # closing the settings dialog. The development host counts blank and
         # unchanged frames and compares the counts with the fork version.
-        try {
-            [void][Q4Check]::BringToFront($app.Handle)
-            Start-Sleep -Milliseconds 800
-            $snapshot = Invoke-CheckSnapshot $dir
-            $canvas = @(0, 0, 0, 0)
-            if ($snapshot -and $snapshot.canvas) { $canvas = @($snapshot.canvas) }
-            $tool = Join-Path $here 'windows_capture.exe'
-            $monitorOut = Join-Path $dir 'monitor.out'
-            $monitorErr = Join-Path $dir 'monitor.err'
-            $monitor = Start-Process -FilePath $tool -ArgumentList @('--monitor', '--out', "`"$dir`"",
-                '--seconds', '18', '--window', ("0x{0:X}" -f $app.Handle.ToInt64()),
-                '--canvas', ("{0},{1},{2},{3}" -f $canvas[0], $canvas[1], $canvas[2], $canvas[3])) `
-                -PassThru -WindowStyle Hidden -RedirectStandardOutput $monitorOut -RedirectStandardError $monitorErr
-            Start-Sleep -Milliseconds 800
-            $log = New-Object System.Collections.Generic.List[string]
-            foreach ($size in @(@(1400, 900), @(1100, 700), @(0, 0), @(1600, 1000), @(0, 0))) {
-                $start = [Q4Check]::NowTicks()
-                $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
-                Start-Sleep -Milliseconds 500
-                $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
-            }
-            $dialog = Invoke-SettingsDialog $app.Handle $app.Process.Id $dir
-            Start-Sleep -Milliseconds 700
-            if ($dialog.handle -ne 0) {
-                [void][Q4Check]::CloseWindow([IntPtr]$dialog.handle)
-            } else {
-                try { (New-Object -ComObject WScript.Shell).SendKeys('{ESC}') } catch { }
-            }
-            Start-Sleep -Milliseconds 1200
-            foreach ($size in @(@(1200, 800), @(0, 0))) {
-                $start = [Q4Check]::NowTicks()
-                $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
-                Start-Sleep -Milliseconds 500
-                $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
-            }
-            $log.Add("action=dialog start=$($dialog.opened) end=$([Q4Check]::NowTicks()) detail=$($dialog.title)")
-            Set-Content -Path (Join-Path $dir 'flicker-log.txt') -Value $log
-            if (-not $monitor.WaitForExit(30000)) {
-                try { Stop-Process -Id $monitor.Id -Force } catch { }
-                $errors.Add('flicker: monitor did not exit')
-            }
-            $monitorExit = -1
-            try { $monitor.Refresh(); $monitorExit = $monitor.ExitCode } catch { }
-            $facts.flicker = [ordered]@{ csv = 'flicker.csv'; log = 'flicker-log.txt';
-                monitor_exit = $monitorExit; canvas = $canvas;
-                dialog_opened = $dialog.opened; dialog_method = $dialog.method;
-                dialog_title = $dialog.title }
-        } catch { $errors.Add('flicker: ' + $_.Exception.Message) }
+        $timedOut = Invoke-CheckStep $app 'flicker' 180 {
+            try {
+                [void][Q4Check]::BringToFront($app.Handle)
+                Start-Sleep -Milliseconds 800
+                $snapshot = Invoke-CheckSnapshot $dir
+                $canvas = @(0, 0, 0, 0)
+                if ($snapshot -and $snapshot.canvas) { $canvas = @($snapshot.canvas) }
+                $tool = Join-Path $here 'windows_capture.exe'
+                $monitorOut = Join-Path $dir 'monitor.out'
+                $monitorErr = Join-Path $dir 'monitor.err'
+                $monitor = Start-Process -FilePath $tool -ArgumentList @('--monitor', '--out', "`"$dir`"",
+                    '--seconds', '18', '--window', ("0x{0:X}" -f $app.Handle.ToInt64()),
+                    '--canvas', ("{0},{1},{2},{3}" -f $canvas[0], $canvas[1], $canvas[2], $canvas[3])) `
+                    -PassThru -WindowStyle Hidden -RedirectStandardOutput $monitorOut -RedirectStandardError $monitorErr
+                Start-Sleep -Milliseconds 800
+                $log = New-Object System.Collections.Generic.List[string]
+                foreach ($size in @(@(1400, 900), @(1100, 700), @(0, 0), @(1600, 1000), @(0, 0))) {
+                    $start = [Q4Check]::NowTicks()
+                    $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
+                    Start-Sleep -Milliseconds 500
+                    $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
+                }
+                $dialog = Invoke-SettingsDialog $app.Handle $app.Process.Id $dir
+                Start-Sleep -Milliseconds 700
+                if ($dialog.handle -ne 0) {
+                    [void][Q4Check]::CloseWindow([IntPtr]$dialog.handle)
+                } else {
+                    try { (New-Object -ComObject WScript.Shell).SendKeys('{ESC}') } catch { }
+                }
+                Start-Sleep -Milliseconds 1200
+                foreach ($size in @(@(1200, 800), @(0, 0))) {
+                    $start = [Q4Check]::NowTicks()
+                    $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
+                    Start-Sleep -Milliseconds 500
+                    $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
+                }
+                $log.Add("action=dialog start=$($dialog.opened) end=$([Q4Check]::NowTicks()) detail=$($dialog.title)")
+                Set-Content -Path (Join-Path $dir 'flicker-log.txt') -Value $log
+                if (-not $monitor.WaitForExit(30000)) {
+                    try { Stop-Process -Id $monitor.Id -Force } catch { }
+                    $errors.Add('flicker: monitor did not exit')
+                }
+                $monitorExit = -1
+                try { $monitor.Refresh(); $monitorExit = $monitor.ExitCode } catch { }
+                $facts.flicker = [ordered]@{ csv = 'flicker.csv'; log = 'flicker-log.txt';
+                    monitor_exit = $monitorExit; canvas = $canvas;
+                    dialog_opened = $dialog.opened; dialog_method = $dialog.method;
+                    dialog_title = $dialog.title }
+            } catch { $errors.Add('flicker: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('flicker: step timed out after 180 s') }
 
         # (e) Pen: replay the stage 2/3 checks that synthetic input can reach.
+        $penCanvas = @(0, 0, 0, 0)
+        $events = New-Object System.Collections.Generic.List[string]
         try {
             [void][Q4Check]::BringToFront($app.Handle)
             Start-Sleep -Milliseconds 800
             $penSnapshot = Invoke-CheckSnapshot $penDir
-            $penCanvas = @(0, 0, 0, 0)
             if ($penSnapshot -and $penSnapshot.canvas) { $penCanvas = @($penSnapshot.canvas) }
             $started = [Q4Check]::PenStart((Join-Path $penDir 'pen-events.txt'))
-            $events = New-Object System.Collections.Generic.List[string]
             $events.Add("action=pen-start qpc=$([Q4Check]::NowTicks()) detail=$started")
+        } catch { $errors.Add('pen: ' + $_.Exception.Message) }
 
-            $events.Add("action=enter qpc=$([Q4Check]::NowTicks()) detail=inside")
-            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
-            Start-Sleep -Milliseconds 300
-            Invoke-CheckFrame $penDir 'inside' | Out-Null
-            $events.Add("action=leave qpc=$([Q4Check]::NowTicks()) detail=titlebar")
-            [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 800)
-            Start-Sleep -Milliseconds 300
-            Invoke-CheckFrame $penDir 'left' | Out-Null
-            [void][Q4Check]::PenLeave($app.Handle, 0.5, -0.015)
+        $timedOut = Invoke-CheckStep $app 'pen.enter_leave' 120 {
+            try {
+                $events.Add("action=enter qpc=$([Q4Check]::NowTicks()) detail=inside")
+                [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
+                Start-Sleep -Milliseconds 300
+                Invoke-CheckFrame $penDir 'inside' | Out-Null
+                $events.Add("action=leave qpc=$([Q4Check]::NowTicks()) detail=titlebar")
+                [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 800)
+                Start-Sleep -Milliseconds 300
+                Invoke-CheckFrame $penDir 'left' | Out-Null
+                [void][Q4Check]::PenLeave($app.Handle, 0.5, -0.015)
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.enter_leave timed out after 120 s') }
 
-            $events.Add("action=edge-start qpc=$([Q4Check]::NowTicks()) detail=right-edge")
-            [void][Q4Check]::PenStroke($app.Handle, 0.9, 0.45, 1.02, 0.45, 350)
-            Start-Sleep -Milliseconds 500
-            Invoke-CheckFrame $penDir 'edge' | Out-Null
-            $events.Add("action=edge-end qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+        $timedOut = Invoke-CheckStep $app 'pen.edge_line' 120 {
+            try {
+                $events.Add("action=edge-start qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+                [void][Q4Check]::PenStroke($app.Handle, 0.9, 0.45, 1.02, 0.45, 350)
+                Start-Sleep -Milliseconds 500
+                Invoke-CheckFrame $penDir 'edge' | Out-Null
+                $events.Add("action=edge-end qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.edge_line timed out after 120 s') }
 
-            $events.Add("action=single-start qpc=$([Q4Check]::NowTicks()) detail=one-line")
-            [void][Q4Check]::PenStroke($app.Handle, 0.2, 0.25, 0.8, 0.25, 350)
-            Start-Sleep -Milliseconds 500
-            Invoke-CheckFrame $penDir 'single' | Out-Null
-            $events.Add("action=single-end qpc=$([Q4Check]::NowTicks()) detail=one-line")
+        $timedOut = Invoke-CheckStep $app 'pen.single_line' 120 {
+            try {
+                $events.Add("action=single-start qpc=$([Q4Check]::NowTicks()) detail=one-line")
+                [void][Q4Check]::PenStroke($app.Handle, 0.2, 0.25, 0.8, 0.25, 350)
+                Start-Sleep -Milliseconds 500
+                Invoke-CheckFrame $penDir 'single' | Out-Null
+                $events.Add("action=single-end qpc=$([Q4Check]::NowTicks()) detail=one-line")
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.single_line timed out after 120 s') }
 
-            $events.Add("action=hold-start qpc=$([Q4Check]::NowTicks()) detail=long-press")
-            [void][Q4Check]::PenDownAt($app.Handle, 0.5, 0.7)
-            [void][Q4Check]::PenHold($app.Handle, 0.5, 0.7, 1200)
-            $popupLines = @([Q4Check]::WindowList($app.Process.Id) -split "`r?`n" |
-                Where-Object { $_ -and ([int64]($_ -split '\|')[0] -ne $app.Handle.ToInt64()) })
-            Set-Content -Path (Join-Path $penDir 'popups.txt') -Value $popupLines
-            [void][Q4Check]::PenUpAt($app.Handle, 0.5, 0.7)
-            Start-Sleep -Milliseconds 500
-            Invoke-CheckFrame $penDir 'longpress' | Out-Null
-            $events.Add("action=hold-end qpc=$([Q4Check]::NowTicks()) detail=long-press")
+        $timedOut = Invoke-CheckStep $app 'pen.long_press' 120 {
+            try {
+                $events.Add("action=hold-start qpc=$([Q4Check]::NowTicks()) detail=long-press")
+                [void][Q4Check]::PenDownAt($app.Handle, 0.5, 0.7)
+                [void][Q4Check]::PenHold($app.Handle, 0.5, 0.7, 1200)
+                $popupLines = @([Q4Check]::WindowList($app.Process.Id) -split "`r?`n" |
+                    Where-Object { $_ -and ([int64]($_ -split '\|')[0] -ne $app.Handle.ToInt64()) })
+                Set-Content -Path (Join-Path $penDir 'popups.txt') -Value $popupLines
+                [void][Q4Check]::PenUpAt($app.Handle, 0.5, 0.7)
+                Start-Sleep -Milliseconds 500
+                Invoke-CheckFrame $penDir 'longpress' | Out-Null
+                $events.Add("action=hold-end qpc=$([Q4Check]::NowTicks()) detail=long-press")
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.long_press timed out after 120 s') }
 
-            $events.Add("action=dot-start qpc=$([Q4Check]::NowTicks()) detail=one-dot")
-            [void][Q4Check]::PenTap($app.Handle, 0.3, 0.6, 120)
-            Start-Sleep -Milliseconds 500
-            Invoke-CheckFrame $penDir 'dot' | Out-Null
-            $events.Add("action=dot-end qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+        $timedOut = Invoke-CheckStep $app 'pen.dot' 120 {
+            try {
+                $events.Add("action=dot-start qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+                [void][Q4Check]::PenTap($app.Handle, 0.3, 0.6, 120)
+                Start-Sleep -Milliseconds 500
+                Invoke-CheckFrame $penDir 'dot' | Out-Null
+                $events.Add("action=dot-end qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.dot timed out after 120 s') }
 
-            $events.Add("action=return-start qpc=$([Q4Check]::NowTicks()) detail=inside")
-            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
-            Start-Sleep -Milliseconds 300
-            $cursorInside = [Q4Check]::CursorInfo()
-            $events.Add("action=return-title qpc=$([Q4Check]::NowTicks()) detail=titlebar")
-            [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 600)
-            Start-Sleep -Milliseconds 300
-            $cursorTitle = [Q4Check]::CursorInfo()
-            $events.Add("action=return-inside qpc=$([Q4Check]::NowTicks()) detail=inside")
-            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 700)
-            Start-Sleep -Milliseconds 400
-            $cursorReturn = [Q4Check]::CursorInfo()
-            Invoke-CheckFrame $penDir 'return' | Out-Null
-            $events.Add("action=return-end qpc=$([Q4Check]::NowTicks()) detail=inside")
-            Set-Content -Path (Join-Path $penDir 'cursors.txt') -Value @(
-                "inside=$cursorInside", "titlebar=$cursorTitle", "return=$cursorReturn")
-            Set-Content -Path (Join-Path $penDir 'actions.txt') -Value $events
+        $timedOut = Invoke-CheckStep $app 'pen.nonclient_return' 120 {
+            try {
+                $events.Add("action=return-start qpc=$([Q4Check]::NowTicks()) detail=inside")
+                [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
+                Start-Sleep -Milliseconds 300
+                $cursorInside = [Q4Check]::CursorInfo()
+                $events.Add("action=return-title qpc=$([Q4Check]::NowTicks()) detail=titlebar")
+                [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 600)
+                Start-Sleep -Milliseconds 300
+                $cursorTitle = [Q4Check]::CursorInfo()
+                $events.Add("action=return-inside qpc=$([Q4Check]::NowTicks()) detail=inside")
+                [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 700)
+                Start-Sleep -Milliseconds 400
+                $cursorReturn = [Q4Check]::CursorInfo()
+                Invoke-CheckFrame $penDir 'return' | Out-Null
+                $events.Add("action=return-end qpc=$([Q4Check]::NowTicks()) detail=inside")
+                Set-Content -Path (Join-Path $penDir 'cursors.txt') -Value @(
+                    "inside=$cursorInside", "titlebar=$cursorTitle", "return=$cursorReturn")
+                Set-Content -Path (Join-Path $penDir 'actions.txt') -Value $events
+            } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+        }
+        if ($timedOut) { $errors.Add('pen: pen.nonclient_return timed out after 120 s') }
+
+        try {
             Start-Sleep -Milliseconds 1500
             [Q4Check]::PenStop()
             $facts.pen = [ordered]@{ dir = 'pen'; probe = 'pen/probe.csv';
@@ -817,21 +946,26 @@ function Invoke-Q4Check($request, [string]$target) {
         $first = $null
         try {
             $first = Start-CheckApp @($docA) (Join-Path $firstDir 'probe.csv') $firstDir 'first-app'
-            Start-Sleep -Milliseconds 500
-            [void][Q4Check]::BringToFront($first.Handle)
-            $started = [Q4Check]::PenStart((Join-Path $firstDir 'pen-events.txt'))
-            $start = [Q4Check]::NowTicks()
-            [void][Q4Check]::PenStroke($first.Handle, 0.2, 0.5, 0.8, 0.5, 300)
-            $end = [Q4Check]::NowTicks()
-            Start-Sleep -Milliseconds 500
-            Invoke-CheckFrame $firstDir 'line' | Out-Null
-            Start-Sleep -Milliseconds 1500
-            [Q4Check]::PenStop()
-            Set-Content -Path (Join-Path $firstDir 'actions.txt') -Value @(
-                "pen_start=$started", "stroke_start=$start", "stroke_end=$end")
-            $facts.first_line = [ordered]@{ dir = 'first'; probe = 'first/probe.csv';
-                events = 'first/pen-events.txt'; actions = 'first/actions.txt';
-                capture = 'first/line.bmp'; stroke_start = $start; stroke_end = $end }
+            $timedOut = Invoke-CheckStep $first 'pen.first_line' 120 {
+                try {
+                    Start-Sleep -Milliseconds 500
+                    [void][Q4Check]::BringToFront($first.Handle)
+                    $started = [Q4Check]::PenStart((Join-Path $firstDir 'pen-events.txt'))
+                    $start = [Q4Check]::NowTicks()
+                    [void][Q4Check]::PenStroke($first.Handle, 0.2, 0.5, 0.8, 0.5, 300)
+                    $end = [Q4Check]::NowTicks()
+                    Start-Sleep -Milliseconds 500
+                    Invoke-CheckFrame $firstDir 'line' | Out-Null
+                    Start-Sleep -Milliseconds 1500
+                    [Q4Check]::PenStop()
+                    Set-Content -Path (Join-Path $firstDir 'actions.txt') -Value @(
+                        "pen_start=$started", "stroke_start=$start", "stroke_end=$end")
+                    $facts.first_line = [ordered]@{ dir = 'first'; probe = 'first/probe.csv';
+                        events = 'first/pen-events.txt'; actions = 'first/actions.txt';
+                        capture = 'first/line.bmp'; stroke_start = $start; stroke_end = $end }
+                } catch { $errors.Add('pen.first_line: ' + $_.Exception.Message) }
+            }
+            if ($timedOut) { $errors.Add('pen.first_line: timed out after 120 s') }
         } finally { Stop-CheckApp $first }
     } catch { $errors.Add('first-line: ' + $_.Exception.Message) }
 
