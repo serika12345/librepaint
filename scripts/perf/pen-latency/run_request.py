@@ -142,10 +142,28 @@ def checked_power(mode):
     return text
 
 
+def checked_check(check):
+    """Return the automatic-check settings, or None.
+
+    The Q4 automatic check replaces the latency trajectory with a fixed
+    sequence of clipboard, window, keyboard, resize/dialog and synthetic-pen
+    steps. The runner only needs to know that the mode is on and which
+    thresholds the development host applies; every evidence path is chosen
+    by run-surface.ps1.
+    """
+    if not check:
+        return None
+    if not isinstance(check, dict):
+        raise ValueError("check must be an object")
+    if not check.get("enabled", True):
+        return None
+    return dict(check)
+
+
 def build_request(target, runs, app, inject=None, capture=False, name=None, presentmon="on",
                   presentmon_fields=None, env=None, kritarc=None, display_check=None,
                   surface_state="off", surface_state_wait="on", thread_cpu="off",
-                  power="off"):
+                  power="off", check=None):
     request = {
         "target": target,
         "runs": int(runs),
@@ -169,23 +187,28 @@ def build_request(target, runs, app, inject=None, capture=False, name=None, pres
     display = checked_display_check(display_check)
     if display:
         request["displayCheck"] = display
+    automatic = checked_check(check)
+    if automatic:
+        request["check"] = automatic
     return request
 
 
 def main(argv):
-    if len(argv) != 15:
+    if len(argv) not in (15, 16):
         raise SystemExit(
             "usage: run_request.py TARGET RUNS APP INJECT_JSON CAPTURE NAME PRESENTMON "
             "PRESENTMON_JSON TARGET_ENV_JSON TARGET_KRITARC_JSON TARGET_DISPLAY_CHECK_JSON "
-            "SURFACE_STATE SURFACE_STATE_WAIT THREAD_CPU POWER")
+            "SURFACE_STATE SURFACE_STATE_WAIT THREAD_CPU POWER [CHECK_JSON]")
     (target, runs, app, inject, capture, name, presentmon, presentmon_fields, target_env,
      target_kritarc, target_display_check, surface_state, surface_state_wait, thread_cpu,
-     power) = argv
+     power) = argv[:15]
+    check_json = argv[15] if len(argv) == 16 else "{}"
     request = build_request(target, runs, app, json.loads(inject), capture == "true", name,
                             presentmon, json.loads(presentmon_fields), json.loads(target_env or "{}"),
                             json.loads(target_kritarc or "{}"),
                             json.loads(target_display_check or "{}"),
-                            surface_state, surface_state_wait, thread_cpu, power)
+                            surface_state, surface_state_wait, thread_cpu, power,
+                            json.loads(check_json or "{}"))
     print(json.dumps(request))
     return 0
 

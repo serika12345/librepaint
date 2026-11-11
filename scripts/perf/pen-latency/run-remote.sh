@@ -38,6 +38,11 @@
 # TARGET_DISPLAY_CHECK is a JSON object such as {"image": "C:\\...\\x.png"}.
 # It opens that image and captures the whole screen at 100 % and 400 % zoom
 # instead of injecting a trajectory.
+# CHECK_JSON is a JSON object that switches run-surface.ps1 to the Q4
+# automatic check (clipboard, tab titles, Japanese layout, resize/dialog
+# flicker and synthetic-pen checks). It writes evidence files; scripts/perf/
+# check.py judges them. The capture tool is still copied for the screen
+# snapshots, but no trajectory plan is generated.
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
@@ -54,6 +59,7 @@ capture=false
 target_env=${TARGET_ENV:-'{}'}
 target_kritarc=${TARGET_KRITARC:-'{}'}
 target_display_check=${TARGET_DISPLAY_CHECK:-'{}'}
+check_json=${CHECK_JSON:-'{}'}
 surface_state=${SURFACE_STATE:-off}
 surface_state_wait=${SURFACE_STATE_WAIT:-on}
 thread_cpu=${THREAD_CPU:-off}
@@ -61,18 +67,23 @@ power=${POWER:-off}
 extra=()
 if [ -n "${CAPTURE_TOOL:-}" ]; then
   capture=true
-  trajectory_json=${TRAJECTORY_JSON:-}
-  python3 -I "$here/trajectory.py" --options "${trajectory_json:-"{}"}" --out "$work/plan.csv"
-  extra=("$CAPTURE_TOOL" "$work/plan.csv")
+  if [ "$check_json" = "{}" ]; then
+    trajectory_json=${TRAJECTORY_JSON:-}
+    python3 -I "$here/trajectory.py" --options "${trajectory_json:-"{}"}" --out "$work/plan.csv"
+    extra=("$CAPTURE_TOOL" "$work/plan.csv")
+  else
+    extra=("$CAPTURE_TOOL")
+  fi
 fi
 
 python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" \
     "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
     "$(python3 -I "$here/presentmon_command.py")" "$target_env" "$target_kritarc" \
-    "$target_display_check" "$surface_state" "$surface_state_wait" "$thread_cpu" "$power" > "$work/request.json"
+    "$target_display_check" "$surface_state" "$surface_state_wait" "$thread_cpu" "$power" \
+    "$check_json" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
-scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/thread_cpu.ps1" "$here/power.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
+scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/thread_cpu.ps1" "$here/power.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$here/Q4Check.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
 ssh "$host" "schtasks /run /tn LibrePaintPenLatency | Out-Null"
 
 state=""

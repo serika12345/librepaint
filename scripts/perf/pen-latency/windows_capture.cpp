@@ -31,8 +31,10 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <mutex>
@@ -153,6 +155,124 @@ bool findCanvas(const unsigned char *data, int pitch, int w, int h, int rect[4])
     return true;
 }
 
+// Records frame statistics for the Q4 flicker check. The check changes the
+// window size and opens the settings dialog while this runs; the development
+// host counts the frames that kept a blank canvas or did not repaint after a
+// size change. It samples every fourth pixel so the recorder stays cheap and
+// writes one row per presented desktop frame.
+int monitorDesktop(const std::string &out, int seconds, unsigned long long window,
+                   const int canvas[4], bool haveCanvas, int sampleStep)
+{
+    Duplicator dup;
+    if (!dup.open()) return 1;
+    HWND hwnd = (HWND)(uintptr_t)window;
+    RECT full{0, 0, dup.width, dup.height};
+    int step = sampleStep > 0 ? sampleStep : 4;
+    int gridWidth = (dup.width + step - 1) / step;
+    int gridHeight = (dup.height + step - 1) / step;
+    std::vector<unsigned int> previous((size_t)gridWidth * gridHeight, 0);
+    std::vector<unsigned char> previousSet((size_t)gridWidth * gridHeight, 0);
+    std::ofstream csv(out + "\\flicker.csv");
+    csv << "frame_ns,arrival_ns,rect_x,rect_y,rect_w,rect_h,rect_changed,"
+           "canvas_white_ratio,canvas_dark_pixels,changed_ratio,old_area_unchanged_ratio,frames\n";
+    long long start = nowNs();
+    RECT last{0, 0, 0, 0};
+    bool haveLast = false;
+    int frames = 0;
+    while ((nowNs() - start) < (long long)seconds * 1000000000LL) {
+        long long frameNs;
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        if (!dup.next(full, &frameNs, &mapped, 100)) continue;
+        ++frames;
+        const unsigned char *data = (const unsigned char *)mapped.pData;
+        RECT client{0, 0, 0, 0};
+        POINT origin{0, 0};
+        if (hwnd) {
+            GetClientRect(hwnd, &client);
+            ClientToScreen(hwnd, &origin);
+        }
+        int rx = origin.x, ry = origin.y;
+        int rw = client.right - client.left, rh = client.bottom - client.top;
+        bool rectChanged = haveLast && (rx != last.left || ry != last.top || rw != last.right || rh != last.bottom);
+
+        auto sampleAt = [&](int x, int y) -> unsigned int {
+            const unsigned char *p = data + (long long)y * mapped.RowPitch + 4 * x;
+            return (unsigned int)p[0] | ((unsigned int)p[1] << 8) | ((unsigned int)p[2] << 16);
+        };
+        auto isWhite = [](unsigned int c) {
+            return (c & 0xFF) >= 245 && ((c >> 8) & 0xFF) >= 245 && ((c >> 16) & 0xFF) >= 245;
+        };
+        auto isDark = [](unsigned int c) {
+            int sum = (int)(c & 0xFF) + (int)((c >> 8) & 0xFF) + (int)((c >> 16) & 0xFF);
+            return sum < 384;
+        };
+
+        long long white = 0, total = 0, dark = 0;
+        if (haveCanvas) {
+            int x0 = std::max(canvas[0], rx), x1 = std::min(canvas[0] + canvas[2], rx + rw);
+            int y0 = std::max(canvas[1], ry), y1 = std::min(canvas[1] + canvas[3], ry + rh);
+            for (int y = std::max(0, y0); y < std::min(dup.height, y1); y += step) {
+                for (int x = std::max(0, x0); x < std::min(dup.width, x1); x += step) {
+                    unsigned int c = sampleAt(x, y);
+                    ++total;
+                    if (isWhite(c)) ++white;
+                    if (isDark(c)) ++dark;
+                }
+            }
+        }
+
+        long long changed = 0, changedTotal = 0;
+        for (int y = std::max(0, ry); y < std::min(dup.height, ry + rh); y += step) {
+            for (int x = std::max(0, rx); x < std::min(dup.width, rx + rw); x += step) {
+                size_t index = (size_t)(y / step) * gridWidth + (x / step);
+                unsigned int c = sampleAt(x, y);
+                ++changedTotal;
+                if (previousSet[index]) {
+                    unsigned int old = previous[index];
+                    int d0 = abs((int)(c & 0xFF) - (int)(old & 0xFF));
+                    int d1 = abs((int)((c >> 8) & 0xFF) - (int)((old >> 8) & 0xFF));
+                    int d2 = abs((int)((c >> 16) & 0xFF) - (int)((old >> 16) & 0xFF));
+                    if (d0 > 8 || d1 > 8 || d2 > 8) ++changed;
+                }
+                previous[index] = c;
+                previousSet[index] = 1;
+            }
+        }
+
+        double oldUnchanged = -1.0;
+        if (rectChanged) {
+            long long oldTotal = 0, oldSame = 0;
+            for (int y = std::max(0, last.top); y < std::min(dup.height, last.bottom); y += step) {
+                for (int x = std::max(0, last.left); x < std::min(dup.width, last.right); x += step) {
+                    if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) continue;
+                    size_t index = (size_t)(y / step) * gridWidth + (x / step);
+                    ++oldTotal;
+                    if (previousSet[index] && sampleAt(x, y) == previous[index]) ++oldSame;
+                }
+            }
+            if (oldTotal) oldUnchanged = (double)oldSame / (double)oldTotal;
+        }
+
+        csv << frameNs << "," << nowNs() << "," << rx << "," << ry << "," << rw << "," << rh << ","
+            << (rectChanged ? 1 : 0) << ",";
+        if (total) csv << ((double)white / (double)total); else csv << -1;
+        csv << "," << dark << ",";
+        if (changedTotal) csv << ((double)changed / (double)changedTotal); else csv << -1;
+        csv << "," << oldUnchanged << "," << frames << "\n";
+        csv.flush();
+        last.left = rx; last.top = ry; last.right = rw; last.bottom = rh;
+        haveLast = true;
+        dup.unmap();
+    }
+    return frames > 0 ? 0 : 2;
+}
+
+// Parses "x,y,w,h" for --canvas.
+bool parseCanvas(const std::string &text, int rect[4])
+{
+    return sscanf(text.c_str(), "%d,%d,%d,%d", &rect[0], &rect[1], &rect[2], &rect[3]) == 4;
+}
+
 // Reads a plan relative to the canvas and maps it to the canvas rectangle in pixels.
 std::vector<Sample> readPlan(const std::string &path, std::vector<Band> &bands, const int rect[4])
 {
@@ -234,9 +354,9 @@ int main(int argc, char **argv)
     SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
     QueryPerformanceFrequency(&frequency);
     std::string out, planPath;
-    bool snapshot = false, mouse = false;
-    std::string snapshotFrame;
-    int threshold = 128, dense = 6;
+    bool snapshot = false, mouse = false, monitor = false;
+    std::string snapshotFrame, canvasText, windowText;
+    int threshold = 128, dense = 6, seconds = 10, sampleStep = 4;
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
         if (a == "--out" && i + 1 < argc) out = argv[++i];
@@ -244,15 +364,27 @@ int main(int argc, char **argv)
         else if (a == "--snapshot-frame" && i + 1 < argc) snapshotFrame = argv[++i];
         else if (a == "--dark" && i + 1 < argc) threshold = atoi(argv[++i]);
         else if (a == "--dense" && i + 1 < argc) dense = atoi(argv[++i]);
+        else if (a == "--seconds" && i + 1 < argc) seconds = atoi(argv[++i]);
+        else if (a == "--sample-step" && i + 1 < argc) sampleStep = atoi(argv[++i]);
+        else if (a == "--window" && i + 1 < argc) windowText = argv[++i];
+        else if (a == "--canvas" && i + 1 < argc) canvasText = argv[++i];
         else if (a == "--snapshot") snapshot = true;
+        else if (a == "--monitor") monitor = true;
         else if (a == "--mouse") mouse = true;
     }
-    if (out.empty() || (!snapshot && snapshotFrame.empty() && planPath.empty())) {
-        fprintf(stderr, "usage: windows_capture --out DIR (--snapshot | --snapshot-frame NAME | --plan plan.csv [--mouse])\n");
+    if (out.empty() || (!snapshot && snapshotFrame.empty() && planPath.empty() && !monitor)) {
+        fprintf(stderr, "usage: windows_capture --out DIR (--snapshot | --snapshot-frame NAME | "
+                        "--monitor [--seconds N --window HWND --canvas x,y,w,h] | --plan plan.csv [--mouse])\n");
         return 2;
     }
     CreateDirectoryA(out.c_str(), nullptr);
 
+    if (monitor) {
+        int canvas[4] = {0, 0, 0, 0};
+        bool haveCanvas = parseCanvas(canvasText, canvas);
+        unsigned long long window = windowText.empty() ? 0 : strtoull(windowText.c_str(), nullptr, 0);
+        return monitorDesktop(out, seconds, window, canvas, haveCanvas, sampleStep);
+    }
     Duplicator dup;
     if (!dup.open()) return 1;
     DEVMODEA mode{}; mode.dmSize = sizeof(mode);

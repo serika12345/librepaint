@@ -429,11 +429,415 @@ function Write-Meta($dir, $request, $target, $surfaceStateMode, $surfaceStateWai
     Set-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
 }
 
+function New-CheckImage([string]$path, [int]$width, [int]$height, [switch]$Alpha) {
+    Add-Type -AssemblyName System.Drawing
+    $bitmap = New-Object System.Drawing.Bitmap $width, $height
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    if ($Alpha) {
+        $graphics.Clear([System.Drawing.Color]::Transparent)
+        $red = New-Object System.Drawing.SolidBrush -ArgumentList @([System.Drawing.Color]::FromArgb(255, 220, 40, 40))
+        $green = New-Object System.Drawing.SolidBrush -ArgumentList @([System.Drawing.Color]::FromArgb(255, 40, 200, 80))
+        $graphics.FillRectangle($red, 0, 0, [int]($width / 2), $height)
+        $graphics.FillRectangle($green, [int]($width / 2), 0, [int]($width / 2), [int]($height / 2))
+        $red.Dispose()
+        $green.Dispose()
+    } else {
+        $graphics.Clear([System.Drawing.Color]::White)
+        $graphics.FillRectangle([System.Drawing.Brushes]::Red, 40, 40, 240, 160)
+        $graphics.FillRectangle([System.Drawing.Brushes]::Blue, 360, 80, 280, 200)
+        $graphics.FillRectangle([System.Drawing.Brushes]::Green, 120, 320, 400, 180)
+        $graphics.FillRectangle([System.Drawing.Brushes]::Black, 700, 100, 120, 120)
+        $blackPen = New-Object System.Drawing.Pen -ArgumentList @([System.Drawing.Color]::Black, 8)
+        $bluePen = New-Object System.Drawing.Pen -ArgumentList @([System.Drawing.Color]::DarkBlue, 6)
+        $graphics.DrawLine($blackPen, 30, 600, $width - 30, 600)
+        $graphics.DrawLine($bluePen, 60, 60, $width - 60, $height - 60)
+        $blackPen.Dispose()
+        $bluePen.Dispose()
+    }
+    $graphics.Dispose()
+    $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bitmap.Dispose()
+}
+
+function Start-CheckApp([string[]]$images, [string]$probePath, [string]$dir, [string]$name) {
+    $env:LIBREPAINT_LATENCY_LOG = $probePath
+    $arguments = @('--nosplash')
+    foreach ($image in $images) { $arguments += "`"$image`"" }
+    $process = Start-Process -FilePath $request.app -ArgumentList $arguments -PassThru `
+        -RedirectStandardOutput (Join-Path $dir "$name.out") `
+        -RedirectStandardError (Join-Path $dir "$name.err")
+    $handle = Wait-MainWindow $process 120
+    return [pscustomobject]@{ Process = $process; Handle = $handle }
+}
+
+function Stop-CheckApp($app) {
+    if (-not $app) { return }
+    try {
+        $app.Process.Refresh()
+        if (-not $app.Process.HasExited) {
+            Stop-Process -Id $app.Process.Id -Force
+            [void]$app.Process.WaitForExit(5000)
+        }
+    } catch { }
+}
+
+function Wait-CheckTitle($app, [string]$match, [int]$seconds) {
+    $deadline = (Get-Date).AddSeconds($seconds)
+    $title = ''
+    while ((Get-Date) -lt $deadline) {
+        try { $title = [Q4Check]::WindowText($app.Handle) } catch { $title = '' }
+        if ($match -and $title -match $match) { return $title }
+        Start-Sleep -Milliseconds 250
+    }
+    return $title
+}
+
+function Invoke-CheckSnapshot([string]$dir) {
+    $tool = Join-Path $here 'windows_capture.exe'
+    $process = Start-Process -FilePath $tool -ArgumentList @('--out', "`"$dir`"", '--snapshot') `
+        -PassThru -Wait -WindowStyle Hidden -RedirectStandardOutput (Join-Path $dir 'snapshot.out') `
+        -RedirectStandardError (Join-Path $dir 'snapshot.err')
+    if ($process.ExitCode -ne 0) { return $null }
+    $path = Join-Path $dir 'canvas.json'
+    if (-not (Test-Path $path)) { return $null }
+    try { return (Get-Content $path -Raw | ConvertFrom-Json) } catch { return $null }
+}
+
+function Invoke-CheckFrame([string]$dir, [string]$name) {
+    Invoke-Frame $dir $name
+    return (Join-Path $dir "$name.bmp")
+}
+
+function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
+    $result = [ordered]@{ opened = $false; method = 'none'; handle = 0; title = '' }
+    try {
+        Add-Type -AssemblyName UIAutomationClient
+        Add-Type -AssemblyName UIAutomationTypes
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle($main)
+        $menuCondition = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::MenuItem)
+        $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
+        $settings = $null
+        foreach ($item in $items) {
+            if ($item.Current.Name -match '^(Settings|設定)$') { $settings = $item; break }
+        }
+        if ($settings) {
+            try {
+                $expand = $settings.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+                $expand.Expand()
+                Start-Sleep -Milliseconds 500
+            } catch { }
+            $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
+            foreach ($item in $items) {
+                if ($item.Current.Name -match 'Configure|Preferences|設定') {
+                    try {
+                        $invoke = $item.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                        $invoke.Invoke()
+                        $result.opened = $true
+                        $result.method = 'uia'
+                        break
+                    } catch { }
+                }
+            }
+        }
+    } catch { }
+    if (-not $result.opened) {
+        try {
+            [void][Q4Check]::BringToFront($main)
+            $shell = New-Object -ComObject WScript.Shell
+            $shell.SendKeys('%s')
+            Start-Sleep -Milliseconds 500
+            $shell.SendKeys('c')
+            Start-Sleep -Milliseconds 1200
+            $result.method = 'keys'
+        } catch { }
+    } else {
+        Start-Sleep -Milliseconds 1200
+    }
+    $windows = [Q4Check]::WindowList($processId)
+    Set-Content -Path (Join-Path $dir 'dialog-windows.txt') -Value $windows
+    $best = $null
+    $bestArea = 0
+    foreach ($line in ($windows -split "`r?`n")) {
+        if (-not $line) { continue }
+        $parts = $line.Split('|')
+        if ($parts.Count -lt 6) { continue }
+        if ([int64]$parts[0] -eq $main.ToInt64()) { continue }
+        if ($parts[1] -match 'tooltips|IME|MSCTF') { continue }
+        if (-not $parts[2]) { continue }
+        $size = $parts[5].Split('x')
+        if ($size.Count -ne 2) { continue }
+        $area = [int]$size[0] * [int]$size[1]
+        if ($area -gt $bestArea) { $bestArea = $area; $best = $parts }
+    }
+    if ($best) {
+        $result.opened = $true
+        if ($result.method -eq 'none') { $result.method = 'window' }
+        $result.handle = [int64]$best[0]
+        $result.title = $best[2]
+    }
+    Add-Content -Path (Join-Path $dir 'dialog.txt') -Value ($result.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" })
+    return $result
+}
+
+function Invoke-Q4Check($request, [string]$target) {
+    $runName = if ($request.name) { [string]$request.name } else { 'q4-e2e' }
+    $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
+    $dir = Join-Path $here ("runs\{0}-1" -f $id)
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $script:runStatus = Join-Path $dir 'status.txt'
+    Set-Content -Path $script:runStatus -Value 'starting'
+    Log "check $dir"
+    Write-Meta $dir $request $target 'off' 'off'
+    $errors = New-Object System.Collections.Generic.List[string]
+    $facts = [ordered]@{
+        scenario = 'q4-e2e'
+        app = $request.app
+        date = (Get-Date -Format o)
+        computer = (Get-CimInstance Win32_ComputerSystem).Model
+        os = [System.Environment]::OSVersion.VersionString
+        errors = @()
+    }
+    Add-Type -Path (Join-Path $here 'Q4Check.cs')
+
+    $docA = Join-Path $dir 'doc-a.png'
+    $docB = Join-Path $dir 'doc-b.png'
+    $clipSource = Join-Path $dir 'clipboard-source.png'
+    New-CheckImage $docA 1024 768
+    New-CheckImage $docB 1024 768
+    New-CheckImage $clipSource 96 64 -Alpha
+    $penDir = Join-Path $dir 'pen'
+    New-Item -ItemType Directory -Force $penDir | Out-Null
+    $app = $null
+    try {
+        $app = Start-CheckApp @($docA, $docB) (Join-Path $penDir 'probe.csv') $dir 'app'
+        $initialTitle = Wait-CheckTitle $app ([regex]::Escape([System.IO.Path]::GetFileNameWithoutExtension($docA))) 30
+        [void][Q4Check]::BringToFront($app.Handle)
+        Start-Sleep -Seconds 2
+
+        # (a) Clipboard: select all and copy the alpha test image.
+        try {
+            $cleared = [Q4Check]::ClearClipboard()
+            [void][Q4Check]::SendCtrl([uint32]0x41)
+            Start-Sleep -Milliseconds 400
+            [void][Q4Check]::SendCtrl([uint32]0x43)
+            Start-Sleep -Milliseconds 1200
+            $saved = [Q4Check]::SaveClipboardFormats($dir, $clipSource)
+            $facts.clipboard = [ordered]@{ cleared = $cleared; saved = $saved;
+                formats = 'clipboard-formats.txt'; png = 'clipboard-png.png';
+                source = 'clipboard-source.png' }
+        } catch { $errors.Add('clipboard: ' + $_.Exception.Message) }
+
+        # (b) Tab titles: two documents, switch tabs and read the window title.
+        try {
+            $titleInitial = [Q4Check]::WindowText($app.Handle)
+            [void][Q4Check]::SendCtrl([uint32]0x09)
+            Start-Sleep -Milliseconds 800
+            $titleAfter = [Q4Check]::WindowText($app.Handle)
+            [void][Q4Check]::SendCtrl([uint32]0x09)
+            Start-Sleep -Milliseconds 800
+            $titleBack = [Q4Check]::WindowText($app.Handle)
+            $lines = @("initial=$titleInitial", "after=$titleAfter", "back=$titleBack",
+                "expected_a=$([System.IO.Path]::GetFileNameWithoutExtension($docA))",
+                "expected_b=$([System.IO.Path]::GetFileNameWithoutExtension($docB))")
+            Set-Content -Path (Join-Path $dir 'tabs.txt') -Value $lines
+            $facts.tabs = [ordered]@{ file = 'tabs.txt'; initial = $titleInitial;
+                after = $titleAfter; back = $titleBack }
+        } catch { $errors.Add('tabs: ' + $_.Exception.Message) }
+
+        # (c) Japanese layout: load 00000411 and send Ctrl+Tab with SendInput.
+        try {
+            $layout = [Q4Check]::LoadJapaneseLayout($app.Handle)
+            $titleBefore = [Q4Check]::WindowText($app.Handle)
+            $sent = [Q4Check]::SendCtrl([uint32]0x09)
+            Start-Sleep -Milliseconds 800
+            $titleAfter = [Q4Check]::WindowText($app.Handle)
+            $states = [Q4Check]::KeyStates()
+            $lines = @("layout=$layout", "send=$sent", "title_before=$titleBefore",
+                "title_after=$titleAfter", "key_states=$states",
+                "modifier_down=$([Q4Check]::ModifierDown($states))")
+            Set-Content -Path (Join-Path $dir 'keyboard.txt') -Value $lines
+            $facts.keyboard = [ordered]@{ file = 'keyboard.txt'; layout = $layout;
+                send = $sent; title_before = $titleBefore; title_after = $titleAfter;
+                key_states = $states; modifier_down = [Q4Check]::ModifierDown($states) }
+        } catch { $errors.Add('keyboard: ' + $_.Exception.Message) }
+
+        # (d) Flicker: record frames while resizing the window and opening and
+        # closing the settings dialog. The development host counts blank and
+        # unchanged frames and compares the counts with the fork version.
+        try {
+            [void][Q4Check]::BringToFront($app.Handle)
+            Start-Sleep -Milliseconds 800
+            $snapshot = Invoke-CheckSnapshot $dir
+            $canvas = @(0, 0, 0, 0)
+            if ($snapshot -and $snapshot.canvas) { $canvas = @($snapshot.canvas) }
+            $tool = Join-Path $here 'windows_capture.exe'
+            $monitorOut = Join-Path $dir 'monitor.out'
+            $monitorErr = Join-Path $dir 'monitor.err'
+            $monitor = Start-Process -FilePath $tool -ArgumentList @('--monitor', '--out', "`"$dir`"",
+                '--seconds', '18', '--window', ("0x{0:X}" -f $app.Handle.ToInt64()),
+                '--canvas', ("{0},{1},{2},{3}" -f $canvas[0], $canvas[1], $canvas[2], $canvas[3])) `
+                -PassThru -WindowStyle Hidden -RedirectStandardOutput $monitorOut -RedirectStandardError $monitorErr
+            Start-Sleep -Milliseconds 800
+            $log = New-Object System.Collections.Generic.List[string]
+            foreach ($size in @(@(1400, 900), @(1100, 700), @(0, 0), @(1600, 1000), @(0, 0))) {
+                $start = [Q4Check]::NowTicks()
+                $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
+                Start-Sleep -Milliseconds 500
+                $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
+            }
+            $dialog = Invoke-SettingsDialog $app.Handle $app.Process.Id $dir
+            Start-Sleep -Milliseconds 700
+            if ($dialog.handle -ne 0) {
+                [void][Q4Check]::CloseWindow([IntPtr]$dialog.handle)
+            } else {
+                try { (New-Object -ComObject WScript.Shell).SendKeys('{ESC}') } catch { }
+            }
+            Start-Sleep -Milliseconds 1200
+            foreach ($size in @(@(1200, 800), @(0, 0))) {
+                $start = [Q4Check]::NowTicks()
+                $detail = [Q4Check]::ResizeWindow($app.Handle, [int]$size[0], [int]$size[1])
+                Start-Sleep -Milliseconds 500
+                $log.Add("action=resize start=$start end=$([Q4Check]::NowTicks()) detail=$detail")
+            }
+            $log.Add("action=dialog start=$($dialog.opened) end=$([Q4Check]::NowTicks()) detail=$($dialog.title)")
+            Set-Content -Path (Join-Path $dir 'flicker-log.txt') -Value $log
+            if (-not $monitor.WaitForExit(30000)) {
+                try { Stop-Process -Id $monitor.Id -Force } catch { }
+                $errors.Add('flicker: monitor did not exit')
+            }
+            $monitorExit = -1
+            try { $monitor.Refresh(); $monitorExit = $monitor.ExitCode } catch { }
+            $facts.flicker = [ordered]@{ csv = 'flicker.csv'; log = 'flicker-log.txt';
+                monitor_exit = $monitorExit; canvas = $canvas;
+                dialog_opened = $dialog.opened; dialog_method = $dialog.method;
+                dialog_title = $dialog.title }
+        } catch { $errors.Add('flicker: ' + $_.Exception.Message) }
+
+        # (e) Pen: replay the stage 2/3 checks that synthetic input can reach.
+        try {
+            [void][Q4Check]::BringToFront($app.Handle)
+            Start-Sleep -Milliseconds 800
+            $penSnapshot = Invoke-CheckSnapshot $penDir
+            $penCanvas = @(0, 0, 0, 0)
+            if ($penSnapshot -and $penSnapshot.canvas) { $penCanvas = @($penSnapshot.canvas) }
+            $started = [Q4Check]::PenStart((Join-Path $penDir 'pen-events.txt'))
+            $events = New-Object System.Collections.Generic.List[string]
+            $events.Add("action=pen-start qpc=$([Q4Check]::NowTicks()) detail=$started")
+
+            $events.Add("action=enter qpc=$([Q4Check]::NowTicks()) detail=inside")
+            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
+            Start-Sleep -Milliseconds 300
+            Invoke-CheckFrame $penDir 'inside' | Out-Null
+            $events.Add("action=leave qpc=$([Q4Check]::NowTicks()) detail=titlebar")
+            [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 800)
+            Start-Sleep -Milliseconds 300
+            Invoke-CheckFrame $penDir 'left' | Out-Null
+            [void][Q4Check]::PenLeave($app.Handle, 0.5, -0.015)
+
+            $events.Add("action=edge-start qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+            [void][Q4Check]::PenStroke($app.Handle, 0.9, 0.45, 1.02, 0.45, 350)
+            Start-Sleep -Milliseconds 500
+            Invoke-CheckFrame $penDir 'edge' | Out-Null
+            $events.Add("action=edge-end qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+
+            $events.Add("action=single-start qpc=$([Q4Check]::NowTicks()) detail=one-line")
+            [void][Q4Check]::PenStroke($app.Handle, 0.2, 0.25, 0.8, 0.25, 350)
+            Start-Sleep -Milliseconds 500
+            Invoke-CheckFrame $penDir 'single' | Out-Null
+            $events.Add("action=single-end qpc=$([Q4Check]::NowTicks()) detail=one-line")
+
+            $events.Add("action=hold-start qpc=$([Q4Check]::NowTicks()) detail=long-press")
+            [void][Q4Check]::PenDownAt($app.Handle, 0.5, 0.7)
+            Start-Sleep -Milliseconds 1200
+            $popupLines = @([Q4Check]::WindowList($app.Process.Id) -split "`r?`n" |
+                Where-Object { $_ -and ([int64]($_ -split '\|')[0] -ne $app.Handle.ToInt64()) })
+            Set-Content -Path (Join-Path $penDir 'popups.txt') -Value $popupLines
+            [void][Q4Check]::PenUpAt($app.Handle, 0.5, 0.7)
+            Start-Sleep -Milliseconds 500
+            Invoke-CheckFrame $penDir 'longpress' | Out-Null
+            $events.Add("action=hold-end qpc=$([Q4Check]::NowTicks()) detail=long-press")
+
+            $events.Add("action=dot-start qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+            [void][Q4Check]::PenTap($app.Handle, 0.3, 0.6, 120)
+            Start-Sleep -Milliseconds 500
+            Invoke-CheckFrame $penDir 'dot' | Out-Null
+            $events.Add("action=dot-end qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+
+            $events.Add("action=return-start qpc=$([Q4Check]::NowTicks()) detail=inside")
+            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 500)
+            Start-Sleep -Milliseconds 300
+            $cursorInside = [Q4Check]::CursorInfo()
+            $events.Add("action=return-title qpc=$([Q4Check]::NowTicks()) detail=titlebar")
+            [void][Q4Check]::PenHover($app.Handle, 0.5, -0.015, 600)
+            Start-Sleep -Milliseconds 300
+            $cursorTitle = [Q4Check]::CursorInfo()
+            $events.Add("action=return-inside qpc=$([Q4Check]::NowTicks()) detail=inside")
+            [void][Q4Check]::PenHover($app.Handle, 0.5, 0.5, 700)
+            Start-Sleep -Milliseconds 400
+            $cursorReturn = [Q4Check]::CursorInfo()
+            Invoke-CheckFrame $penDir 'return' | Out-Null
+            $events.Add("action=return-end qpc=$([Q4Check]::NowTicks()) detail=inside")
+            Set-Content -Path (Join-Path $penDir 'cursors.txt') -Value @(
+                "inside=$cursorInside", "titlebar=$cursorTitle", "return=$cursorReturn")
+            Set-Content -Path (Join-Path $penDir 'actions.txt') -Value $events
+            [Q4Check]::PenStop()
+            $facts.pen = [ordered]@{ dir = 'pen'; probe = 'pen/probe.csv';
+                events = 'pen/pen-events.txt'; actions = 'pen/actions.txt'; canvas = $penCanvas;
+                captures = [ordered]@{ inside = 'pen/inside.bmp'; left = 'pen/left.bmp';
+                    edge = 'pen/edge.bmp'; single = 'pen/single.bmp';
+                    longpress = 'pen/longpress.bmp'; dot = 'pen/dot.bmp'; return = 'pen/return.bmp' };
+                popups = 'pen/popups.txt'; cursors = 'pen/cursors.txt' }
+        } catch { $errors.Add('pen: ' + $_.Exception.Message) }
+    } catch { $errors.Add('app: ' + $_.Exception.Message) }
+    finally { Stop-CheckApp $app }
+
+    # First line right after a fresh start (stage 1/2 item 17).
+    try {
+        $firstDir = Join-Path $dir 'first'
+        New-Item -ItemType Directory -Force $firstDir | Out-Null
+        $first = $null
+        try {
+            $first = Start-CheckApp @($docA) (Join-Path $firstDir 'probe.csv') $firstDir 'first-app'
+            Start-Sleep -Milliseconds 500
+            [void][Q4Check]::BringToFront($first.Handle)
+            $started = [Q4Check]::PenStart((Join-Path $firstDir 'pen-events.txt'))
+            $start = [Q4Check]::NowTicks()
+            [void][Q4Check]::PenStroke($first.Handle, 0.2, 0.5, 0.8, 0.5, 300)
+            $end = [Q4Check]::NowTicks()
+            Start-Sleep -Milliseconds 500
+            Invoke-CheckFrame $firstDir 'line' | Out-Null
+            [Q4Check]::PenStop()
+            Set-Content -Path (Join-Path $firstDir 'actions.txt') -Value @(
+                "pen_start=$started", "stroke_start=$start", "stroke_end=$end")
+            $facts.first_line = [ordered]@{ dir = 'first'; probe = 'first/probe.csv';
+                events = 'first/pen-events.txt'; actions = 'first/actions.txt';
+                capture = 'first/line.bmp'; stroke_start = $start; stroke_end = $end }
+        } finally { Stop-CheckApp $first }
+    } catch { $errors.Add('first-line: ' + $_.Exception.Message) }
+
+    $facts.errors = @($errors)
+    $facts | ConvertTo-Json -Depth 8 | Set-Content -Path (Join-Path $dir 'facts.json')
+    Set-Content -Path (Join-Path $dir 'meta.txt') -Value @(
+        "target=$target", "app=$($request.app)", "date=$(Get-Date -Format o)",
+        "check=q4-e2e", "errors=$($errors.Count)",
+        "computer=$((Get-CimInstance Win32_ComputerSystem).Model)",
+        "os=$([System.Environment]::OSVersion.VersionString)")
+    Log "check done errors=$($errors.Count)"
+    Log 'done'
+}
+
 try {
     $request = Get-Content (Join-Path $here 'request.json') -Raw | ConvertFrom-Json
     $target = [string]$request.target
     $runs = [int]$request.runs
     $settle = if ($request.settleSeconds) { [int]$request.settleSeconds } else { 12 }
+
+    if ($request.check) {
+        Invoke-Q4Check $request $target
+        return
+    }
 
     $capture = [bool]$request.capture
     $displayCheck = $request.displayCheck
