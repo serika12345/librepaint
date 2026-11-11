@@ -341,7 +341,11 @@ CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中
 `== device recovery waits`に回数を出す。計測中の最小が60%未満だった回は、`run.py`が
 `== device state below 60% (left out)`に回の名前と値で並べ、集計から外して表に
 `N run(s) left out: processor performance below 60% during the run`と出す
-（`surface_state`が`off`の回は値がないため、この判定をしない）。
+（`surface_state`が`off`の回は値がないため、この判定をしない）。`surface-state.csv`の
+`processor_performance_pct`が0以下の値は読み取りの失敗として扱い、最小値から除く
+（2026-11-11 08:54:44の回は55回中1回が0で、181と180の間、全体のCPU使用率は14%だった）。
+失敗した読み取りがあった回は集計に残し、`run.py`は`== device state readings missing (kept)`に
+回の名前と失敗した回数、表に`N run(s) with a failed processor performance reading (kept)`と出す。
 
 描画の周期は`paint_cycle`の1行で追う。`paint_interval`は`paintgl_begin`の間隔（4ms未満、
 8ms未満、12ms未満、16ms未満、16ms以上の内訳付き）、`present_interval`はPresentMonの
@@ -458,6 +462,10 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   フレームはpxだけを出す。`l2p.residual_px`と`l2p.overshoot_px`は符号を分けた距離である。
   `l2p.speed_groups`はフレームの時刻の速さごとの中央値とP95、`l2p.speed_change`は速さが
   変わった直後の80msの窓の距離を出す。
+- 注入の2点の間隔が、その線の通常の間隔の半分未満に縮むことがある（送信が遅れた後に
+  取り戻すとき）。位置は1サンプル分進むため、その対だけの速さは軌跡の何倍にもなる
+  （0.9px/msの回で18.14px/ms、2026-11-11 08:47）。`capture_analyze.py`は、間隔が縮んだ対の
+  速さを、通常の間隔に最も近い近くの対から取る。通過の時刻は実際の対から求める。
 - ストロークの待ち行列の遅れは、`stroke_paint`（点を待ち行列に入れた時刻）と`stroke_dab`
   （ストロークの処理がペイントデバイスに dab を描いた時刻）の組で測る。`analyze.py`は
   先入れ先出しで組にし、`contact.stroke_paint_to_dab`と、待ち行列に入れた時点の
