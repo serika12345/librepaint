@@ -14,13 +14,16 @@ rules, the relative flicker threshold, and the Windows-side entry points.
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
 import zlib
+from contextlib import redirect_stdout
 from pathlib import Path
 
 
@@ -268,6 +271,24 @@ class WindowsEntryTest(unittest.TestCase):
         self.assertIn("if ($request.check)", surface)
         for name in ("clipboard", "tabs", "keyboard", "flicker", "first_line"):
             self.assertIn(name, surface)
+
+    def test_settings_dialog_is_opened_with_the_keyboard_only(self):
+        surface = (REPO_ROOT / "scripts/perf/pen-latency/run-surface.ps1").read_text(encoding="utf-8")
+        body = surface.split("function Invoke-SettingsDialog", 1)[1].split("\nfunction ", 1)[0]
+        self.assertNotIn("InvokePattern", body)
+        self.assertIn("SendKeys('%s')", body)
+        self.assertIn("SendKeys('c')", body)
+
+    def test_check_run_starts_a_hidden_watchdog(self):
+        surface = (REPO_ROOT / "scripts/perf/pen-latency/run-surface.ps1").read_text(encoding="utf-8")
+        body = surface.split("function Invoke-Q4Check", 1)[1]
+        self.assertIn("Start-CheckWatchdog", body)
+        self.assertIn("Stop-CheckWatchdog", body)
+        self.assertIn("600", body)
+        watchdog = surface.split("function Start-CheckWatchdog", 1)[1]
+        self.assertIn("powershell.exe", watchdog)
+        self.assertIn("-WindowStyle Hidden", watchdog)
+        self.assertIn("'timeout'", watchdog)
 
     def test_capture_tool_records_flicker_frames(self):
         source = (REPO_ROOT / "scripts/perf/pen-latency/windows_capture.cpp").read_text(encoding="utf-8")

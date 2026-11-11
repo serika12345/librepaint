@@ -24,10 +24,6 @@
 # status.txt reports progress and ends with "done" or "failed: <reason>".
 
 $ErrorActionPreference = 'Stop'
-# Japanese "settings": Windows PowerShell 5.1 reads this file as the ANSI code
-# page, so the literal characters would break the parser. Build the string
-# from code points to keep the file pure ASCII (2026-11-11).
-$jaSettings = [string]::new([char[]]@(0x8A2D, 0x5B9A))
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $status = Join-Path $here 'status.txt'
 $script:runStatus = $null
@@ -513,53 +509,21 @@ function Invoke-CheckFrame([string]$dir, [string]$name) {
     return (Join-Path $dir "$name.bmp")
 }
 
+# The settings dialog is opened with the keyboard only. The UI Automation
+# route called InvokePattern.Invoke() on the menu item, and that call did not
+# return until the modal dialog was closed, so the step that closes the
+# dialog never ran and the check stopped with the dialog open (2026-11-11).
 function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
     $result = [ordered]@{ opened = $false; method = 'none'; handle = 0; title = '' }
     try {
-        Add-Type -AssemblyName UIAutomationClient
-        Add-Type -AssemblyName UIAutomationTypes
-        $root = [System.Windows.Automation.AutomationElement]::FromHandle($main)
-        $menuCondition = New-Object System.Windows.Automation.PropertyCondition(
-            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
-            [System.Windows.Automation.ControlType]::MenuItem)
-        $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
-        $settings = $null
-        foreach ($item in $items) {
-            if ($item.Current.Name -match ('^(Settings|' + $jaSettings + ')$')) { $settings = $item; break }
-        }
-        if ($settings) {
-            try {
-                $expand = $settings.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
-                $expand.Expand()
-                Start-Sleep -Milliseconds 500
-            } catch { }
-            $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
-            foreach ($item in $items) {
-                if ($item.Current.Name -match ('Configure|Preferences|' + $jaSettings)) {
-                    try {
-                        $invoke = $item.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-                        $invoke.Invoke()
-                        $result.opened = $true
-                        $result.method = 'uia'
-                        break
-                    } catch { }
-                }
-            }
-        }
-    } catch { }
-    if (-not $result.opened) {
-        try {
-            [void][Q4Check]::BringToFront($main)
-            $shell = New-Object -ComObject WScript.Shell
-            $shell.SendKeys('%s')
-            Start-Sleep -Milliseconds 500
-            $shell.SendKeys('c')
-            Start-Sleep -Milliseconds 1200
-            $result.method = 'keys'
-        } catch { }
-    } else {
+        [void][Q4Check]::BringToFront($main)
+        $shell = New-Object -ComObject WScript.Shell
+        $shell.SendKeys('%s')
+        Start-Sleep -Milliseconds 500
+        $shell.SendKeys('c')
         Start-Sleep -Milliseconds 1200
-    }
+        $result.method = 'keys'
+    } catch { }
     $windows = [Q4Check]::WindowList($processId)
     Set-Content -Path (Join-Path $dir 'dialog-windows.txt') -Value $windows
     $best = $null
@@ -586,6 +550,40 @@ function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
     return $result
 }
 
+# A step that opens a modal dialog can wait forever, and the whole check then
+# stops with the dialog open (2026-11-11). This hidden watchdog stops the
+# application after the limit and writes "timeout" to the run status files so
+# the runner and check.py move on to the next target.
+function Start-CheckWatchdog([string]$appPath, [int]$seconds, [string[]]$statusPaths) {
+    $name = [System.IO.Path]::GetFileNameWithoutExtension($appPath)
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add('for ($i = 0; $i -lt ' + $seconds + '; $i += 5) {')
+    $lines.Add('    if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { exit 0 }')
+    $lines.Add('    Start-Sleep -Seconds 5')
+    $lines.Add('}')
+    $lines.Add('if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { exit 0 }')
+    $lines.Add('$targets = @(Get-Process -Name ' + "'" + $name.Replace("'", "''") + "'" +
+        ' -ErrorAction SilentlyContinue)')
+    $lines.Add('if ($targets.Count -gt 0) {')
+    $lines.Add('    $targets | Stop-Process -Force -ErrorAction SilentlyContinue')
+    foreach ($path in $statusPaths) {
+        $lines.Add('    Set-Content -Path ' + "'" + $path.Replace("'", "''") + "' -Value 'timeout'")
+    }
+    $lines.Add('}')
+    $source = $lines -join "`r`n"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
+    return Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+        -ArgumentList @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)
+}
+
+function Stop-CheckWatchdog($watchdog) {
+    if (-not $watchdog) { return }
+    try {
+        $watchdog.Refresh()
+        if (-not $watchdog.HasExited) { Stop-Process -Id $watchdog.Id -Force }
+    } catch { }
+}
+
 function Invoke-Q4Check($request, [string]$target) {
     $runName = if ($request.name) { [string]$request.name } else { 'q4-e2e' }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
@@ -596,6 +594,10 @@ function Invoke-Q4Check($request, [string]$target) {
     Log "check $dir"
     Write-Meta $dir $request $target 'off' 'off'
     $errors = New-Object System.Collections.Generic.List[string]
+    $watchdog = $null
+    try {
+        $watchdog = Start-CheckWatchdog ([string]$request.app) 600 @($status, $script:runStatus)
+    } catch { Log ("watchdog did not start: " + $_.Exception.Message) }
     $facts = [ordered]@{
         scenario = 'q4-e2e'
         app = $request.app
@@ -833,6 +835,7 @@ function Invoke-Q4Check($request, [string]$target) {
         } finally { Stop-CheckApp $first }
     } catch { $errors.Add('first-line: ' + $_.Exception.Message) }
 
+    Stop-CheckWatchdog $watchdog
     $facts.errors = @($errors)
     $facts | ConvertTo-Json -Depth 8 | Set-Content -Path (Join-Path $dir 'facts.json')
     Set-Content -Path (Join-Path $dir 'meta.txt') -Value @(
