@@ -27,6 +27,9 @@
 # THREAD_CPU is off (the default) or on: whether thread_cpu.ps1 samples the
 # process and thread CPU counters during the run. run.py fills it from the
 # target's "thread_cpu" in hosts.json.
+# POWER is off (the default) or on: whether power.ps1 samples the battery once
+# a second during the run. run.py fills it from the target's "power" in
+# hosts.json; runs on AC power are left out of the power aggregation.
 # TARGET_ENV is a JSON object of environment variables for the measured
 # application; run.py fills it from the target's "env" in hosts.json.
 # TARGET_KRITARC is a JSON object of root kritarc keys (for example the hidden
@@ -38,7 +41,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
-  sed -n '4,28p' "$0" >&2
+  sed -n '4,33p' "$0" >&2
   exit 2
 fi
 host=$1 target=$2 runs=$3 app=$4 out=$5 inject=${6:-'{}'}
@@ -54,6 +57,7 @@ target_display_check=${TARGET_DISPLAY_CHECK:-'{}'}
 surface_state=${SURFACE_STATE:-off}
 surface_state_wait=${SURFACE_STATE_WAIT:-on}
 thread_cpu=${THREAD_CPU:-off}
+power=${POWER:-off}
 extra=()
 if [ -n "${CAPTURE_TOOL:-}" ]; then
   capture=true
@@ -65,10 +69,10 @@ fi
 python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" \
     "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
     "$(python3 -I "$here/presentmon_command.py")" "$target_env" "$target_kritarc" \
-    "$target_display_check" "$surface_state" "$surface_state_wait" "$thread_cpu" > "$work/request.json"
+    "$target_display_check" "$surface_state" "$surface_state_wait" "$thread_cpu" "$power" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
-scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/thread_cpu.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
+scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/thread_cpu.ps1" "$here/power.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
 ssh "$host" "schtasks /run /tn LibrePaintPenLatency | Out-Null"
 
 state=""

@@ -34,7 +34,10 @@ Before every run the runner waits, unless the target sets
 a run whose reading stayed below 60 % during the measurement is marked and
 left out of the aggregation. A Windows target that sets "thread_cpu": "on"
 has thread_cpu.ps1 sample the process and thread CPU counters; the table then
-shows the CPU time inside the injected input window. A run
+shows the CPU time inside the injected input window. A target that sets
+"power": "on" has power.ps1 sample the battery once a second; the table then
+shows the average discharge rate and the discharged energy inside the input
+window, and runs that saw AC power are left out of that comparison. A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
 application was not the foreground window when the capture began and that
@@ -64,6 +67,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(HERE, "pen-latency"))
 import capture_analyze  # noqa: E402
+import power  # noqa: E402
 import thread_cpu  # noqa: E402
 
 
@@ -98,6 +102,7 @@ KRITARC_KEY = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
 SURFACE_STATE_MODES = ("off", "on", "light")
 SURFACE_STATE_WAIT_MODES = ("on", "off")
 THREAD_CPU_MODES = ("off", "on")
+POWER_MODES = ("off", "on")
 
 
 def target_environment(target):
@@ -185,6 +190,20 @@ def target_thread_cpu(target):
     return mode
 
 
+def target_power(target):
+    """Return whether the Windows runner samples battery power.
+
+    The sampler is off by default. A battery comparison turns it on for every
+    target of the comparison so the sampling cost is the same on both sides;
+    runs that see AC power are left out of the power aggregation.
+    """
+    mode = target.get("power", "off")
+    if not isinstance(mode, str) or mode not in POWER_MODES:
+        raise SystemExit("target %s: power must be one of %s" % (
+            target["name"], ", ".join(POWER_MODES)))
+    return mode
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -199,6 +218,7 @@ def runner_for(host, target, scenario, run_root):
                "SURFACE_STATE": target_surface_state(target),
                "SURFACE_STATE_WAIT": target_surface_state_wait(target),
                "THREAD_CPU": target_thread_cpu(target),
+               "POWER": target_power(target),
                "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True),
                "TARGET_KRITARC": json.dumps(target_kritarc(target), sort_keys=True)}
         return argv, env, None
@@ -212,6 +232,8 @@ def runner_for(host, target, scenario, run_root):
         raise SystemExit("target %s: surface_state_wait is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("thread_cpu") is not None:
         raise SystemExit("target %s: thread_cpu is supported only for Windows targets" % target["name"])
+    if kind in ("linux", "macos") and target.get("power") is not None:
+        raise SystemExit("target %s: power is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
@@ -320,6 +342,11 @@ SURFACE_STATE_KEYS = {
     "surface_state_after_total_cpu_pct": "after_total_cpu_pct",
 }
 
+POWER_KEYS = {
+    "power_mode": "mode",
+    "power_ac": "ac",
+}
+
 
 def number_or_none(value):
     try:
@@ -380,6 +407,25 @@ def surface_state(path):
         state["during_readings_missing"] = str(missing)
         state["during_min_processor_performance_pct"] = (
             "%.0f" % min(readings) if readings else "unavailable")
+    return state
+
+
+def power_state(path):
+    """Read whether the runner saw AC power around one run.
+
+    Runs without a power sampler have no keys and return an empty dict, so
+    they never enter the AC count.
+    """
+    meta = os.path.join(path, "meta.txt")
+    state = {}
+    if not os.path.exists(meta):
+        return state
+    with open(meta, errors="replace") as handle:
+        for line in handle:
+            key, _, value = line.strip().partition("=")
+            field = POWER_KEYS.get(key)
+            if field:
+                state[field] = value
     return state
 
 
@@ -468,6 +514,39 @@ def aggregate_thread_cpu(runs):
     return result
 
 
+def run_on_ac(run):
+    """Whether a run saw AC power and must stay out of the power aggregation.
+
+    The runner writes power_ac=1 from the samples. The summary is a fallback
+    for a run whose meta.txt is incomplete.
+    """
+    state = run.get("power_state") or {}
+    if str(state.get("ac", "")).strip().lower() in ("1", "true"):
+        return True
+    return bool((run.get("power") or {}).get("ac"))
+
+
+def aggregate_power(runs):
+    """Median of the per-run discharge rate and energy, without AC runs."""
+    entries, ac_runs = [], 0
+    for run in runs:
+        entry = run.get("power")
+        if not entry:
+            continue
+        if run_on_ac(run):
+            ac_runs += 1
+            continue
+        entries.append(entry)
+    if not entries:
+        return None
+    result = {"runs": len(entries), "ac_runs": ac_runs}
+    for key in ("window_s", "rate_mw", "energy_mwh", "remaining_mwh_delta", "charge_pct_delta"):
+        values = [entry[key] for entry in entries if entry.get(key) is not None]
+        if values:
+            result[key] = statistics.median(values)
+    return result
+
+
 def summarize(run_root, hosts, scenario):
     """Analyze every run directory and group run medians by host, target and state."""
     summary = {"scenario": scenario["name"], "hosts": {}}
@@ -497,6 +576,8 @@ def summarize(run_root, hosts, scenario):
                 "excluded": result.get("excluded"),
                 "surface_state": surface_state(path),
                 "thread_cpu": thread_cpu.summarize(path),
+                "power": power.summarize(path),
+                "power_state": power_state(path),
                 "speed_groups": result.get("ink.speed_groups", []),
                 "speed_change": result.get("ink.speed_change", []),
             })
@@ -514,6 +595,7 @@ def summarize(run_root, hosts, scenario):
                 1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
             data["metrics"] = aggregate(valid, scenario["metrics"])
             data["thread_cpu"] = aggregate_thread_cpu(valid)
+            data["power"] = aggregate_power(valid)
             data["presentmon"] = {
                 status: sum(1 for run in valid if presentmon_status(run) == status)
                 for status in ("present", "partial", "none")
@@ -836,6 +918,29 @@ def main(argv):
     if thread_lines:
         print("== thread CPU (input interval)")
         print("\n".join(thread_lines))
+    power_lines = []
+    for host, entry in summary["hosts"].items():
+        for target, data in entry["targets"].items():
+            sample = data.get("power")
+            if not sample:
+                continue
+            parts = []
+            if sample.get("rate_mw") is not None:
+                parts.append("discharge %.1f mW" % sample["rate_mw"])
+            if sample.get("energy_mwh") is not None:
+                parts.append("%.2f mWh" % sample["energy_mwh"])
+            if sample.get("remaining_mwh_delta") is not None:
+                parts.append("remaining %.2f mWh" % sample["remaining_mwh_delta"])
+            if sample.get("charge_pct_delta") is not None:
+                parts.append("charge %.1f%%" % sample["charge_pct_delta"])
+            parts.append("over %.1fs" % sample.get("window_s", 0.0))
+            parts.append("%d run(s)" % sample.get("runs", 0))
+            if sample.get("ac_runs"):
+                parts.append("%d AC run(s) left out" % sample["ac_runs"])
+            power_lines.append("   %s/%s: %s" % (host, target, ", ".join(parts)))
+    if power_lines:
+        print("== battery power (input interval)")
+        print("\n".join(power_lines))
     destination = args.summary or os.path.join(run_root, "summary.json")
     os.makedirs(os.path.dirname(os.path.abspath(destination)), exist_ok=True)
     with open(destination, "w") as handle:

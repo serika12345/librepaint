@@ -480,6 +480,15 @@ try {
         $threadCpuMode = 'off'
     }
     $threadScript = Join-Path $here 'thread_cpu.ps1'
+    # Battery power is a runner setting and off unless the target asks for it.
+    # It samples Win32_Battery and root\wmi once a second, so a latency run
+    # without a power comparison does not pay for it.
+    $powerMode = if ($request.power) { [string]$request.power } else { 'off' }
+    if ($powerMode -notin @('off', 'on')) {
+        Log ("unknown power '" + $powerMode + "', recording nothing")
+        $powerMode = 'off'
+    }
+    $powerScript = Join-Path $here 'power.ps1'
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -491,6 +500,7 @@ try {
         Log "run $n $dir"
         Write-Meta $dir $request $target $surfaceStateMode $surfaceStateWait
         Add-Content -Path (Join-Path $dir 'meta.txt') -Value "thread_cpu_mode=$threadCpuMode"
+        Add-Content -Path (Join-Path $dir 'meta.txt') -Value "power_mode=$powerMode"
         Write-LaunchFacts $dir 'start' $null
         # Wait for the device to recover before it is measured. The wait runs
         # in a separate process before the sampler and the application start,
@@ -600,9 +610,29 @@ try {
         $threadSampler = $null
         $threadStop = Join-Path $dir 'threads.stop'
         $threadCsv = Join-Path $dir 'threads.csv'
+        $powerSampler = $null
+        $powerStop = Join-Path $dir 'power.stop'
+        $powerCsv = Join-Path $dir 'power.csv'
         $appOut = Join-Path $dir 'app.out'
         $appErr = Join-Path $dir 'app.err'
         try {
+            # Battery sampling starts before the application so the CSV has a
+            # sample at the start as well as one per second through the input
+            # window. It is one extra process reading the battery counters;
+            # the mode is off by default.
+            if ($powerMode -eq 'on' -and (Test-Path $powerScript)) {
+                try {
+                    $powerSampler = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+                        -ArgumentList @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+                            '-File', "`"$powerScript`"", '-Out', "`"$powerCsv`"", '-IntervalMs', '1000',
+                            '-StopFile', "`"$powerStop`"") `
+                        -RedirectStandardOutput (Join-Path $dir 'power.out') `
+                        -RedirectStandardError (Join-Path $dir 'power.err')
+                } catch {
+                    Log ("power sampler did not start: " + $_.Exception.Message)
+                }
+            }
+
             # Keep the application's own log: it names the OpenGL mode, failed
             # plugins and the canvas state, which the probe cannot show. A run
             # whose canvas stopped repainting (2026-11-10 22:55) needs these
@@ -698,6 +728,15 @@ try {
                     }
                 } catch { }
             }
+            if ($powerSampler) {
+                try { Set-Content -Path $powerStop -Value 'stop' } catch { }
+                try {
+                    if (-not $powerSampler.WaitForExit(15000)) {
+                        Stop-Process -Id $powerSampler.Id -Force -ErrorAction SilentlyContinue
+                        [void]$powerSampler.WaitForExit(5000)
+                    }
+                } catch { }
+            }
             if ($pm) {
                 try {
                     $pm.Refresh()
@@ -733,6 +772,34 @@ try {
                 "thread_cpu_process_exit=$(if ($threadSampler) { $threadSampler.HasExited } else { 'not-started' })"
             )
             Add-Content -Path (Join-Path $dir 'meta.txt') -Value $threadLines
+        }
+        if ($powerMode -eq 'on') {
+            $powerAc = 0
+            $powerRows = @()
+            if (Test-Path $powerCsv) {
+                try {
+                    $powerRows = @(Get-Content $powerCsv |
+                        Where-Object { $_ -and -not $_.StartsWith('#') } | ConvertFrom-Csv)
+                    foreach ($row in $powerRows) {
+                        $online = ([string]$row.power_online).Trim()
+                        $charging = ([string]$row.charging).Trim()
+                        $status = ([string]$row.battery_status).Trim()
+                        if ($online -in @('True', '1') -or $charging -in @('True', '1') -or
+                            $status -in @('2', '6', '7', '8', '9')) {
+                            $powerAc = 1
+                        }
+                    }
+                } catch {
+                    Log ("power summary failed: " + $_.Exception.Message)
+                }
+            }
+            $powerLines = @(
+                "power_ac=$powerAc",
+                "power_csv_bytes=$(if (Test-Path $powerCsv) { (Get-Item $powerCsv).Length } else { 0 })",
+                "power_samples=$($powerRows.Count)",
+                "power_sampler_exited=$(if ($powerSampler) { $powerSampler.HasExited } else { 'not-started' })"
+            )
+            Add-Content -Path (Join-Path $dir 'meta.txt') -Value $powerLines
         }
         if ($surfaceStateMode -ne 'off' -and (Test-Path $surfaceScript)) {
             try {

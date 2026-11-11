@@ -114,6 +114,20 @@ class PowerSamplerTest(unittest.TestCase):
         self.assertIn("root\\wmi", text)
         self.assertIn("$StopFile", text)
 
+    def test_runner_sends_and_starts_the_sampler(self):
+        remote = os.path.join(PEN_LATENCY, "run-remote.sh")
+        with open(remote, encoding="utf-8") as handle:
+            remote_text = handle.read()
+        self.assertIn("power.ps1", remote_text)
+        self.assertIn("POWER", remote_text)
+        runner = os.path.join(PEN_LATENCY, "run-surface.ps1")
+        with open(runner, encoding="utf-8") as handle:
+            runner_text = handle.read()
+        self.assertIn("power_mode", runner_text)
+        self.assertIn("power.csv", runner_text)
+        self.assertIn("power_ac", runner_text)
+        self.assertIn("power.ps1", runner_text)
+
 
 if __name__ == "__main__":
     unittest.main()

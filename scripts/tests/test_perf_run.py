@@ -334,6 +334,34 @@ class RunnerCommandTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
+    def test_power_is_off_unless_the_target_asks_for_it(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["POWER"], "off")
+            target["power"] = "on"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["POWER"], "on")
+
+    def test_invalid_power_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "power": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_power_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "power": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
     def test_windows_target_passes_environment_to_the_runner(self):
         scenario = {"trajectory": {}, "name": "test"}
         host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
@@ -391,6 +419,36 @@ class RunnerCommandTest(unittest.TestCase):
         scenario["kritarc"]["Other"] = {"key": "value"}
         self.assertEqual(run.kritarc_text(scenario),
                          "newOutlineStyle=2\nfpsLimit=100\n[Other]\nkey=value\n")
+
+
+class PowerAggregateTest(unittest.TestCase):
+    def entry(self, rate, energy, ac=False):
+        return {"power": {"window_s": 30.0, "samples": 30, "ac": ac,
+                          "rate_mw": rate, "energy_mwh": energy},
+                "power_state": {"mode": "on", "ac": "1" if ac else "0"}}
+
+    def test_ac_runs_are_left_out_of_the_power_median(self):
+        runs = [self.entry(4000.0, 33.0), self.entry(6000.0, 50.0),
+                self.entry(9000.0, 75.0, ac=True)]
+        result = run.aggregate_power(runs)
+        self.assertEqual(result["runs"], 2)
+        self.assertEqual(result["ac_runs"], 1)
+        self.assertAlmostEqual(result["rate_mw"], 5000.0)
+        self.assertAlmostEqual(result["energy_mwh"], 41.5)
+
+    def test_a_run_without_a_power_record_stays_out(self):
+        result = run.aggregate_power([{"power": None, "power_state": {}},
+                                      self.entry(4000.0, 33.0)])
+        self.assertEqual(result["runs"], 1)
+        self.assertEqual(result["ac_runs"], 0)
+
+    def test_power_state_is_read_from_meta_txt(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("power_mode=on\n")
+                handle.write("power_ac=1\n")
+            state = run.power_state(root)
+        self.assertEqual(state, {"mode": "on", "ac": "1"})
 
 
 class PresentMonAggregateTest(unittest.TestCase):
