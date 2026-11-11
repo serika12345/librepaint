@@ -69,6 +69,7 @@
 #include "config-qt-patches-present.h"
 
 #ifdef Q_OS_WIN
+#include <windows.h>
 #include <d3d11.h>
 #endif
 
@@ -307,6 +308,11 @@ KisOpenGLCanvas2::KisOpenGLCanvas2(KisCanvas2 *canvas,
 
     d->renderer = new KisOpenGLCanvasRenderer(new CanvasBridge(this), image, displayConfig, displayFilter);
     connect(this, &QOpenGLWidget::frameSwapped, this, [] { KisLatencyProbe::mark("frame_swapped"); });
+    // Qt emits this after paintGL and before the backing store is composited.
+    // The gap from paintgl_end to here is Qt's composition setup; the gap
+    // from here to frame_swapped contains the platform swap (SwapBuffers on
+    // desktop OpenGL, the ANGLE exchange).
+    connect(this, &QOpenGLWidget::aboutToCompose, this, [] { KisLatencyProbe::mark("canvas_about_to_compose"); });
 
     connect(d->renderer->openGLImageTextures().data(),
             SIGNAL(sigShowFloatingMessage(QString, int, bool)),
@@ -557,6 +563,16 @@ void KisOpenGLCanvas2::paintGL()
     if (!iosOpenGLWorkIsAllowed()) {
         d->foregroundRefreshPending = true;
         return;
+    }
+#endif
+
+#ifdef Q_OS_WIN
+    // Record the thread that paints once per process, so thread_cpu.csv can
+    // separate the GUI thread from driver threads.
+    static bool paintThreadMarked = false;
+    if (!paintThreadMarked) {
+        paintThreadMarked = true;
+        KisLatencyProbe::mark("paintgl_thread", static_cast<qint64>(GetCurrentThreadId()));
     }
 #endif
 
@@ -1072,11 +1088,18 @@ QVector<QRect> KisOpenGLCanvas2::updateCanvasProjection(const QVector<KisUpdateI
 void KisOpenGLCanvas2::updateCanvasImage(const QRect &imageUpdateRect)
 {
     d->canvasImageDirtyRect |= imageUpdateRect;
+    // x/y = the requested region. The count is the number of QWidget::update
+    // calls the canvas makes; a desktop path that issues more of them than
+    // the ANGLE path is a candidate for its extra CPU time.
+    KisLatencyProbe::mark("canvas_widget_update_request", imageUpdateRect.width(),
+                          imageUpdateRect.height(), 1);
     update(imageUpdateRect);
 }
 
 void KisOpenGLCanvas2::updateCanvasDecorations(const QRect &decoUpdateRect)
 {
+    KisLatencyProbe::mark("canvas_widget_update_request", decoUpdateRect.width(),
+                          decoUpdateRect.height(), 2);
     update(decoUpdateRect);
 }
 bool KisOpenGLCanvas2::callFocusNextPrevChild(bool next)

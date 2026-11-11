@@ -24,6 +24,8 @@ private Q_SLOTS:
         qunsetenv("LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION");
         qunsetenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE");
         qunsetenv("LIBREPAINT_L1_OPENGL_RENDERER");
+        qunsetenv("LIBREPAINT_L1_TEXTURE_BUFFERS");
+        qunsetenv("LIBREPAINT_L1_WIDGETS_RHI");
     }
 
     void unsetVariablesKeepNormalBehaviour()
@@ -35,6 +37,8 @@ private Q_SLOTS:
         QCOMPARE(KisL1Switches::disableMoveCompression(), false);
         QCOMPARE(KisL1Switches::disableUpdateThrottle(), false);
         QCOMPARE(KisL1Switches::openGLRenderer(), QString());
+        QCOMPARE(KisL1Switches::textureBuffers(), -1);
+        QCOMPARE(KisL1Switches::widgetsRhi(), -1);
     }
 
     void accessorsKeepTheFirstValueForTheProcess()
@@ -49,6 +53,8 @@ private Q_SLOTS:
         qputenv("LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION", "1");
         qputenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE", "1");
         qputenv("LIBREPAINT_L1_OPENGL_RENDERER", "desktop");
+        qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", "off");
+        qputenv("LIBREPAINT_L1_WIDGETS_RHI", "0");
 
         QCOMPARE(KisL1Switches::maxFrameLatency(), 0);
         QCOMPARE(KisL1Switches::swapInterval(), -1);
@@ -57,6 +63,8 @@ private Q_SLOTS:
         QCOMPARE(KisL1Switches::disableMoveCompression(), false);
         QCOMPARE(KisL1Switches::disableUpdateThrottle(), false);
         QCOMPARE(KisL1Switches::openGLRenderer(), QString());
+        QCOMPARE(KisL1Switches::textureBuffers(), -1);
+        QCOMPARE(KisL1Switches::widgetsRhi(), -1);
     }
 
     void maxFrameLatencyAcceptsOnlyOneToThree()
@@ -117,6 +125,34 @@ private Q_SLOTS:
         for (const char *value : {"1024", "0x768", "1024x0", "ax768", "1024x768x2", ""}) {
             qputenv("LIBREPAINT_L1_WINDOW_SIZE", value);
             QCOMPARE(KisL1Switches::Detail::readWindowSize(), QSize());
+        }
+    }
+
+    void textureBuffersAcceptOffAndOn()
+    {
+        for (const char *value : {"off", "0", "false", "no"}) {
+            qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", value);
+            QCOMPARE(KisL1Switches::Detail::readTextureBuffers(), 0);
+        }
+        for (const char *value : {"on", "1", "true", "yes"}) {
+            qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", value);
+            QCOMPARE(KisL1Switches::Detail::readTextureBuffers(), 1);
+        }
+        for (const char *value : {"", "maybe", "2", "-1"}) {
+            qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", value);
+            QCOMPARE(KisL1Switches::Detail::readTextureBuffers(), -1);
+        }
+    }
+
+    void widgetsRhiAcceptsZeroAndOne()
+    {
+        qputenv("LIBREPAINT_L1_WIDGETS_RHI", "0");
+        QCOMPARE(KisL1Switches::Detail::readWidgetsRhi(), 0);
+        qputenv("LIBREPAINT_L1_WIDGETS_RHI", "1");
+        QCOMPARE(KisL1Switches::Detail::readWidgetsRhi(), 1);
+        for (const char *value : {"", "auto", "2", "-1"}) {
+            qputenv("LIBREPAINT_L1_WIDGETS_RHI", value);
+            QCOMPARE(KisL1Switches::Detail::readWidgetsRhi(), -1);
         }
     }
 

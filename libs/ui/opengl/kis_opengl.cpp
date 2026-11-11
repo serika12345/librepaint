@@ -44,6 +44,8 @@
 
 #include <klocalizedstring.h>
 
+#include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include <KisRepaintDebugger.h>
 #include <KisUsageLogger.h>
 #include <kis_assert.h>
@@ -314,6 +316,24 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
 
     const bool isDebugEnabled = ctx->format().testOption(QSurfaceFormat::DebugContext);
 
+    // One line per process: renderer, swap interval and the L2 CPU switches
+    // that can change the upload and composition paths. It lets a run state
+    // which path it measured without reading the environment again.
+    {
+        const int textureSwitch = KisL1Switches::textureBuffers();
+        const int rhiSwitch = KisL1Switches::widgetsRhi();
+        qint64 flags = 0;
+        if (hasOpenGLES()) flags |= 1;
+        if (forceDisableTextureBuffers()) flags |= 2;
+        if (textureSwitch == 0) flags |= 4;
+        if (textureSwitch == 1) flags |= 8;
+        if (rhiSwitch == 0) flags |= 16;
+        KisLatencyProbe::mark("l1_render_path",
+                              static_cast<qint64>(getCurrentOpenGLRenderer()),
+                              static_cast<qint64>(ctx->format().swapInterval()),
+                              flags);
+    }
+
     dbgUI << "OpenGL: Opening new context";
     if (isDebugEnabled) {
         // Passing ctx for ownership management only, not specifying context.
@@ -448,7 +468,24 @@ bool KisOpenGL::forceDisableTextureBuffers()
 bool KisOpenGL::shouldUseTextureBuffers(bool userPreference)
 {
     initialize();
-    return !g_forceDisableTextureBuffers && userPreference;
+
+    // L2 CPU cause: LIBREPAINT_L1_TEXTURE_BUFFERS=off compares the desktop
+    // path with the unbuffered uploads that ANGLE uses; =on lifts the ANGLE
+    // default and enables the PBO path there. -1 keeps the renderer default.
+    // The switch is for the measurement only; KisL1Switches.h owns the
+    // removal condition.
+    const int switched = KisL1Switches::textureBuffers();
+    const bool effective = switched == 0 ? false :
+                           switched == 1 ? true :
+                           (!g_forceDisableTextureBuffers && userPreference);
+
+    static bool marked = false;
+    if (!marked) {
+        marked = true;
+        KisLatencyProbe::mark("l1_texture_buffers", effective ? 1 : 0, 0,
+                              switched + 1);
+    }
+    return effective;
 }
 
 bool KisOpenGL::useTextureBufferInvalidation()
