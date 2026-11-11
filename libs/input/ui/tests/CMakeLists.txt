@@ -97,6 +97,14 @@ kis_add_test(
         kritainputui
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_test(
+    KisWintabTrustTest.cpp
+    TEST_NAME KisWintabTrustTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
 target_compile_definitions(KisExtendedModifiersMapperContractTest
     PRIVATE kritainputui_EXPORTS
 )

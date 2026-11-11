@@ -88,6 +88,7 @@ set(kritainputui_LIB_SRCS
     wintab/drawpile_tablettester/tablettester.cpp
     wintab/KisWintabMapping.cpp
     wintab/KisWintabPacketPeeker.cpp
+    wintab/KisWintabTrust.cpp
 )
 
 ki18n_wrap_ui(kritainputui_LIB_SRCS

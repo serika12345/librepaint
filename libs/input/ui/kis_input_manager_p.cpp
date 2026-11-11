@@ -13,6 +13,8 @@
 #include "kis_input_event_normalizer_p.h"
 #include "kis_canvas_enter_leave_guard.h"
 
+#include "wintab/KisWintabPacketPeeker.h"
+
 #include <QMap>
 #include <QApplication>
 #include <QScopedPointer>
@@ -441,9 +443,16 @@ bool KisInputManager::Private::ProximityNotifier::eventFilter(QObject* object, Q
         d->setTabletInProximity(true);
         d->blockMouseEvents();
 #endif
+        // A new proximity decides the Wintab trust check again.
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            peeker->beginProximity();
+        }
         break;
     case QEvent::TabletLeaveProximity:
         d->debugEvent<QEvent, false>(event);
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            peeker->endProximity();
+        }
         d->setTabletInProximity(false);
         d->allowMouseEvents();
         if (KisInputManagerDetail::confirmLeaveAfterProximity(d->pointerInsideCanvas())) {

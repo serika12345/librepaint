@@ -661,7 +661,7 @@ void KisInputManagerTest::testWintabPacketCorrection()
     event.setTimestamp(777);
 
     const std::unique_ptr<QTabletEvent> corrected =
-        peeker.correctedTabletEvent(event);
+        peeker.correctedTabletEvent(event, QPointF());
     QVERIFY(corrected);
 
     // The packet maps to (125, 62.5) in logical pixels. Only the position
@@ -678,9 +678,91 @@ void KisInputManagerTest::testWintabPacketCorrection()
 
     // No packet with this time: the event stays as it is.
     event.setTimestamp(778);
-    QVERIFY(!peeker.correctedTabletEvent(event));
+    QVERIFY(!peeker.correctedTabletEvent(event, QPointF()));
     QCOMPARE(event.position(), QPointF(40, 60));
     QCOMPARE(event.globalPosition(), QPointF(140, 160));
+
+    KisWintabMapping::setConfiguredMode(savedMode, savedRect);
+}
+
+void KisInputManagerTest::testWintabTrustRejectsCorrection()
+{
+    using Mode = KisWintabMapping::Mode;
+
+    const Mode savedMode = KisWintabMapping::configuredMode();
+    const QRect savedRect = KisWintabMapping::configuredCustomRect();
+
+    // The settings page maps the tablet to the left half of a 1000x500
+    // native desktop. Every packet maps to (125, 62.5).
+    KisWintabMapping::setConfiguredMode(Mode::Custom, QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context.packetData = KisWintabPacketPeeker::PacketData;
+    api.context.inExtX = 1000;
+    api.context.inExtY = 500;
+    api.context.sysExtX = 1000;
+    api.context.sysExtY = 500;
+    api.packets = {
+        KisWintabApi::Packet{250, 125, 900},
+        KisWintabApi::Packet{250, 125, 901},
+        KisWintabApi::Packet{250, 125, 902},
+        KisWintabApi::Packet{250, 125, 903}
+    };
+
+    KisWintabPacketPeeker peeker(&api);
+
+    KisWintabMapping::Screen screen;
+    screen.nativeRect = QRect(0, 0, 1000, 500);
+    screen.logicalRect = QRect(0, 0, 1000, 500);
+    screen.devicePixelRatio = 1.0;
+    peeker.setScreensForTesting({screen});
+
+    QVERIFY(peeker.handleNativeMessage(
+        KisWintabPacketPeeker::PacketMessage, 0, 1));
+
+    // The hover before the first press is still undecided and is corrected.
+    QTabletEvent hover(QEvent::TabletMove,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    hover.setTimestamp(900);
+    const std::unique_ptr<QTabletEvent> correctedHover =
+        peeker.correctedTabletEvent(hover, QPointF(125, 65.0));
+    QVERIFY(correctedHover);
+    QCOMPARE(correctedHover->globalPosition(), QPointF(125, 62.5));
+
+    // The first press maps 2.5 px away from the cursor: the driver's range
+    // is not trusted and the Qt position stays.
+    QTabletEvent press(QEvent::TabletPress,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    press.setTimestamp(901);
+    QVERIFY(!peeker.correctedTabletEvent(press, QPointF(125, 65.0)));
+
+    // The rest of the proximity keeps the Qt position.
+    QTabletEvent move(QEvent::TabletMove,
+                      QPointingDevice::primaryPointingDevice(),
+                      QPointF(40, 60), QPointF(140, 160),
+                      0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                      Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    move.setTimestamp(902);
+    QVERIFY(!peeker.correctedTabletEvent(move, QPointF(125, 62.5)));
+
+    // A new proximity is undecided and corrects again.
+    peeker.beginProximity();
+    QTabletEvent nextProximityMove(QEvent::TabletMove,
+                                   QPointingDevice::primaryPointingDevice(),
+                                   QPointF(40, 60), QPointF(140, 160),
+                                   0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                                   Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    nextProximityMove.setTimestamp(902);
+    const std::unique_ptr<QTabletEvent> correctedNext =
+        peeker.correctedTabletEvent(nextProximityMove, QPointF(125, 62.5));
+    QVERIFY(correctedNext);
+    QCOMPARE(correctedNext->globalPosition(), QPointF(125, 62.5));
 
     KisWintabMapping::setConfiguredMode(savedMode, savedRect);
 }

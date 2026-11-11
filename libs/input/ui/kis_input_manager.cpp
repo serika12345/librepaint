@@ -17,6 +17,7 @@
 
 #include <KisMpl.h>
 #include <QApplication>
+#include <QCursor>
 #include <QQueue>
 #include <QTouchEvent>
 #include <QWidget>
@@ -253,7 +254,7 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
 
         if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
             correctedTabletEvent = peeker->correctedTabletEvent(
-                *static_cast<QTabletEvent *>(event));
+                *static_cast<QTabletEvent *>(event), QCursor::pos());
             if (correctedTabletEvent) {
                 event = correctedTabletEvent.get();
             }

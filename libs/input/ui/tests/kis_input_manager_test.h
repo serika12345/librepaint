@@ -23,6 +23,7 @@ private Q_SLOTS:
     void testSuppressionEventNormalization();
     void testCanvasLeaveGuard();
     void testWintabPacketCorrection();
+    void testWintabTrustRejectsCorrection();
 
     void testIncrementalAverage();
 };
