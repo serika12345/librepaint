@@ -57,6 +57,34 @@ class Q4Stage10Test(unittest.TestCase):
             self.assertNotIn("KRITA_QSCROLLER_PATCH", text, str(path))
             self.assertNotIn("QScroller", text, str(path))
 
+    def test_fork_update_environment_variables_are_gone(self):
+        removed = (
+            "QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER",
+            "QT_FRAME_RATE_OVERRIDE",
+        )
+        files = [REPO_ROOT / "CMakeLists.txt"]
+        for root_name in ("krita", "libs", "nix", "plugins", "cmake"):
+            root = REPO_ROOT / root_name
+            files.extend(
+                path
+                for path in root.rglob("*")
+                if path.is_file()
+                and path.suffix
+                in {".c", ".cc", ".cmake", ".cpp", ".h", ".hpp", ".nix", ".txt"}
+            )
+
+        failures = []
+        for path in files:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for name in removed:
+                if name in text:
+                    failures.append(f"{path.relative_to(REPO_ROOT)}: {name}")
+        self.assertEqual(
+            failures,
+            [],
+            "fork-only update environment variables remain:\n" + "\n".join(failures),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
