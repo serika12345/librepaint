@@ -359,6 +359,41 @@ class RenderPathTest(unittest.TestCase):
         self.assertEqual(path["texture_buffers_switch"], 0)
 
 
+class RendererSelectionTest(unittest.TestCase):
+    def test_choice_skipped_marks_and_first_frame_result_are_reported(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "l1_renderer_selection", 2, 3, 0),
+                (base, "l1_renderer_skipped", 4, 0, 0),
+                (base, "l1_first_frame_check", 2, 1, 0),
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+                (base + ms(3), "paintgl_end", 0),
+            ], [(base + ms(6), "20.0")])
+            result = analyze.Run(directory).analyze()
+        selection = result["renderer_selection"]
+        self.assertEqual(selection["renderer_name"], "desktop")
+        self.assertEqual(selection["candidates"], 3)
+        self.assertEqual(selection["skipped"], ["angle"])
+        self.assertFalse(selection["forced"])
+        self.assertEqual(selection["first_frame_check"],
+                         {"renderer": "desktop", "passed": True})
+
+    def test_a_run_without_the_markers_reports_nothing(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+                (base + ms(3), "paintgl_end", 0),
+            ], [(base + ms(6), "20.0")])
+            result = analyze.Run(directory).analyze()
+        self.assertNotIn("renderer_selection", result)
+
+
 class FocusGateTest(unittest.TestCase):
     """Focus, outline gate and tool-action markers around a pen press.
 

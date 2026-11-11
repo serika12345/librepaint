@@ -233,7 +233,10 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 | `LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE` | H6（フォークの更新の間引きの歯止め） | 1 | 前のフレームがGPU上でも描く。Qtの`QT_FRAME_COMPRESSION_MODE=2`も設定する。時刻記録に`last_frame_completed_on_gpu`/`qt_update_deferred`を出す |
 | `LIBREPAINT_L1_OPENGL_RENDERER` | H7（フォークなし・ANGLEを使わないOpenGL） | `desktop`/`angle`/`auto` | kritarcの`OpenGLRenderer`を上書きする。正式版Qtの版は別の構築で測る |
 | `LIBREPAINT_L1_TEXTURE_BUFFERS` | L2のCPUの原因（テクスチャーの転送） | `off`/`on` | `off`はPBOを使わず、ANGLEと同じ直接の`glTexSubImage2D`にする。`on`はANGLEでもPBOを使う（`KRITA_UNLOCK_TEXTURE_BUFFERS`と同じ効果を切り替えで行う）。実行した転送の方式を`l1_texture_buffers`（x=1がPBO、extra=切り替えの値+1）に1回残す |
-| `LIBREPAINT_L1_WIDGETS_RHI` | L2のCPUの原因（GDIの合成） | 0または1 | 0は`QT_WIDGETS_RHI`を0にしてQtのウィジェットの合成を従来の経路にし、1は現在のRHIの経路にする。`l1_render_path`のextraのbit 16が0の切り替えを表す |
+
+`LIBREPAINT_L1_WIDGETS_RHI`は、Qt 6の`QOpenGLWidget`がRHIの合成を前提にしているため削除した。0にするとコンテキストが初期化されず、キャンバスが描かれない（2026-11-11の`no-rhi`の回で`paintgl_begin`が0回、`frame_swapped`が17回、取り込みに線とホバーが写らなかった）。ウィジェットの合成の経路は、この版では切り替えられない。
+
+`selectSurfaceConfig()`が選んだrendererと、最初のフレームの検査の結果と、印で飛ばしたrendererは、標準エラーに1行ずつ出し、`LIBREPAINT_LATENCY_LOG`の`probe.csv`にも`l1_renderer_selection`（x=選んだrenderer、y=候補の数、extraのbit 1が明示の選択）、`l1_renderer_skipped`（x=飛ばしたrenderer）、`l1_first_frame_check`（x=検査したrenderer、y=1が合格）として残す。`selectSurfaceConfig()`は`KisUsageLogger`の初期化より前に走るため、計測の起動ではsysinfoのログに残らない。`analyze.py`は`renderer_selection`の1行にまとめる。
 
 切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
 L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの

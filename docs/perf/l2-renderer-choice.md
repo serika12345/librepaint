@@ -300,6 +300,12 @@ Windows の既定は `"angle"` のままで、desktop を既定にする変更�
 （`KisOpenGLStartupCheckContractTest`）だけのための入口で、Intel・AMD・NVIDIA の実機で
 検査を確かめた後に消す。削除の条件は `KisOpenGLStartupCheck.h` に書いてある。
 
+選択と検査の結果は、標準エラーに `OpenGL renderer selection: chosen=… candidates=… skipped=…`
+と `OpenGL first frame check: renderer=… result=…` の1行ずつを出し、`LIBREPAINT_LATENCY_LOG`
+の `probe.csv` にも `l1_renderer_selection`、`l1_renderer_skipped`、`l1_first_frame_check`
+として残す。`selectSurfaceConfig()` は `KisUsageLogger` の初期化より前に走るため、sysinfo の
+ログだけでは計測の起動に残らず、警告の UI も計測では表示されないためである。
+
 ## 4. L2 で desktop を既定にする条件
 
 L2 で desktop を既定にする判断は、次の条件をすべて満たすときに行う。

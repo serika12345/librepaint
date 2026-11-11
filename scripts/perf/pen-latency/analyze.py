@@ -555,6 +555,9 @@ class Run:
             render_path = summarize_render_path(self.events)
             if render_path:
                 result["render_path"] = render_path
+            renderer_selection = summarize_renderer_selection(self.events)
+            if renderer_selection:
+                result["renderer_selection"] = renderer_selection
             result["input_path"] = {
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
@@ -873,7 +876,6 @@ def summarize_render_path(events):
         "force_disable_texture_buffers": bool(flags & 2),
         "texture_buffers_off": bool(flags & 4),
         "texture_buffers_on": bool(flags & 8),
-        "widgets_rhi_off": bool(flags & 16),
     }
     texture = events.get("l1_texture_buffers", [])
     if texture:
@@ -888,8 +890,7 @@ def format_render_path(entry):
         return "none"
     flags = []
     for key, label in (("angle", "angle"), ("force_disable_texture_buffers", "force-no-pbo"),
-                       ("texture_buffers_off", "pbo-off"), ("texture_buffers_on", "pbo-on"),
-                       ("widgets_rhi_off", "rhi-off")):
+                       ("texture_buffers_off", "pbo-off"), ("texture_buffers_on", "pbo-on")):
         if entry.get(key):
             flags.append(label)
     text = "renderer=%s swap_interval=%d texture_buffers=%s" % (
@@ -897,6 +898,51 @@ def format_render_path(entry):
         "unknown" if "texture_buffers" not in entry else ("pbo" if entry["texture_buffers"] else "direct"))
     if flags:
         text += " flags{%s}" % ",".join(flags)
+    return text
+
+
+def summarize_renderer_selection(events):
+    """Return the chosen renderer, the skipped candidates and the check.
+
+    selectSurfaceConfig() runs before the usage logger is initialized, so the
+    measurement launch keeps these facts only in the probe log and on stderr.
+    """
+    entries = events.get("l1_renderer_selection", [])
+    if not entries:
+        return None
+    renderer, candidates, flags = int(entries[-1][1]), int(entries[-1][2]), int(entries[-1][3])
+    skipped = sorted({int(entry[1]) for entry in events.get("l1_renderer_skipped", [])})
+    result = {
+        "renderer": renderer,
+        "renderer_name": RENDERER_NAMES.get(renderer, "unknown"),
+        "candidates": candidates,
+        "skipped": [RENDERER_NAMES.get(value, str(value)) for value in skipped],
+        "forced": bool(flags & 1),
+    }
+    checks = events.get("l1_first_frame_check", [])
+    if checks:
+        check_renderer, passed = int(checks[-1][1]), int(checks[-1][2])
+        result["first_frame_check"] = {
+            "renderer": RENDERER_NAMES.get(check_renderer, "unknown"),
+            "passed": bool(passed),
+        }
+    return result
+
+
+def format_renderer_selection(entry):
+    """One line per run: the chosen renderer, skipped marks and the check."""
+    if not entry:
+        return "none"
+    text = "chosen=%s candidates=%d skipped=%s forced=%s" % (
+        entry.get("renderer_name", "unknown"), entry.get("candidates", 0),
+        ",".join(entry.get("skipped") or []) or "none",
+        "yes" if entry.get("forced") else "no")
+    check = entry.get("first_frame_check")
+    if check:
+        text += " first_frame=%s/%s" % (
+            check.get("renderer", "unknown"), "passed" if check.get("passed") else "failed")
+    else:
+        text += " first_frame=not-run"
     return text
 
 
@@ -1161,6 +1207,9 @@ def main(argv):
                 continue
             if key == "render_path":
                 print("   %-44s %s" % (key, format_render_path(stat)))
+                continue
+            if key == "renderer_selection":
+                print("   %-44s %s" % (key, format_renderer_selection(stat)))
                 continue
             if key == "thread_cpu":
                 print("   %-44s %s" % (key, format_thread_cpu(stat)))
