@@ -226,19 +226,11 @@ KisInputManager::Private::Private(KisInputManager *qq)
         });
 
     /**
-     * On Windows and Linux we have a proper fix for this bug
-     * patched into our local version of Qt. We don't have a fix
-     * for macOS
+     * Official Qt 6.11.3 does not carry the fork's unbalanced
+     * KeyPress/KeyRelease fixes (747423036c, f8a61ebc5b, 21d400db4f), so the
+     * workaround is needed on Windows as well as on Linux and macOS.
      */
-#ifdef Q_OS_MACOS
-    useUnbalancedKeyPressEventWorkaround = true;
-#endif
-
-    /**
-     * In Linux distributions Qt is not patched, so we should
-     * use workaround for them
-     */
-#if defined Q_OS_LINUX
+#if defined Q_OS_WIN || defined Q_OS_MACOS || defined Q_OS_LINUX
     useUnbalancedKeyPressEventWorkaround = true;
 #endif
 

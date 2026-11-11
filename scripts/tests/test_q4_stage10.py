@@ -25,6 +25,14 @@ class Q4Stage10Test(unittest.TestCase):
         self.assertIn("updateWindowTitleForActiveView", source)
         self.assertIn("setWindowTitle(d->activeView->windowTitle());", source)
 
+    def test_windows_uses_the_unbalanced_key_workaround(self):
+        source = read_source("libs/input/ui/kis_input_manager_p.cpp")
+        assignment = source.index("useUnbalancedKeyPressEventWorkaround = true;")
+        block = source[max(0, assignment - 700) : assignment]
+        self.assertIn("Q_OS_WIN", block)
+        self.assertIn("Q_OS_LINUX", block)
+        self.assertIn("Q_OS_MACOS", block)
+
 
 if __name__ == "__main__":
     unittest.main()
