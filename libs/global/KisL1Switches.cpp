@@ -101,6 +101,26 @@ int readTextureBuffers()
     if (value == "on" || value == "1" || value == "true" || value == "yes") return 1;
     return -1;
 }
+
+bool readReuseTextureStorage()
+{
+    return flagValue("LIBREPAINT_L1_REUSE_TEXTURE_STORAGE");
+}
+
+bool readReuseGlSync()
+{
+    return flagValue("LIBREPAINT_L1_REUSE_GL_SYNC");
+}
+
+bool readSkipRedundantMakeCurrent()
+{
+    return flagValue("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT");
+}
+
+bool readDisableColorSelectorGl()
+{
+    return flagValue("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL");
+}
 }
 
 // The pen and frame paths call these accessors for every event and every
@@ -153,6 +173,30 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
+    return value;
+}
+
+bool reuseTextureStorage()
+{
+    static const bool value = Detail::readReuseTextureStorage();
+    return value;
+}
+
+bool reuseGlSync()
+{
+    static const bool value = Detail::readReuseGlSync();
+    return value;
+}
+
+bool skipRedundantMakeCurrent()
+{
+    static const bool value = Detail::readSkipRedundantMakeCurrent();
+    return value;
+}
+
+bool disableColorSelectorGl()
+{
+    static const bool value = Detail::readDisableColorSelectorGl();
     return value;
 }
 }
