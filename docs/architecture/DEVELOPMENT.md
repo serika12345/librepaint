@@ -482,6 +482,20 @@ scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts bui
 scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果のディレクトリー>
 ```
 
+計測と自動の確認は、実行のたびに`build/perf/events.log`へ出来事を1行ずつ追記する
+（`run.py`と`check.py`の`--events`で変える）。行は「時刻（ISO 8601、秒まで）<TAB>種類<TAB>ラベル<TAB>対象<TAB>回<TAB>詳細」で、
+1行を書くたびにファイルを閉じる（`tail -F`で追える）。種類は`run-start`（計測の組の開始）、
+`target-start`、`target-done`（成功。詳細に状態とホバー・インクの中央値）、`target-failed`
+（詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`step`（自動の確認の
+手順の開始と終了。詳細に手順の名前）、`step-timeout`、`run-done`（終了コード）である。
+同じ対象で、同じ理由（`status.txt`の最後の行の`failed: `から後ろ）の失敗が2回続いたら、
+`run.py`はその対象の残りの回を回さずに`target-abandoned`を書き、ほかの対象は続ける。
+すべての対象を打ち切ったら計測の組を終える。自動の確認の各手順は、`run-surface.ps1`が
+600秒の見張りとは別に上限を持つ（クリップボード60秒、タブ60秒、日本語配列60秒、ちらつき180秒、
+ペンの各項目120秒）。上限を超えた手順は`status.txt`に`step <名前> end timeout`と記録し、
+アプリを止めずに次の手順へ進む（設定の画面が開いたままなら閉じる）。`run-remote.sh`は実行中に
+`status.txt`の新しい行を`status: <行>`として返し、`check.py`が`step`の行を`events.log`に写す。
+
 判定の規則：
 
 - 比較する対象は、同じ機器、同じ窓とキャンバスの大きさ、同じ設定で交互に計測する。
