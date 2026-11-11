@@ -62,6 +62,8 @@ public:
 
     void suppressNextLeftMousePress();
     void setSuppressSyntheticMouseEvents(bool value);
+    void setTabletInProximity(bool value);
+    bool isTabletInProximity() const;
 
     void startBlockingTouchEvents();
     void stopBlockingTouchEvents();
@@ -70,6 +72,7 @@ private:
     bool m_blockMouseEvents {false};
     bool m_suppressNextLeftMousePress {false};
     bool m_suppressSyntheticMouseEvents {false};
+    bool m_tabletInProximity {false};
     bool m_blockTouchEvents {false};
     const bool m_useSecondaryButtonsWorkaround;
     const bool m_supportsSyntheticMouseSuppression;

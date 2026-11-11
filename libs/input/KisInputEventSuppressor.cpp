@@ -52,6 +52,7 @@ KisInputEventSuppressor::filter(const Event &event)
 
     if (isMouseEvent(event.type) &&
         (m_blockMouseEvents ||
+         (m_supportsSyntheticMouseSuppression && m_tabletInProximity) ||
          (m_supportsSyntheticMouseSuppression &&
           m_suppressSyntheticMouseEvents &&
           event.synthesized))) {
@@ -88,6 +89,16 @@ void KisInputEventSuppressor::suppressNextLeftMousePress()
 void KisInputEventSuppressor::setSuppressSyntheticMouseEvents(bool value)
 {
     m_suppressSyntheticMouseEvents = value;
+}
+
+void KisInputEventSuppressor::setTabletInProximity(bool value)
+{
+    m_tabletInProximity = value;
+}
+
+bool KisInputEventSuppressor::isTabletInProximity() const
+{
+    return m_tabletInProximity;
 }
 
 void KisInputEventSuppressor::startBlockingTouchEvents()
