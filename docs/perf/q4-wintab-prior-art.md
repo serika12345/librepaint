@@ -30,6 +30,19 @@ Qt 本家には、1 つの画面への対応の不具合の記録がある（QTB
 - Windows のタブレットの経路は、設定がないとき Wintab になる（krita/main.cc の forceWinTab）。Windows Ink は設定で選ぶ。
 - 段 4 の実装（4237a0c188、43860eb8ab、db5d1ed9fb）は、Qt がパケットを取り出す前に WTPacketsPeek で読み、lcSys（または仮想デスクトップ、任意の矩形）に当てはめ、時刻で対応づけて QTabletEvent の位置を差し替える。Krita 4.2 以降と同じ当てはめ方で、Blender のような押下時の一致の確かめはない。実機では未確認。
 
+## Qt を使う描画ソフトの扱い（ソースで確認）
+
+2026-11-11 に各ソフトのリポジトリーのソースと変更履歴を直接読んだ。
+
+| ソフト（Qt の版） | Windows のペンの入力 | 対応範囲 | 根拠 |
+| --- | --- | --- | --- |
+| Krita（Qt 6） | Qt の処理に、自前の Qt のフォーク（for-krita/6.11.3）で改変を当てる。lcSys の利用の改変（051139ed72）を今も持つ | lcSys | LibrePaint の docs/perf/qt-fork-patches.md（フォークの改変の一覧）、Krita の 885f3348c6（2025 年に自前の処理を削除） |
+| Drawpile（Qt 6、開発が続いている） | Qt のペンの処理を使わず、Krita が昔使っていた自前の処理（Wintab の kis_tablet_support_win.cpp 約 990 行、Windows Ink の kis_tablet_support_win8.cpp）を取り込み、ネイティブのイベントフィルターで動かす。Windows の既定は自前の Windows Ink | 自前の Wintab は lcSys（wintabDesktopRect） | drawpile/Drawpile の src/desktop/bundled/kis_tablet/、40c09b270（2023-04-11「Qt を改変せずに KisTablet を動かす」）、ChangeLog「Qt のものはかなり壊れているので、KisTablet の Windows Ink を既定にする」、src/desktop/tabletinput.cpp のコメント「Qt 6 で Wintab のモードを有効にすると、メニューがペンの押下に時々しか反応しない。Qt 6 を Windows Ink のモードにしたまま KisTablet の Wintab を使えば問題ない」 |
+| OpenToonz（Qt 5.15.2） | Windows だけ、Wintab と Windows Ink を切り替える改変を当てた Qt を配る | 正式版 Qt と同じ（仮想デスクトップとカーソルへの切り替え） | opentoonz/opentoonz の stuff/doc/LICENSE/notice_about_modified_qt.txt |
+| Pencil2D、Tahoma2D | 正式版 Qt のまま。Wintab に関するコードは見つからなかった | 正式版 Qt と同じ | pencil2d/pencil、tahoma2d/tahoma2d のコードの検索 |
+
+Qt を使わない Blender の扱い（intern/ghost/intern/GHOST_Wintab.cc を読んだ）：Wintab に生の座標を渡させ（「一部のドライバーは高 DPI や複数の画面を正しく扱わないので、拡大は手で行う」）、lcSys に整数の画素で当てはめる。ボタンの押下で、Windows のマウスの押下の知らせの位置と 1px 以内で一致したときだけ Wintab の位置を信じ、フォーカスを失うと信じるのをやめる。WM_DISPLAYCHANGE で範囲を読み直す。
+
 ## Krita が自前のペンの処理から Qt の改変へ移った経緯
 
 LibrePaint のリポジトリーに残る Krita のコミットの履歴で確かめた。
