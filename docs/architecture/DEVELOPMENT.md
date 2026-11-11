@@ -536,6 +536,48 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   記録と組の数を出す。`stroke_dab`は`libs/painting/strokes/freehand_stroke.cpp`が
   `maskedPainter`の描画の後に記録する。
 
+### 自動の確認（Q4の段ごとのE2E）
+
+Q4（フォークをやめ、全プラットフォームで正式版の同じQtにする）の段ごとの確認は、Surfaceで
+1つの入口から回す自動の確認で行う。`scripts/perf/check.py`が`run.py`と同じ`hosts.json`の
+Windowsの対象を使い、`run-remote.sh`と`run-surface.ps1`で次の項目を順に実行する。判定は
+Linux開発機で証拠のファイルから行い、`checks.json`に項目ごとの`pass`／`fail`と根拠の
+パスを残す。
+
+```sh
+# Mac（計測機）。Windowsの対象はq4-e2e-stage3、q4-e2e-stage10、q4-e2e-fork。
+./scripts/run-shared-test-env python3 scripts/perf/check.py \
+  --scenario scripts/perf/scenarios/q4-e2e.json \
+  --hosts build/perf/hosts.json --label q4-e2e --only windows
+# 集め終わった結果を読み直す
+python3 scripts/perf/check.py --scenario scripts/perf/scenarios/q4-e2e.json \
+  --hosts build/perf/hosts.json --analyze-only build/perf/q4-e2e-<日時>
+```
+
+`windows_capture.exe`は`--monitor`を持つ版を使う（枠の変更中のフレームを`flicker.csv`へ
+書く）。ビルドはファイル先頭の手順のとおりで、`--snapshot`と`--plan`の動作は変えない。
+Surfaceへは`run-remote.sh`が`run-surface.ps1`、`Q4Check.cs`、`PenInject.cs`、
+`windows_capture.exe`を写す。
+
+| 項目 | すること | 合格の条件 | 根拠 |
+| --- | --- | --- | --- |
+| クリップボード | 透明を含む96×64の画像を開き、Ctrl+A、Ctrl+Cの後に`EnumClipboardFormats`で形式を数える | `PNG`（`image/png`を含む）があり、`CF_DIB`、`CF_DIBV5`、`CF_BITMAP`がない。クリップボードのPNGを復号した画素が元と8bitで1階調以内（透明の画素はアルファも1階調以内） | `clipboard-formats.txt`、`clipboard-png.png`、`clipboard-source.png` |
+| タブの題名 | 名前の違う画像を2つ開き、Ctrl+Tabで往復する | 最初と戻した後の`GetWindowText`に文書Aの名前、切り替えた後に文書Bの名前があり、前後で題名が変わる | `tabs.txt` |
+| 日本語配列 | `LoadKeyboardLayout("00000411")`を読み、窓へ`WM_INPUTLANGCHANGEREQUEST`を送り、`SendInput`でCtrl+Tabを送る | 配列を読み込め、題名が切り替わり、キーを離した後の`GetKeyState`でCtrl、Alt、Shift、Winが押下のまま残らない | `keyboard.txt` |
+| ちらつき | `windows_capture --monitor`の間に対象の窓を数回`SetWindowPos`で変え、設定のダイアログを開いて閉じる | 真っ白なフレームと、大きさが変わったのに画面が更新されていないフレームの数が、同じ実行のフォーク版より`allowance`（真っ白2、更新なし2）を超えて多くない | `flicker.csv`、`flicker-log.txt`、`dialog.txt` |
+| ペン（段2・段3） | 合成ペンで、キャンバスの出入り、縁をまたぐ線、1本の線、長押し、点、タイトルバーと枠からの戻り、起動直後の線を行う | 出入りで輪郭が出て消える。縁をまたぐ線が1回のストロークで右端まで写る。1本の線が1本に写る。長押しで`#32768`などのメニューの窓が出ず、押下が線になる。点が1つ。戻りでカーソルと輪郭が戻る。起動直後の線が描かれる | `pen/`の`probe.csv`、`pen-events.txt`、`actions.txt`、`*.bmp`、`popups.txt`、`cursors.txt`、`first/` |
+
+`flicker.csv`の列は、フレームの時刻、窓のクライアント矩形、矩形が前のフレームから変わったか、
+最初のキャンバス矩形の中の白い画素の割合、暗い画素の数、クライアント矩形の中で前のフレームから
+変わった画素の割合、古い矩形のうち新しい矩形の外側で変わらなかった画素の割合である。真っ白は
+`canvas_white_ratio`が0.98以上で暗い画素が20以下、更新なしは矩形が変わったフレームで
+`changed_ratio`が0.002以下とする。数値はフォーク版との相対で決め、絶対の上限は置かない。
+
+合成入力で再現できない項目（実物のペンの近接、指のタッチ、2本指のズームとパン）は
+`checks.json`の`not_reproducible`に残し、Q4の最後に実機で確かめる。`run-surface.ps1`の
+確認の分岐は`request.json`の`check`があるときだけ通り、通常の計測の動作を変えない。
+`Q4Check.cs`は証拠を集めるだけで判定をせず、`check.py`がWindowsなしで判定を試験できる。
+
 ## デスクトップ
 
 ### macOS
