@@ -57,12 +57,14 @@ void KisViewSignalsTest::initTestCase()
     QVERIFY(m_viewManager);
     m_viewManager->setCurrentView(m_kisView);
 
-    const auto timers = m_mainWindow->findChildren<QTimer*>();
-    for (QTimer *timer : timers) {
-        if (timer && timer->isSingleShot() && timer->interval() == 1000) {
-            timer->stop();
-        }
-    }
+    // The delayed sanity check opens modal resource warnings when the test
+    // environment has no presets. Stop it so it cannot interrupt a test
+    // function with a nested dialog event loop.
+    QTimer *sanityCheckTimer = m_mainWindow->findChild<QTimer *>(
+        QStringLiteral("sanityCheckTimer"));
+    QVERIFY(sanityCheckTimer);
+    sanityCheckTimer->stop();
+    QVERIFY(!sanityCheckTimer->isActive());
 
     QApplication::processEvents();
 

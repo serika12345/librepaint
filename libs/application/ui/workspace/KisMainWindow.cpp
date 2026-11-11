@@ -31,6 +31,7 @@
 #include <KisL1Switches.h>
 #include <KisSignalMapper.h>
 #include <QTabBar>
+#include <QTimer>
 #include <QMoveEvent>
 #include <QUrl>
 #include <QMessageBox>
@@ -623,7 +624,15 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     d->viewManager->updateGUI();
     d->viewManager->updateIcons();
 
-    QTimer::singleShot(1000, Qt::CoarseTimer, this, SLOT(checkSanity()));
+    // Keep the timer as a child QTimer with a name so tests can stop the
+    // delayed sanity check before it opens modal warning dialogs.
+    QTimer *sanityCheckTimer = new QTimer(this);
+    sanityCheckTimer->setObjectName(QStringLiteral("sanityCheckTimer"));
+    sanityCheckTimer->setSingleShot(true);
+    sanityCheckTimer->setTimerType(Qt::CoarseTimer);
+    sanityCheckTimer->setInterval(1000);
+    connect(sanityCheckTimer, &QTimer::timeout, this, &KisMainWindow::checkSanity);
+    sanityCheckTimer->start();
 
     {
         using namespace std::placeholders; // For _1 placeholder
