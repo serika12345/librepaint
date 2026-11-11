@@ -9,6 +9,8 @@ A run directory contains:
   ``LIBREPAINT_LATENCY_LOG`` names the file (``libs/global/KisLatencyProbe``).
 - ``inject.csv`` (optional): synthetic pen samples written by ``PenInject.cs``
   or by the capture tools (``windows_capture.cpp``).
+- ``power.csv`` (optional): battery samples written by ``power.ps1`` when the
+  target asks for them (``hosts.json``'s ``power``).
 
 All three files use the Windows QueryPerformanceCounter clock. For every
 displayed frame the script finds the newest input that the frame can reflect
@@ -603,6 +605,9 @@ class Run:
         if os.path.exists(os.path.join(self.directory, "threads.csv")):
             import thread_cpu
             result["thread_cpu"] = thread_cpu.summarize(self.directory)
+        if os.path.exists(os.path.join(self.directory, "power.csv")):
+            import power
+            result["power"] = power.summarize(self.directory)
         return result
 
     def analyze_probe(self, stats, in_contact, link):
@@ -969,6 +974,24 @@ def format_thread_cpu(entry):
     return " ".join(parts)
 
 
+def format_power(entry):
+    """One line per run: battery power inside the injected input window."""
+    if not entry:
+        return "none"
+    parts = ["window=%.1fs samples=%d ac=%s" % (
+        entry.get("window_s", 0.0), entry.get("samples", 0),
+        "yes" if entry.get("ac") else "no")]
+    if entry.get("rate_mw") is not None:
+        parts.append("rate=%.1fmW" % entry["rate_mw"])
+    if entry.get("energy_mwh") is not None:
+        parts.append("discharged=%.2fmWh" % entry["energy_mwh"])
+    if entry.get("remaining_mwh_delta") is not None:
+        parts.append("remaining=%.2fmWh" % entry["remaining_mwh_delta"])
+    if entry.get("charge_pct_delta") is not None:
+        parts.append("charge=%.1f%%" % entry["charge_pct_delta"])
+    return " ".join(parts)
+
+
 def format_canvas_path(entry):
     """One line per run: counts and extra-bit histograms of the update path."""
     parts = []
@@ -1213,6 +1236,9 @@ def main(argv):
                 continue
             if key == "thread_cpu":
                 print("   %-44s %s" % (key, format_thread_cpu(stat)))
+                continue
+            if key == "power":
+                print("   %-44s %s" % (key, format_power(stat)))
                 continue
             if key == "focus_gate":
                 print("   %-44s %s" % (key, format_focus_gate(stat)))
