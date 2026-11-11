@@ -672,11 +672,16 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
             preferredRenderer = KisOpenGL::RendererAuto;
         }
 
-        // An explicit renderer (kritadisplayrc or the L1 switch) ignores the
-        // failure marks of the first frame check, so the user can always
-        // return to a renderer that was skipped automatically.
+        // An explicit renderer (desktop, angle, software or none, from
+        // kritadisplayrc or the L1 switch) ignores the failure marks of the
+        // first frame check, so the user can always return to a renderer that
+        // was skipped automatically. "auto" and an absent setting follow the
+        // marks, so the automatic return also works where kritadisplayrc
+        // stores "auto" (as the Surface does).
         const bool userForcedRenderer =
-            kritarc.contains(QStringLiteral("OpenGLRenderer")) || !l1Renderer.isEmpty();
+            KisOpenGLStartupCheck::isUserForcedRenderer(preferredRendererString,
+                                                        kritarc.contains(QStringLiteral("OpenGLRenderer")),
+                                                        l1Renderer);
 
         const KisConfig::CanvasSurfaceBitDepthMode bitDepthMode =
             KisConfig::canvasSurfaceBitDepthMode(&kritarc);

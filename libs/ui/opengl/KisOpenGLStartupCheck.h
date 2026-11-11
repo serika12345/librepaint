@@ -26,6 +26,20 @@
  */
 namespace KisOpenGLStartupCheck
 {
+/// True when `rendererName` names a renderer explicitly. The accepted names
+/// are the ones OpenGLRenderer converts: "desktop", "angle", "software" and
+/// "none". "auto", an empty value and unknown names (including values that
+/// only differ in case or spacing) are not explicit.
+KRITAUI_EXPORT bool isExplicitRendererName(const QString &rendererName);
+
+/// True when the effective renderer choice is explicit and the failure marks
+/// must be ignored. `configHasRendererName` is false when kritadisplayrc has
+/// no OpenGLRenderer key; the platform default then applies (for example
+/// "angle" on Windows) and the marks are still honored. A L1 renderer switch
+/// value of "auto" is not explicit either.
+KRITAUI_EXPORT bool
+isUserForcedRenderer(const QString &configRendererName, bool configHasRendererName, const QString &l1RendererName);
+
 /// Run the first frame check on the current OpenGL context. Returns false
 /// when the check fails; `failureReason` then says which step failed (it is
 /// logged by the caller). The result is written to `configFilePath`, or to

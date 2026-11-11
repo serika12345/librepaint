@@ -98,6 +98,65 @@ private Q_SLOTS:
                  (QStringList{QStringLiteral("desktop"), QStringLiteral("angle")}));
     }
 
+    void autoInTheConfigStillFollowsTheMarks()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString configFilePath = dir.path() + QStringLiteral("/kritadisplayrc");
+
+        KisOpenGLStartupCheck::recordFailedRenderer(QStringLiteral("desktop"), configFilePath);
+
+        // The Surface stores OpenGLRenderer=auto. That is not an explicit
+        // choice, so the marked renderer stays out of the candidates.
+        const bool userForced = KisOpenGLStartupCheck::isUserForcedRenderer(QStringLiteral("auto"), true, QString());
+        QVERIFY(!userForced);
+        QCOMPARE(KisOpenGLStartupCheck::renderersToTry({QStringLiteral("desktop"), QStringLiteral("angle")},
+                                                       !userForced,
+                                                       configFilePath),
+                 QStringList{QStringLiteral("angle")});
+    }
+
+    void anExplicitRendererInTheConfigIgnoresTheMarks()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString configFilePath = dir.path() + QStringLiteral("/kritadisplayrc");
+
+        KisOpenGLStartupCheck::recordFailedRenderer(QStringLiteral("desktop"), configFilePath);
+
+        // Explicit angle is the way back even while the desktop mark remains.
+        const bool userForced = KisOpenGLStartupCheck::isUserForcedRenderer(QStringLiteral("angle"), true, QString());
+        QVERIFY(userForced);
+        QCOMPARE(KisOpenGLStartupCheck::renderersToTry({QStringLiteral("desktop"), QStringLiteral("angle")},
+                                                       !userForced,
+                                                       configFilePath),
+                 (QStringList{QStringLiteral("desktop"), QStringLiteral("angle")}));
+    }
+
+    void onlyNamedRenderersAreExplicit()
+    {
+        for (const QString &name :
+             {QStringLiteral("desktop"), QStringLiteral("angle"), QStringLiteral("software"), QStringLiteral("none")}) {
+            QVERIFY2(KisOpenGLStartupCheck::isExplicitRendererName(name), qPrintable(name));
+            QVERIFY2(KisOpenGLStartupCheck::isUserForcedRenderer(QString(), false, name), qPrintable(name));
+        }
+
+        for (const QString &name : {QStringLiteral("auto"),
+                                    QStringLiteral("Auto"),
+                                    QStringLiteral(" angle "),
+                                    QStringLiteral("vulkan"),
+                                    QString()}) {
+            QVERIFY2(!KisOpenGLStartupCheck::isExplicitRendererName(name), qPrintable(name));
+        }
+
+        // An absent kritadisplayrc key keeps the platform default (angle on
+        // Windows) but must not count as an explicit choice. The L1 switch
+        // also treats "auto" like an unset value.
+        QVERIFY(!KisOpenGLStartupCheck::isUserForcedRenderer(QStringLiteral("angle"), false, QString()));
+        QVERIFY(!KisOpenGLStartupCheck::isUserForcedRenderer(QStringLiteral("auto"), true, QStringLiteral("auto")));
+        QVERIFY(KisOpenGLStartupCheck::isUserForcedRenderer(QStringLiteral("auto"), true, QStringLiteral("desktop")));
+    }
+
     void allMarkedCandidatesAreTriedAgain()
     {
         QTemporaryDir dir;

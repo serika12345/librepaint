@@ -74,7 +74,7 @@ WARP に戻す。desktop を明示していても、desktop の構成が失敗�
 
 Windows では、起動後の最初のフレームの検査（3.5）が失敗した renderer を
 `kritadisplayrc` に記録し、次の起動で `selectSurfaceConfig()` がその renderer を飛ばす。
-明示した `OpenGLRenderer` はこの記録より優先するため、利用者は設定から戻せる。
+`OpenGLRenderer` に renderer の名前を明示したときはこの記録より優先するため、利用者は設定から戻せる。`"auto"` と未設定は記録に従う。
 検査をすり抜けて起動後に描画が壊れる場合の自動の戻しはない。利用者が
 `kritadisplayrc` の `OpenGLRenderer` を `"angle"`、`"software"`、`"none"` に変えるか、
 GUI の設定を変えて再起動する。起動そのものができない場合は設定ファイルを直接編集する。
@@ -288,9 +288,12 @@ Windows は、最初の OpenGL コンテキストの初期化の後に
 あるときは印を無視して全部を試す。ドライバーの更新で直る道を残し、QPainter は最後の手段に
 とどめるためである。その renderer の検査が成功した起動では、印を消す。
 
-明示した `OpenGLRenderer`（利用者が設定した値）と L1 の描画方式の切り替えは印を無視する。
-これは条件 7 の戻しを、印が残っていても効かせるためである。`"angle"`、`"software"`、
-`"none"` のどれも、起動できない状態からの復帰に使える。
+`OpenGLRenderer` が `"desktop"`、`"angle"`、`"software"`、`"none"` のいずれかを明示したときと、
+L1 の描画方式の切り替えがこれらの名前を指定したときだけ、印を無視する。これは条件 7 の
+戻しを、印が残っていても効かせるためである。`"auto"` と未設定は明示とみなさず、印に従う。
+設定の保存や以前の起動で `"auto"` が書かれた環境（Surface もこの状態）でも、自動の戻しが
+働くようにするためである。`"angle"`、`"software"`、`"none"` のどれも、起動できない状態からの
+復帰に使える。
 
 Windows の既定は `"angle"` のままで、desktop を既定にする変更は Q4 の判断の後に分けて
 行う。失敗を起こす隠れた変数 `LIBREPAINT_TEST_FAIL_OPENGL_FIRST_FRAME` は契約テスト

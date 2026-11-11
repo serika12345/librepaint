@@ -70,10 +70,12 @@ public:
      * Choose the surface format and renderer.
      *
      * userForcedRenderer is true when OpenGLRenderer in kritadisplayrc (or
-     * the L1 renderer switch) names a renderer explicitly. The failure marks
-     * of the first frame check are then ignored, so a user can always return
-     * to a renderer that was skipped automatically. See
-     * KisOpenGLStartupCheck.h and docs/perf/l2-renderer-choice.md.
+     * the L1 renderer switch) names a renderer explicitly: desktop, angle,
+     * software or none. "auto" and an absent setting follow the failure
+     * marks of the first frame check, so the automatic return keeps working.
+     * An explicit name ignores the marks, so a user can always return to a
+     * renderer that was skipped automatically. See KisOpenGLStartupCheck.h
+     * and docs/perf/l2-renderer-choice.md.
      */
     static RendererConfig selectSurfaceConfig(KisOpenGL::OpenGLRenderer preferredRenderer,
                                               KisConfig::RootSurfaceFormat preferredRootSurfaceFormat,

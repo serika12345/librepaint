@@ -105,6 +105,21 @@ bool isForcedFailureForTesting()
     return qEnvironmentVariableIsSet(kForceFailureVariable);
 }
 
+bool isExplicitRendererName(const QString &rendererName)
+{
+    // Match KisOpenGL::convertConfigToOpenGLRenderer() exactly. A value it
+    // does not convert (including "auto") leaves the choice to the automatic
+    // selection, so the failure marks must still be honored.
+    return rendererName == QStringLiteral("desktop") || rendererName == QStringLiteral("angle")
+        || rendererName == QStringLiteral("software") || rendererName == QStringLiteral("none");
+}
+
+bool isUserForcedRenderer(const QString &configRendererName, bool configHasRendererName, const QString &l1RendererName)
+{
+    return (configHasRendererName && isExplicitRendererName(configRendererName))
+        || isExplicitRendererName(l1RendererName);
+}
+
 QStringList failedRendererNames(const QString &configFilePath)
 {
     return readFailedRendererNames(configFilePath);
