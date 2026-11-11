@@ -30,6 +30,27 @@ Qt 本家には、1 つの画面への対応の不具合の記録がある（QTB
 - Windows のタブレットの経路は、設定がないとき Wintab になる（krita/main.cc の forceWinTab）。Windows Ink は設定で選ぶ。
 - 段 4 の実装（4237a0c188、43860eb8ab、db5d1ed9fb）は、Qt がパケットを取り出す前に WTPacketsPeek で読み、lcSys（または仮想デスクトップ、任意の矩形）に当てはめ、時刻で対応づけて QTabletEvent の位置を差し替える。Krita 4.2 以降と同じ当てはめ方で、Blender のような押下時の一致の確かめはない。実機では未確認。
 
+## Krita が自前のペンの処理から Qt の改変へ移った経緯
+
+LibrePaint のリポジトリーに残る Krita のコミットの履歴で確かめた。
+
+| 日付 | コミット | 内容（コミットの文から） |
+| --- | --- | --- |
+| 2019-03-11 | ec417d6c82 | Linux（X11）の自前のペンの処理を消し、Qt の処理を使う |
+| 2019-03-15 | eb0928dff7 | Windows で Qt のペンの処理を使う設定を足す。「実験として毎日の版で有効にする」 |
+| 2019-03-31 | 0f66ae41d6 | Qt の Windows Ink の実装への改変を足し、既定にする |
+| 2019-04-02 | d5e5dd0ea5 | Windows の構築で Qt のペンの処理を既定にする |
+| 2019-04-03 | 13181cd88e | Qt の中で Wintab と Windows Ink を切り替える改変。Qt 本家に提案（codereview 258067） |
+| 2019-04-13 | 6806b44ec2 | Qt の相対モード（20px の差でカーソルの位置に切り替える処理）を外す。「20px はペンとマウスの位置の差としてごく普通で、通常の描画で問題を起こす」 |
+| 2019-04-15 | 31c48ac7bf | Wintab の lcSys から対応範囲を読む（051139ed72 の元）。「Surface Pro 5 などは入力の範囲を内蔵の画面だけに対応させる」。QT_IGNORE_WINTAB_MAPPING で従来の仮想デスクトップに戻せる |
+| 2019-05-29 | （Krita 4.2 の配布） | リリースノート：Windows の Wintab と Windows Ink のために書いたコードを Qt の既存のコードとまとめた。複数の画面の対応がよくなり、対応するタブレットが増え、多くの不具合が直った。Qt に改変を当てる必要があった |
+| 2025-02-26 | 885f3348c6 | Qt 6 の切り替えの仕組みに移り、自前の Wintab（kis_tablet_support_win.cpp、978 行）と Windows Ink（kis_tablet_support_win8.cpp、1,092 行）の処理と付属のヘッダー、計 4,106 行を消す。「5 年以上使っておらず、動くかどうか誰も知らない」 |
+
+- 移った理由として開発者が書いたのは、リリースノートの「Qt の既存のコードとまとめ、複数の画面の対応と対応する機種を広げ、不具合を減らした」だけである。Qt 5.12 が Windows Ink を持ったことが契機と読めるが、それを理由として書いた文は見つからなかった（推定）。
+- Krita は自前の処理をやめた代わりに、Qt に改変を当て続けた（相対モードの無効化、lcSys の利用、ボタンの割り当て、切り替え）。本家に提案したものもあるが、Qt の dev の版に lcSys の利用はなく、相対モードも残っている。
+- LibrePaint が Q4 で作り直したもの（WTPacketsPeek で覗いて位置を差し替える）は、この Qt の改変のうち lcSys の利用と相対モードの無効化を、Qt の外に移したものに当たる。
+- 自前の処理に戻す場合の規模の目安は、Krita が 2025 年に消した 2,070 行（本体）である。5 年以上使われておらず、Qt 6 には合わせていない。
+
 ## 出典
 
 - Qt qtbase dev の qwindowstabletsupport.cpp：https://raw.githubusercontent.com/qt/qtbase/dev/src/plugins/platforms/windows/qwindowstabletsupport.cpp
