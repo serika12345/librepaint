@@ -45,6 +45,11 @@ presented far fewer frames than the display refresh (Windows throttles a
 covered window) measured another window; it is left out of every metric and
 counted in the table.
 
+The group writes one line per event to the event log (build/perf/events.log,
+or --events): the start of the group and of every run, each result or failure,
+the early stop of a target that failed twice in a row for the same reason, and
+the exit code at the end (format: scripts/perf/events_log.py).
+
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
          --label q1 --out build/perf/runs [--only windows,linux] [--baseline OLD.json] \
@@ -62,13 +67,18 @@ import shlex
 import statistics
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "pen-latency"))
 import capture_analyze  # noqa: E402
+import events_log  # noqa: E402
 import power  # noqa: E402
 import thread_cpu  # noqa: E402
+
+DEFAULT_EVENTS = os.path.join(ROOT, "build", "perf", "events.log")
 
 
 def kritarc_text(scenario):
@@ -95,6 +105,152 @@ def run_command(argv, env=None, cwd=None):
     merged = dict(os.environ)
     merged.update(env or {})
     return subprocess.run(argv, env=merged, cwd=cwd).returncode
+
+
+FAILED_LINE = re.compile(r"^\s*failed:\s*(.*)$")
+
+
+def status_files(run_root, host, target):
+    """Return the possible status.txt files of one target, newest run first.
+
+    run-surface.ps1 writes a status.txt into every run directory and
+    run-remote.sh copies the shared status.txt as status-<target>.txt
+    (run-linux.sh and run-macos.sh write neither). The newest run directory is
+    listed first because its status.txt belongs to the run that just failed.
+    """
+    out = os.path.join(run_root, host["name"])
+    newest, newest_time = None, None
+    if os.path.isdir(out):
+        for name in os.listdir(out):
+            path = os.path.join(out, name)
+            status = os.path.join(path, "status.txt")
+            if not os.path.isdir(path) or not os.path.exists(status):
+                continue
+            stamp = os.path.getmtime(path)
+            if newest_time is None or stamp > newest_time:
+                newest, newest_time = status, stamp
+    paths = [newest] if newest else []
+    for name in (target.get("runner_target"), target["name"]):
+        if name:
+            paths.append(os.path.join(out, "status-%s.txt" % name))
+    return paths
+
+
+def status_last_line(run_root, host, target):
+    """Return the last line of the target's status.txt, or None."""
+    for path in status_files(run_root, host, target):
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            lines = [line.strip() for line in handle if line.strip()]
+        if lines:
+            return lines[-1]
+    return None
+
+
+def failed_reason(line):
+    """Return the text after "failed: " of a status line, or None.
+
+    Two failed runs are abandoned only when this text is equal: the text names
+    the failure, so a run that failed for another reason does not count.
+    """
+    if not line:
+        return None
+    match = FAILED_LINE.match(line)
+    return match.group(1) if match else None
+
+
+def run_detail(run_root, host, target, started):
+    """Return the state and medians of the run that just finished.
+
+    The runner names each run directory <target>-<date>-<time>-<n>; only the
+    directory made after this run started belongs to it. A run without a
+    capture (the application did not start) has no medians.
+    """
+    out = os.path.join(run_root, host["name"])
+    newest, newest_time = None, None
+    if os.path.isdir(out):
+        for name in os.listdir(out):
+            path = os.path.join(out, name)
+            if not os.path.isdir(path) or not name.startswith(target["name"] + "-"):
+                continue
+            stamp = os.path.getmtime(path)
+            if stamp < started - 5:
+                continue
+            if newest_time is None or stamp > newest_time:
+                newest, newest_time = path, stamp
+    if newest is None or not os.path.exists(os.path.join(newest, "capture.csv")):
+        return "state=unknown hover=- ink=-"
+    result = capture_analyze.analyze_run(newest)
+    offset = float(host.get("capture_offset_ms", 0.0))
+
+    def median(metric):
+        value = (result.get(metric) or {}).get("p50")
+        return "-" if value is None else "%.1f" % (value - offset)
+
+    state = (result.get("state") or {}).get("label", "unknown")
+    return "state=%s hover=%s ink=%s" % (
+        state, median("hover.input_to_capture"), median("ink.input_to_capture"))
+
+
+def measure_runs(hosts, scenario, run_root, label, events=None):
+    """Run every target once per round and stop a target that keeps failing.
+
+    A target whose run fails twice in a row for the same reason (the text
+    after "failed: " of status.txt) skips its remaining rounds; the other
+    targets continue. Every start, result and early stop is written to the
+    event log when one is given.
+
+    Returns the names of the failed runs.
+    """
+    failures = []
+    abandoned = set()
+    previous_reason = {}
+    if events:
+        events_log.write(events, "run-start", label, "-", "-",
+                         "scenario %s, %d rounds, %d host(s)" % (
+                             scenario["name"], scenario["runs"], len(hosts)))
+    for round_index in range(scenario["runs"]):
+        if all((host["name"], target["name"]) in abandoned
+               for host in hosts for target in host["targets"]):
+            break
+        for host in hosts:
+            for target in host["targets"]:
+                key = (host["name"], target["name"])
+                if key in abandoned:
+                    continue
+                number = round_index + 1
+                if events:
+                    events_log.write(events, "target-start", label, target["name"], number,
+                                     "host %s" % host["name"])
+                started = time.time()
+                argv, env, collect = runner_for(host, target, scenario, run_root)
+                status = run_command(argv, env)
+                if collect and status == 0:
+                    status = run_command(collect)
+                if status == 0:
+                    previous_reason.pop(key, None)
+                    if events:
+                        events_log.write(events, "target-done", label, target["name"], number,
+                                         run_detail(run_root, host, target, started))
+                    continue
+                failures.append("%s/%s round %d" % (host["name"], target["name"], number))
+                line = status_last_line(run_root, host, target)
+                reason = failed_reason(line)
+                if events:
+                    events_log.write(events, "target-failed", label, target["name"], number,
+                                     line or "no status.txt")
+                if reason is not None and previous_reason.get(key) == reason:
+                    abandoned.add(key)
+                    if events:
+                        events_log.write(events, "target-abandoned", label, target["name"], number,
+                                         "same failure twice: %s" % reason)
+                else:
+                    if reason is None:
+                        previous_reason.pop(key, None)
+                    else:
+                        previous_reason[key] = reason
+    return failures
 
 
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -771,27 +927,21 @@ def main(argv):
     parser.add_argument("--baseline", help="summary JSON to compare with")
     parser.add_argument("--summary", help="where to write the summary JSON")
     parser.add_argument("--analyze-only", metavar="RUN_ROOT", help="analyze collected runs without measuring")
+    parser.add_argument("--events", default=DEFAULT_EVENTS,
+                        help="event log the auditor follows (default: build/perf/events.log)")
     args = parser.parse_args(argv)
 
     scenario = json.load(open(args.scenario))
     config = json.load(open(args.hosts))
     hosts = [h for h in config["hosts"] if not args.only or h["name"] in args.only.split(",")]
 
+    events = None if args.analyze_only else args.events
     if args.analyze_only:
         run_root = args.analyze_only
     else:
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         run_root = os.path.join(args.out, "%s-%s-%s" % (scenario["name"], args.label, stamp))
-        failures = []
-        for round_index in range(scenario["runs"]):
-            for host in hosts:
-                for target in host["targets"]:
-                    argv_, env, collect = runner_for(host, target, scenario, run_root)
-                    status = run_command(argv_, env)
-                    if collect and status == 0:
-                        status = run_command(collect)
-                    if status != 0:
-                        failures.append("%s/%s round %d" % (host["name"], target["name"], round_index + 1))
+        failures = measure_runs(hosts, scenario, run_root, args.label, events)
         if failures:
             print("failed runs: " + ", ".join(failures), file=sys.stderr)
 
@@ -946,7 +1096,10 @@ def main(argv):
     with open(destination, "w") as handle:
         json.dump(summary, handle, indent=2, sort_keys=True)
     print("summary: " + destination)
-    return 1 if any(row[7] != "ok" for row in verdict_rows) else 0
+    status = 1 if any(row[7] != "ok" for row in verdict_rows) else 0
+    if events:
+        events_log.write(events, "run-done", args.label, "-", "-", str(status))
+    return status
 
 
 if __name__ == "__main__":

@@ -582,6 +582,81 @@ class StateSummaryTest(unittest.TestCase):
         self.assertIn("high state: 3 of 3 runs", notes)
 
 
+class EarlyStopTest(unittest.TestCase):
+    """A target that fails twice in a row for the same reason stops early."""
+
+    SCENARIO = {
+        "name": "test",
+        "runs": 5,
+        "spread_limit": 0.05,
+        "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
+    }
+    HOST = {"name": "w", "kind": "windows", "capture_offset_ms": 0,
+            "targets": [{"name": "LibrePaint", "runner_target": "LibrePaint",
+                         "app": "C:/LibrePaint.exe"}]}
+
+    def measure(self, statuses):
+        """Run measure_runs with a fake runner that returns the given lines."""
+        calls = []
+
+        def fake_runner(host, target, scenario, run_root):
+            return ["true"], {}, None
+
+        def fake_command(argv, env=None, cwd=None):
+            calls.append(list(argv))
+            line = statuses[len(calls) - 1] if len(calls) <= len(statuses) else None
+            host_dir = os.path.join(self._root, "w")
+            os.makedirs(host_dir, exist_ok=True)
+            with open(os.path.join(host_dir, "status-LibrePaint.txt"), "w") as handle:
+                handle.write("starting\n")
+                if line:
+                    handle.write(line + "\n")
+            return 0 if line is None else 1
+
+        with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                mock.patch.object(run, "run_command", side_effect=fake_command):
+            failures = run.measure_runs([self.HOST], self.SCENARIO, self._root, "l1", self.events)
+        with open(self.events, encoding="utf-8") as handle:
+            lines = [line.split("\t") for line in handle.read().splitlines()]
+        return calls, failures, lines
+
+    def setUp(self):
+        self._temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._temp.cleanup)
+        self._root = os.path.join(self._temp.name, "runs")
+        self.events = os.path.join(self._temp.name, "events.log")
+
+    def kinds(self, lines):
+        return [fields[1] for fields in lines]
+
+    def test_the_same_failure_twice_skips_the_remaining_rounds(self):
+        calls, failures, lines = self.measure(
+            ["failed: app exited before showing a window"] * 5)
+        self.assertEqual(len(calls), 2, calls)
+        self.assertEqual(len(failures), 2)
+        self.assertEqual(self.kinds(lines).count("target-failed"), 2)
+        self.assertEqual(self.kinds(lines).count("target-abandoned"), 1)
+        abandoned = next(fields for fields in lines if fields[1] == "target-abandoned")
+        self.assertEqual(abandoned[3], "LibrePaint")
+        self.assertEqual(abandoned[4], "2")
+        self.assertIn("app exited before showing a window", abandoned[5])
+        self.assertEqual(self.kinds(lines)[0], "run-start")
+
+    def test_a_different_reason_does_not_abandon(self):
+        calls, failures, lines = self.measure(
+            ["failed: app exited before showing a window", "failed: capture failed",
+             "failed: no main window", "failed: other", "failed: other again"])
+        self.assertEqual(len(calls), 5, calls)
+        self.assertEqual(len(failures), 5)
+        self.assertNotIn("target-abandoned", self.kinds(lines))
+
+    def test_a_failed_line_is_recorded_as_written(self):
+        _, _, lines = self.measure(["failed: capture failed", "failed: capture failed"])
+        failed = [fields for fields in lines if fields[1] == "target-failed"]
+        self.assertEqual([fields[5] for fields in failed], ["failed: capture failed"] * 2)
+        self.assertEqual([fields[4] for fields in failed], ["1", "2"])
+
+
 class VerdictTest(unittest.TestCase):
     def verdict(self, summary, baseline=None):
         return run.judge(summary, SCENARIO, baseline)[0]
