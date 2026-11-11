@@ -32,7 +32,9 @@ Before every run the runner waits, unless the target sets
 "surface_state_wait": "off", for the device's % Processor Performance to reach
 70 % twice in a row (one Get-Counter read per five seconds, at most 120 s);
 a run whose reading stayed below 60 % during the measurement is marked and
-left out of the aggregation. A run
+left out of the aggregation. A Windows target that sets "thread_cpu": "on"
+has thread_cpu.ps1 sample the process and thread CPU counters; the table then
+shows the CPU time inside the injected input window. A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
 application was not the foreground window when the capture began and that
@@ -62,6 +64,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(HERE, "pen-latency"))
 import capture_analyze  # noqa: E402
+import thread_cpu  # noqa: E402
 
 
 def kritarc_text(scenario):
@@ -94,6 +97,7 @@ ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KRITARC_KEY = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
 SURFACE_STATE_MODES = ("off", "on", "light")
 SURFACE_STATE_WAIT_MODES = ("on", "off")
+THREAD_CPU_MODES = ("off", "on")
 
 
 def target_environment(target):
@@ -168,6 +172,19 @@ def target_surface_state_wait(target):
     return mode
 
 
+def target_thread_cpu(target):
+    """Return whether the Windows runner samples per-thread CPU.
+
+    The sampler is off by default. A CPU comparison turns it on for every
+    target of the comparison so the sampling cost is the same on both sides.
+    """
+    mode = target.get("thread_cpu", "off")
+    if not isinstance(mode, str) or mode not in THREAD_CPU_MODES:
+        raise SystemExit("target %s: thread_cpu must be one of %s" % (
+            target["name"], ", ".join(THREAD_CPU_MODES)))
+    return mode
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -181,6 +198,7 @@ def runner_for(host, target, scenario, run_root):
                "PRESENTMON": target.get("presentmon", "on"),
                "SURFACE_STATE": target_surface_state(target),
                "SURFACE_STATE_WAIT": target_surface_state_wait(target),
+               "THREAD_CPU": target_thread_cpu(target),
                "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True),
                "TARGET_KRITARC": json.dumps(target_kritarc(target), sort_keys=True)}
         return argv, env, None
@@ -192,6 +210,8 @@ def runner_for(host, target, scenario, run_root):
         raise SystemExit("target %s: surface_state is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("surface_state_wait") is not None:
         raise SystemExit("target %s: surface_state_wait is supported only for Windows targets" % target["name"])
+    if kind in ("linux", "macos") and target.get("thread_cpu") is not None:
+        raise SystemExit("target %s: thread_cpu is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
@@ -430,6 +450,24 @@ def aggregate(runs, metrics):
     return aggregated
 
 
+def aggregate_thread_cpu(runs):
+    """Median of the per-run thread CPU values inside the input window."""
+    entries = [run.get("thread_cpu") for run in runs if run.get("thread_cpu")]
+    if not entries:
+        return None
+    result = {"runs": len(entries)}
+    for key in ("window_s", "cpu_seconds", "percent", "process_seconds", "unaccounted_seconds"):
+        values = [entry[key] for entry in entries if entry.get(key) is not None]
+        if values:
+            result[key] = statistics.median(values)
+    roles = [entry.get("roles") or {} for entry in entries]
+    for key in ("main_seconds", "paint_seconds"):
+        values = [role[key] for role in roles if role.get(key) is not None]
+        if values:
+            result[key] = statistics.median(values)
+    return result
+
+
 def summarize(run_root, hosts, scenario):
     """Analyze every run directory and group run medians by host, target and state."""
     summary = {"scenario": scenario["name"], "hosts": {}}
@@ -458,6 +496,7 @@ def summarize(run_root, hosts, scenario):
                 "foreground_inject": result.get("foreground_inject", {}),
                 "excluded": result.get("excluded"),
                 "surface_state": surface_state(path),
+                "thread_cpu": thread_cpu.summarize(path),
                 "speed_groups": result.get("ink.speed_groups", []),
                 "speed_change": result.get("ink.speed_change", []),
             })
@@ -474,6 +513,7 @@ def summarize(run_root, hosts, scenario):
             data["foreground_inject_lost"] = sum(
                 1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
             data["metrics"] = aggregate(valid, scenario["metrics"])
+            data["thread_cpu"] = aggregate_thread_cpu(valid)
             data["presentmon"] = {
                 status: sum(1 for run in valid if presentmon_status(run) == status)
                 for status in ("present", "partial", "none")
@@ -777,6 +817,25 @@ def main(argv):
     if speed_lines:
         print("== ink speed groups")
         print("\n".join(speed_lines))
+    thread_lines = []
+    for host, entry in summary["hosts"].items():
+        for target, data in entry["targets"].items():
+            cpu = data.get("thread_cpu")
+            if not cpu:
+                continue
+            parts = ["cpu %.2fs (%.1f%% of one CPU) over %.1fs" % (
+                cpu.get("cpu_seconds", 0.0), cpu.get("percent", 0.0), cpu.get("window_s", 0.0))]
+            if cpu.get("main_seconds") is not None:
+                parts.append("main %.2fs" % cpu["main_seconds"])
+            if cpu.get("paint_seconds") is not None:
+                parts.append("paint %.2fs" % cpu["paint_seconds"])
+            if cpu.get("process_seconds") is not None:
+                parts.append("process %.2fs" % cpu["process_seconds"])
+            parts.append("%d run(s)" % cpu.get("runs", 0))
+            thread_lines.append("   %s/%s: %s" % (host, target, ", ".join(parts)))
+    if thread_lines:
+        print("== thread CPU (input interval)")
+        print("\n".join(thread_lines))
     destination = args.summary or os.path.join(run_root, "summary.json")
     os.makedirs(os.path.dirname(os.path.abspath(destination)), exist_ok=True)
     with open(destination, "w") as handle:

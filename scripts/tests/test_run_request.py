@@ -93,6 +93,21 @@ class RequestTest(unittest.TestCase):
                 request_module.build_request(
                     "LibrePaint", 1, "C:/LibrePaint.exe", surface_state_wait=mode)
 
+    def test_thread_cpu_is_off_by_default(self):
+        request = request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", name="T")
+        self.assertEqual(request["thread_cpu"], "off")
+
+    def test_thread_cpu_can_be_turned_on(self):
+        request = request_module.build_request(
+            "LibrePaint", 1, "C:/LibrePaint.exe", name="T", thread_cpu="on")
+        self.assertEqual(request["thread_cpu"], "on")
+
+    def test_unknown_thread_cpu_mode_is_rejected(self):
+        for mode in ("ON", "light", "", 1):
+            with self.assertRaises(ValueError):
+                request_module.build_request(
+                    "LibrePaint", 1, "C:/LibrePaint.exe", thread_cpu=mode)
+
 
 if __name__ == "__main__":
     unittest.main()

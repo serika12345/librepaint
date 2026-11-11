@@ -306,6 +306,34 @@ class RunnerCommandTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
+    def test_thread_cpu_is_off_unless_the_target_asks_for_it(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["THREAD_CPU"], "off")
+            target["thread_cpu"] = "on"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["THREAD_CPU"], "on")
+
+    def test_invalid_thread_cpu_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "thread_cpu": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_thread_cpu_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "thread_cpu": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
     def test_windows_target_passes_environment_to_the_runner(self):
         scenario = {"trajectory": {}, "name": "test"}
         host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}

@@ -1,5 +1,5 @@
 {
-  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement). A Windows target can set \"presentmon\": \"off\" to measure without PresentMon (the default is on), \"surface_state\" to record the device state (\"on\" is one WMI sample per second, \"light\" is one Get-Counter call per five seconds; the default is \"off\"), \"surface_state_wait\": \"off\" to skip the wait before each run (the default holds the run until % Processor Performance reaches 70 % twice in a row, at most 120 s), \"env\" to pass environment variables to the measured application, and \"kritarc\" to set root kritarc keys for one run. The L1 experiments use names such as LIBREPAINT_L1_MAX_FRAME_LATENCY; the runner records them in meta.txt. kritarc keys are backed up and restored around every run; useMaximumFrameLatencyOne=false restores the driver default for the L2 low-latency default.",
+  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement). A Windows target can set \"presentmon\": \"off\" to measure without PresentMon (the default is on), \"surface_state\" to record the device state (\"on\" is one WMI sample per second, \"light\" is one Get-Counter call per five seconds; the default is \"off\"), \"surface_state_wait\": \"off\" to skip the wait before each run (the default holds the run until % Processor Performance reaches 70 % twice in a row, at most 120 s), \"thread_cpu\": \"on\" to sample the process and thread CPU counters (the default is \"off\"), \"env\" to pass environment variables to the measured application, and \"kritarc\" to set root kritarc keys for one run. The L1 experiments use names such as LIBREPAINT_L1_MAX_FRAME_LATENCY; the runner records them in meta.txt. kritarc keys are backed up and restored around every run; useMaximumFrameLatencyOne=false restores the driver default for the L2 low-latency default.",
   "hosts": [
     {
       "name": "windows",
@@ -22,6 +22,8 @@
          "surface_state": "light"},
         {"name": "LibrePaint-wait-off", "runner_target": "LibrePaint", "app": "<same path>",
          "surface_state_wait": "off"},
+        {"name": "LibrePaint-thread-cpu", "runner_target": "LibrePaint", "app": "<same path>",
+         "thread_cpu": "on"},
         {"name": "Krita", "runner_target": "Krita", "app": "<Windows path of krita.exe>"},
         {"name": "PenProbe", "runner_target": "PenProbe"}
       ]

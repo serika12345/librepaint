@@ -302,6 +302,38 @@ class CanvasPathTest(unittest.TestCase):
         self.assertNotIn("canvas_path                                  n=0", text)
 
 
+class CanvasSwapTest(unittest.TestCase):
+    def test_composition_and_platform_swap_are_split(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+                (base + ms(3), "paintgl_end", 0),
+                (base + ms(5), "canvas_about_to_compose", 0),
+                (base + ms(9), "frame_swapped", 0),
+            ], [(base + ms(9), "20.0")])
+            result = analyze.Run(directory).analyze()
+        swap = result["canvas_swap"]
+        self.assertAlmostEqual(swap["paint_end_to_compose"]["p50"], 2.0)
+        self.assertAlmostEqual(swap["compose_to_frame_swapped"]["p50"], 4.0)
+        self.assertAlmostEqual(swap["paint_end_to_frame_swapped"]["p50"], 6.0)
+
+    def test_runs_without_the_composition_marker_do_not_report_a_swap(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+                (base + ms(3), "paintgl_end", 0),
+                (base + ms(6), "frame_swapped", 0),
+            ], [(base + ms(6), "20.0")])
+            result = analyze.Run(directory).analyze()
+        self.assertNotIn("canvas_swap", result)
+
+
 class FocusGateTest(unittest.TestCase):
     """Focus, outline gate and tool-action markers around a pen press.
 

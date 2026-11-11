@@ -231,6 +231,8 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 | `LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION` | H5（ホバーの間引き） | 1 | 10msの移動イベントの圧縮を通さない（`tabletEventsDelay=0`はkritarcで設定する） |
 | `LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE` | H6（フォークの更新の間引きの歯止め） | 1 | 前のフレームがGPU上でも描く。Qtの`QT_FRAME_COMPRESSION_MODE=2`も設定する。時刻記録に`last_frame_completed_on_gpu`/`qt_update_deferred`を出す |
 | `LIBREPAINT_L1_OPENGL_RENDERER` | H7（フォークなし・ANGLEを使わないOpenGL） | `desktop`/`angle`/`auto` | kritarcの`OpenGLRenderer`を上書きする。正式版Qtの版は別の構築で測る |
+| `LIBREPAINT_L1_TEXTURE_BUFFERS` | L2のCPUの原因（テクスチャーの転送） | `off`/`on` | `off`はPBOを使わず、ANGLEと同じ直接の`glTexSubImage2D`にする。`on`はANGLEでもPBOを使う（`KRITA_UNLOCK_TEXTURE_BUFFERS`と同じ効果を切り替えで行う）。実行した転送の方式を`l1_texture_buffers`（x=1がPBO、extra=切り替えの値+1）に1回残す |
+| `LIBREPAINT_L1_WIDGETS_RHI` | L2のCPUの原因（GDIの合成） | 0または1 | 0は`QT_WIDGETS_RHI`を0にしてQtのウィジェットの合成を従来の経路にし、1は現在のRHIの経路にする。`l1_render_path`のextraのbit 16が0の切り替えを表す |
 
 切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
 L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの
@@ -264,10 +266,15 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 ウィジェットの大きさ（x/y）と切り取りの結果（extraのbit 1が空、bit 2が可視）、
 `canvas_update_dispatch`と`canvas_update_issued`は`KisCanvas2`が更新を出した回
 （`canvas_update_issued`のx/yはウィジェットの大きさ、extraのbit 1は更新の矩形が空）、
-`canvas_paint_event`はQtが届けた描画イベント（x/yが矩形、extraのbit 1が可視、bit 2が最小化、
-bit 4が前の`updateRect`が残っている）、`canvas_initialize_gl`と`canvas_resize_gl`は
-OpenGLのキャンバスの初期化と大きさの変更を表す。`analyze.py`はこれらを`canvas_path`の1行
-（回数とextraの内訳）にまとめる。ストロークが始まらなかった回は、`stroke_begin`のextra
+`canvas_widget_update_request`は`KisOpenGLCanvas2`が`QWidget::update`を呼んだ回
+（x/yが矩形、extraの1が画像、2が装飾）、`canvas_paint_event`はQtが届けた描画イベント
+（x/yが矩形、extraのbit 1が可視、bit 2が最小化、bit 4が前の`updateRect`が残っている）、
+`canvas_initialize_gl`と`canvas_resize_gl`はOpenGLのキャンバスの初期化と大きさの変更、
+`canvas_about_to_compose`はQtがバッキングストアの合成を始める前の時刻を表す。
+`analyze.py`はこれらを`canvas_path`の1行（回数とextraの内訳）にまとめる。
+`canvas_swap`は`paintgl_end`から`canvas_about_to_compose`まで（Qtの合成の準備）と、
+そこから`frame_swapped`まで（WindowsのdesktopのOpenGLではWGLの`SwapBuffers`、ANGLEでは
+EGLの交換）に分ける。desktopとANGLEのCPUの差が交換の前後どちらにあるかを読む。ストロークが始まらなかった回は、`stroke_begin`のextra
 （bit 1が編集できるノード、bit 2が描けるノード、bit 4がPaintOpプリセットがある）で、
 押下が届いていないのか、層が描けないのかを分ける。
 
@@ -323,6 +330,15 @@ CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中
 `during_max_temp_c`が5℃以上、`during_min_processor_performance_pct`が10ポイント以上、
 `during_max_total_cpu_pct`が10ポイント以上変わった回に`marked:`の印を付け、
 `== environment changes`に並べる（判定は変えない）。
+
+CPUの比較では、`hosts.json`のWindowsの対象に`thread_cpu`を`on`と書くと、
+`thread_cpu.ps1`がアプリのプロセスとスレッドのCPU時間（`Process.TotalProcessorTime`と
+`ProcessThread.TotalProcessorTime`。WindowsのProcessとThreadの性能カウンターと同じ値）を
+500msごとに`threads.csv`へ書く。時刻はQueryPerformanceCounterで、`inject.csv`と同じ時計である。
+`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU時間、プロセスの合計、
+GUIスレッド（`main_thread`）と描画スレッド（`paintgl_thread`）の時間、待ちの理由の回数を出す。
+`analyze.py`は`thread_cpu`の1行を出し、`run.py`は`== thread CPU (input interval)`に
+対象ごとの中央値を出す。既定は`off`で、CPUの比較の両方の対象だけ`on`にする。
 
 各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
 `% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。

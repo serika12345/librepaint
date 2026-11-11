@@ -549,6 +549,9 @@ class Run:
         if self.events:
             result["paint_cycle"] = summarize_paint_cycle(
                 self.presents, self.events, self.ticks_per_ms)
+            swap = summarize_swap(self.events, self.ticks_per_ms)
+            if swap:
+                result["canvas_swap"] = swap
             result["input_path"] = {
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
@@ -591,6 +594,9 @@ class Run:
                 "failed": sum(1 for sample in self.inject if not sample["ok"]),
             }
         result.update(capture_gap_metrics(self.directory))
+        if os.path.exists(os.path.join(self.directory, "threads.csv")):
+            import thread_cpu
+            result["thread_cpu"] = thread_cpu.summarize(self.directory)
         return result
 
     def analyze_probe(self, stats, in_contact, link):
@@ -770,10 +776,12 @@ CANVAS_PATH_EVENTS = (
     "canvas_outline_wdg",
     "canvas_update_dispatch",
     "canvas_update_issued",
+    "canvas_widget_update_request",
     "canvas_busy_defer",
     "canvas_paint_event",
     "canvas_initialize_gl",
     "canvas_resize_gl",
+    "canvas_about_to_compose",
 )
 
 CANVAS_PATH_STATES = (
@@ -799,6 +807,73 @@ def summarize_canvas_path(events):
         if values:
             summary[name + "_extra"] = dict(sorted(values.items()))
     return summary
+
+
+def summarize_swap(events, ticks_per_ms):
+    """Split the time after paintGL into Qt composition and the platform swap.
+
+    QOpenGLWidget emits aboutToCompose after paintGL and before the backing
+    store is composited; frameSwapped follows the platform swap. On desktop
+    OpenGL the swap is WGL SwapBuffers, on ANGLE it is the EGL exchange.
+    Runs before the marker have no aboutToCompose entries and return an empty
+    summary rather than a misleading zero.
+    """
+    compose = [entry[0] for entry in events.get("canvas_about_to_compose", [])]
+    if not compose:
+        return {}
+    paint_end = [entry[0] for entry in events.get("paintgl_end", [])]
+    swapped = [entry[0] for entry in events.get("frame_swapped", [])]
+    compose_delay, swap_delay, total_delay = [], [], []
+    for moment in compose:
+        end = last_before(paint_end, moment)
+        if end is not None and moment - end <= MAX_PAINT_TO_PRESENT_MS * ticks_per_ms:
+            compose_delay.append((moment - end) / ticks_per_ms)
+    for moment in swapped:
+        begin = last_before(compose, moment)
+        if begin is not None and moment - begin <= MAX_PAINT_TO_PRESENT_MS * ticks_per_ms:
+            swap_delay.append((moment - begin) / ticks_per_ms)
+        end = last_before(paint_end, moment)
+        if end is not None and moment - end <= MAX_PAINT_TO_PRESENT_MS * ticks_per_ms:
+            total_delay.append((moment - end) / ticks_per_ms)
+    return {
+        "paint_end_to_compose": describe(compose_delay),
+        "compose_to_frame_swapped": describe(swap_delay),
+        "paint_end_to_frame_swapped": describe(total_delay),
+        "compose_events": len(compose),
+    }
+
+
+def format_canvas_swap(entry):
+    """One line per run: where the time after paintGL goes."""
+    if not entry:
+        return "none"
+    return "paint_end_to_compose %s ; compose_to_swap %s ; paint_end_to_swap %s" % (
+        format_stat(entry["paint_end_to_compose"]),
+        format_stat(entry["compose_to_frame_swapped"]),
+        format_stat(entry["paint_end_to_frame_swapped"]))
+
+
+def format_thread_cpu(entry):
+    """One line per run: per-thread CPU inside the injected input window."""
+    if not entry:
+        return "none"
+    parts = ["window=%.1fs cpu=%.2fs (%.1f%%) threads=%d" % (
+        entry.get("window_s", 0.0), entry.get("cpu_seconds", 0.0),
+        entry.get("percent", 0.0), entry.get("threads", 0))]
+    top = entry.get("top") or []
+    if top:
+        first = top[0]
+        parts.append("top=%.2fs#%d" % (first.get("seconds", 0.0), first.get("id", 0)))
+    roles = entry.get("roles") or {}
+    if roles.get("main_thread") is not None:
+        parts.append("main=%.2fs" % roles.get("main_seconds", 0.0))
+    if roles.get("paintgl_thread") is not None:
+        parts.append("paint=%.2fs" % roles.get("paint_seconds", 0.0))
+    if entry.get("process_seconds") is not None:
+        parts.append("process=%.2fs" % entry["process_seconds"])
+    if entry.get("unaccounted_seconds") is not None:
+        parts.append("unaccounted=%.2fs" % entry["unaccounted_seconds"])
+    return " ".join(parts)
 
 
 def format_canvas_path(entry):
@@ -1033,6 +1108,12 @@ def main(argv):
                 continue
             if key == "canvas_path":
                 print("   %-44s %s" % (key, format_canvas_path(stat)))
+                continue
+            if key == "canvas_swap":
+                print("   %-44s %s" % (key, format_canvas_swap(stat)))
+                continue
+            if key == "thread_cpu":
+                print("   %-44s %s" % (key, format_thread_cpu(stat)))
                 continue
             if key == "focus_gate":
                 print("   %-44s %s" % (key, format_focus_gate(stat)))

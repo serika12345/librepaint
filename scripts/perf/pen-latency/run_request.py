@@ -23,6 +23,10 @@ A target can also carry "surface_state_wait": "off" to skip the wait that
 otherwise holds each run until the device's % Processor Performance has
 recovered (two samples of at least 70 %, one Get-Counter read every five
 seconds, at most 120 seconds). The wait is a runner setting as well.
+
+A target can carry "thread_cpu": "on" to have thread_cpu.ps1 sample the
+process and thread CPU counters through the run. The default is "off"; the
+sampler is for the CPU comparisons, not for every latency run.
 """
 
 import json
@@ -32,6 +36,7 @@ ENV_NAME_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 KRITARC_KEY_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-")
 SURFACE_STATE_MODES = ("off", "on", "light")
 SURFACE_STATE_WAIT_MODES = ("on", "off")
+THREAD_CPU_MODES = ("off", "on")
 
 
 def checked_env(env):
@@ -104,9 +109,23 @@ def checked_surface_state_wait(mode):
     return text
 
 
+def checked_thread_cpu(mode):
+    """Return whether the runner samples per-thread CPU, or raise.
+
+    The sampler is off by default: it adds one process that reads the thread
+    counters every 500 ms. A CPU comparison turns it on for both targets of
+    the comparison, so the sampling cost is the same on both sides.
+    """
+    text = "off" if mode is None else str(mode)
+    if text not in THREAD_CPU_MODES:
+        raise ValueError("thread_cpu must be one of %s: %r" % (
+            ", ".join(THREAD_CPU_MODES), mode))
+    return text
+
+
 def build_request(target, runs, app, inject=None, capture=False, name=None, presentmon="on",
                   presentmon_fields=None, env=None, kritarc=None, display_check=None,
-                  surface_state="off", surface_state_wait="on"):
+                  surface_state="off", surface_state_wait="on", thread_cpu="off"):
     request = {
         "target": target,
         "runs": int(runs),
@@ -117,6 +136,7 @@ def build_request(target, runs, app, inject=None, capture=False, name=None, pres
         "presentmon": presentmon or "on",
         "surface_state": checked_surface_state(surface_state),
         "surface_state_wait": checked_surface_state_wait(surface_state_wait),
+        "thread_cpu": checked_thread_cpu(thread_cpu),
     }
     request.update(presentmon_fields or {})
     checked = checked_env(env)
@@ -132,18 +152,18 @@ def build_request(target, runs, app, inject=None, capture=False, name=None, pres
 
 
 def main(argv):
-    if len(argv) != 13:
+    if len(argv) != 14:
         raise SystemExit(
             "usage: run_request.py TARGET RUNS APP INJECT_JSON CAPTURE NAME PRESENTMON "
             "PRESENTMON_JSON TARGET_ENV_JSON TARGET_KRITARC_JSON TARGET_DISPLAY_CHECK_JSON "
-            "SURFACE_STATE SURFACE_STATE_WAIT")
+            "SURFACE_STATE SURFACE_STATE_WAIT THREAD_CPU")
     (target, runs, app, inject, capture, name, presentmon, presentmon_fields, target_env,
-     target_kritarc, target_display_check, surface_state, surface_state_wait) = argv
+     target_kritarc, target_display_check, surface_state, surface_state_wait, thread_cpu) = argv
     request = build_request(target, runs, app, json.loads(inject), capture == "true", name,
                             presentmon, json.loads(presentmon_fields), json.loads(target_env or "{}"),
                             json.loads(target_kritarc or "{}"),
                             json.loads(target_display_check or "{}"),
-                            surface_state, surface_state_wait)
+                            surface_state, surface_state_wait, thread_cpu)
     print(json.dumps(request))
     return 0
 

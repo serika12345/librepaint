@@ -472,6 +472,14 @@ try {
         $surfaceStateWait = 'on'
     }
     $surfaceScript = Join-Path $here 'surface_state.ps1'
+    # Per-thread CPU is a runner setting and off unless the target asks for
+    # it, because it adds a sampling process to every run.
+    $threadCpuMode = if ($request.thread_cpu) { [string]$request.thread_cpu } else { 'off' }
+    if ($threadCpuMode -notin @('off', 'on')) {
+        Log ("unknown thread_cpu '" + $threadCpuMode + "', recording nothing")
+        $threadCpuMode = 'off'
+    }
+    $threadScript = Join-Path $here 'thread_cpu.ps1'
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -482,6 +490,7 @@ try {
         Set-Content -Path $script:runStatus -Value 'starting'
         Log "run $n $dir"
         Write-Meta $dir $request $target $surfaceStateMode $surfaceStateWait
+        Add-Content -Path (Join-Path $dir 'meta.txt') -Value "thread_cpu_mode=$threadCpuMode"
         Write-LaunchFacts $dir 'start' $null
         # Wait for the device to recover before it is measured. The wait runs
         # in a separate process before the sampler and the application start,
@@ -588,6 +597,9 @@ try {
         }
         $appImage = if ($displayCheck) { [string]$displayCheck.image } else { $canvas }
         $app = $null
+        $threadSampler = $null
+        $threadStop = Join-Path $dir 'threads.stop'
+        $threadCsv = Join-Path $dir 'threads.csv'
         $appOut = Join-Path $dir 'app.out'
         $appErr = Join-Path $dir 'app.err'
         try {
@@ -599,6 +611,23 @@ try {
                 -RedirectStandardOutput $appOut -RedirectStandardError $appErr
             $hwnd = Wait-MainWindow $app 120
             Write-LaunchFacts $dir 'window' $app
+
+            # Per-thread CPU sampling starts with the window and runs until
+            # the application exits. It is one extra process reading the
+            # process's own thread counters; the mode is off by default.
+            if ($threadCpuMode -eq 'on' -and (Test-Path $threadScript)) {
+                try {
+                    $threadSampler = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+                        -ArgumentList @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+                            '-File', "`"$threadScript`"", '-ProcessId', [string]$app.Id,
+                            '-Out', "`"$threadCsv`"", '-IntervalMs', '500',
+                            '-StopFile', "`"$threadStop`"") `
+                        -RedirectStandardOutput (Join-Path $dir 'thread-cpu.out') `
+                        -RedirectStandardError (Join-Path $dir 'thread-cpu.err')
+                } catch {
+                    Log ("thread CPU sampler did not start: " + $_.Exception.Message)
+                }
+            }
 
             # Start PresentMon after the app window exists: --process_id is
             # then valid and --terminate_on_proc_exit sees the process exit.
@@ -660,6 +689,15 @@ try {
                 Stop-Process -Id $app.Id -Force
                 [void]$app.WaitForExit(5000)
             }
+            if ($threadSampler) {
+                try { Set-Content -Path $threadStop -Value 'stop' } catch { }
+                try {
+                    if (-not $threadSampler.WaitForExit(15000)) {
+                        Stop-Process -Id $threadSampler.Id -Force -ErrorAction SilentlyContinue
+                        [void]$threadSampler.WaitForExit(5000)
+                    }
+                } catch { }
+            }
             if ($pm) {
                 try {
                     $pm.Refresh()
@@ -687,6 +725,14 @@ try {
                     }
                 } catch { }
             }
+        }
+        if ($threadCpuMode -eq 'on') {
+            $threadLines = @(
+                "thread_cpu_csv_bytes=$(if (Test-Path $threadCsv) { (Get-Item $threadCsv).Length } else { 0 })",
+                "thread_cpu_samples=$(if (Test-Path $threadCsv) { [math]::Max(0, @(Get-Content $threadCsv | Where-Object { $_ -and -not $_.StartsWith('#') }).Count - 1) } else { 0 })",
+                "thread_cpu_process_exit=$(if ($threadSampler) { $threadSampler.HasExited } else { 'not-started' })"
+            )
+            Add-Content -Path (Join-Path $dir 'meta.txt') -Value $threadLines
         }
         if ($surfaceStateMode -ne 'off' -and (Test-Path $surfaceScript)) {
             try {
