@@ -242,8 +242,8 @@ int monitorDesktop(const std::string &out, int seconds, unsigned long long windo
         double oldUnchanged = -1.0;
         if (rectChanged) {
             long long oldTotal = 0, oldSame = 0;
-            for (int y = std::max(0, last.top); y < std::min(dup.height, last.bottom); y += step) {
-                for (int x = std::max(0, last.left); x < std::min(dup.width, last.right); x += step) {
+            for (int y = std::max(0, int(last.top)); y < std::min(dup.height, int(last.bottom)); y += step) {
+                for (int x = std::max(0, int(last.left)); x < std::min(dup.width, int(last.right)); x += step) {
                     if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) continue;
                     size_t index = (size_t)(y / step) * gridWidth + (x / step);
                     ++oldTotal;
