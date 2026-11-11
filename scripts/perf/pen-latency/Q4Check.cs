@@ -318,29 +318,34 @@ public static class Q4Check
                 GetClipboardFormatNameW(format, name, name.Capacity);
                 string label = name.ToString();
                 if (label.Length == 0) label = StandardFormatName(format);
-                IntPtr handle = GetClipboardData(format);
+                bool isPng = LooksLikePng(label);
                 ulong size = 0;
                 string path = "";
-                if (handle != IntPtr.Zero)
+                if (isPng)
                 {
-                    size = GlobalSize(handle).ToUInt64();
-                    if (LooksLikePng(label) && size > 0)
+                    IntPtr handle = GetClipboardData(format);
+                    if (handle != IntPtr.Zero)
                     {
-                        IntPtr memory = GlobalLock(handle);
-                        if (memory != IntPtr.Zero)
+                        size = GlobalSize(handle).ToUInt64();
+                        if (size > 0)
                         {
-                            byte[] bytes = new byte[(int)size];
-                            Marshal.Copy(memory, bytes, 0, bytes.Length);
-                            GlobalUnlock(handle);
-                            path = pngSaved == 0 ? "clipboard-png.png" :
-                                ("clipboard-png-" + pngSaved.ToString() + ".png");
-                            File.WriteAllBytes(Path.Combine(directory, path), bytes);
-                            pngSaved++;
+                            IntPtr memory = GlobalLock(handle);
+                            if (memory != IntPtr.Zero)
+                            {
+                                byte[] bytes = new byte[(int)size];
+                                Marshal.Copy(memory, bytes, 0, bytes.Length);
+                                GlobalUnlock(handle);
+                                path = pngSaved == 0 ? "clipboard-png.png" :
+                                    ("clipboard-png-" + pngSaved.ToString() + ".png");
+                                File.WriteAllBytes(Path.Combine(directory, path), bytes);
+                                pngSaved++;
+                            }
                         }
                     }
                 }
                 rows.AppendFormat("{0},{1},{2},{3}\n", format,
-                    label.Replace(",", " ").Replace("\n", " ").Replace("\r", " "), size, path);
+                    label.Replace(",", " ").Replace("\n", " ").Replace("\r", " "),
+                    isPng ? size.ToString() : "", path);
             }
         }
         finally
