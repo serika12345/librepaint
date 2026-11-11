@@ -306,6 +306,67 @@ class CanvasPathTest(unittest.TestCase):
         self.assertNotIn("canvas_path                                  n=0", text)
 
 
+class GpuObjectsTest(unittest.TestCase):
+    """Context activations and GPU object churn are charged per frame."""
+
+    def test_context_activations_and_gpu_counts_are_reported(self):
+        base = ms(1000)
+        rows = [
+            (base, "paintgl_begin", 0),
+            (base + ms(1), "gl_make_current", 0, 0, 3),  # app, redundant
+            (base + ms(2), "gl_done_current", 0, 0, 2),  # skipped
+            (base + ms(3), "gpu_texture_create", 0),
+            (base + ms(4), "gpu_texture_image", 0),
+            (base + ms(5), "gpu_texture_reuse", 0),
+            (base + ms(6), "gpu_buffer_create", 0),
+            (base + ms(7), "gpu_buffer_allocate", 0),
+            (base + ms(8), "gpu_buffer_destroy", 0, 0, 3),
+            (base + ms(9), "gpu_fbo_recreate", 0),
+            (base + ms(10), "gpu_sync_create", 0),
+            (base + ms(11), "gpu_sync_destroy", 0),
+            (base + ms(12), "color_selector_update", 0),
+            (base + ms(13), "color_selector_paint", 0),
+            (base + ms(14), "paintgl_end", 0),
+            (base + ms(15), "canvas_about_to_compose", 0),
+            (base + ms(16), "frame_swapped", 0),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, rows, [(base + ms(16), "20.0")])
+            result = analyze.Run(directory).analyze()
+        gpu = result["gpu_objects"]
+        self.assertEqual(gpu["frames"], 1)
+        self.assertEqual(gpu["make_current"], 3)  # app + Qt paint + Qt composition
+        self.assertEqual(gpu["make_current_app"], 1)
+        self.assertEqual(gpu["make_current_redundant"], 1)
+        self.assertEqual(gpu["done_current"], 2)  # app done + Qt composition
+        self.assertEqual(gpu["texture_create"], 1)
+        self.assertEqual(gpu["texture_image"], 1)
+        self.assertEqual(gpu["texture_reuse"], 1)
+        self.assertEqual(gpu["buffer_create"], 1)
+        self.assertEqual(gpu["buffer_destroy"], 3)
+        self.assertEqual(gpu["buffer_allocate"], 1)
+        self.assertEqual(gpu["fbo_recreate"], 1)
+        self.assertEqual(gpu["color_selector_paint"], 1)
+        self.assertAlmostEqual(gpu["per_frame"]["make_current"], 3.0)
+
+    def test_summary_prints_the_gpu_line(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "paintgl_begin", 0),
+                (base + ms(1), "paintgl_end", 0),
+                (base + ms(2), "canvas_about_to_compose", 0),
+                (base + ms(3), "frame_swapped", 0),
+            ], [(base + ms(3), "20.0")])
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        text = output.getvalue()
+        self.assertIn("gpu_objects", text)
+        self.assertIn("frames=1 make_current=2/frame", text)
+        self.assertIn("texture_image=0", text)
+
+
 class CanvasSwapTest(unittest.TestCase):
     def test_composition_and_platform_swap_are_split(self):
         base = ms(1000)

@@ -565,6 +565,7 @@ class Run:
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
             }
             result["canvas_path"] = summarize_canvas_path(self.events)
+            result["gpu_objects"] = summarize_gpu_objects(self.events)
             result["focus_gate"] = summarize_focus_gate(self.events)
             result["l1_events"] = {
                 event: len(self.events.get(event, []))
@@ -818,6 +819,103 @@ def summarize_canvas_path(events):
         if values:
             summary[name + "_extra"] = dict(sorted(values.items()))
     return summary
+
+
+def summarize_gpu_objects(events):
+    """Count context activations and GPU object churn per frame.
+
+    Qt performs one makeCurrent for paintGL and one context activation for the
+    widget composition; both happen inside Qt, so they are inferred from
+    paintgl_begin and canvas_about_to_compose. Every application-side
+    makeCurrent/doneCurrent is marked directly. The GPU counts follow the probe
+    markers documented in KisLatencyProbe.h.
+    """
+    frames = len(events.get("paintgl_begin", [])) or len(events.get("frame_swapped", []))
+    if not frames:
+        return {}
+
+    make_current = len(events.get("gl_make_current", []))
+    redundant = sum(1 for entry in events.get("gl_make_current", []) if int(entry[3]) & 1)
+    skipped = sum(1 for entry in events.get("gl_make_current", []) if int(entry[3]) & 8)
+    restore = sum(1 for entry in events.get("gl_make_current", []) if int(entry[3]) & 4)
+    done_current = len(events.get("gl_done_current", []))
+    qt_paint = len(events.get("paintgl_begin", []))
+    qt_compose = len(events.get("canvas_about_to_compose", []))
+
+    counts = {
+        "texture_create": len(events.get("gpu_texture_create", [])),
+        "texture_destroy": len(events.get("gpu_texture_destroy", [])),
+        "texture_image": len(events.get("gpu_texture_image", [])),
+        "texture_reuse": len(events.get("gpu_texture_reuse", [])),
+        "buffer_create": len(events.get("gpu_buffer_create", [])),
+        "buffer_destroy": sum(int(entry[3]) if int(entry[3]) > 0 else 1
+                              for entry in events.get("gpu_buffer_destroy", [])),
+        "buffer_allocate": len(events.get("gpu_buffer_allocate", [])),
+        "fbo_recreate": len(events.get("gpu_fbo_recreate", [])),
+        "sync_create": len(events.get("gpu_sync_create", [])),
+        "sync_destroy": len(events.get("gpu_sync_destroy", [])),
+        "color_selector_update": len(events.get("color_selector_update", [])),
+        "color_selector_paint": len(events.get("color_selector_paint", [])),
+    }
+
+    make_total = make_current + qt_paint + qt_compose
+    done_total = done_current + qt_compose
+    summary = {
+        "frames": frames,
+        "make_current": make_total,
+        "make_current_app": make_current,
+        "make_current_qt_paint": qt_paint,
+        "make_current_qt_compose": qt_compose,
+        "make_current_redundant": redundant,
+        "make_current_skipped": skipped,
+        "make_current_restore": restore,
+        "done_current": done_total,
+        "done_current_app": done_current,
+        "per_frame": {
+            "make_current": round(make_total / frames, 3),
+            "done_current": round(done_total / frames, 3),
+            **{name: round(value / frames, 3) for name, value in counts.items()},
+        },
+    }
+    summary.update(counts)
+    return summary
+
+
+GPU_OBJECT_NAMES = (
+    "texture_create",
+    "texture_destroy",
+    "texture_image",
+    "texture_reuse",
+    "buffer_create",
+    "buffer_destroy",
+    "buffer_allocate",
+    "fbo_recreate",
+    "sync_create",
+    "sync_destroy",
+    "color_selector_update",
+    "color_selector_paint",
+)
+
+
+def format_gpu_objects(entry):
+    """One line per run: context activations and GPU object churn per frame."""
+    if not entry:
+        return "none"
+    counts = " ".join("%s=%d" % (name, entry.get(name, 0)) for name in GPU_OBJECT_NAMES)
+    return ("frames=%d make_current=%d/frame (app=%d qt_paint=%d qt_compose=%d "
+            "redundant=%d skipped=%d restore=%d) done_current=%d/frame (app=%d) %s") % (
+        entry["frames"],
+        entry["make_current"],
+        entry["make_current_app"],
+        entry["make_current_qt_paint"],
+        entry["make_current_qt_compose"],
+        entry["make_current_redundant"],
+        entry["make_current_skipped"],
+        entry["make_current_restore"],
+        entry["done_current"],
+        entry["done_current_app"],
+        counts,
+    )
 
 
 def summarize_swap(events, ticks_per_ms):
@@ -1227,6 +1325,9 @@ def main(argv):
                 continue
             if key == "canvas_swap":
                 print("   %-44s %s" % (key, format_canvas_swap(stat)))
+                continue
+            if key == "gpu_objects":
+                print("   %-44s %s" % (key, format_gpu_objects(stat)))
                 continue
             if key == "render_path":
                 print("   %-44s %s" % (key, format_render_path(stat)))
