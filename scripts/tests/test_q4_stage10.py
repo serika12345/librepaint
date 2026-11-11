@@ -40,6 +40,15 @@ class Q4Stage10Test(unittest.TestCase):
         self.assertLess(setter, application)
         self.assertEqual(source.count('qputenv("QT_DISABLE_ACCESSIBILITY"'), 1)
 
+    def test_angle_resize_workarounds_are_gone(self):
+        source = read_source("krita/main.cc")
+        for name in (
+            "QT_USE_PREMATURE_RESIZE_EVENTS",
+            "QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE",
+            "QT_PREFILL_RHI_SURFACE",
+        ):
+            self.assertNotIn(name, source)
+
 
 if __name__ == "__main__":
     unittest.main()
