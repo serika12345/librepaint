@@ -878,6 +878,14 @@ function Invoke-Q4Check($request, [string]$target) {
         try {
             [void][Q4Check]::BringToFront($app.Handle)
             Start-Sleep -Milliseconds 800
+            # Return the foreground colour to black and the background to
+            # white with the application's own shortcut (Krita default: D)
+            # before any pen step, so the drawn line is visible on the white
+            # canvas regardless of the keys sent by earlier steps.
+            $shell = New-Object -ComObject WScript.Shell
+            $shell.SendKeys('d')
+            Start-Sleep -Milliseconds 500
+            $events.Add("action=colors-reset qpc=$([Q4Check]::NowTicks()) detail=key-d")
             $penSnapshot = Invoke-CheckSnapshot $penDir
             if ($penSnapshot -and $penSnapshot.canvas) { $penCanvas = @($penSnapshot.canvas) }
             $started = [Q4Check]::PenStart((Join-Path $penDir 'pen-events.txt'))
@@ -902,6 +910,7 @@ function Invoke-Q4Check($request, [string]$target) {
         $timedOut = Invoke-CheckStep $app 'pen.edge_line' 120 {
             try {
                 $events.Add("action=edge-start qpc=$([Q4Check]::NowTicks()) detail=right-edge")
+                Invoke-CheckFrame $penDir 'edge-before' | Out-Null
                 [void][Q4Check]::PenStroke($app.Handle, 0.9, 0.45, 1.02, 0.45, 350)
                 Start-Sleep -Milliseconds 500
                 Invoke-CheckFrame $penDir 'edge' | Out-Null
@@ -913,6 +922,7 @@ function Invoke-Q4Check($request, [string]$target) {
         $timedOut = Invoke-CheckStep $app 'pen.single_line' 120 {
             try {
                 $events.Add("action=single-start qpc=$([Q4Check]::NowTicks()) detail=one-line")
+                Invoke-CheckFrame $penDir 'single-before' | Out-Null
                 [void][Q4Check]::PenStroke($app.Handle, 0.2, 0.25, 0.8, 0.25, 350)
                 Start-Sleep -Milliseconds 500
                 Invoke-CheckFrame $penDir 'single' | Out-Null
@@ -940,6 +950,7 @@ function Invoke-Q4Check($request, [string]$target) {
         $timedOut = Invoke-CheckStep $app 'pen.dot' 120 {
             try {
                 $events.Add("action=dot-start qpc=$([Q4Check]::NowTicks()) detail=one-dot")
+                Invoke-CheckFrame $penDir 'dot-before' | Out-Null
                 [void][Q4Check]::PenTap($app.Handle, 0.3, 0.6, 120)
                 Start-Sleep -Milliseconds 500
                 Invoke-CheckFrame $penDir 'dot' | Out-Null
@@ -976,9 +987,12 @@ function Invoke-Q4Check($request, [string]$target) {
             [Q4Check]::PenStop()
             $facts.pen = [ordered]@{ dir = 'pen'; probe = 'pen/probe.csv';
                 events = 'pen/pen-events.txt'; actions = 'pen/actions.txt'; canvas = $penCanvas;
+                colors_reset = $true;
                 captures = [ordered]@{ inside = 'pen/inside.bmp'; left = 'pen/left.bmp';
-                    edge = 'pen/edge.bmp'; single = 'pen/single.bmp';
-                    longpress = 'pen/longpress.bmp'; dot = 'pen/dot.bmp'; return = 'pen/return.bmp' };
+                    edge_before = 'pen/edge-before.bmp'; edge = 'pen/edge.bmp';
+                    single_before = 'pen/single-before.bmp'; single = 'pen/single.bmp';
+                    longpress = 'pen/longpress.bmp';
+                    dot_before = 'pen/dot-before.bmp'; dot = 'pen/dot.bmp'; return = 'pen/return.bmp' };
                 popups = 'pen/popups.txt'; cursors = 'pen/cursors.txt' }
         } catch { $errors.Add('pen: ' + $_.Exception.Message) }
     } catch { $errors.Add('app: ' + $_.Exception.Message) }

@@ -343,6 +343,28 @@ def dark_components(picture, box, minimum=2):
     return components
 
 
+DIFFERENCE_THRESHOLD = 48
+
+
+def difference_picture(after, before, threshold=DIFFERENCE_THRESHOLD):
+    """Return a black/white picture of the pixels that changed.
+
+    A pixel changed when its red, green or blue value differs by more than
+    threshold. Changed pixels are black, the rest white, so dark_runs,
+    dark_components and count_dark count the drawn line as they do on a
+    capture. Pictures of different sizes cannot be compared and return None.
+    """
+    if (after.width, after.height) != (before.width, before.height):
+        return None
+    rgb = bytearray(after.width * after.height * 3)
+    for offset in range(0, len(rgb), 3):
+        changed = (abs(after.rgb[offset] - before.rgb[offset]) > threshold
+                   or abs(after.rgb[offset + 1] - before.rgb[offset + 1]) > threshold
+                   or abs(after.rgb[offset + 2] - before.rgb[offset + 2]) > threshold)
+        rgb[offset:offset + 3] = b"\x00\x00\x00" if changed else b"\xff\xff\xff"
+    return display_check.Picture(after.width, after.height, rgb)
+
+
 def item(identifier, title, verdict, reasons, evidence, metrics=None):
     return {
         "id": identifier,
@@ -544,6 +566,27 @@ def judge_pen(base, facts, checks):
             base, pen.get("dir", "pen"), name + ".bmp")
         return path if os.path.exists(path) else None
 
+    def before_capture(name):
+        value = captures.get(name + "_before")
+        path = os.path.join(base, value) if value else os.path.join(
+            base, pen.get("dir", "pen"), name + "-before.bmp")
+        return path if os.path.exists(path) else None
+
+    def changed_picture(name, picture):
+        # When the run captured the same step before drawing, count only the
+        # pixels that the stroke changed; otherwise the colours of the canvas
+        # are counted as line. A missing or unreadable capture keeps the
+        # picture as it is.
+        before_path = before_capture(name)
+        if not before_path:
+            return picture
+        try:
+            before = display_check.load(before_path)
+        except ValueError:
+            return picture
+        difference = difference_picture(picture, before)
+        return picture if difference is None else difference
+
     # Stage 2/3 items 1 and 2: the outline follows the canvas edge.
     enter = action_time(actions, "enter")
     leave = action_time(actions, "leave")
@@ -580,7 +623,7 @@ def judge_pen(base, facts, checks):
     edge = capture("edge")
     if edge:
         try:
-            picture = display_check.load(edge)
+            picture = changed_picture("edge", display_check.load(edge))
         except ValueError:
             picture = None
     if not events:
@@ -607,7 +650,7 @@ def judge_pen(base, facts, checks):
     single = capture("single")
     if single:
         try:
-            picture = display_check.load(single)
+            picture = changed_picture("single", display_check.load(single))
             if canvas:
                 x = canvas[0] + int(canvas[2] * 0.5)
                 runs = dark_runs(picture, x, canvas[1] + int(canvas[3] * 0.15),
@@ -663,7 +706,7 @@ def judge_pen(base, facts, checks):
     dot = capture("dot")
     if dot:
         try:
-            picture = display_check.load(dot)
+            picture = changed_picture("dot", display_check.load(dot))
             if canvas:
                 box = [canvas[0] + int(canvas[2] * 0.3) - 40,
                        canvas[1] + int(canvas[3] * 0.6) - 40, 80, 80]

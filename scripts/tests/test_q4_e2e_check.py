@@ -66,6 +66,13 @@ def rgba_picture(width: int, height: int, color=(20, 40, 60, 255)) -> bytes:
     return bytes(color) * (width * height)
 
 
+def paint_box(picture, x0: int, y0: int, width: int, height: int, color=(0, 0, 0)) -> None:
+    for y in range(y0, y0 + height):
+        for x in range(x0, x0 + width):
+            offset = 3 * (y * picture.width + x)
+            picture.rgb[offset:offset + 3] = bytes(color)
+
+
 def file_bytes(path: str) -> bytes:
     with open(path, "rb") as handle:
         return handle.read()
@@ -297,6 +304,47 @@ class PenCapturePathTest(unittest.TestCase):
         single = next(entry for entry in items if entry["id"] == "pen.single_line")
         self.assertEqual(single["metrics"]["dark_runs"], 1)
         self.assertIn("pen/single.bmp", single["evidence"])
+
+
+class PenDifferenceTest(unittest.TestCase):
+    def test_a_line_is_counted_from_the_difference_to_before(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "pen"))
+            before = display_check.Picture(200, 200, bytearray(b"\xff" * (200 * 200 * 3)))
+            after = display_check.Picture(200, 200, bytearray(b"\xff" * (200 * 200 * 3)))
+            # Dark bands in both captures are the background the old rule
+            # counted as line; only the new row in the difference is a line.
+            for y in (40, 60):
+                paint_box(before, 0, y, 200, 2)
+                paint_box(after, 0, y, 200, 2)
+            paint_box(after, 0, 50, 200, 2)
+            display_check.write_png(os.path.join(root, "pen", "single.bmp"), after)
+            display_check.write_png(os.path.join(root, "pen", "single-before.bmp"), before)
+            facts = {"pen": {"captures": {"single": "pen/single.bmp",
+                                          "single_before": "pen/single-before.bmp"},
+                             "canvas": [0, 0, 200, 200]}}
+            items = check.judge_pen(root, facts, SCENARIO["checks"])
+        single = next(entry for entry in items if entry["id"] == "pen.single_line")
+        self.assertEqual(single["metrics"]["dark_runs"], 1)
+
+    def test_a_dot_is_counted_from_the_difference_to_before(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "pen"))
+            before = display_check.Picture(200, 200, bytearray(b"\xff" * (200 * 200 * 3)))
+            after = display_check.Picture(200, 200, bytearray(b"\xff" * (200 * 200 * 3)))
+            # Two dark blobs in both captures stay out of the difference.
+            for corner in ((30, 90), (80, 140)):
+                paint_box(before, corner[0], corner[1], 4, 4)
+                paint_box(after, corner[0], corner[1], 4, 4)
+            paint_box(after, 60, 112, 5, 5)
+            display_check.write_png(os.path.join(root, "pen", "dot.bmp"), after)
+            display_check.write_png(os.path.join(root, "pen", "dot-before.bmp"), before)
+            facts = {"pen": {"captures": {"dot": "pen/dot.bmp",
+                                          "dot_before": "pen/dot-before.bmp"},
+                             "canvas": [0, 0, 200, 200]}}
+            items = check.judge_pen(root, facts, SCENARIO["checks"])
+        dot = next(entry for entry in items if entry["id"] == "pen.dot")
+        self.assertEqual(dot["metrics"]["components"], 1)
 
 
 class PopupListTest(unittest.TestCase):
