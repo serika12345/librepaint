@@ -7,7 +7,6 @@
 #include "KisGLImageWidget.h"
 
 #include <KisLatencyProbe.h>
-#include <KisL1Switches.h>
 
 #include <QPainter>
 #include <QFile>
@@ -202,9 +201,6 @@ void KisGLImageWidget::updateVerticesBuffer(const QRect &rect)
 void KisGLImageWidget::paintGL()
 {
     KisLatencyProbe::mark("color_selector_paint");
-    if (KisL1Switches::disableColorSelectorGl()) {
-        return;
-    }
 
     // TODO: fix conversion to the destination surface space
     // Fill with bright color as as default for debugging purposes
@@ -285,13 +281,6 @@ void KisGLImageWidget::loadImage(const KisGLImageF16 &image)
     }
 
     m_havePendingTextureUpdate = true;
-
-    // The L1 switch keeps the last texture and skips the update, so the
-    // measurement can separate the color selector's GL work from the canvas.
-    // KisL1Switches.h owns the removal condition.
-    if (KisL1Switches::disableColorSelectorGl()) {
-        return;
-    }
 
     updateGeometry();
     update();
