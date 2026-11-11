@@ -532,6 +532,29 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   記録と組の数を出す。`stroke_dab`は`libs/painting/strokes/freehand_stroke.cpp`が
   `maskedPainter`の描画の後に記録する。
 
+Wintabの対応範囲の差し替えは、正式版Qtがパケットを常に仮想デスクトップ全体に当てはめる
+ため、`KisWintabPacketPeeker`が`WTPacketsPeek`で読んだ位置を`lcSysOrg`/`lcSysExt`（設定が
+仮想画面全体なら仮想デスクトップ、任意の矩形ならその矩形）で計算し直し、
+`KisInputManager`が同じ時刻の`QTabletEvent`の位置だけを差し替える。Wintabの時刻は
+1msの分解能なので、同じ時刻のパケットは届いた順に1つずつ使う。近接の最初の押下では、
+計算した位置と`QCursor::pos()`の差を`KisWintabTrust`が求め、2pxを超えるときはその近接の
+間は差し替えない（`docs/perf/q4-wintab-prior-art.md`）。Qtを更新したときは、実物のペンで
+次を確かめる。
+
+1. `LIBREPAINT_LATENCY_LOG`を出力先に設定し、タブレットの設定でWintabを選んで起動する
+   （`kritadisplayrc`の`useWin8PointerInput=false`）。Windows Inkのままでは`WT_PACKET`が
+   届かず、差し替えの経路を通らない。
+2. `probe.csv`に`wintab_peek`（x=補正の有無、y=読んだパケット数）が出ることを確かめる。
+3. ペンを近づけて動かし、`probe.csv`に`wintab_fix`（x=差し替えた、y=一致するパケットが
+   なかった）が出ることを確かめる。出ないときはQtのパケットの並び（`lcPktData`）か
+   イベントの時刻が変わっている。
+4. 押下のたびに`wintab_trust`（x=1が信頼する、0が信頼しない、y=差の画素×10）が出ることを
+   確かめる。0の近接では位置がQtのままになる。
+5. 対応範囲を「任意の矩形」にして画面の左半分を指定し、タブレットの全面を使って線を引いた
+   ときに、線が画面の左半分に収まることを確かめる。線が画面の全面に広がるときは、差し替えが
+   効いていない。
+6. 確かめた後に、起動の設定と`kritadisplayrc`を元に戻す。
+
 ### 自動の確認（Q4の段ごとのE2E）
 
 Q4（フォークをやめ、全プラットフォームで正式版の同じQtにする）の段ごとの確認は、Surfaceで
