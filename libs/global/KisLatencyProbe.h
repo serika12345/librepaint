@@ -86,10 +86,8 @@ class QCoreApplication;
  *
  * The context and GPU object markers count driver work per frame:
  * gl_make_current (extra bit 1 = the target context was already current,
- * bit 2 = a canvas context lock, bit 4 = restoring the previous context,
- * bit 8 = the call was skipped by LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT)
- * and gl_done_current (bit 1 = a doneCurrent call with no previous context,
- * bit 2 = skipped).
+ * bit 2 = a canvas context lock, bit 4 = restoring the previous context)
+ * and gl_done_current (bit 1 = a doneCurrent call with no previous context).
  * gpu_texture_create/destroy (glGenTextures/glDeleteTextures),
  * gpu_texture_image (glTexImage2D), gpu_texture_reuse (a full-tile update
  * reused the existing storage), gpu_buffer_create/destroy (QOpenGLBuffer

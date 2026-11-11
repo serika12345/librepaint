@@ -45,9 +45,6 @@ KRITAGLOBAL_EXPORT QString openGLRenderer();
 /// L2 CPU cause: texture buffer (PBO) uploads; -1 keeps the renderer default,
 /// 0 disables them (the ANGLE default) and 1 enables them on every renderer.
 KRITAGLOBAL_EXPORT int textureBuffers();
-/// Context switches: skip makeCurrent() when the widget context is already
-/// current, and do not switch back in that case.
-KRITAGLOBAL_EXPORT bool skipRedundantMakeCurrent();
 /// Color selector: do not upload or paint its palette while measuring. The
 /// widget keeps its last texture.
 KRITAGLOBAL_EXPORT bool disableColorSelectorGl();
@@ -69,7 +66,6 @@ KRITAGLOBAL_EXPORT bool readDisableMoveCompression();
 KRITAGLOBAL_EXPORT bool readDisableUpdateThrottle();
 KRITAGLOBAL_EXPORT QString readOpenGLRenderer();
 KRITAGLOBAL_EXPORT int readTextureBuffers();
-KRITAGLOBAL_EXPORT bool readSkipRedundantMakeCurrent();
 KRITAGLOBAL_EXPORT bool readDisableColorSelectorGl();
 }
 }

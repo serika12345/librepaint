@@ -25,7 +25,6 @@ private Q_SLOTS:
         qunsetenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE");
         qunsetenv("LIBREPAINT_L1_OPENGL_RENDERER");
         qunsetenv("LIBREPAINT_L1_TEXTURE_BUFFERS");
-        qunsetenv("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT");
         qunsetenv("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL");
     }
 
@@ -39,7 +38,6 @@ private Q_SLOTS:
         QCOMPARE(KisL1Switches::disableUpdateThrottle(), false);
         QCOMPARE(KisL1Switches::openGLRenderer(), QString());
         QCOMPARE(KisL1Switches::textureBuffers(), -1);
-        QCOMPARE(KisL1Switches::skipRedundantMakeCurrent(), false);
         QCOMPARE(KisL1Switches::disableColorSelectorGl(), false);
     }
 
@@ -56,7 +54,6 @@ private Q_SLOTS:
         qputenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE", "1");
         qputenv("LIBREPAINT_L1_OPENGL_RENDERER", "desktop");
         qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", "off");
-        qputenv("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT", "1");
         qputenv("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL", "1");
 
         QCOMPARE(KisL1Switches::maxFrameLatency(), 0);
@@ -67,7 +64,6 @@ private Q_SLOTS:
         QCOMPARE(KisL1Switches::disableUpdateThrottle(), false);
         QCOMPARE(KisL1Switches::openGLRenderer(), QString());
         QCOMPARE(KisL1Switches::textureBuffers(), -1);
-        QCOMPARE(KisL1Switches::skipRedundantMakeCurrent(), false);
         QCOMPARE(KisL1Switches::disableColorSelectorGl(), false);
     }
 
@@ -115,16 +111,12 @@ private Q_SLOTS:
             QCOMPARE(KisL1Switches::Detail::readDisableMoveCompression(), true);
             qputenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE", value);
             QCOMPARE(KisL1Switches::Detail::readDisableUpdateThrottle(), true);
-            qputenv("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT", value);
-            QCOMPARE(KisL1Switches::Detail::readSkipRedundantMakeCurrent(), true);
             qputenv("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL", value);
             QCOMPARE(KisL1Switches::Detail::readDisableColorSelectorGl(), true);
         }
         for (const char *value : {"0", "false", "off", "no", ""}) {
             qputenv("LIBREPAINT_L1_WAIT_FOR_GPU", value);
             QCOMPARE(KisL1Switches::Detail::readWaitForGpuBeforeNextFrame(), false);
-            qputenv("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT", value);
-            QCOMPARE(KisL1Switches::Detail::readSkipRedundantMakeCurrent(), false);
             qputenv("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL", value);
             QCOMPARE(KisL1Switches::Detail::readDisableColorSelectorGl(), false);
         }

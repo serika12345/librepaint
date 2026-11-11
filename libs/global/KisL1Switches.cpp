@@ -102,11 +102,6 @@ int readTextureBuffers()
     return -1;
 }
 
-bool readSkipRedundantMakeCurrent()
-{
-    return flagValue("LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT");
-}
-
 bool readDisableColorSelectorGl()
 {
     return flagValue("LIBREPAINT_L1_DISABLE_COLOR_SELECTOR_GL");
@@ -163,12 +158,6 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
-    return value;
-}
-
-bool skipRedundantMakeCurrent()
-{
-    static const bool value = Detail::readSkipRedundantMakeCurrent();
     return value;
 }
 
