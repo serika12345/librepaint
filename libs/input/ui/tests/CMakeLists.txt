@@ -73,6 +73,14 @@ kis_add_test(
         kritainputuiextendedmodifiersmapperobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_test(
+    KisWindowsPointerFilterContractTest.cpp
+    TEST_NAME KisWindowsPointerFilterContractTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
 target_compile_definitions(KisExtendedModifiersMapperContractTest
     PRIVATE kritainputui_EXPORTS
 )
