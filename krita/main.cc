@@ -459,6 +459,17 @@ extern "C" MAIN_EXPORT int MAIN_FN(int argc, char **argv)
 #endif
 
 #ifdef Q_OS_WIN
+    // A measurement launch redirects stderr to app.err. Without a console,
+    // Qt's default handler sends every message to the debugger instead, so
+    // the renderer choice and the first frame check would not reach app.err.
+    // Only measurement runs change the destination.
+    if (qEnvironmentVariableIsSet("LIBREPAINT_LATENCY_LOG") &&
+        !qEnvironmentVariableIsSet("QT_FORCE_STDERR_LOGGING")) {
+        qputenv("QT_FORCE_STDERR_LOGGING", "1");
+    }
+#endif
+
+#ifdef Q_OS_WIN
     // Fix QCommandLineParser help output with UTF-8 codepage:
     if (GetACP() == CP_UTF8) {
         SetConsoleOutputCP(CP_UTF8);

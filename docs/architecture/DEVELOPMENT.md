@@ -236,7 +236,7 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 
 `LIBREPAINT_L1_WIDGETS_RHI`は、Qt 6の`QOpenGLWidget`がRHIの合成を前提にしているため削除した。0にするとコンテキストが初期化されず、キャンバスが描かれない（2026-11-11の`no-rhi`の回で`paintgl_begin`が0回、`frame_swapped`が17回、取り込みに線とホバーが写らなかった）。ウィジェットの合成の経路は、この版では切り替えられない。
 
-`selectSurfaceConfig()`が選んだrendererと、最初のフレームの検査の結果と、印で飛ばしたrendererは、標準エラーに1行ずつ出し、`LIBREPAINT_LATENCY_LOG`の`probe.csv`にも`l1_renderer_selection`（x=選んだrenderer、y=候補の数、extraのbit 1が明示の選択）、`l1_renderer_skipped`（x=飛ばしたrenderer）、`l1_first_frame_check`（x=検査したrenderer、y=1が合格）として残す。`selectSurfaceConfig()`は`KisUsageLogger`の初期化より前に走るため、計測の起動ではsysinfoのログに残らない。`analyze.py`は`renderer_selection`の1行にまとめる。
+`selectSurfaceConfig()`が選んだrendererと、最初のフレームの検査の結果と、印で飛ばしたrendererは、標準エラーに1行ずつ出し、`LIBREPAINT_LATENCY_LOG`の`probe.csv`にも`l1_renderer_selection`（x=選んだrenderer、y=候補の数、extraのbit 1が明示の選択）、`l1_renderer_skipped`（x=飛ばしたrenderer）、`l1_first_frame_check`（x=検査したrenderer、y=1が合格）として残す。`selectSurfaceConfig()`は`KisUsageLogger`の初期化より前に走るため、計測の起動ではsysinfoのログに残らない。WindowsのGUIのアプリはコンソールがないとQtのログをデバッガーに送るため、`LIBREPAINT_LATENCY_LOG`がある起動では`QT_FORCE_STDERR_LOGGING=1`を設定し、標準エラーを`app.err`に残す。`analyze.py`は`renderer_selection`の1行にまとめる。
 
 切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
 L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの

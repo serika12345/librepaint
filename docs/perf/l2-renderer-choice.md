@@ -304,7 +304,9 @@ Windows の既定は `"angle"` のままで、desktop を既定にする変更�
 と `OpenGL first frame check: renderer=… result=…` の1行ずつを出し、`LIBREPAINT_LATENCY_LOG`
 の `probe.csv` にも `l1_renderer_selection`、`l1_renderer_skipped`、`l1_first_frame_check`
 として残す。`selectSurfaceConfig()` は `KisUsageLogger` の初期化より前に走るため、sysinfo の
-ログだけでは計測の起動に残らず、警告の UI も計測では表示されないためである。
+ログだけでは計測の起動に残らず、警告の UI も計測では表示されないためである。Windows の GUI の
+アプリはコンソールがないと Qt のメッセージをデバッガーに送るので、`LIBREPAINT_LATENCY_LOG`
+がある起動では `QT_FORCE_STDERR_LOGGING=1` を設定し、同じ行を `app.err` にも残す。
 
 ## 4. L2 で desktop を既定にする条件
 
