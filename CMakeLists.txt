@@ -679,124 +679,24 @@ endif()
 configure_file(cmake/config/config-use-surface-color-management-api.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-use-surface-color-management-api.h)
 
 #
-# Check for the presence of custom patches in Qt
+# Q4 (removing the Qt fork): the build no longer detects the custom patches of
+# Krita's Qt fork. The config headers are kept for now with false values so the
+# remaining branches can be removed one file at a time.
 #
-set(CMAKE_REQUIRED_INCLUDES ${Qt${QT_MAJOR_VERSION}Gui_INCLUDE_DIRS})
-set(CMAKE_REQUIRED_LIBRARIES ${Qt${QT_MAJOR_VERSION}Gui_LIBRARIES})
-
-check_cxx_symbol_exists(QT_HAS_ENTER_LEAVE_PATCH "QtGui/qevent.h" KRITA_QT_HAS_ENTER_LEAVE_PATCH)
-
-if (QT_MAJOR_VERSION STREQUAL "5")
-    # in Qt5 we didn't have a separate definition for key-press/release patch
-    set(KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH ${KRITA_QT_HAS_ENTER_LEAVE_PATCH})
-else()
-    check_cxx_symbol_exists(QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH "QtGui/qevent.h" KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH)
-endif()
-
-unset(CMAKE_REQUIRED_INCLUDES)
-unset(CMAKE_REQUIRED_LIBRARIES)
-
-
-if (QT_MAJOR_VERSION STREQUAL "5")
-    # in Qt5 we didn't have a separate definition for key-press/release patch
-    set(KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH FALSE)
-else()
-    set(CMAKE_REQUIRED_INCLUDES ${Qt6Gui_INCLUDE_DIRS} ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
-    set(CMAKE_REQUIRED_LIBRARIES ${Qt6Gui_LIBRARIES})
-
-    CHECK_CXX_SOURCE_COMPILES("
-#include <QtGui/rhi/qrhi.h>
-int main(int, char *[]) {
-bool (QRhi::*x)() const;
-x = &QRhi::isLastFrameCompletedOnGPU;
-Q_UNUSED(x);
-return 0;
-}
-"
-    KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    )
-
-    unset(CMAKE_REQUIRED_INCLUDES)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-
-endif()
-
-option(KRITA_QT_HAS_ENTER_LEAVE_PATCH "Qt has a custom patch for unbalanced enter/leave events" ON)
-add_feature_info("Qt: Unbalanced Enter/Leave patch" KRITA_QT_HAS_ENTER_LEAVE_PATCH "Krita will disable internal workarounds for unbalanced Enter/Leave")
-
-option(KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH "Qt has a custom patch for unbalanced KeyPress/KeyRelease events in non-latin layouts" ON)
-add_feature_info("Qt: Unbalanced KeyPress/KeyRelease in non-latin layout patch" KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH "Krita will disable internal workarounds for unbalanced KeyPress/KeyRelease events")
-
-option(KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH "Qt has a custom patch for limiting FPS to the screen framerate" ON)
-add_feature_info("Qt: Compressed updates patch" KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH "Krita will compress the screen updates to the maximum FPS of available displays")
-
-
-#
-# Check for the presence the Wintab switch in Qt5
-#
-if (WIN32 AND QT_MAJOR_VERSION STREQUAL "5")
-    set(CMAKE_REQUIRED_INCLUDES ${Qt5Core_INCLUDE_DIRS})
-    set(CMAKE_REQUIRED_LIBRARIES ${Qt5Core_LIBRARIES})
-
-    CHECK_CXX_SOURCE_COMPILES("
-#include <QCoreApplication>
-int main(int argc, char *argv[]) {
-QCoreApplication::setAttribute(Qt::AA_MSWindowsUseWinTabAPI);
-}
-"
-    QT5_HAS_WINTAB_SWITCH
-    )
-
-    unset(CMAKE_REQUIRED_INCLUDES)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-
-#QT5_HAS_WINTAB_SWITCH
+set(KRITA_QT_HAS_ENTER_LEAVE_PATCH FALSE)
+set(KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH FALSE)
+set(KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH FALSE)
+set(KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN FALSE)
+set(KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS FALSE)
+set(KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS FALSE)
+set(KRITA_QT_HAS_QSCROLLER_FILTER FALSE)
+set(KRITA_QT_HAS_ANDROID_INPUT_PLATFORM_DATA_SOFT_INPUT_ADJUST_NOTHING FALSE)
+set(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT FALSE)
+set(QT5_HAS_WINTAB_SWITCH FALSE)
+set(HAVE_HDR FALSE)
+set(HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE FALSE)
 
 configure_file(cmake/config/config_qt5_has_wintab_switch.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_qt5_has_wintab_switch.h)
-endif ()
-
-
-
-if (WIN32)
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        set(CMAKE_REQUIRED_INCLUDES ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
-        set(CMAKE_REQUIRED_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES})
-
-        CHECK_CXX_SOURCE_COMPILES("
-            #include <QSurfaceFormat>
-            int main(int argc, char *argv[]) {
-                QSurfaceFormat fmt;
-                fmt.setColorSpace(QSurfaceFormat::scRGBColorSpace);
-                fmt.setColorSpace(QSurfaceFormat::bt2020PQColorSpace);
-            }
-            "
-            HAVE_HDR
-        )
-
-        unset(CMAKE_REQUIRED_INCLUDES)
-        unset(CMAKE_REQUIRED_LIBRARIES)
-
-    else()
-
-        set(CMAKE_REQUIRED_INCLUDES ${Qt6Core_INCLUDE_DIRS} ${Qt6Gui_INCLUDE_DIRS} ${Qt6Widgets_INCLUDE_DIRS} ${Qt6OpenGLWidgets_INCLUDE_DIRS})
-        set(CMAKE_REQUIRED_LIBRARIES ${Qt6Core_LIBRARIES} ${Qt6Gui_LIBRARIES} ${Qt6Widgets_LIBRARIES} ${Qt6OpenGLWidgets_LIBRARIES})
-
-        CHECK_CXX_SOURCE_COMPILES("
-            #include <QOpenGLWidget>
-            #include <QColorSpace>
-            int main(int argc, char *argv[]) {
-                QOpenGLWidget *w = nullptr;
-                w->setTextureColorSpace(QColorSpace());
-            }
-            "
-            HAVE_HDR
-        )
-
-        unset(CMAKE_REQUIRED_INCLUDES)
-        unset(CMAKE_REQUIRED_LIBRARIES)
-
-    endif()
-endif()
 configure_file(cmake/config/config-hdr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hdr.h)
 
 set(CMAKE_REQUIRED_INCLUDES ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
@@ -814,15 +714,6 @@ HAVE_HIGH_DPI_SCALE_FACTOR_ROUNDING_POLICY
 )
 configure_file(cmake/config/config-high-dpi-scale-factor-rounding-policy.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-high-dpi-scale-factor-rounding-policy.h)
 
-CHECK_CXX_SOURCE_COMPILES("
-#include <QMdiArea>
-int main(int argc, char *argv[]) {
-QMdiArea area;
-area.setOption(QMdiArea::AlwaysShowSubwindowNameInTitleBar);
-}
-"
-HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE
-)
 configure_file(cmake/config/config-qmdiarea-always-show-subwindow-title.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qmdiarea-always-show-subwindow-title.h)
 
 if (WIN32)
@@ -838,67 +729,6 @@ QWindowsWindowFunctions::setHasBorderInFullScreenDefault(true);
 
 endif (WIN32)
 
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <QCoreApplication>
-int main(int argc, char *argv[]) {
-QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN);
-}
-"
-KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN
-)
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <QCoreApplication>
-int main(int argc, char *argv[]) {
-QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS);
-}
-"
-KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS
-)
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <QCoreApplication>
-int main(int argc, char *argv[]) {
-QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS);
-}
-"
-KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS
-)
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <QScroller>
-#ifndef KRITA_QSCROLLER_PATCH
-#error \"QScroller filter patch not present\"
-#endif
-int main(int argc, char *argv[]) {}
-"
-KRITA_QT_HAS_QSCROLLER_FILTER
-)
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <QCoreApplication>
-int main(int argc, char *argv[]) {
-return Qt::ANDROID_INPUT_PLATFORM_DATA_SOFT_INPUT_ADJUST_NOTHING;
-}
-"
-KRITA_QT_HAS_ANDROID_INPUT_PLATFORM_DATA_SOFT_INPUT_ADJUST_NOTHING
-)
-
-
-set(CMAKE_REQUIRED_INCLUDES ${Qt${QT_MAJOR_VERSION}Gui_INCLUDE_DIRS} ${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS})
-set(CMAKE_REQUIRED_LIBRARIES ${Qt${QT_MAJOR_VERSION}Gui_LIBRARIES})
-
-CHECK_CXX_SOURCE_COMPILES("
-#include <qpa/qplatformscreen.h>
-int main(int argc, char *argv[]) {
-QPlatformScreen *screen = nullptr;
-screen->setDensityAdjustment(1.0);
-return screen->densityAdjustment();
-}
-"
-KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-)
 
 configure_file(cmake/config/config-qt-patches-present.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qt-patches-present.h)
 
