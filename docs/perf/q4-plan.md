@@ -64,7 +64,8 @@ Q4 の完了条件は「全プラットフォームが正式版の同じ Qt で�
   `KisInputManager::Private`（`containsPointer`、`ProximityNotifier`）に、タブレットの
   近接・押下中の `QEvent::Leave` を無視する小さなガードを置く。公開の Qt イベントだけで足りる。
 - **Windows のネイティブフィルター**: `libs/input/ui/` に新しい
-  `KisWindowsPointerEventFilter`（`QAbstractNativeEventFilter`）を置き、`KisApplication` から
+  `KisWindowsPointerEventFilter`（`QAbstractNativeEventFilter`）を置き、`krita/main.cc`
+  の `KisLatencyProbe::installNativeFilter(&app)`（`krita/main.cc:1225`）の隣で
   `qApp->installNativeEventFilter()` する。`windows_generic_MSG` の `WM_POINTER*`、
   `WM_NCPOINTER*`、`WM_NCMOUSEMOVE`、`WM_MOUSELEAVE` を見る。既存の
   `KisLatencyProbe::NativeFilter`（`libs/global/KisLatencyProbe.cpp:139`）を土台にする。
