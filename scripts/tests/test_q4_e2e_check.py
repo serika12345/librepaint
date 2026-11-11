@@ -222,6 +222,7 @@ class FlickerTest(unittest.TestCase):
         }
         check.apply_fork_baseline([stages, fork], SCENARIO)
         self.assertEqual(stages["items"][0]["verdict"], "pass")
+        self.assertEqual(fork["items"][0]["verdict"], "pass")
         stages["items"][0]["metrics"]["blank_frames"] = 10
         stages["items"][0]["verdict"] = "check"
         check.apply_fork_baseline([stages, fork], SCENARIO)

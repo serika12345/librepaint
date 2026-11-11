@@ -487,6 +487,7 @@ function Wait-CheckTitle($app, [string]$match, [int]$seconds) {
     while ((Get-Date) -lt $deadline) {
         try { $title = [Q4Check]::WindowText($app.Handle) } catch { $title = '' }
         if ($match -and $title -match $match) { return $title }
+        if (-not $match -and $title) { return $title }
         Start-Sleep -Milliseconds 250
     }
     return $title
@@ -612,9 +613,18 @@ function Invoke-Q4Check($request, [string]$target) {
     $app = $null
     try {
         $app = Start-CheckApp @($docA, $docB) (Join-Path $penDir 'probe.csv') $dir 'app'
-        $initialTitle = Wait-CheckTitle $app ([regex]::Escape([System.IO.Path]::GetFileNameWithoutExtension($docA))) 30
+        $initialTitle = Wait-CheckTitle $app 'doc-a|doc-b' 30
         [void][Q4Check]::BringToFront($app.Handle)
         Start-Sleep -Seconds 2
+        # The second document may be active after the start. Bring document A
+        # to the front before the clipboard and tab steps so their order is
+        # fixed.
+        for ($i = 0; $i -lt 4; $i++) {
+            $current = [Q4Check]::WindowText($app.Handle)
+            if ($current -match [regex]::Escape([System.IO.Path]::GetFileNameWithoutExtension($docA))) { break }
+            [void][Q4Check]::SendCtrl([uint32]0x09)
+            Start-Sleep -Milliseconds 500
+        }
 
         # (a) Clipboard: select all and copy the alpha test image.
         try {
@@ -750,7 +760,7 @@ function Invoke-Q4Check($request, [string]$target) {
 
             $events.Add("action=hold-start qpc=$([Q4Check]::NowTicks()) detail=long-press")
             [void][Q4Check]::PenDownAt($app.Handle, 0.5, 0.7)
-            Start-Sleep -Milliseconds 1200
+            [void][Q4Check]::PenHold($app.Handle, 0.5, 0.7, 1200)
             $popupLines = @([Q4Check]::WindowList($app.Process.Id) -split "`r?`n" |
                 Where-Object { $_ -and ([int64]($_ -split '\|')[0] -ne $app.Handle.ToInt64()) })
             Set-Content -Path (Join-Path $penDir 'popups.txt') -Value $popupLines
@@ -782,6 +792,7 @@ function Invoke-Q4Check($request, [string]$target) {
             Set-Content -Path (Join-Path $penDir 'cursors.txt') -Value @(
                 "inside=$cursorInside", "titlebar=$cursorTitle", "return=$cursorReturn")
             Set-Content -Path (Join-Path $penDir 'actions.txt') -Value $events
+            Start-Sleep -Milliseconds 1500
             [Q4Check]::PenStop()
             $facts.pen = [ordered]@{ dir = 'pen'; probe = 'pen/probe.csv';
                 events = 'pen/pen-events.txt'; actions = 'pen/actions.txt'; canvas = $penCanvas;
@@ -808,6 +819,7 @@ function Invoke-Q4Check($request, [string]$target) {
             $end = [Q4Check]::NowTicks()
             Start-Sleep -Milliseconds 500
             Invoke-CheckFrame $firstDir 'line' | Out-Null
+            Start-Sleep -Milliseconds 1500
             [Q4Check]::PenStop()
             Set-Content -Path (Join-Path $firstDir 'actions.txt') -Value @(
                 "pen_start=$started", "stroke_start=$start", "stroke_end=$end")

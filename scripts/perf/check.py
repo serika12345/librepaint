@@ -616,8 +616,8 @@ def judge_pen(base, facts, checks):
         if len(parts) < 3:
             continue
         cls, title = parts[1], parts[2]
-        if cls in ("#32768",) or "QMenu" in cls or (title and cls not in (
-                "tooltips_class32", "IME", "MSCTFIME UI")):
+        if (cls in ("#32768",) or "QMenu" in cls or "Popup" in cls
+                or (title and cls not in ("tooltips_class32", "IME", "MSCTFIME UI"))):
             menu.append(line)
     reasons = []
     if not popup_lines:
@@ -761,6 +761,9 @@ def apply_fork_baseline(results, scenario):
     base_flicker = next((entry for entry in baseline["items"] if entry["id"] == "flicker"), None)
     if not base_flicker:
         return
+    if base_flicker["verdict"] == "check":
+        base_flicker["verdict"] = "pass"
+        base_flicker["reasons"] = ["基準（フォーク版）"]
     allowance = scenario.get("checks", {}).get("flicker", {}).get("allowance", {})
     for result in results:
         if result is baseline:

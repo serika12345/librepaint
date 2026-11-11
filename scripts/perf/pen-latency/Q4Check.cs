@@ -560,7 +560,7 @@ public static class Q4Check
     public static string PenTap(IntPtr hwnd, double fx, double fy, int holdMs)
     {
         PenDownAt(hwnd, fx, fy);
-        Thread.Sleep(holdMs);
+        PenHold(hwnd, fx, fy, holdMs);
         PenUpAt(hwnd, fx, fy);
         return "ok";
     }
