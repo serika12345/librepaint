@@ -24,6 +24,10 @@
 # status.txt reports progress and ends with "done" or "failed: <reason>".
 
 $ErrorActionPreference = 'Stop'
+# Japanese "settings": Windows PowerShell 5.1 reads this file as the ANSI code
+# page, so the literal characters would break the parser. Build the string
+# from code points to keep the file pure ASCII (2026-11-11).
+$jaSettings = [string]::new([char[]]@(0x8A2D, 0x5B9A))
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $status = Join-Path $here 'status.txt'
 $script:runStatus = $null
@@ -521,7 +525,7 @@ function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
         $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
         $settings = $null
         foreach ($item in $items) {
-            if ($item.Current.Name -match '^(Settings|設定)$') { $settings = $item; break }
+            if ($item.Current.Name -match ('^(Settings|' + $jaSettings + ')$')) { $settings = $item; break }
         }
         if ($settings) {
             try {
@@ -531,7 +535,7 @@ function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
             } catch { }
             $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $menuCondition)
             foreach ($item in $items) {
-                if ($item.Current.Name -match 'Configure|Preferences|設定') {
+                if ($item.Current.Name -match ('Configure|Preferences|' + $jaSettings)) {
                     try {
                         $invoke = $item.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
                         $invoke.Invoke()
