@@ -557,11 +557,26 @@ function Invoke-SettingsDialog($main, [int]$processId, [string]$dir) {
 function Start-CheckWatchdog([string]$appPath, [int]$seconds, [string[]]$statusPaths) {
     $name = [System.IO.Path]::GetFileNameWithoutExtension($appPath)
     $lines = New-Object System.Collections.Generic.List[string]
+    # When the runner is gone, stop the application it started and record the
+    # failure so the next run does not inherit a window that is still open
+    # (2026-11-11).
+    $lines.Add('function Exit-WithFailure {')
+    $lines.Add('    $targets = @(Get-Process -Name ' + "'" + $name.Replace("'", "''") + "'" +
+        ' -ErrorAction SilentlyContinue)')
+    $lines.Add('    if ($targets.Count -gt 0) {')
+    $lines.Add('        $targets | Stop-Process -Force -ErrorAction SilentlyContinue')
+    $lines.Add('    }')
+    foreach ($path in $statusPaths) {
+        $lines.Add('    Set-Content -Path ' + "'" + $path.Replace("'", "''") +
+            "' -Value 'failed: runner exited'")
+    }
+    $lines.Add('    exit 0')
+    $lines.Add('}')
     $lines.Add('for ($i = 0; $i -lt ' + $seconds + '; $i += 5) {')
-    $lines.Add('    if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { exit 0 }')
+    $lines.Add('    if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { Exit-WithFailure }')
     $lines.Add('    Start-Sleep -Seconds 5')
     $lines.Add('}')
-    $lines.Add('if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { exit 0 }')
+    $lines.Add('if (-not (Get-Process -Id ' + $PID + ' -ErrorAction SilentlyContinue)) { Exit-WithFailure }')
     $lines.Add('$targets = @(Get-Process -Name ' + "'" + $name.Replace("'", "''") + "'" +
         ' -ErrorAction SilentlyContinue)')
     $lines.Add('if ($targets.Count -gt 0) {')
@@ -594,7 +609,8 @@ function Quote-PowerShell([string]$text) {
 # window of the application other than the main one (the settings dialog),
 # sends Escape, writes "step <name> end timeout" to the status files and
 # leaves a marker file. The runner records the timeout and goes on to the next
-# step. The watchdog never stops the application.
+# step. The watchdog stops the application only when the runner itself has
+# exited.
 function Start-StepWatchdog([string]$name, [int]$seconds, [string[]]$statusPaths,
         [int]$processId, [long]$mainHandle, [string]$checkSource, [string]$marker) {
     $source = New-Object System.Collections.Generic.List[string]
@@ -607,12 +623,21 @@ function Start-StepWatchdog([string]$name, [int]$seconds, [string[]]$statusPaths
     $source.Add('$checkSource = ' + (Quote-PowerShell $checkSource))
     $paths = ($statusPaths | ForEach-Object { Quote-PowerShell $_ }) -join ','
     $source.Add('$statusPaths = @(' + $paths + ')')
+    # If the runner is gone, stop the application this step belongs to and
+    # record the failure (2026-11-11).
+    $source.Add('function Exit-WithFailure {')
+    $source.Add('    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue')
+    $source.Add('    foreach ($path in $statusPaths) {')
+    $source.Add('        Add-Content -Path $path -Value ''failed: runner exited''')
+    $source.Add('    }')
+    $source.Add('    exit 0')
+    $source.Add('}')
     $source.Add('for ($i = 0; $i -lt $seconds; $i += 5) {')
-    $source.Add('    if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit 0 }')
+    $source.Add('    if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { Exit-WithFailure }')
     $source.Add('    if (Test-Path -LiteralPath $marker) { exit 0 }')
     $source.Add('    Start-Sleep -Seconds 5')
     $source.Add('}')
-    $source.Add('if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit 0 }')
+    $source.Add('if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { Exit-WithFailure }')
     $source.Add('if (Test-Path -LiteralPath $marker) { exit 0 }')
     $source.Add('Set-Content -Path $marker -Value ''timeout''')
     $source.Add('try {')
