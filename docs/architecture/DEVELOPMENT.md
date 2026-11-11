@@ -354,6 +354,10 @@ CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中
 `phase`は、直前の表示の変化から`paintgl_begin`までの時間を表示の周期で割った値で、
 `concentration`（0が一様、1が同じ位相）と10個の区間のヒストグラムを添える。
 `present_modes`はPresentMonの表示方式の回数、`until_displayed`は`MsUntilDisplayed`の分布である。
+`gpu_time`はPresentMonの`MsGPUTime`、`gpu_busy`は`MsGPUBusy`の分布で、どちらも入力の種類
+（hover/contact）ごとに出す。L2の「CPUと電力を悪化させない」条件では、CPUは`counters.csv`の
+プロセスの`% Processor Time`、GPUは`gpu_time`と`gpu_busy`、受け渡しの間隔は`present_interval`を
+回ごとの中央値で比べる。
 
 表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
 `build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を

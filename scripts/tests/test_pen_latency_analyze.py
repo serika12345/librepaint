@@ -26,7 +26,7 @@ WM_POINTERUPDATE = 0x0245
 INRANGE = 0x2
 INCONTACT = 0x4
 
-PRESENTMON_HEADER = "Application,ProcessID,TimeInQPC,MsUntilDisplayed,CPUStartQPC,MsGPULatency,MsGPUBusy\n"
+PRESENTMON_HEADER = "Application,ProcessID,TimeInQPC,MsUntilDisplayed,CPUStartQPC,MsGPULatency,MsGPUBusy,MsGPUTime\n"
 
 
 def ms(value):
@@ -47,7 +47,7 @@ def write_run(directory, probe_rows, presents, modes=None):
         else:
             handle.write(PRESENTMON_HEADER.rstrip("\n") + ",PresentMode\n")
         for index, (present, until_displayed) in enumerate(presents):
-            line = "LibrePaint.exe,1,%d,%s,%d,1.0,0.5" % (
+            line = "LibrePaint.exe,1,%d,%s,%d,1.0,0.5,1.5" % (
                 present, until_displayed, present - ms(10))
             if modes is not None:
                 line += ",%s" % modes[index]
@@ -82,6 +82,19 @@ class FrameAttributionTest(unittest.TestCase):
         self.assertAlmostEqual(result["hover.outline_request_to_paint_begin"]["p50"], 2.0)
         self.assertAlmostEqual(result["hover.paint_end_to_present"]["p50"], 1.0)
         self.assertNotIn("contact.input_to_display", result)
+
+    def test_gpu_time_and_gpu_busy_are_reported_separately(self):
+        base = ms(1000)
+        result = self.analyze(
+            [
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+            ],
+            [(base + ms(3), "20.0")],
+        )
+        self.assertAlmostEqual(result["hover.gpu_time"]["p50"], 1.5)
+        self.assertAlmostEqual(result["hover.gpu_busy"]["p50"], 0.5)
 
     def test_ink_frame_starts_at_the_pointer_message_before_the_newest_stroke_job(self):
         base = ms(1000)

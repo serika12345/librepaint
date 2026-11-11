@@ -521,6 +521,9 @@ class Run:
             gpu_busy = float_or_none(row.get("MsGPUBusy"))
             if gpu_busy is not None:
                 stats[mode_name + ".gpu_busy"].append(gpu_busy)
+            gpu_time = float_or_none(row.get("MsGPUTime"))
+            if gpu_time is not None:
+                stats[mode_name + ".gpu_time"].append(gpu_time)
 
         present_times = [present for present, _ in self.presents]
         stats["all.present_interval"] = [
