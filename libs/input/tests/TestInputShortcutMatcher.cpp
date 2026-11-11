@@ -255,11 +255,28 @@ void TestInputShortcutMatcher::recoversPressWhenEnterWasMissed()
     // The recovery KisInputManager performs when containsPointer is false.
     matcher.enterEvent();
     QVERIFY(matcher.cursorEntered());
+
+    QMouseEvent hover(QEvent::MouseMove,
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      Qt::NoButton,
+                      Qt::NoButton,
+                      Qt::ShiftModifier);
+    QVERIFY(!matcher.pointerMoved(&hover));
+    QVERIFY(matcher.cursorEntered());
+
     QVERIFY(matcher.buttonPressed(Qt::LeftButton, &press));
     QVERIFY(matcher.hasRunningShortcut());
     QCOMPARE(action.events.count(QStringLiteral("begin:7")), 1);
     QVERIFY(matcher.buttonReleased(Qt::LeftButton, &release));
     QVERIFY(!matcher.hasRunningShortcut());
+
+    // A real leave ends the synthesized hover; the recovery does not pin the
+    // canvas entered until focus loss.
+    matcher.leaveEvent();
+    QVERIFY(!matcher.cursorEntered());
+    QVERIFY(!matcher.buttonPressed(Qt::LeftButton, &press));
 
     matcher.suppressAllActions(true);
     QVERIFY(matcher.suppressAllActions());
