@@ -193,6 +193,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
 | `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が70以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
+| `thread_cpu.ps1` / `thread_cpu.py` | Windows。対象が`thread_cpu`を`on`にした回だけ、アプリのプロセスと各スレッドのCPU時間を500msごとに`threads.csv`へ書く。`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU秒、GUIスレッドと描画スレッド、待ちの理由を出す |
 | `run-surface.ps1`の待ち | `surface_state_wait`が`on`（既定）の回は、アプリの起動前に`surface_state.ps1 -WaitForProcessorPerformance`を別の`powershell.exe`で動かす。待ちの中は言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`から`% Processor Performance`を読む。`-Out`は待ちでは不要（省略できる）。親は120秒に15秒を足した実時間で打ち切り、止まらない読み取りを`Stop-Process`で終わらせる。結果は`surface-state-wait.out`と`meta.txt`の`surface_state_wait_*`に残す |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
