@@ -18,7 +18,6 @@
 #include "kis_types.h"
 
 #include <algorithm>
-#include <config-hdr.h>
 #include <functional>
 #include <kguiitem.h>
 #include <kpagedialog.h>
@@ -2153,10 +2152,6 @@ namespace {
 QString colorSpaceString(const KisSurfaceColorSpaceWrapper &cs, int depth)
 {
     const QString csString =
-#ifdef HAVE_HDR
-        cs == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace ? "Rec. 2020 PQ" :
-        cs == KisSurfaceColorSpaceWrapper::scRGBColorSpace ? "Rec. 709 Linear" :
-#endif
         cs == KisSurfaceColorSpaceWrapper::sRGBColorSpace ? "sRGB" :
         cs == KisSurfaceColorSpaceWrapper::DefaultColorSpace ? "sRGB" :
         "Unknown Color Space";
@@ -2321,10 +2316,6 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
     lblCurrentRootSurfaceFormat->setText("");
     grpHDRWarning->setVisible(false);
     cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::sRGBColorSpace, 8));
-#ifdef HAVE_HDR
-    cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::bt2020PQColorSpace, 10));
-    cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::scRGBColorSpace, 16));
-#endif
     cmbPreferedRootSurfaceFormat->setCurrentIndex(formatToIndex(KisConfig::BT709_G22));
     slotPreferredSurfaceFormatChanged(cmbPreferedRootSurfaceFormat->currentIndex());
 
@@ -2372,8 +2363,15 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
         slotPreferredSurfaceFormatChanged(cmbPreferedRootSurfaceFormat->currentIndex());
     }
 
-#ifndef HAVE_HDR
     HDR->setEnabled(false);
+
+    // Q4 stage 1 removed the fork's HDR API. Keep the page visible but
+    // disabled until stage 9 rebuilds it.
+    const int hdrTabIndex = tabWidget->indexOf(HDR);
+    KIS_SAFE_ASSERT_RECOVER_NOOP(hdrTabIndex >= 0);
+    if (hdrTabIndex >= 0) {
+        tabWidget->setTabText(hdrTabIndex, i18n("HDR Settings (not available in this version)"));
+    }
 
     /**
      * We hide the HDR page in Wayland mode, because the mode is managed
@@ -2381,13 +2379,10 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
      * systems just to promote the existence of this feature.
      */
     if (KisPlatformPluginInterfaceFactory::instance()->surfaceColorManagedByOS()) {
-        const int hdrTabIndex = tabWidget->indexOf(HDR);
-        KIS_SAFE_ASSERT_RECOVER_NOOP(hdrTabIndex >= 0);
         if (hdrTabIndex >= 0) {
             tabWidget->setTabVisible(hdrTabIndex, false);
         }
     }
-#endif
 
     const QStringList openglWarnings = KisOpenGL::getOpenGLWarnings();
     if (openglWarnings.isEmpty()) {

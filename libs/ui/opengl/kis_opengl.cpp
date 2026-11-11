@@ -59,7 +59,6 @@
 #include "KoIntegerMaths.h"
 #include "opengl/kis_opengl.h"
 
-#include <config-hdr.h>
 #include <config-use-surface-color-management-api.h>
 #include <utility>
 #include <vector>
@@ -879,13 +878,8 @@ public:
 
 private:
     bool isHDRFormat(const QSurfaceFormat &f) const {
-#ifdef HAVE_HDR
-        return f.colorSpace() == KisSurfaceColorSpaceWrapper::makeBt2020PQColorSpace() ||
-            f.colorSpace() == KisSurfaceColorSpaceWrapper::makeSCRGBColorSpace();
-#else
         Q_UNUSED(f);
         return false;
-#endif
     }
 
     bool isFallbackOnly(KisOpenGL::OpenGLRenderer r) const {
@@ -905,12 +899,7 @@ private:
     }
 
     bool doPreferHDR() const {
-#ifdef HAVE_HDR
-        return m_preferredColorSpace == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace ||
-            m_preferredColorSpace == KisSurfaceColorSpaceWrapper::scRGBColorSpace;
-#else
         return false;
-#endif
     }
 
     bool isPreferredColorSpace(const QSurfaceFormat & surfaceFormat) const {
@@ -990,15 +979,7 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
                                  false);
 #endif
 
-#if defined HAVE_HDR
-    std::vector<std::pair<KisSurfaceColorSpaceWrapper, int>> formatSymbolPairs(
-        {
-            // TODO: check if we can use real sRGB space here
-            {KisSurfaceColorSpaceWrapper::DefaultColorSpace, 8},
-            {KisSurfaceColorSpaceWrapper::scRGBColorSpace, 16},
-            {KisSurfaceColorSpaceWrapper::bt2020PQColorSpace, 10}
-        });
-#elif KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
+#if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
     std::vector<std::pair<KisSurfaceColorSpaceWrapper, int>> formatSymbolPairs(
         {
             {KisSurfaceColorSpaceWrapper::DefaultColorSpace, 8},
@@ -1095,15 +1076,8 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
     FormatPositionLess compareOp;
     compareOp.setPreferredRendererByQt(preferredAutoRenderer);
 
-#ifdef HAVE_HDR
-    compareOp.setPreferredColorSpace(
-        preferredRootSurfaceFormat == KisConfig::BT709_G22 ? KisSurfaceColorSpaceWrapper::sRGBColorSpace :
-        preferredRootSurfaceFormat == KisConfig::BT709_G10 ? KisSurfaceColorSpaceWrapper::scRGBColorSpace :
-        KisSurfaceColorSpaceWrapper::bt2020PQColorSpace);
-#else
     Q_UNUSED(preferredRootSurfaceFormat);
     compareOp.setPreferredColorSpace(KisSurfaceColorSpaceWrapper::sRGBColorSpace);
-#endif
 
 #ifdef Q_OS_WIN
     compareOp.setPreferredRendererByHDR(KisOpenGL::RendererOpenGLES);

@@ -10,7 +10,6 @@
 #include <QFile>
 #include <QResizeEvent>
 #include <QVector3D>
-#include <config-hdr.h>
 #include <opengl/kis_opengl.h>
 #include <qfiledevice.h>
 #include <QDebug>
@@ -61,10 +60,6 @@ KisGLImageWidget::KisGLImageWidget(const KisSurfaceColorSpaceWrapper &colorSpace
     Q_UNUSED(colorSpace);
 
     setTextureFormat(GL_RGBA16F);
-
-#ifdef HAVE_HDR
-    setTextureColorSpace(colorSpace);
-#endif
 
     setUpdateBehavior(QOpenGLWidget::NoPartialUpdate);
 }
