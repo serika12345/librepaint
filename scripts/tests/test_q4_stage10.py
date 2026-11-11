@@ -49,6 +49,14 @@ class Q4Stage10Test(unittest.TestCase):
         ):
             self.assertNotIn(name, source)
 
+    def test_qscroller_detection_is_gone(self):
+        files = [REPO_ROOT / "CMakeLists.txt"]
+        files.extend(sorted((REPO_ROOT / "cmake").rglob("*.cmake")))
+        for path in files:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            self.assertNotIn("KRITA_QSCROLLER_PATCH", text, str(path))
+            self.assertNotIn("QScroller", text, str(path))
+
 
 if __name__ == "__main__":
     unittest.main()
