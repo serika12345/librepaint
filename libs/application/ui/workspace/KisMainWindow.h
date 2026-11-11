@@ -479,6 +479,8 @@ private:
 
     void customizeTabBar();
 
+    void updateWindowTitleForActiveView();
+
     void setMainWindowLayoutForCurrentMainWidget(int widgetIndex, bool widgetIndexChanged);
     void adjustLayoutForWelcomePage();
     void applyActionIconOverridesFromLocalXML();

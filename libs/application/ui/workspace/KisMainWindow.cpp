@@ -1748,6 +1748,9 @@ void KisMainWindow::setActiveView(KisView* view)
     d->viewManager->setCurrentView(view);
 
     d->activeViewConnections.clear();
+    d->activeViewConnections.addConnection(view, &QWidget::windowTitleChanged,
+                                           this, &KisMainWindow::updateWindowTitleForActiveView);
+    updateWindowTitleForActiveView();
     d->activeViewConnections.addConnection(view->document(),
                                            SIGNAL(sigPathChanged(QString)),
                                            this, SLOT(slotUpdateSaveActionTitle(QString)));
@@ -1765,8 +1768,19 @@ void KisMainWindow::setActiveView(KisView* view)
 void KisMainWindow::unsetActiveView()
 {
     d->activeViewConnections.clear();
+    setWindowTitle(QString());
     slotUpdateSaveActionTitle(QString());
     slotUpdateReadWriteMode(false);
+}
+
+void KisMainWindow::updateWindowTitleForActiveView()
+{
+    if (d->activeView) {
+        // QMdiSubWindow updates the window title only for a maximized or
+        // floating child. The tab view needs the active document name in the
+        // title bar as well, so follow the view's own title here.
+        setWindowTitle(d->activeView->windowTitle());
+    }
 }
 
 void KisMainWindow::dragMove(QDragMoveEvent * event)
