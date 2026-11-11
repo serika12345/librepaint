@@ -31,6 +31,8 @@ Windows の評価の失敗と合わせ、壊れた箇所は 2 件である。
 | `librepaint-linux-1.0.3` | 未構築（依存 2 件の失敗） | 0 | その他（依存の失敗） |
 | `librepaint-windows-upstream-qt-archive-1.0.3` | 評価 | 1 | Python |
 
+エラー件数は、ninja が最初のエラーで止まった時点で観測できた数であり、下限である。
+
 ### `librepaint-linux-unwrapped-1.0.3`
 
 configure は通り、compile の 59% で止まった。`uic` が
@@ -50,8 +52,8 @@ kis_assistant_tool.h:22:10: fatal error: ui_AssistantsToolOptions.h: No such fil
 
 同じ `.ui` の処理で、`verticalLayout` の重複を defaults で解消する警告も出ている。
 `.ui` のファイル自体は試しのブランチで変更していない。エラーは 2 件（`.ui` の処理
-1 件、翻訳単位のコンパイル 1 件）である。`--keep-going` により、この失敗のあとも
-他の翻訳単位のコンパイルは最後まで進んだ。この派生物で `error:` で始まる GCC の
+1 件、翻訳単位のコンパイル 1 件）である。構築は 59% まで進み、ninja が止まった。
+残りは未確認である。この派生物で `error:` で始まる GCC の
 診断はこの 1 件だけで、GCC 16 の新しいエラーと C++20 の既定化による失敗は
 現れていない。
 
