@@ -150,7 +150,6 @@ public static class Q4Check
     static IntPtr penDevice;
     static StreamWriter penLog;
     static uint penFrame;
-    static bool penDown;
     static string lastError = "";
 
     static Q4Check()
@@ -462,7 +461,6 @@ public static class Q4Check
         PenStop();
         penDevice = CreateSyntheticPointerDevice(PT_PEN, 1, POINTER_FEEDBACK_DEFAULT);
         if (penDevice == IntPtr.Zero) return Failure("CreateSyntheticPointerDevice", Marshal.GetLastWin32Error());
-        penDown = false;
         penFrame = 0;
         penLog = new StreamWriter(logPath, false, new UTF8Encoding(false));
         penLog.WriteLine("# frequency=" + Stopwatch.Frequency.ToString());
@@ -485,7 +483,6 @@ public static class Q4Check
             penDevice = IntPtr.Zero;
         }
         try { timeEndPeriod(1); } catch { }
-        penDown = false;
     }
 
     public static string PenHover(IntPtr hwnd, double fx, double fy, int milliseconds)
@@ -511,7 +508,6 @@ public static class Q4Check
     {
         int x, y; ClientPoint(hwnd, fx, fy, out x, out y);
         InjectPen(FLAG_INRANGE | FLAG_INCONTACT | FLAG_FIRSTBUTTON | FLAG_DOWN, x, y, 512, "down", fx, fy);
-        penDown = true;
         return "ok";
     }
 
@@ -531,7 +527,6 @@ public static class Q4Check
     {
         int x, y; ClientPoint(hwnd, fx, fy, out x, out y);
         InjectPen(FLAG_INRANGE | FLAG_UP, x, y, 0, "up", fx, fy);
-        penDown = false;
         return "ok";
     }
 
