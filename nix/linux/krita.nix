@@ -85,6 +85,11 @@ let
 
     src = source;
 
+    ninjaFlags = [
+      "-k"
+      "0"
+    ];
+
     inherit nativeBuildInputs buildInputs;
     outputs = [
       "out"

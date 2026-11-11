@@ -850,7 +850,6 @@
               pkg-config = previous.buildPackages.pkg-config;
               perl = previous.buildPackages.perl;
               python3 = previous.buildPackages.python3;
-              python3Packages = previous.buildPackages.python3Packages;
             }).overrideAttrs (old: {
               # Sysprof captures Linux performance data and its implementation
               # requires endian.h.  GLib keeps this optional input enabled on
