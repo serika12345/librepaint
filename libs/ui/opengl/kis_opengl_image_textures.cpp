@@ -7,6 +7,7 @@
 #include "opengl/kis_opengl_image_textures.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <KisLatencyProbe.h>
 #include <klocalizedstring.h>
 #include "KoChannelInfo.h"
 #include "kis_assert.h"
@@ -138,6 +139,7 @@ void KisOpenGLImageTextures::initGL(QOpenGLFunctions *f)
         s_poolRegistry.poolForTileSize(m_texturesInfo.width, m_texturesInfo.height));
 
     m_checkerTexture = GLuint();
+    KisLatencyProbe::mark("gpu_texture_create");
     m_glFuncs->glGenTextures(1, &(*m_checkerTexture));
     recreateImageTextureTiles();
 
@@ -149,6 +151,7 @@ KisOpenGLImageTextures::~KisOpenGLImageTextures()
 {
     destroyImageTextureTiles();
     if (m_checkerTexture) {
+        KisLatencyProbe::mark("gpu_texture_destroy");
         m_glFuncs->glDeleteTextures(1, &(*m_checkerTexture));
     }
 }
@@ -285,6 +288,7 @@ void KisOpenGLImageTextures::destroyImageTextureTiles()
         delete tile;
     }
     m_textureTiles.clear();
+    KisLatencyProbe::mark("gpu_buffer_destroy", 0, 0, 2);
     m_tileVertexBuffer.destroy();
     m_tileTexCoordBuffer.destroy();
     m_storedImageBounds = QRect();
@@ -396,6 +400,7 @@ void KisOpenGLImageTextures::generateCheckerTexture(const QImage &checkImage)
         GLint internalFormat = m_texturesInfo.internalFormat;
         GLint type = m_texturesInfo.type;
 
+        KisLatencyProbe::mark("gpu_texture_image");
         f->glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, BACKGROUND_TEXTURE_SIZE, BACKGROUND_TEXTURE_SIZE,
                         0, format, type, checkers.data());
 
@@ -414,6 +419,7 @@ GLuint KisOpenGLImageTextures::checkerTexture()
     if (m_glFuncs) {
         if (!m_checkerTexture) {
             m_checkerTexture = GLuint();
+            KisLatencyProbe::mark("gpu_texture_create");
             m_glFuncs->glGenTextures(1, &(*m_checkerTexture));
         }
         return *m_checkerTexture;

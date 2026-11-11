@@ -24,6 +24,8 @@ public:
     bool isSignaled();
     /// Waits up to @p timeoutNanoseconds for the GPU commands to complete.
     bool waitForCompletion(qint64 timeoutNanoseconds);
+    /// Deletes the previous fence and creates one for the current frame.
+    void renew();
 
     static void init(QOpenGLContext *ctx);
 

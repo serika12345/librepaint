@@ -84,6 +84,23 @@ class QCoreApplication;
  * and display extension lists are written once to probe.egl.txt beside the
  * probe log.
  *
+ * The context and GPU object markers count driver work per frame:
+ * gl_make_current (extra bit 1 = the target context was already current,
+ * bit 2 = a canvas context lock, bit 4 = restoring the previous context,
+ * bit 8 = the call was skipped by LIBREPAINT_L1_SKIP_REDUNDANT_MAKE_CURRENT)
+ * and gl_done_current (bit 1 = a doneCurrent call with no previous context,
+ * bit 2 = skipped).
+ * gpu_texture_create/destroy (glGenTextures/glDeleteTextures),
+ * gpu_texture_image (glTexImage2D), gpu_texture_reuse (a full-tile update
+ * reused the existing storage), gpu_buffer_create/destroy (QOpenGLBuffer
+ * create/destroy) and gpu_buffer_allocate (QOpenGLBuffer allocate or
+ * glBufferData), gpu_fbo_recreate (QOpenGLWidget recreated its framebuffer
+ * object), gpu_sync_create/destroy (KisOpenGLSync's glFenceSync/glDeleteSync),
+ * color_selector_update and color_selector_paint. The analyzer adds one
+ * QOpenGLWidget paint activation per paintgl_begin and one composition
+ * activation per canvas_about_to_compose, because those two calls happen
+ * inside Qt and cannot be marked from the application.
+ *
  * The focus and tool markers separate a pen press that reached the tool from
  * one that was dropped before it (2026-11-11: official Qt Windows builds
  * stopped repainting after the first press in 2 of 8 runs). qt_event records

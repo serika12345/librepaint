@@ -7,6 +7,8 @@
 #include "KisOpenGLSync.h"
 #include "opengl/kis_opengl.h"
 
+#include <KisLatencyProbe.h>
+
 #include <kis_debug.h>
 #include <qopenglcontext.h>
 
@@ -115,12 +117,22 @@ namespace Sync {
 
 KisOpenGLSync::KisOpenGLSync()
 {
+    KisLatencyProbe::mark("gpu_sync_create");
     m_syncObject = Sync::getSync();
 }
 
 KisOpenGLSync::~KisOpenGLSync()
 {
+    KisLatencyProbe::mark("gpu_sync_destroy");
     Sync::deleteSync(m_syncObject);
+}
+
+void KisOpenGLSync::renew()
+{
+    KisLatencyProbe::mark("gpu_sync_destroy");
+    Sync::deleteSync(m_syncObject);
+    KisLatencyProbe::mark("gpu_sync_create");
+    m_syncObject = Sync::getSync();
 }
 
 bool KisOpenGLSync::isSignaled()

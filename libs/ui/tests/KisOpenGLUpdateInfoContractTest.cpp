@@ -4,6 +4,7 @@
  */
 
 #include "opengl/kis_opengl_update_info.h"
+#include "opengl/kis_texture_tile.h"
 
 #include <QTest>
 
@@ -24,6 +25,7 @@ private Q_SLOTS:
     void dirtyImageRectangleMutationRemainsStable();
     void levelOfDetailMutationRemainsStable();
     void mergeAndViewportContractRemainStable();
+    void fullTileUpdateReusesStorageOnlyForTheSameLevelSize();
 };
 
 void KisOpenGLUpdateInfoContractTest::conversionOptionsDefaultsAndExplicitValuesRemainStable()
@@ -114,6 +116,18 @@ void KisOpenGLUpdateInfoContractTest::mergeAndViewportContractRemainStable()
     QVERIFY(!accumulated.tryMergeWith(incompatible));
     QCOMPARE(accumulated.dirtyImageRect(), QRect(0, 0, 9, 9));
     QCOMPARE(accumulated.tileList.size(), 1);
+}
+
+void KisOpenGLUpdateInfoContractTest::fullTileUpdateReusesStorageOnlyForTheSameLevelSize()
+{
+    using KisTextureStorage::canReuseLevel;
+
+    const QSize tile(64, 64);
+    QVERIFY(canReuseLevel(true, tile, tile));
+    QVERIFY(!canReuseLevel(false, tile, tile));
+    QVERIFY(!canReuseLevel(true, QSize(), tile));
+    QVERIFY(!canReuseLevel(true, QSize(64, 64), QSize(64, 63)));
+    QVERIFY(!canReuseLevel(true, QSize(64, 64), QSize(32, 32)));
 }
 
 QTEST_APPLESS_MAIN(KisOpenGLUpdateInfoContractTest)

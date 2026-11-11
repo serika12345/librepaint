@@ -18,6 +18,8 @@
 #include "kis_global.h"
 #include "kis_opengl.h"
 
+#include <KisLatencyProbe.h>
+
 KisOpenGLBufferCircularStorage::BufferBinder::BufferBinder(KisOpenGLBufferCircularStorage *bufferStorage, const void **dataPtr, int dataSize) {
     if (bufferStorage) {
         m_buffer = bufferStorage->getNextBuffer();
@@ -89,6 +91,10 @@ int KisOpenGLBufferCircularStorage::size() const
 
 void KisOpenGLBufferCircularStorage::reset()
 {
+    if (!m_d->buffers.empty()) {
+        KisLatencyProbe::mark("gpu_buffer_destroy", 0, 0,
+                              static_cast<qint64>(m_d->buffers.size()));
+    }
     m_d->buffers.clear();
     m_d->nextBuffer = 0;
     m_d->bufferSize = 0;
@@ -140,9 +146,11 @@ void KisOpenGLBufferCircularStorage::addBuffersImpl(size_t buffersToAdd, int buf
 
         QOpenGLBuffer &buf = m_d->buffers.back();
 
+        KisLatencyProbe::mark("gpu_buffer_create");
         buf.create();
         buf.setUsagePattern(QOpenGLBuffer::DynamicDraw);
         buf.bind();
+        KisLatencyProbe::mark("gpu_buffer_allocate");
         buf.allocate(m_d->bufferSize);
         buf.release();
     }

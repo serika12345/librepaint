@@ -8,6 +8,7 @@
 #include "KisOpenGLBufferCreationGuard.h"
 
 #include "kis_opengl.h"
+#include <KisLatencyProbe.h>
 #include <qopenglbuffer.h>
 #include <QtGlobal>
 
@@ -16,9 +17,11 @@ KisOpenGLBufferCreationGuard::KisOpenGLBufferCreationGuard(QOpenGLBuffer *buffer
 {
     m_buffer = buffer;
 
+    KisLatencyProbe::mark("gpu_buffer_create");
     m_buffer->create();
     m_buffer->setUsagePattern(usagePattern);
     m_buffer->bind();
+    KisLatencyProbe::mark("gpu_buffer_allocate");
     m_buffer->allocate(size);
 
     if (KisOpenGL::supportsBufferMapping()) {

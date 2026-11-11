@@ -149,6 +149,7 @@ KisOpenGLCanvas2::KisOpenGLCanvas2(KisCanvas2 *canvas,
 
     d->renderer = new KisOpenGLCanvasRenderer(new CanvasBridge(this), image, displayConfig, displayFilter);
     connect(this, &QOpenGLWidget::frameSwapped, this, [] { KisLatencyProbe::mark("frame_swapped"); });
+    connect(this, &QOpenGLWidget::aboutToResize, this, [] { KisLatencyProbe::mark("gpu_fbo_recreate"); });
     // Qt emits this after paintGL and before the backing store is composited.
     // The gap from paintgl_end to here is Qt's composition setup; the gap
     // from here to frame_swapped contains the platform swap (SwapBuffers on
@@ -268,10 +269,12 @@ KisOpenGLCanvas2::~KisOpenGLCanvas2()
      * is closed.
      */
 
+    KisLatencyProbe::mark("gl_make_current", 0, 0, 2);
     makeCurrent();
 
     delete d;
 
+    KisLatencyProbe::mark("gl_done_current", 0, 0, 1);
     doneCurrent();
 }
 
@@ -479,7 +482,13 @@ void KisOpenGLCanvas2::paintGL()
     // commands in a frame, not just the OpenGL canvas itself. Putting it
     // outside of KisOpenGLRenderer allows the canvas widget to do extra
     // rendering, which a QtQuick2-based canvas will need.
-    d->glSyncObject.reset(new KisOpenGLSync());
+    // The L1 switch reuses the C++ object and only renews the fence; the
+    // removal condition is in KisL1Switches.h.
+    if (KisL1Switches::reuseGlSync() && d->glSyncObject) {
+        d->glSyncObject->renew();
+    } else {
+        d->glSyncObject.reset(new KisOpenGLSync());
+    }
 
     if (!OPENGL_SUCCESS) {
         KisConfig cfg(false);
