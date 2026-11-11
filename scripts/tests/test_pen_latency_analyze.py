@@ -38,9 +38,13 @@ def write_run(directory, probe_rows, presents, modes=None):
         handle.write("# frequency=%d\n" % (TICKS_PER_MS * 1000))
         handle.write("time,event,x,y,extra,thread\n")
         for row in probe_rows:
-            time, event, extra = row[:3]
-            x = row[3] if len(row) > 3 else 0.0
-            handle.write("%d,%s,%.2f,0.00,%d,1\n" % (time, event, x, extra))
+            if len(row) >= 5:
+                time, event, x, y, extra = row[:5]
+            else:
+                time, event, extra = row[:3]
+                x = row[3] if len(row) > 3 else 0.0
+                y = 0.0
+            handle.write("%d,%s,%.2f,%.2f,%d,1\n" % (time, event, x, y, extra))
     with open(os.path.join(directory, "presentmon.csv"), "w") as handle:
         if modes is None:
             handle.write(PRESENTMON_HEADER)
@@ -332,6 +336,27 @@ class CanvasSwapTest(unittest.TestCase):
             ], [(base + ms(6), "20.0")])
             result = analyze.Run(directory).analyze()
         self.assertNotIn("canvas_swap", result)
+
+
+class RenderPathTest(unittest.TestCase):
+    def test_renderer_swap_interval_and_upload_switch_are_reported(self):
+        base = ms(1000)
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [
+                (base, "l1_render_path", 4, 0, 1 | 4),
+                (base, "l1_texture_buffers", 0, 0, 1),
+                (base, "native_pointer", pointer(INRANGE)),
+                (base + ms(1), "outline_request", 0),
+                (base + ms(2), "paintgl_begin", 0),
+                (base + ms(3), "paintgl_end", 0),
+            ], [(base + ms(6), "20.0")])
+            result = analyze.Run(directory).analyze()
+        path = result["render_path"]
+        self.assertEqual(path["renderer_name"], "angle")
+        self.assertEqual(path["swap_interval"], 0)
+        self.assertTrue(path["texture_buffers_off"])
+        self.assertFalse(path["texture_buffers"])
+        self.assertEqual(path["texture_buffers_switch"], 0)
 
 
 class FocusGateTest(unittest.TestCase):

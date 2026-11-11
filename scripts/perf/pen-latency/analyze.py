@@ -552,6 +552,9 @@ class Run:
             swap = summarize_swap(self.events, self.ticks_per_ms)
             if swap:
                 result["canvas_swap"] = swap
+            render_path = summarize_render_path(self.events)
+            if render_path:
+                result["render_path"] = render_path
             result["input_path"] = {
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
@@ -853,6 +856,50 @@ def format_canvas_swap(entry):
         format_stat(entry["paint_end_to_frame_swapped"]))
 
 
+RENDERER_NAMES = {1: "auto", 2: "desktop", 4: "angle", 8: "software"}
+
+
+def summarize_render_path(events):
+    """Return the renderer, swap interval and L2 CPU switches of one run."""
+    entries = events.get("l1_render_path", [])
+    if not entries:
+        return None
+    renderer, swap_interval, flags = entries[-1][1], entries[-1][2], int(entries[-1][3])
+    result = {
+        "renderer": int(renderer),
+        "renderer_name": RENDERER_NAMES.get(int(renderer), "unknown"),
+        "swap_interval": int(swap_interval),
+        "angle": bool(flags & 1),
+        "force_disable_texture_buffers": bool(flags & 2),
+        "texture_buffers_off": bool(flags & 4),
+        "texture_buffers_on": bool(flags & 8),
+        "widgets_rhi_off": bool(flags & 16),
+    }
+    texture = events.get("l1_texture_buffers", [])
+    if texture:
+        result["texture_buffers"] = bool(texture[-1][1])
+        result["texture_buffers_switch"] = int(texture[-1][3]) - 1
+    return result
+
+
+def format_render_path(entry):
+    """One line per run: which renderer and upload/composition path ran."""
+    if not entry:
+        return "none"
+    flags = []
+    for key, label in (("angle", "angle"), ("force_disable_texture_buffers", "force-no-pbo"),
+                       ("texture_buffers_off", "pbo-off"), ("texture_buffers_on", "pbo-on"),
+                       ("widgets_rhi_off", "rhi-off")):
+        if entry.get(key):
+            flags.append(label)
+    text = "renderer=%s swap_interval=%d texture_buffers=%s" % (
+        entry.get("renderer_name", "unknown"), entry.get("swap_interval", -1),
+        "unknown" if "texture_buffers" not in entry else ("pbo" if entry["texture_buffers"] else "direct"))
+    if flags:
+        text += " flags{%s}" % ",".join(flags)
+    return text
+
+
 def format_thread_cpu(entry):
     """One line per run: per-thread CPU inside the injected input window."""
     if not entry:
@@ -1111,6 +1158,9 @@ def main(argv):
                 continue
             if key == "canvas_swap":
                 print("   %-44s %s" % (key, format_canvas_swap(stat)))
+                continue
+            if key == "render_path":
+                print("   %-44s %s" % (key, format_render_path(stat)))
                 continue
             if key == "thread_cpu":
                 print("   %-44s %s" % (key, format_thread_cpu(stat)))
