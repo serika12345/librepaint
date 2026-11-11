@@ -114,6 +114,11 @@ QPA のネイティブインターフェースか Win32/Wintab の直接呼び�
 
 ### 2.3 リスク
 
+- Qt6 の Wintab と Windows Ink の切り替えは、正式版 Qt 6.11.3 にもある
+  `QNativeInterface::Private::QWindowsApplication::setWinTabEnabled()` /
+  `isWinTabEnabled()`（`krita/main.cc:996`、`libs/application/kis_config.cc:132`、
+  `libs/ui/dialogs/kis_dlg_preferences.cc:3273`）をそのまま使う。9 件のために
+  新しい QPA のネイティブインターフェースは足さない。
 - ネイティブフィルターは GUI スレッドのメッセージ処理の前後に挟まる。計測用の
   `KisLatencyProbe` と同じく、通常の起動では仕事をしない（フラグ 1 回の判定）形にし、
   ペンの経路に文字列の確保やロックを足さない。
