@@ -80,6 +80,8 @@ class KisWintabPacketPeekerTest : public QObject
 private Q_SLOTS:
     void testIgnoresOtherPacketData();
     void testLooksUpByPacketTime();
+    void testSameTimePacketsInArrivalOrder();
+    void testRepeatedPeekAddsOneCopy();
     void testOverwritesOldEntries();
     void testVirtualScreenKeepsNoCorrection();
 };
@@ -145,6 +147,73 @@ void KisWintabPacketPeekerTest::testLooksUpByPacketTime()
     // A message that is not WT_PACKET peeks nothing.
     QVERIFY(!peeker.handleNativeMessage(0x7FF1, 0, 1));
     QCOMPARE(api.peekCalls, 1);
+
+    KisWintabMapping::setConfiguredMode(KisWintabMapping::Mode::Wintab,
+                                        QRect());
+}
+
+void KisWintabPacketPeekerTest::testSameTimePacketsInArrivalOrder()
+{
+    KisWintabMapping::setConfiguredMode(KisWintabMapping::Mode::Custom,
+                                        QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context = contextFor(1000, 500);
+    // The Wintab time is in milliseconds, so a pen that reports faster than
+    // 1000 Hz delivers several packets with the same pkTime.
+    api.packets = {
+        KisWintabApi::Packet{0, 0, 500},
+        KisWintabApi::Packet{500, 250, 500},
+        KisWintabApi::Packet{1000, 500, 500}
+    };
+
+    KisWintabPacketPeeker peeker(&api);
+    peeker.setScreensForTesting({screen(QRect(0, 0, 1000, 500), 1.0)});
+
+    QVERIFY(peeker.handleNativeMessage(KisWintabPacketPeeker::PacketMessage,
+                                       0, 1));
+
+    QPointF position;
+    QVERIFY(peeker.lookup(500, &position));
+    QCOMPARE(position, QPointF(0, 0));
+    QVERIFY(peeker.lookup(500, &position));
+    QCOMPARE(position, QPointF(250, 125));
+    QVERIFY(peeker.lookup(500, &position));
+    QCOMPARE(position, QPointF(500, 250));
+
+    // Every packet of that time is used now.
+    QVERIFY(!peeker.lookup(500, &position));
+
+    KisWintabMapping::setConfiguredMode(KisWintabMapping::Mode::Wintab,
+                                        QRect());
+}
+
+void KisWintabPacketPeekerTest::testRepeatedPeekAddsOneCopy()
+{
+    KisWintabMapping::setConfiguredMode(KisWintabMapping::Mode::Custom,
+                                        QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context = contextFor(1000, 500);
+    // WTPacketsPeek does not remove the packet, so the next WT_PACKET
+    // message sees the same queue again.
+    api.packets = {KisWintabApi::Packet{250, 125, 777}};
+
+    KisWintabPacketPeeker peeker(&api);
+    peeker.setScreensForTesting({screen(QRect(0, 0, 1000, 500), 1.0)});
+
+    QVERIFY(peeker.handleNativeMessage(KisWintabPacketPeeker::PacketMessage,
+                                       0, 1));
+    QVERIFY(peeker.handleNativeMessage(KisWintabPacketPeeker::PacketMessage,
+                                       0, 1));
+    QCOMPARE(api.peekCalls, 2);
+
+    QPointF position;
+    QVERIFY(peeker.lookup(777, &position));
+    QCOMPARE(position, QPointF(125, 62.5));
+
+    // The second peek did not add a copy of the same packet.
+    QVERIFY(!peeker.lookup(777, &position));
 
     KisWintabMapping::setConfiguredMode(KisWintabMapping::Mode::Wintab,
                                         QRect());

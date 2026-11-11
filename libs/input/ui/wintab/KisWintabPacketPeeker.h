@@ -8,6 +8,7 @@
 
 #include "kritainputui_export.h"
 #include "KisWintabMapping.h"
+#include "KisWintabTrust.h"
 
 #include <QAbstractNativeEventFilter>
 #include <QPointF>
@@ -30,6 +31,7 @@ public:
         qint32 x = 0;
         qint32 y = 0;
         quint32 time = 0;
+        quint32 buttons = 0;
     };
 
     /**
@@ -107,16 +109,36 @@ public:
     bool handleNativeMessage(quint32 message, quintptr wParam, qintptr lParam);
 
     /**
-     * The corrected logical position of the packet with this timestamp.
+     * The corrected logical position of the oldest unused packet with this
+     * timestamp. Marks the packet as used, so a second event with the same
+     * timestamp (the Wintab clock has a 1 ms resolution and the pen reports
+     * faster) takes the next packet in arrival order.
      */
-    bool lookup(quint64 timestamp, QPointF *logicalPosition) const;
+    bool lookup(quint64 timestamp, QPointF *logicalPosition);
 
     /**
      * Builds a copy of the event with only the local and global positions
-     * corrected. Returns null when no packet matches the timestamp, so the
-     * caller keeps the original event.
+     * corrected. Returns null when no packet matches the timestamp or the
+     * proximity distrusted the driver's range, so the caller keeps the
+     * original event.
+     *
+     * On the first TabletPress of a proximity the corrected position is
+     * compared with @p cursorPosition, the logical QCursor::pos(), and the
+     * decision is recorded as wintab_trust.
      */
-    std::unique_ptr<QTabletEvent> correctedTabletEvent(const QTabletEvent &event);
+    std::unique_ptr<QTabletEvent> correctedTabletEvent(
+        const QTabletEvent &event, const QPointF &cursorPosition);
+
+    /**
+     * Starts a new proximity from QEvent::TabletEnterProximity. The trust
+     * check returns to Undecided.
+     */
+    void beginProximity();
+
+    /**
+     * Ends the proximity from QEvent::TabletLeaveProximity.
+     */
+    void endProximity();
 
     /**
      * The screen list for the tests. An empty list uses QGuiApplication.
@@ -128,12 +150,17 @@ public:
 private:
     struct Entry {
         quint64 time = 0;
+        qint32 packetX = 0;
+        qint32 packetY = 0;
+        quint32 buttons = 0;
         QPointF logicalPosition;
         bool valid = false;
+        bool used = false;
     };
 
     QVector<KisWintabMapping::Screen> currentScreens() const;
-    void store(quint64 time, const QPointF &logicalPosition);
+    void store(const KisWintabApi::Packet &packet,
+               const QPointF &logicalPosition);
 
     KisWintabApi *m_api = nullptr;
     std::unique_ptr<KisWintabApi> m_ownedApi;
@@ -141,6 +168,7 @@ private:
     int m_nextEntry = 0;
     std::array<KisWintabApi::Packet, EntryCount> m_packets;
     QVector<KisWintabMapping::Screen> m_testScreens;
+    KisWintabTrust m_trust;
     bool m_warnedPacketData = false;
 
     static KisWintabPacketPeeker *s_instance;

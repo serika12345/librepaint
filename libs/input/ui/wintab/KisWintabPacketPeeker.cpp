@@ -157,6 +157,7 @@ public:
             packets[i].x = m_rawPackets[i].pkX;
             packets[i].y = m_rawPackets[i].pkY;
             packets[i].time = m_rawPackets[i].pkTime;
+            packets[i].buttons = m_rawPackets[i].pkButtons;
         }
 
         return copied;
@@ -238,21 +239,44 @@ QVector<KisWintabMapping::Screen> KisWintabPacketPeeker::currentScreens() const
     return screens;
 }
 
-void KisWintabPacketPeeker::store(quint64 time,
+void KisWintabPacketPeeker::store(const KisWintabApi::Packet &packet,
                                   const QPointF &logicalPosition)
 {
+    // WTPacketsPeek does not remove the packet, so the next WT_PACKET message
+    // sees the same queue again. pkSerialNumber is not part of PACKETDATA;
+    // the time, position and button bits identify the packet. A used entry
+    // stays in the table, so a repeated peek does not add a second copy.
+    for (const Entry &entry : m_entries) {
+        if (entry.valid &&
+            entry.time == packet.time &&
+            entry.packetX == packet.x &&
+            entry.packetY == packet.y &&
+            entry.buttons == packet.buttons) {
+            return;
+        }
+    }
+
     Entry &entry = m_entries[m_nextEntry];
-    entry.time = time;
+    entry.time = packet.time;
+    entry.packetX = packet.x;
+    entry.packetY = packet.y;
+    entry.buttons = packet.buttons;
     entry.logicalPosition = logicalPosition;
     entry.valid = true;
+    entry.used = false;
     m_nextEntry = (m_nextEntry + 1) % EntryCount;
 }
 
 bool KisWintabPacketPeeker::lookup(quint64 timestamp,
-                                   QPointF *logicalPosition) const
+                                   QPointF *logicalPosition)
 {
-    for (const Entry &entry : m_entries) {
-        if (entry.valid && entry.time == timestamp) {
+    // m_nextEntry is the oldest slot, so scanning from there returns the
+    // packets of one timestamp in the order they arrived.
+    for (int i = 0; i < EntryCount; ++i) {
+        Entry &entry = m_entries[(m_nextEntry + i) % EntryCount];
+
+        if (entry.valid && !entry.used && entry.time == timestamp) {
+            entry.used = true;
             if (logicalPosition) {
                 *logicalPosition = entry.logicalPosition;
             }
@@ -260,6 +284,16 @@ bool KisWintabPacketPeeker::lookup(quint64 timestamp,
         }
     }
     return false;
+}
+
+void KisWintabPacketPeeker::beginProximity()
+{
+    m_trust.beginProximity();
+}
+
+void KisWintabPacketPeeker::endProximity()
+{
+    m_trust.endProximity();
 }
 
 bool KisWintabPacketPeeker::handleNativeMessage(quint32 message,
@@ -331,7 +365,7 @@ bool KisWintabPacketPeeker::handleNativeMessage(quint32 message,
         const KisWintabApi::Packet &packet = m_packets[i];
         const QPointF nativePosition = KisWintabMapping::nativePosition(
             range, target, packet.x, packet.y);
-        store(packet.time,
+        store(packet,
               KisWintabMapping::logicalPosition(nativePosition, screens));
     }
 
@@ -339,8 +373,16 @@ bool KisWintabPacketPeeker::handleNativeMessage(quint32 message,
 }
 
 std::unique_ptr<QTabletEvent> KisWintabPacketPeeker::correctedTabletEvent(
-    const QTabletEvent &event)
+    const QTabletEvent &event, const QPointF &cursorPosition)
 {
+    // Qt can miss the proximity enter event; the first tablet event then
+    // starts the proximity.
+    m_trust.noteTabletEvent();
+
+    if (!m_trust.correctionAllowed()) {
+        return nullptr;
+    }
+
     QPointF correctedPosition;
     const bool found = lookup(event.timestamp(), &correctedPosition);
 
@@ -348,6 +390,24 @@ std::unique_ptr<QTabletEvent> KisWintabPacketPeeker::correctedTabletEvent(
 
     if (!found) {
         return nullptr;
+    }
+
+    // The first press of a proximity decides whether the driver's range is
+    // right. A distrusted proximity keeps the Qt position from this press
+    // until the end of the proximity.
+    if (event.type() == QEvent::TabletPress &&
+        m_trust.state() == KisWintabTrust::State::Undecided) {
+
+        const KisWintabTrust::State state =
+            m_trust.decide(correctedPosition, cursorPosition);
+
+        KisLatencyProbe::mark(
+            "wintab_trust", state == KisWintabTrust::State::Trusted ? 1 : 0,
+            qRound(m_trust.differencePixels() * 10.0));
+
+        if (state != KisWintabTrust::State::Trusted) {
+            return nullptr;
+        }
     }
 
     const QPointF delta = correctedPosition - event.globalPosition();
