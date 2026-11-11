@@ -1,49 +1,110 @@
 # nixpkgs-unstable（Qt 6.12、GCC 16）での試しの構築の結果
 
-2026-11-11 に行った試しの構築の記録である。目的は、nixpkgs の Qt 6.12.0 と GCC 16.2.0 に寄せたときに壊れる箇所を、直さずに数えることである。作業はブランチ `trial/nixpkgs-unstable`（`flake.lock` と `nix/qt/overlay.nix` の 1 コミット `c4c75edc5b`）で行い、`feature/pen-latency` にはマージしていない。
+nixpkgs を nixpkgs-unstable（`4fe25e12eb`、2026-11-07）に上げ、Qt を nixpkgs の
+6.12.0 に差し替えた状態で、Linux と Windows の構築がどこで壊れるかを、直さずに
+数えた。試しのブランチは `trial/nixpkgs-unstable`（基点 `feature/pen-latency`）で、
+変更は `flake.lock` と `nix/qt/overlay.nix` の 2 ファイル（コミット `c4c75edc5b`）に
+限る。iOS と Android の Qt の定義は対象外である。
 
-## 方法
+## 条件
 
-- nixpkgs を `4fe25e12eb`（nixpkgs-unstable、2026-11-07）に固定した。他の入力は変えていない。
-- `nix/qt/overlay.nix` の Qt の版の差し替え（6.11.3）を外し、nixpkgs の Qt 6.12.0 を使った。Qt、KDE、PyQt6 のモジュールの取捨は変えていない。iOS と Android の Qt の定義は対象外とした。
-- Linux は `.#librepaint-linux` を、Windows は `.#librepaint-windows-upstream-qt-archive` を、`nix build --keep-going -L` で 1 本ずつ構築した。失敗した派生物で止まらず、壊れた派生物を集めるためである。
+- Linux は `.#librepaint-linux` の完全な構築を `nix build --keep-going -L` で行った。
+  2026-11-11 19:40 に開始し、21:28 に失敗して終わった（約 1 時間 48 分）。4 時間の
+  上限には達していない。
+- Windows は `.#librepaint-windows-upstream-qt-archive` の評価が通らないため、
+  構築を動かしていない。評価の失敗を 1 件として数える。
+- qtbase 6.12.0 と KDE Frameworks 6.31.0 は差し替えで取得し、この構築では
+  作り直していない。
+- 数え方は、失敗した派生物ごとに、段、エラー件数、代表的なエラーの文、原因の
+  見立ての分類である。
 
-## 結果
+## 失敗した派生物
 
-| # | 派生物 | 失敗の段 | エラーの件数 | 代表的なエラーの文 | 原因の見立ての分類 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | `librepaint-linux-unwrapped-1.0.3` | compile | 1（uic の拒否 1 件。これに伴い翻訳単位 1 件が失敗） | `AssistantsToolOptions.ui: Invalid class name: " QWidget"` / `File '.../plugins/assistants/Assistants/AssistantsToolOptions.ui' is not valid` / `kis_assistant_tool.h:22:10: fatal error: ui_AssistantsToolOptions.h: No such file or directory` | Qt 6.12 のツールの変化（uic の検証の強化） |
-| 2 | `krita-plugin-gmic-3.7.4.1` | 構築前（依存先の失敗） | 0 | `Reason: 1 dependency failed.` | その他（依存先の失敗） |
-| 3 | `librepaint-linux-1.0.3` | 構築前（依存先の失敗） | 0 | `Reason: 2 dependencies failed.` | その他（依存先の失敗） |
-| 4 | `librepaint-windows-upstream-qt-archive-1.0.3` | 評価 | 1 | `error: function 'anonymous lambda' called with unexpected argument 'python3Packages'`（`pkgs/by-name/gl/glib/package.nix:1:1`）、`python3.14-pyqt6-6.11.0` の `requiredPythonModules` の計算中、`nix/windows/krita.nix:87` の `hostPythonPath` から `flake.nix:844` の glib の上書きへ | その他（nixpkgs の glib が `python3Packages` 引数を受けなくなった） |
+Linux の構築は 13 の派生物を対象にした。うち 10 が成功し、3 が失敗した。自身の
+構築で壊れたのは 1 件で、残る 2 件は依存の失敗により構築に進まなかった。
+Windows の評価の失敗と合わせ、壊れた箇所は 2 件である。
 
-壊れた箇所は合計 4 件（Linux 3 件、Windows 1 件）である。うち自分自身の構築で失敗したのは LibrePaint 本体の 1 件だけで、残る 3 件はその失敗の波及か、評価の段の失敗である。
+| 派生物 | 段 | エラー件数 | 分類の見立て |
+| --- | --- | --- | --- |
+| `librepaint-linux-unwrapped-1.0.3` | compile（`.ui` の処理で失敗し、生成ヘッダが無いまま翻訳単位のコンパイルが止まる） | 2 | Qt 6.12 の API の変化（`uic`） |
+| `krita-plugin-gmic-3.7.4.1` | 未構築（依存 1 件の失敗） | 0 | その他（依存の失敗） |
+| `librepaint-linux-1.0.3` | 未構築（依存 2 件の失敗） | 0 | その他（依存の失敗） |
+| `librepaint-windows-upstream-qt-archive-1.0.3` | 評価 | 1 | Python |
 
-### 1. LibrePaint 本体（Linux）
+### `librepaint-linux-unwrapped-1.0.3`
 
-- `plugins/assistants/Assistants/AssistantsToolOptions.ui` の 287 行目の `class=" QWidget"` を、Qt 6.12.0 の uic が受け付けない。Qt 6.11.3 では同じファイルで構築できているため、uic のクラス名の検証が厳しくなったと見られる。
-- uic が `ui_AssistantsToolOptions.h` を作らないため、`kritaassistanttool_static_autogen/mocs_compilation.cpp` の 1 翻訳単位が失敗し、`make` が 59% で止まった。
-- 本体のコンパイルのエラーは、この 1 翻訳単位だけである。この 1 件を直すと次のエラーが出るかは、直さない方針のため未確認である。
-- 参考として、GCC 16.2.0 の新しい警告 `-Wsfinae-incomplete` が `libs/libkis/View.h` で 1 件、`-Wmaybe-uninitialized` が `libs/psd/psd_layer_record.cpp` で出た。どちらも警告で、構築は止まっていない。
+configure は通り、compile の 59% で止まった。`uic` が
+`plugins/assistants/Assistants/AssistantsToolOptions.ui` を不正として受け付けず、
+`ui_AssistantsToolOptions.h` が生成されない。そのヘッダを
+`plugins/assistants/Assistants/kis_assistant_tool.h:22` が取り込むため、
+`kritaassistanttool_static` の翻訳単位がコンパイルできない。止まった翻訳単位の数は
+1（`kritaassistanttool_static_autogen/mocs_compilation.cpp`）である。
 
-### 2. 依存の構築（Linux）
+代表的なエラーの文（3 つ）:
 
-Qt 6.12.0 ほか 57 個のパスは公開キャッシュから取得した。実際に構築したのは次の 13 派生物で、`librepaint-linux-unwrapped` の前までに 10 個が成功した。
+```
+AssistantsToolOptions.ui: Invalid class name: " QWidget"
+File '.../plugins/assistants/Assistants/AssistantsToolOptions.ui' is not valid
+kis_assistant_tool.h:22:10: fatal error: ui_AssistantsToolOptions.h: No such file or directory
+```
 
-- 成功：`python3-3.14.8-env`、`opencolorio-2.5.2`、KDE Frameworks 6.31.0 の 6 個（`kcoreaddons`、`kguiaddons`、`kcrash`、`kcolorscheme`、`kwidgetsaddons`、`kcompletion`）、`python3.14-pyqt6-6.11.0`、`qtmultimedia-6.12.0`。
-- 失敗：`librepaint-linux-unwrapped-1.0.3`。
-- 失敗の波及：`krita-plugin-gmic-3.7.4.1`（依存先 1 件の失敗）、`librepaint-linux-1.0.3`（依存先 2 件の失敗）。
+同じ `.ui` の処理で、`verticalLayout` の重複を defaults で解消する警告も出ている。
+`.ui` のファイル自体は試しのブランチで変更していない。エラーは 2 件（`.ui` の処理
+1 件、翻訳単位のコンパイル 1 件）である。`--keep-going` により、この失敗のあとも
+他の翻訳単位のコンパイルは最後まで進んだ。この派生物で `error:` で始まる GCC の
+診断はこの 1 件だけで、GCC 16 の新しいエラーと C++20 の既定化による失敗は
+現れていない。
 
-KDE Frameworks 6.31.0、PyQt6 6.11.0、`qtmultimedia` 6.12.0 は、Qt 6.12.0 と GCC 16.2.0 の組で構築できた。
+### `krita-plugin-gmic-3.7.4.1`
 
-### 3. Windows
+`librepaint-linux-unwrapped` に依存するため、構築に進まずに止まった。
 
-評価の段で `python3.14-pyqt6-6.11.0` の `requiredPythonModules` の計算に失敗したため、Windows の構築は動かしていない。したがって Windows 側のコンパイルの壊れ方は未計測である。原因は `flake.nix:844` の glib の上書きが `python3Packages` を渡していることで、nixpkgs-unstable の `glib` はこの引数を受け取らない。
+```
+error: Cannot build '...-krita-plugin-gmic-3.7.4.1.drv'.
+       Reason: 1 dependency failed.
+```
 
-## 所要時間
+### `librepaint-linux-1.0.3`
 
-Linux の構築は 19:40:53 に始まり 21:28:24 に終わった（1 時間 47 分）。上限の 4 時間には達していない。
+`librepaint-linux-unwrapped` と `krita-plugin-gmic` に依存するため、構築に進まずに
+止まった。
 
-## 直していないこと
+```
+error: Cannot build '...-librepaint-linux-1.0.3.drv'.
+       Reason: 2 dependencies failed.
+```
 
-この試しでは何も直していない。`flake.lock` と `nix/qt/overlay.nix` 以外のファイルは変えていない。結果の判断は監査役が行う。
+### `librepaint-windows-upstream-qt-archive-1.0.3`（評価）
+
+評価の段で、`python3.14-pyqt6-6.11.0` の `requiredPythonModules` の計算が失敗する。
+エラーは 1 件である。
+
+```
+error: function 'anonymous lambda' called with unexpected argument 'python3Packages'
+at .../pkgs/by-name/gl/glib/package.nix:1:1
+```
+
+経路は `nix/windows/krita.nix:87` の `hostPythonPath` から `flake.nix:844` の glib の
+上書きへ至り、glib の定義が `python3Packages` の引数を受け取らなくなっている。
+
+## 成功した派生物
+
+Linux で構築を終えた 10 の派生物は次のとおりである。`python3.14-pyqt6` 6.11.0 は
+Linux では Qt 6.12.0 に対して構築を終えている。Windows の評価の失敗は、この
+組み合わせではなく glib の上書きの経路で起きている。
+
+- `python3-3.14.8-env`
+- `python3.14-pyqt6-6.11.0`
+- `kguiaddons-6.31.0`
+- `kcolorscheme-6.31.0`
+- `kwidgetsaddons-6.31.0`
+- `kcompletion-6.31.0`
+- `kcoreaddons-6.31.0`
+- `kcrash-6.31.0`
+- `qtmultimedia-6.12.0`
+- `opencolorio-2.5.2`
+
+## 範囲
+
+この試しでは何も直していない。結果は `trial/nixpkgs-unstable` にだけ置き、
+`feature/pen-latency` にはマージしない。
