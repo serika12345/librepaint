@@ -48,6 +48,7 @@ Usage:
 """
 
 import argparse
+import csv
 import datetime
 import json
 import os
@@ -248,12 +249,14 @@ DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT = 60.0
 def device_performance_low(run):
     """Whether the device's recorded % Processor Performance stayed below 60.
 
-    Runs without a recorded device state (Linux, macOS, surface_state off)
+    A reading of 0 is a failed read rather than a measurement (see
+    during_performance_readings), so it does not make the run low. Runs
+    without a recorded device state (Linux, macOS, surface_state off)
     return False and stay in the aggregation.
     """
     state = run.get("surface_state") or {}
     value = number_or_none(state.get("during_min_processor_performance_pct"))
-    return value is not None and value < DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT
+    return value is not None and 0 < value < DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT
 
 
 def usable_runs(data):
@@ -305,6 +308,35 @@ def number_or_none(value):
         return None
 
 
+def during_performance_readings(path):
+    """Return (readings, missing) of % Processor Performance during a run.
+
+    The light state recorder writes surface-state.csv. The WMI counter
+    occasionally returns 0 in the middle of a run: the 2026-11-11 08:54:44
+    sample of LibrePaint-wait-on-20261111-085349-1 was 0 between 181 and 180
+    while total CPU was 14 %. A processor that stopped for one sample could
+    not have drawn, so a non-positive reading is a failed read, not a
+    measurement: it counts as missing and does not lower the minimum.
+
+    None means the runner did not write the CSV (older runs); meta.txt is
+    then the only record.
+    """
+    csv_path = os.path.join(path, "surface-state.csv")
+    if not os.path.exists(csv_path):
+        return None
+    readings, missing = [], 0
+    with open(csv_path, encoding="utf-8", errors="replace") as handle:
+        for row in csv.DictReader(handle):
+            if row.get("phase") != "during":
+                continue
+            value = number_or_none(row.get("processor_performance_pct"))
+            if value is None or value <= 0:
+                missing += 1
+            else:
+                readings.append(value)
+    return readings, missing
+
+
 def surface_state(path):
     """Read the device state the Windows runner recorded around one run.
 
@@ -321,6 +353,13 @@ def surface_state(path):
             field = SURFACE_STATE_KEYS.get(key)
             if field:
                 state[field] = value
+    sampled = during_performance_readings(path)
+    if sampled is not None:
+        readings, missing = sampled
+        state["during_readings"] = str(len(readings) + missing)
+        state["during_readings_missing"] = str(missing)
+        state["during_min_processor_performance_pct"] = (
+            "%.0f" % min(readings) if readings else "unavailable")
     return state
 
 
@@ -428,6 +467,9 @@ def summarize(run_root, hosts, scenario):
             data["device_low"] = sum(
                 1 for run in data["runs"]
                 if not run_excluded(run) and device_performance_low(run))
+            data["device_readings_missing"] = sum(
+                1 for run in data["runs"]
+                if (number_or_none((run.get("surface_state") or {}).get("during_readings_missing")) or 0) > 0)
             data["shifts"] = shift_notes(valid)
             data["foreground_inject_lost"] = sum(
                 1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
@@ -511,6 +553,9 @@ def judge(summary, scenario, baseline=None):
                     if data.get("device_low"):
                         notes.append("%d run(s) left out: processor performance below %.0f%% during the run" % (
                             data["device_low"], DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT))
+                    if data.get("device_readings_missing"):
+                        notes.append("%d run(s) with a failed processor performance reading (kept)" % (
+                            data["device_readings_missing"]))
                     if data.get("foreground_inject_lost"):
                         notes.append("%d run(s) lost the foreground before input" % data["foreground_inject_lost"])
                     for shift in data.get("shifts", []):
@@ -673,6 +718,7 @@ def main(argv):
         print("\n".join(device_lines))
     wait_lines = []
     low_lines = []
+    reading_lines = []
     for host, entry in summary["hosts"].items():
         if entry.get("kind") != "windows":
             continue
@@ -682,16 +728,26 @@ def main(argv):
                 wait_lines.append("   %s/%s: recovery wait before the run: %s" % (
                     host, target, ", ".join("%s %d" % (state, waits[state]) for state in sorted(waits))))
             for run in data.get("runs", []):
-                if run_excluded(run) or not device_performance_low(run):
+                if run_excluded(run):
                     continue
                 state = run.get("surface_state") or {}
-                low_lines.append("   %s/%s: %s %s%% (wait %s, below %.0f%%)" % (
+                missing = number_or_none(state.get("during_readings_missing")) or 0
+                if missing:
+                    reading_lines.append("   %s/%s: %s %d of %s reading(s) missing (0 %%, kept)" % (
+                        host, target, run.get("name", "?"), missing,
+                        state.get("during_readings", "?")))
+                if not device_performance_low(run):
+                    continue
+                low_lines.append("   %s/%s: %s %s%% (wait %s, below %.0f%%, left out)" % (
                     host, target, run.get("name", "?"),
                     state.get("during_min_processor_performance_pct", "?"),
                     state.get("wait", "unrecorded"), DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT))
     if wait_lines:
         print("== device recovery waits")
         print("\n".join(wait_lines))
+    if reading_lines:
+        print("== device state readings missing (kept)")
+        print("\n".join(reading_lines))
     if low_lines:
         print("== device state below %.0f%% (left out)" % DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT)
         print("\n".join(low_lines))

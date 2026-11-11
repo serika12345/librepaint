@@ -15,6 +15,7 @@ import os
 import sys
 import tempfile
 import unittest
+import csv
 from contextlib import redirect_stdout
 from unittest import mock
 
@@ -172,6 +173,56 @@ class DeviceShiftTest(unittest.TestCase):
             {"surface_state": {"during_min_processor_performance_pct": "42"}}))
         self.assertFalse(run.device_performance_low(
             {"surface_state": {"during_min_processor_performance_pct": "unavailable"}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "0"}}))
+
+    def write_device_state(self, path, values):
+        with open(os.path.join(path, "surface-state.csv"), "w", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["time", "phase", "max_temp_c", "processor_performance_pct",
+                             "total_cpu_pct", "top_processes"])
+            writer.writerow(["t0", "before", "45.0", "103", "8", ""])
+            for index, value in enumerate(values, start=1):
+                writer.writerow(["t%d" % index, "during", "unavailable", value, "14", ""])
+            writer.writerow(["t9", "after", "45.0", "85", "0", ""])
+
+    def test_a_zero_processor_reading_is_a_failed_read_not_a_throttled_run(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("surface_state_mode=light\n")
+                handle.write("surface_state_during_min_processor_performance_pct=0\n")
+            self.write_device_state(root, ["181", "0", "180"])
+            state = run.surface_state(root)
+        self.assertEqual(state["during_readings"], "3")
+        self.assertEqual(state["during_readings_missing"], "1")
+        self.assertEqual(state["during_min_processor_performance_pct"], "180")
+
+    def test_a_run_with_a_failed_reading_stays_in_the_aggregation(self):
+        with tempfile.TemporaryDirectory() as root:
+            readings = (["70"], ["181", "0", "180"], ["75"])
+            for n, values in enumerate(readings, start=1):
+                path = os.path.join(root, "h", "T-20261111-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_wait=ready\n")
+                    handle.write("surface_state_during_min_processor_performance_pct=0\n")
+                self.write_device_state(path, values)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0,
+                    "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0) for _ in readings]):
+                summary = run.summarize(root, [host], SCENARIO)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["device_low"], 0)
+        self.assertEqual(data["device_readings_missing"], 1)
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 3)
+        names = [state.get("during_min_processor_performance_pct")
+                 for state in (entry["surface_state"] for entry in data["runs"])]
+        self.assertEqual(sorted(names), ["180", "70", "75"])
+        rows = run.judge(summary, SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("1 run(s) with a failed processor performance reading (kept)", notes)
 
     def test_the_table_notes_carry_the_mark(self):
         summary = {"hosts": {"h": {"kind": "windows", "targets": {"T": {
