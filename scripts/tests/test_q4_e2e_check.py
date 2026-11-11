@@ -251,6 +251,56 @@ class PenEvidenceTest(unittest.TestCase):
         self.assertEqual(check._probe_strokes(events, 25, 35), (1, 1))
 
 
+class TargetTimeoutTest(unittest.TestCase):
+    def test_target_past_the_limit_is_recorded_as_timeout(self):
+        class SlowRunner:
+            pid = None
+
+            def __init__(self):
+                self.killed = False
+
+            def wait(self, timeout=None):
+                if timeout is not None:
+                    raise subprocess.TimeoutExpired("run-remote.sh", timeout)
+                return 1
+
+            def kill(self):
+                self.killed = True
+
+        process = SlowRunner()
+        original = check.subprocess.Popen
+        check.subprocess.Popen = lambda *args, **kwargs: process
+        try:
+            with tempfile.TemporaryDirectory() as root:
+                with redirect_stdout(io.StringIO()):
+                    result = check.run_checked(
+                        {"name": "tablet", "ssh": "tablet",
+                         "capture_tool": "windows_capture.exe"},
+                        {"name": "q4-e2e-stage3", "runner_target": "LibrePaint",
+                         "app": "C:/LibrePaint.exe"},
+                        SCENARIO, root)
+        finally:
+            check.subprocess.Popen = original
+        self.assertEqual(result["target"], "q4-e2e-stage3")
+        self.assertEqual(result["run_status"], "timeout")
+        self.assertEqual({entry["verdict"] for entry in result["items"]}, {"timeout"})
+        self.assertTrue(process.killed)
+
+    def test_timeout_is_not_overwritten_by_the_fork_baseline(self):
+        timed_out = {
+            "target": "q4-e2e-stage3",
+            "items": [{"id": "flicker", "verdict": "timeout", "reasons": [],
+                       "metrics": {"blank_frames": 0, "stale_frames": 0}}],
+        }
+        fork = {
+            "target": "q4-e2e-fork",
+            "items": [{"id": "flicker", "verdict": "check", "reasons": [],
+                       "metrics": {"blank_frames": 3, "stale_frames": 3}}],
+        }
+        check.apply_fork_baseline([timed_out, fork], SCENARIO)
+        self.assertEqual(timed_out["items"][0]["verdict"], "timeout")
+
+
 class WindowsEntryTest(unittest.TestCase):
     def test_request_carries_the_check_object(self):
         request = run_request.build_request(

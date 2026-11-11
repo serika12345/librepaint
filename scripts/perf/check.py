@@ -36,6 +36,7 @@ import datetime
 import json
 import os
 import re
+import signal
 import struct
 import subprocess
 import sys
@@ -48,6 +49,9 @@ sys.path.insert(0, PEN)
 import display_check  # noqa: E402
 
 RUN_REMOTE = os.path.join(PEN, "run-remote.sh")
+# One target gets 900 s. The Windows watchdog in run-surface.ps1 stops a
+# blocked run after 600 s; this limit covers the transfer and a stuck ssh.
+CHECK_TIMEOUT_SECONDS = 900
 ITEMS = (
     "clipboard",
     "tabs",
@@ -769,7 +773,8 @@ def apply_fork_baseline(results, scenario):
         if result is baseline:
             continue
         flicker = next((entry for entry in result["items"] if entry["id"] == "flicker"), None)
-        if not flicker or flicker["verdict"] == "fail":
+        if not flicker or flicker["verdict"] != "check":
+            # A timeout or a failed target has no frame counts to compare.
             continue
         reasons = []
         for key, limit in (("blank_frames", allowance.get("blank_frames", 2)),
@@ -805,6 +810,31 @@ def runner_for(host, target, scenario, out):
     return argv, env
 
 
+def stop_process(process):
+    """Stop the runner and every process it started."""
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+    except (AttributeError, OSError, TypeError):
+        # Windows has no process groups and a test double may have no pid.
+        try:
+            process.kill()
+        except OSError:
+            pass
+
+
+def timeout_result(target, out):
+    reason = "run-remote.sh did not return within %d s" % CHECK_TIMEOUT_SECONDS
+    return {
+        "target": target["name"],
+        "run_dir": out,
+        "facts": None,
+        "errors": [reason],
+        "items": [item(identifier, identifier, "timeout", [reason], [])
+                  for identifier in ITEMS],
+        "run_status": "timeout",
+    }
+
+
 def run_checked(host, target, scenario, run_root):
     out = os.path.join(run_root, host["name"], target["name"])
     os.makedirs(out, exist_ok=True)
@@ -812,7 +842,15 @@ def run_checked(host, target, scenario, run_root):
     print("$ " + " ".join(argv), flush=True)
     merged = dict(os.environ)
     merged.update(env)
-    status = subprocess.run(argv, env=merged).returncode
+    try:
+        process = subprocess.Popen(argv, env=merged, start_new_session=True)
+        status = process.wait(timeout=CHECK_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        stop_process(process)
+        process.wait()
+        print("target %s: no result within %d s, recorded as timeout"
+              % (target["name"], CHECK_TIMEOUT_SECONDS), flush=True)
+        return timeout_result(target, out)
     dirs = [os.path.join(out, name) for name in sorted(os.listdir(out))
             if os.path.isdir(os.path.join(out, name))]
     with_facts = [path for path in dirs if os.path.exists(os.path.join(path, "facts.json"))]
