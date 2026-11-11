@@ -89,8 +89,8 @@ class QCoreApplication;
  * bit 2 = a canvas context lock, bit 4 = restoring the previous context)
  * and gl_done_current (bit 1 = a doneCurrent call with no previous context).
  * gpu_texture_create/destroy (glGenTextures/glDeleteTextures),
- * gpu_texture_image (glTexImage2D), gpu_texture_reuse (a full-tile update
- * reused the existing storage), gpu_buffer_create/destroy (QOpenGLBuffer
+ * gpu_texture_image (glTexImage2D),
+ * gpu_buffer_create/destroy (QOpenGLBuffer
  * create/destroy) and gpu_buffer_allocate (QOpenGLBuffer allocate or
  * glBufferData), gpu_fbo_recreate (QOpenGLWidget recreated its framebuffer
  * object), gpu_sync_create/destroy (KisOpenGLSync's glFenceSync/glDeleteSync),
