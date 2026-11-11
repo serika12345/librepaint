@@ -47,6 +47,7 @@
 #include <kis_image_config.h>
 #include <kritaversion.h>
 #include <opengl/kis_opengl.h>
+#include <opengl/KisOpenGLStartupCheck.h>
 
 #include "application/ui/orchestration/KisApplicationArguments.h"
 #include "document/KisDocument.h"
