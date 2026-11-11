@@ -1019,7 +1019,7 @@
       policyTools =
         packageSet: with packageSet; [
           bash
-          python3
+          (python3.withPackages (packages: [ packages.pefile ]))
         ];
       mkDocsShell =
         packageSet:
