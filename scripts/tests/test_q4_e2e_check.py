@@ -251,6 +251,32 @@ class PenEvidenceTest(unittest.TestCase):
         self.assertEqual(check._probe_strokes(events, 25, 35), (1, 1))
 
 
+class StepEventTest(unittest.TestCase):
+    """check.py copies the streamed step lines into the event log."""
+
+    def test_step_lines_become_events(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = os.path.join(root, "events.log")
+            self.assertEqual(check.write_step_event(
+                path, "q4-e2e", "q4-e2e-stage3", "status: step clipboard start"), "step")
+            self.assertEqual(check.write_step_event(
+                path, "q4-e2e", "q4-e2e-stage3", "status: step clipboard end done"), "step")
+            self.assertEqual(check.write_step_event(
+                path, "q4-e2e", "q4-e2e-stage3", "status: step flicker end timeout"), "step-timeout")
+            self.assertIsNone(check.write_step_event(
+                path, "q4-e2e", "q4-e2e-stage3", "status: presentmon=present"))
+            with open(path, encoding="utf-8") as handle:
+                fields = [line.split("\t") for line in handle.read().splitlines()]
+        self.assertEqual([entry[1] for entry in fields], ["step", "step", "step-timeout"])
+        self.assertEqual([entry[3] for entry in fields], ["q4-e2e-stage3"] * 3)
+        self.assertEqual([entry[4] for entry in fields], ["1"] * 3)
+        self.assertEqual([entry[5] for entry in fields],
+                         ["clipboard start", "clipboard end done", "flicker"])
+
+    def test_no_event_log_ignores_the_lines(self):
+        self.assertIsNone(check.write_step_event(None, "q4-e2e", "T", "status: step tabs start"))
+
+
 class TargetTimeoutTest(unittest.TestCase):
     def test_target_past_the_limit_is_recorded_as_timeout(self):
         class SlowRunner:

@@ -43,6 +43,9 @@
 # flicker and synthetic-pen checks). It writes evidence files; scripts/perf/
 # check.py judges them. The capture tool is still copied for the screen
 # snapshots, but no trajectory plan is generated.
+# While the target runs, this script prints each new line of status.txt as
+# "status: <line>" and leaves the last line in "remote status:"; check.py
+# records the step lines in the event log.
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
@@ -87,9 +90,21 @@ scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps
 ssh "$host" "schtasks /run /tn LibrePaintPenLatency | Out-Null"
 
 state=""
+seen=0
 for _ in $(seq 1 720); do
   sleep 5
-  state=$(ssh "$host" "if (Test-Path $remote/status.txt) { Get-Content $remote/status.txt | Select-Object -Last 1 }" | tr -d '\r')
+  lines=$(ssh "$host" "if (Test-Path $remote/status.txt) { Get-Content $remote/status.txt }" | tr -d '\r')
+  if [ -n "$lines" ]; then
+    total=$(printf '%s\n' "$lines" | wc -l)
+    # Print the lines this loop has not seen yet, prefixed so check.py can
+    # pick out the step lines. The auditor follows the steps as events while
+    # the target still runs.
+    if [ "$total" -gt "$seen" ]; then
+      printf '%s\n' "$lines" | tail -n "+$((seen + 1))" | sed 's/^/status: /'
+      seen=$total
+    fi
+    state=$(printf '%s\n' "$lines" | tail -n 1)
+  fi
   case "$state" in
     done|failed:*) break ;;
   esac

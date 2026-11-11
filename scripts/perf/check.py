@@ -23,6 +23,12 @@ fork build in the same invocation, because a fixed frame count does not
 describe what the user sees; the other items have absolute limits from the
 scenario file.
 
+While a target runs, this tool echoes the runner's progress and copies the
+step lines of status.txt into the event log (build/perf/events.log, or
+--events): "step <name> start", "step <name> end <result>", and a step-timeout
+event when the Windows runner ended a step at its limit
+(format: scripts/perf/events_log.py).
+
 Usage:
   check.py --scenario scripts/perf/scenarios/q4-e2e.json \
            --hosts build/perf/hosts.json --label q4-e2e --only windows \
@@ -40,13 +46,18 @@ import signal
 import struct
 import subprocess
 import sys
+import threading
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 PEN = os.path.join(HERE, "pen-latency")
+sys.path.insert(0, HERE)
 sys.path.insert(0, PEN)
 import display_check  # noqa: E402
+import events_log  # noqa: E402
+
+DEFAULT_EVENTS = os.path.join(ROOT, "build", "perf", "events.log")
 
 RUN_REMOTE = os.path.join(PEN, "run-remote.sh")
 # One target gets 900 s. The Windows watchdog in run-surface.ps1 stops a
@@ -822,6 +833,31 @@ def stop_process(process):
             pass
 
 
+def write_step_event(path, label, target, text):
+    """Turn one streamed status.txt line into an event, or ignore it.
+
+    run-surface.ps1 writes "step <name> start" and "step <name> end <result>"
+    to status.txt, and run-remote.sh prints the new lines as "status: <line>".
+    A step whose end is "timeout" becomes a step-timeout event, so the auditor
+    sees a stuck check without waiting for the target's 900 s limit.
+    """
+    if not path or text is None:
+        return None
+    text = text.strip()
+    if text.startswith("status: "):
+        text = text[len("status: "):].strip()
+    words = text.split()
+    if len(words) < 3 or words[0] != "step":
+        return None
+    name, phase = words[1], words[2]
+    result = " ".join(words[3:])
+    if phase == "end" and result == "timeout":
+        events_log.write(path, "step-timeout", label, target, 1, name)
+        return "step-timeout"
+    events_log.write(path, "step", label, target, 1, " ".join([name] + words[2:]))
+    return "step"
+
+
 def timeout_result(target, out):
     reason = "run-remote.sh did not return within %d s" % CHECK_TIMEOUT_SECONDS
     return {
@@ -835,22 +871,50 @@ def timeout_result(target, out):
     }
 
 
-def run_checked(host, target, scenario, run_root):
+def run_checked(host, target, scenario, run_root, events=None, label="q4-e2e"):
     out = os.path.join(run_root, host["name"], target["name"])
     os.makedirs(out, exist_ok=True)
     argv, env = runner_for(host, target, scenario, out)
     print("$ " + " ".join(argv), flush=True)
     merged = dict(os.environ)
     merged.update(env)
+    last_step = {"name": None}
+
+    def pump(stream):
+        # Echo the runner's progress and record the check's steps as events.
+        for line in stream:
+            print(line.rstrip("\n"), flush=True)
+            write_step_event(events, label, target["name"], line)
+            text = line.strip()
+            if text.startswith("status: "):
+                text = text[len("status: "):].strip()
+            words = text.split()
+            if len(words) >= 3 and words[0] == "step":
+                last_step["name"] = words[1]
+
+    process = subprocess.Popen(argv, env=merged, start_new_session=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               text=True, bufsize=1)
+    stream = getattr(process, "stdout", None)
+    reader = None
+    if stream is not None:
+        reader = threading.Thread(target=pump, args=(stream,), daemon=True)
+        reader.start()
     try:
-        process = subprocess.Popen(argv, env=merged, start_new_session=True)
         status = process.wait(timeout=CHECK_TIMEOUT_SECONDS)
     except subprocess.TimeoutExpired:
         stop_process(process)
         process.wait()
+        if reader is not None:
+            reader.join(5)
+        if events:
+            detail = (last_step["name"] or "target") + " target timeout"
+            events_log.write(events, "step-timeout", label, target["name"], 1, detail)
         print("target %s: no result within %d s, recorded as timeout"
               % (target["name"], CHECK_TIMEOUT_SECONDS), flush=True)
         return timeout_result(target, out)
+    if reader is not None:
+        reader.join(5)
     dirs = [os.path.join(out, name) for name in sorted(os.listdir(out))
             if os.path.isdir(os.path.join(out, name))]
     with_facts = [path for path in dirs if os.path.exists(os.path.join(path, "facts.json"))]
@@ -885,6 +949,8 @@ def main(argv):
     parser.add_argument("--only", help="comma-separated host names")
     parser.add_argument("--targets", help="comma-separated target names")
     parser.add_argument("--analyze-only", metavar="RUN_ROOT")
+    parser.add_argument("--events", default=DEFAULT_EVENTS,
+                        help="event log the auditor follows (default: build/perf/events.log)")
     args = parser.parse_args(argv)
 
     scenario = json.load(open(args.scenario))
@@ -911,7 +977,8 @@ def main(argv):
             for target in host.get("targets", []):
                 if wanted and target["name"] not in wanted:
                     continue
-                results.append(run_checked(host, target, scenario, run_root))
+                results.append(run_checked(host, target, scenario, run_root,
+                                           args.events, args.label))
 
     apply_fork_baseline(results, scenario)
     summary = {
