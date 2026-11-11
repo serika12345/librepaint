@@ -35,10 +35,6 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include <QEvent>
-#include <QByteArray>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
 #include <QGuiApplication>
 #include <QOpenGLContext>
 #include <QResizeEvent>
@@ -66,161 +62,8 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
-#ifdef Q_OS_WIN
-#include <windows.h>
-#include <d3d11.h>
-#endif
-
 static bool OPENGL_SUCCESS = false;
 
-#if defined(Q_OS_WIN) && QT_CONFIG(egl)
-#include <cstring>
-
-namespace
-{
-// EGL accepts an int attribute and an intptr_t value. Qt exposes only the
-// opaque EGLDisplay, so the entry points and constants come from the EGL
-// extensions directly (EGL_EXT_device_query and EGL_ANGLE_device_d3d).
-using EglQueryString = const char *(*)(void *display, int name);
-using EglQueryDisplayAttribEXT = unsigned int (*)(void *display, int attribute, qintptr *value);
-using EglQueryDeviceAttribEXT = unsigned int (*)(void *device, int attribute, qintptr *value);
-
-constexpr int EGL_EXTENSIONS = 0x3055;
-constexpr int EGL_DEVICE_EXT = 0x322C;
-constexpr int EGL_D3D11_DEVICE_ANGLE = 0x33A1;
-
-void writeEglExtensionDump(const char *clientExtensions, const char *displayExtensions)
-{
-    // Keep the raw extension strings next to the probe log. The runner copies
-    // the whole run directory, so the lists remain available for diagnosis.
-    const QByteArray logPath = qgetenv("LIBREPAINT_LATENCY_LOG");
-    if (logPath.isEmpty()) return;
-    const QFileInfo logFile(QString::fromLocal8Bit(logPath));
-    QFile dump(logFile.dir().filePath(logFile.completeBaseName() + ".egl.txt"));
-    if (!dump.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
-    dump.write("client_extensions=");
-    dump.write(clientExtensions ? clientExtensions : "(unavailable)");
-    dump.write("\ndisplay_extensions=");
-    dump.write(displayExtensions ? displayExtensions : "(unavailable)");
-    dump.write("\n");
-}
-
-void applyMaximumFrameLatency(QOpenGLContext *context)
-{
-    // H1 (frames queued ahead): ask the D3D11 device behind ANGLE to keep
-    // one frame in flight. L1 measured that this removes about 13 ms of the
-    // hover delay and about 22 ms of the ink delay, so it is now the normal
-    // behaviour of the ANGLE path. LIBREPAINT_L1_MAX_FRAME_LATENCY still
-    // overrides the value for the L1 comparisons (KisL1Switches.h owns its
-    // removal condition). The hidden kritarc option
-    // useMaximumFrameLatencyOne=false restores the driver default; official
-    // Krita also keeps graphics workarounds behind hidden kritarc options
-    // (for example useBufferInvalidation) instead of the UI.
-    //
-    // The D3D11 device is behind the EGL device, not the EGL display:
-    // eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT) returns the
-    // EGLDeviceEXT and eglQueryDeviceAttribEXT(device,
-    // EGL_D3D11_DEVICE_ANGLE) returns the D3D11 device.
-    //
-    // Every step is recorded in the latency log, so a run can tell a failed
-    // device lookup or call apart from a setting that had no effect on the
-    // wait: l1_h1_egl_context (1 when Qt exposes the EGL context),
-    // l1_h1_client_extensions and l1_h1_display_extensions (extra = bit 1 for
-    // EGL_EXT_device_query, bit 2 for EGL_ANGLE_device_d3d),
-    // l1_h1_device_query_ext (the display bits, kept for older analyses),
-    // l1_h1_setting (x = requested value, extra = 1 when the hidden kritarc
-    // option allows the low-latency default), l1_h1_entry_points (bit 1 for
-    // eglQueryDisplayAttribEXT, bit 2 for
-    // eglQueryDeviceAttribEXT), l1_h1_display_attrib (extra = EGLBoolean of
-    // eglQueryDisplayAttribEXT, x = 1 when it returned a device),
-    // l1_h1_device_attrib (extra = EGLBoolean of eglQueryDeviceAttribEXT, x =
-    // 1 when it returned a D3D11 device), l1_h1_device (1 when the D3D11
-    // device could be queried), l1_h1_query_interface (extra = HRESULT of
-    // IDXGIDevice1), l1_h1_set_max_frame_latency (x = requested, extra =
-    // HRESULT) and l1_h1_get_max_frame_latency (x = requested, extra =
-    // read-back value, -1 when the read failed).
-    //
-    // EGL_EXT_device_query is a client extension: it appears in
-    // eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS), not necessarily in the
-    // display extension list. Both lists are checked and written once to
-    // probe.egl.txt beside the probe log.
-    if (!context) return;
-
-    auto *egl = context->nativeInterface<QNativeInterface::QEGLContext>();
-    KisLatencyProbe::mark("l1_h1_egl_context", 0, 0, egl ? 1 : 0);
-    if (!egl) return;
-
-    KisConfig cfg(true);
-    const bool useLowLatencyByDefault = cfg.readEntry("useMaximumFrameLatencyOne", true);
-    const int latency = KisL1Switches::Detail::resolveMaxFrameLatency(
-        KisL1Switches::maxFrameLatency(), useLowLatencyByDefault);
-    KisLatencyProbe::mark("l1_h1_setting", latency, 0, useLowLatencyByDefault ? 1 : 0);
-    if (latency <= 0) return;
-
-    auto queryString = reinterpret_cast<EglQueryString>(context->getProcAddress("eglQueryString"));
-    const char *clientExtensions = queryString ? queryString(nullptr, EGL_EXTENSIONS) : nullptr;
-    const char *displayExtensions = queryString ? queryString(egl->display(), EGL_EXTENSIONS) : nullptr;
-    static bool extensionsWritten = false;
-    if (!extensionsWritten) {
-        extensionsWritten = true;
-        writeEglExtensionDump(clientExtensions, displayExtensions);
-    }
-
-    const bool clientHasDeviceQuery = clientExtensions && std::strstr(clientExtensions, "EGL_EXT_device_query");
-    const bool clientHasAngleD3D = clientExtensions && std::strstr(clientExtensions, "EGL_ANGLE_device_d3d");
-    const bool displayHasDeviceQuery = displayExtensions && std::strstr(displayExtensions, "EGL_EXT_device_query");
-    const bool displayHasAngleD3D = displayExtensions && std::strstr(displayExtensions, "EGL_ANGLE_device_d3d");
-    KisLatencyProbe::mark("l1_h1_client_extensions", 0, 0,
-                          (clientHasDeviceQuery ? 1 : 0) | (clientHasAngleD3D ? 2 : 0));
-    KisLatencyProbe::mark("l1_h1_display_extensions", 0, 0,
-                          (displayHasDeviceQuery ? 1 : 0) | (displayHasAngleD3D ? 2 : 0));
-    KisLatencyProbe::mark("l1_h1_device_query_ext", 0, 0,
-                          (displayHasDeviceQuery ? 1 : 0) | (displayHasAngleD3D ? 2 : 0));
-
-    auto queryDisplay = reinterpret_cast<EglQueryDisplayAttribEXT>(
-        context->getProcAddress("eglQueryDisplayAttribEXT"));
-    auto queryDevice = reinterpret_cast<EglQueryDeviceAttribEXT>(
-        context->getProcAddress("eglQueryDeviceAttribEXT"));
-    KisLatencyProbe::mark("l1_h1_entry_points", 0, 0,
-                          (queryDisplay ? 1 : 0) | (queryDevice ? 2 : 0));
-
-    // Call the entry points even when the extension list does not advertise
-    // them, so the next run distinguishes a missing extension from a missing
-    // entry point or a call that failed.
-    qintptr d3dValue = 0;
-    bool gotD3DDevice = false;
-    if (queryDisplay && queryDevice) {
-        qintptr eglDeviceValue = 0;
-        const unsigned int displayResult = queryDisplay(egl->display(), EGL_DEVICE_EXT, &eglDeviceValue);
-        KisLatencyProbe::mark("l1_h1_display_attrib", eglDeviceValue ? 1 : 0, 0, displayResult);
-        if (displayResult && eglDeviceValue) {
-            const unsigned int deviceResult = queryDevice(reinterpret_cast<void *>(eglDeviceValue),
-                                                          EGL_D3D11_DEVICE_ANGLE, &d3dValue);
-            KisLatencyProbe::mark("l1_h1_device_attrib", d3dValue ? 1 : 0, 0, deviceResult);
-            gotD3DDevice = deviceResult;
-        }
-    }
-    KisLatencyProbe::mark("l1_h1_device", 0, 0, gotD3DDevice && d3dValue ? 1 : 0);
-    if (!gotD3DDevice || !d3dValue) return;
-
-    auto *device = reinterpret_cast<ID3D11Device *>(d3dValue);
-    IDXGIDevice1 *dxgiDevice = nullptr;
-    const HRESULT queryResult =
-        device->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void **>(&dxgiDevice));
-    KisLatencyProbe::mark("l1_h1_query_interface", 0, 0, queryResult);
-    if (FAILED(queryResult) || !dxgiDevice) return;
-
-    const HRESULT setResult = dxgiDevice->SetMaximumFrameLatency(latency);
-    KisLatencyProbe::mark("l1_h1_set_max_frame_latency", latency, 0, setResult);
-
-    UINT readBack = 0;
-    const HRESULT getResult = dxgiDevice->GetMaximumFrameLatency(&readBack);
-    KisLatencyProbe::mark("l1_h1_get_max_frame_latency", latency, 0,
-                         SUCCEEDED(getResult) ? static_cast<qint64>(readBack) : -1);
-    dxgiDevice->Release();
-}
-}
-#endif
 
 class KisOpenGLCanvas2::CanvasBridge
     : public KisOpenGLCanvasRenderer::CanvasBridge
@@ -524,9 +367,6 @@ void KisOpenGLCanvas2::initializeGL()
     // official Qt Windows run painted a few frames and then stopped; a second
     // initialization would mean the canvas was recreated.
     KisLatencyProbe::mark("canvas_initialize_gl", 0, 0, context() ? 1 : 0);
-#if defined(Q_OS_WIN) && QT_CONFIG(egl)
-    applyMaximumFrameLatency(context());
-#endif
 
 #ifdef Q_OS_IOS
     d->rendererInitialized = true;
