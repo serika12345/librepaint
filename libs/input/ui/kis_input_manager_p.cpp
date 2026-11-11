@@ -34,8 +34,6 @@
 #include "kis_input_profile_manager.h"
 #include "kis_extended_modifiers_mapper.h"
 
-#include "config-qt-patches-present.h"
-
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <memory>
 #include <qcursor.h>
@@ -239,7 +237,7 @@ KisInputManager::Private::Private(KisInputManager *qq)
      * In Linux distributions Qt is not patched, so we should
      * use workaround for them
      */
-#if defined Q_OS_LINUX &&  !KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH
+#if defined Q_OS_LINUX
     useUnbalancedKeyPressEventWorkaround = true;
 #endif
 

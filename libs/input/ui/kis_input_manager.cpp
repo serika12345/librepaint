@@ -58,7 +58,6 @@
 #include "kis_extended_modifiers_mapper.h"
 #include "kis_input_manager_p.h"
 #include "kis_algebra_2d.h"
-#include "config-qt-patches-present.h"
 
 
 template <typename T>
@@ -752,7 +751,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->resetCompressor();
 
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);
@@ -787,7 +786,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
          */
         d->blockMouseEvents();
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);
@@ -807,7 +806,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         retval = true;
         event->setAccepted(true);
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);

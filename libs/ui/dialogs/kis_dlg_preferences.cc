@@ -147,13 +147,8 @@
 #include <config-qt-patches-present.h>
 
 #ifdef Q_OS_WIN
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-// this include is Qt5-only, the switch to WinTab is embedded in Qt
-#  include "config_qt5_has_wintab_switch.h"
-#else
-#  include <QtGui/private/qguiapplication_p.h>
-#  include <QtGui/qpa/qplatformintegration.h>
-#endif
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 #include "config-high-dpi-scale-factor-rounding-policy.h"
 #endif
 
@@ -1745,7 +1740,7 @@ void TabletSettingsTab::setDefault()
     m_page->chkUseRightMiddleClickWorkaround->setChecked(
         KisConfig(true).useRightMiddleTabletButtonWorkaround(true));
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)) 
+#if defined Q_OS_WIN
         m_page->radioWintab->setChecked(!cfg.useWin8PointerInput(true));
         m_page->radioWin8PointerInput->setChecked(cfg.useWin8PointerInput(true));
 #else
@@ -1789,15 +1784,13 @@ TabletSettingsTab::TabletSettingsTab(QWidget* parent, const char* name): QWidget
     m_page->chkUseRightMiddleClickWorkaround->setChecked(
          cfg.useRightMiddleTabletButtonWorkaround());
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-# if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if defined Q_OS_WIN
     QString actualTabletProtocol = "<unknown>";
     using QWindowsApplication = QNativeInterface::Private::QWindowsApplication;
     if (auto nativeWindowsApp = dynamic_cast<QWindowsApplication *>(QGuiApplicationPrivate::platformIntegration())) {
         actualTabletProtocol = nativeWindowsApp->isWinTabEnabled() ? "WinTab" : "Windows Ink";
     }
     m_page->grpTabletApi->setTitle(i18n("Tablet Input API (currently active API: \"%1\")", actualTabletProtocol));
-# endif
     m_page->radioWintab->setChecked(!cfg.useWin8PointerInput());
     m_page->radioWin8PointerInput->setChecked(cfg.useWin8PointerInput());
 
@@ -3258,16 +3251,14 @@ bool KisDlgPreferences::editPreferences(std::optional<PageDesc>page)
         cfg.setUseRightMiddleTabletButtonWorkaround(
             m_tabletSettings->m_page->chkUseRightMiddleClickWorkaround->isChecked());
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)) 
+#if defined Q_OS_WIN
         cfg.setUseWin8PointerInput(m_tabletSettings->m_page->radioWin8PointerInput->isChecked());
-        
-#  if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+
         // Qt6 supports switching the tablet API on the fly
         using QWindowsApplication = QNativeInterface::Private::QWindowsApplication;
         if (auto nativeWindowsApp = dynamic_cast<QWindowsApplication *>(QGuiApplicationPrivate::platformIntegration())) {
             nativeWindowsApp->setWinTabEnabled(!cfg.useWin8PointerInput());
         }
-#  endif
 #endif
         cfg.writeEntry<bool>("useTimestampsForBrushSpeed", m_tabletSettings->m_page->chkUseTimestampsForBrushSpeed->isChecked());
 

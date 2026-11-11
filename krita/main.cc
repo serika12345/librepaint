@@ -79,16 +79,10 @@
 #endif
 
 #if defined Q_OS_WIN
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-// this include is Qt5-only, the switch to WinTab is embedded in Qt
-#  include "config_qt5_has_wintab_switch.h"
-#else
-#  include <QtGui/private/qguiapplication_p.h>
-#  include <QtGui/qpa/qplatformintegration.h>
-#endif
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 #include <windows.h>
 #include <winuser.h>
-#include <dialogs/KisDlgCustomTabletResolution.h>
 #include "config-high-dpi-scale-factor-rounding-policy.h"
 #include "config-set-has-border-in-full-screen-default.h"
 #ifdef HAVE_SET_HAS_BORDER_IN_FULL_SCREEN_DEFAULT
@@ -893,20 +887,6 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 
     KisUsageLogger::writeLocaleSysInfo();
 
-#if defined Q_OS_WIN && QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined QT5_HAS_WINTAB_SWITCH
-    const bool forceWinTab = !KisConfig::useWin8PointerInputNoApp(&kritarc);
-    QCoreApplication::setAttribute(Qt::AA_MSWindowsUseWinTabAPI, forceWinTab);
-
-    if (qEnvironmentVariableIsEmpty("QT_WINTAB_DESKTOP_RECT") &&
-        qEnvironmentVariableIsEmpty("QT_IGNORE_WINTAB_MAPPING")) {
-
-        QRect customTabletRect;
-        KisDlgCustomTabletResolution::Mode tabletMode =
-            KisDlgCustomTabletResolution::getTabletMode(&customTabletRect);
-        KisDlgCustomTabletResolution::applyConfiguration(tabletMode, customTabletRect);
-    }
-#endif
-
     // first create the application so we can create a pixmap
     KisApplication app(key, argc, argv);
 
@@ -1147,19 +1127,8 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
             }
         }
     }
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined QT5_HAS_WINTAB_SWITCH
-    // Check if WinTab/WinInk has actually activated
-    const bool useWinInkAPI = !KisApplication::testAttribute(Qt::AA_MSWindowsUseWinTabAPI);
-
-    if (useWinInkAPI != cfg.useWin8PointerInput()) {
-        KisUsageLogger::log("WARNING: WinTab tablet protocol is not supported on this device. Switching to WinInk...");
-
-        cfg.setUseWin8PointerInput(useWinInkAPI);
-        cfg.setUseRightMiddleTabletButtonWorkaround(true);
-    }
 #endif
-#endif
+
     KisApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents, false);
 
     // Set up remote arguments.
