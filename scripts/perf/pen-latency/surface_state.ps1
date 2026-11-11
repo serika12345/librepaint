@@ -53,7 +53,7 @@
 # CurrentLanguage) and falls back to the English path. Every field is
 # optional; a value the device does not provide is written as "unavailable".
 #
-# Docs: docs/architecture/DEVELOPMENT.md, "性能計測（ペン入力から表示まで）".
+# Docs: docs/architecture/DEVELOPMENT.md, the pen input latency section.
 
 param(
     # -Out is only needed by the sampling modes. The wait mode does not write a
