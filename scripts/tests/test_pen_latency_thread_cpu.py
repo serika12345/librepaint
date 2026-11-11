@@ -111,6 +111,19 @@ class ThreadCpuTest(unittest.TestCase):
         self.assertIn("$StopFile", text)
         self.assertNotIn("Get-Counter -Counter", text)
 
+    def test_runner_sends_and_starts_the_sampler(self):
+        remote = os.path.join(ROOT, "scripts", "perf", "pen-latency", "run-remote.sh")
+        with open(remote, encoding="utf-8") as handle:
+            remote_text = handle.read()
+        self.assertIn("thread_cpu.ps1", remote_text)
+        self.assertIn("THREAD_CPU", remote_text)
+        runner = os.path.join(ROOT, "scripts", "perf", "pen-latency", "run-surface.ps1")
+        with open(runner, encoding="utf-8") as handle:
+            runner_text = handle.read()
+        self.assertIn("thread_cpu_mode", runner_text)
+        self.assertIn("threads.csv", runner_text)
+        self.assertIn("thread_cpu.ps1", runner_text)
+
 
 if __name__ == "__main__":
     unittest.main()
