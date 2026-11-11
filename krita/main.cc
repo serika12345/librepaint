@@ -58,6 +58,8 @@
 
 #ifdef Q_OS_WIN
 #include "KisWindowsPointerEventFilter.h"
+#include "wintab/KisWintabPacketPeeker.h"
+#include <dialogs/KisDlgCustomTabletResolution.h>
 #endif
 
 #ifdef Q_OS_IOS
@@ -873,6 +875,19 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 
     KisUsageLogger::writeLocaleSysInfo();
 
+#ifdef Q_OS_WIN
+    // Q4 stage 4 (fork commit 051139ed72): the Qt 6 startup path has to read
+    // wintabResolutionMode from kritadisplayrc before the first tablet event.
+    // The settings page calls the same function when the user accepts it.
+    {
+        QRect customTabletRect;
+        const KisDlgCustomTabletResolution::Mode tabletMode =
+            KisDlgCustomTabletResolution::getTabletMode(&customTabletRect);
+        KisDlgCustomTabletResolution::applyConfiguration(tabletMode,
+                                                        customTabletRect);
+    }
+#endif
+
     // first create the application so we can create a pixmap
     KisApplication app(key, argc, argv);
 
@@ -1161,6 +1176,10 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     // Qt as events. Q4 stage 3 (c41d66281e and 33a49f25d1) keeps the canvas
     // Enter/Leave, the cursor and the long press working with official Qt.
     app.installNativeEventFilter(new KisWindowsPointerEventFilter);
+
+    // Q4 stage 4 (051139ed72) reads the Wintab packet queue before Qt does
+    // and keeps the corrected position for the tablet events.
+    app.installNativeEventFilter(new KisWintabPacketPeeker);
 #endif
 
     int state = KisApplication::exec();

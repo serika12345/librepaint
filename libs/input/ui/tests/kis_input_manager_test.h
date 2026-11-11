@@ -22,6 +22,7 @@ private Q_SLOTS:
     void testMoveEventCompressionDecision();
     void testSuppressionEventNormalization();
     void testCanvasLeaveGuard();
+    void testWintabPacketCorrection();
 
     void testIncrementalAverage();
 };

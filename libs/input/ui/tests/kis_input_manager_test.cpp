@@ -583,6 +583,108 @@ void KisInputManagerTest::testSuppressionEventNormalization()
 
 #include <input/ui/wintab/kis_incremental_average.h>
 #include <input/ui/kis_canvas_enter_leave_guard.h>
+#include <input/ui/wintab/KisWintabMapping.h>
+#include <input/ui/wintab/KisWintabPacketPeeker.h>
+
+#include <QTabletEvent>
+
+namespace
+{
+
+class FakeWintabApi : public KisWintabApi
+{
+public:
+    KisWintabApi::Context context;
+    QVector<KisWintabApi::Packet> packets;
+    int peekCalls = 0;
+
+    bool getContext(quintptr contextHandle,
+                    KisWintabApi::Context *data) override
+    {
+        Q_UNUSED(contextHandle);
+        *data = context;
+        return true;
+    }
+
+    int packetsPeek(quintptr contextHandle,
+                    KisWintabApi::Packet *out,
+                    int maxPackets) override
+    {
+        Q_UNUSED(contextHandle);
+        ++peekCalls;
+        const int count = qMin(maxPackets, packets.size());
+        for (int i = 0; i < count; ++i) {
+            out[i] = packets.at(i);
+        }
+        return count;
+    }
+};
+
+} // namespace
+
+void KisInputManagerTest::testWintabPacketCorrection()
+{
+    using Mode = KisWintabMapping::Mode;
+
+    const Mode savedMode = KisWintabMapping::configuredMode();
+    const QRect savedRect = KisWintabMapping::configuredCustomRect();
+
+    // The settings page maps the tablet to the left half of a 1000x500
+    // native desktop. The packet position (250, 125) is the centre of it.
+    KisWintabMapping::setConfiguredMode(Mode::Custom, QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context.packetData = KisWintabPacketPeeker::PacketData;
+    api.context.inExtX = 1000;
+    api.context.inExtY = 500;
+    api.context.sysExtX = 1000;
+    api.context.sysExtY = 500;
+    api.packets = {KisWintabApi::Packet{250, 125, 777}};
+
+    KisWintabPacketPeeker peeker(&api);
+
+    KisWintabMapping::Screen screen;
+    screen.nativeRect = QRect(0, 0, 1000, 500);
+    screen.logicalRect = QRect(0, 0, 1000, 500);
+    screen.devicePixelRatio = 1.0;
+    peeker.setScreensForTesting({screen});
+
+    QVERIFY(peeker.handleNativeMessage(
+        KisWintabPacketPeeker::PacketMessage, 0, 1));
+    QCOMPARE(api.peekCalls, 1);
+
+    QTabletEvent event(QEvent::TabletMove,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::ShiftModifier, Qt::NoButton, Qt::NoButton);
+    event.setTimestamp(777);
+
+    const std::unique_ptr<QTabletEvent> corrected =
+        peeker.correctedTabletEvent(event);
+    QVERIFY(corrected);
+
+    // The packet maps to (125, 62.5) in logical pixels. Only the position
+    // and the global position change.
+    QCOMPARE(corrected->globalPosition(), QPointF(125, 62.5));
+    QCOMPARE(corrected->position(), QPointF(25, -37.5));
+    QCOMPARE(corrected->pressure(), 0.5);
+    QCOMPARE(corrected->xTilt(), 1.0);
+    QCOMPARE(corrected->yTilt(), -2.0);
+    QCOMPARE(corrected->tangentialPressure(), 0.25);
+    QCOMPARE(corrected->rotation(), 10.0);
+    QCOMPARE(corrected->modifiers(), Qt::ShiftModifier);
+    QCOMPARE(corrected->timestamp(), quint64(777));
+
+    // No packet with this time: the event stays as it is.
+    event.setTimestamp(778);
+    QVERIFY(!peeker.correctedTabletEvent(event));
+    QCOMPARE(event.position(), QPointF(40, 60));
+    QCOMPARE(event.globalPosition(), QPointF(140, 160));
+
+    KisWintabMapping::setConfiguredMode(savedMode, savedRect);
+}
+
 
 void KisInputManagerTest::testCanvasLeaveGuard()
 {

@@ -13,12 +13,15 @@
 #include "KoIntegerMaths.h"
 #include "kis_assert.h"
 
+#include "wintab/KisWintabPacketPeeker.h"
+
 #include <KisMpl.h>
 #include <QApplication>
 #include <QQueue>
 #include <QTouchEvent>
 #include <QWidget>
 #include <algorithm>
+#include <memory>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
@@ -237,6 +240,25 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
     if (object != d->eventsReceiver) return false;
 
     if (d->filterSuppressedEvent(event)) return false;
+
+    // Q4 stage 4 (fork commit 051139ed72): official Qt scales the Wintab
+    // packet to the virtual desktop. The peeker holds the position the
+    // driver's tablet range produces, keyed by the packet time that Qt keeps
+    // on the event. Only the position changes; pressure, tilt, buttons and
+    // the device stay as Qt delivered them.
+    std::unique_ptr<QTabletEvent> correctedTabletEvent;
+    if (event->type() == QEvent::TabletPress ||
+        event->type() == QEvent::TabletMove ||
+        event->type() == QEvent::TabletRelease) {
+
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            correctedTabletEvent = peeker->correctedTabletEvent(
+                *static_cast<QTabletEvent *>(event));
+            if (correctedTabletEvent) {
+                event = correctedTabletEvent.get();
+            }
+        }
+    }
 
     if (!d->matcher.hasRunningShortcut()) {
 
