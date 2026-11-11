@@ -11,6 +11,7 @@
 #include "kis_assert.h"
 #include "kis_debug.h"
 #include "kis_input_event_normalizer_p.h"
+#include "kis_canvas_enter_leave_guard.h"
 
 #include <QMap>
 #include <QApplication>
@@ -445,12 +446,17 @@ bool KisInputManager::Private::ProximityNotifier::eventFilter(QObject* object, Q
         // Don't block mouse events on tablet since tablet move events are not generated until
         // after tablet press.
 #ifndef Q_OS_MACOS
+        d->setTabletInProximity(true);
         d->blockMouseEvents();
 #endif
         break;
     case QEvent::TabletLeaveProximity:
         d->debugEvent<QEvent, false>(event);
+        d->setTabletInProximity(false);
         d->allowMouseEvents();
+        if (KisInputManagerDetail::confirmLeaveAfterProximity(d->pointerInsideCanvas())) {
+            d->confirmCanvasLeave();
+        }
         break;
 #ifdef Q_OS_WIN
     case QEvent::KeyPress:
@@ -755,6 +761,52 @@ inline QPointF multiplyPoints(const QPointF &pt1, const QPointF &pt2) {
     return QPointF(pt1.x() * pt2.x(), pt1.y() * pt2.y());
 }
 #endif
+
+bool KisInputManager::Private::pointerInsideCanvas() const
+{
+    if (!canvas) {
+        return false;
+    }
+    QWidget *widget = canvas->canvasWidget();
+    if (!widget) {
+        return false;
+    }
+    return widget->rect().contains(widget->mapFromGlobal(QCursor::pos()));
+}
+
+bool KisInputManager::Private::shouldIgnoreCanvasLeave() const
+{
+    const KisInputManagerDetail::CanvasPointerState state{
+        tabletInProximity, tabletPressed, touchActive};
+    return KisInputManagerDetail::canvasLeaveAction(state, pointerInsideCanvas()) ==
+        KisInputManagerDetail::CanvasLeaveAction::Ignore;
+}
+
+void KisInputManager::Private::confirmCanvasLeave()
+{
+    containsPointer = false;
+    allowMouseEvents();
+    touchHasBlockedPressEvents = false;
+
+    matcher.leaveEvent();
+}
+
+void KisInputManager::Private::synthesizeCanvasEnter()
+{
+    if (containsPointer) {
+        return;
+    }
+
+    containsPointer = true;
+    touchHasBlockedPressEvents = false;
+    matcher.enterEvent();
+}
+
+void KisInputManager::Private::setTabletInProximity(bool value)
+{
+    tabletInProximity = value;
+    eventSuppressor.setTabletInProximity(value);
+}
 
 void KisInputManager::Private::blockMouseEvents()
 {

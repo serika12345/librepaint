@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testMouseMoves();
     void testMoveEventCompressionDecision();
     void testSuppressionEventNormalization();
+    void testCanvasLeaveGuard();
 
     void testIncrementalAverage();
 };

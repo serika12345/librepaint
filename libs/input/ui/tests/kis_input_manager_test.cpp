@@ -582,6 +582,44 @@ void KisInputManagerTest::testSuppressionEventNormalization()
 }
 
 #include <input/ui/wintab/kis_incremental_average.h>
+#include <input/ui/kis_canvas_enter_leave_guard.h>
+
+void KisInputManagerTest::testCanvasLeaveGuard()
+{
+    using KisInputManagerDetail::CanvasLeaveAction;
+    using KisInputManagerDetail::CanvasPointerState;
+    using KisInputManagerDetail::canvasLeaveAction;
+    using KisInputManagerDetail::confirmLeaveAfterProximity;
+
+    // A spurious Leave while the cursor is still over the canvas must not end
+    // the hover (Qt sends one when the stylus enters, df3a678309, and after a
+    // touch sequence, c132390390).
+    QVERIFY(canvasLeaveAction(CanvasPointerState{}, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(CanvasPointerState{}, false) == CanvasLeaveAction::Confirm);
+
+    CanvasPointerState tabletNear;
+    tabletNear.tabletInProximity = true;
+    QVERIFY(canvasLeaveAction(tabletNear, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(tabletNear, false) == CanvasLeaveAction::Confirm);
+
+    // A pressed stylus keeps the canvas entered even if the cursor position
+    // is not inside it yet.
+    CanvasPointerState pressed;
+    pressed.tabletInProximity = true;
+    pressed.tabletPressed = true;
+    QVERIFY(canvasLeaveAction(pressed, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(pressed, false) == CanvasLeaveAction::Ignore);
+
+    // Fingers still on the screen keep the canvas entered.
+    CanvasPointerState touching;
+    touching.touchActive = true;
+    QVERIFY(canvasLeaveAction(touching, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(touching, false) == CanvasLeaveAction::Ignore);
+
+    // When the tablet leaves proximity, confirm only if the cursor is outside.
+    QVERIFY(!confirmLeaveAfterProximity(true));
+    QVERIFY(confirmLeaveAfterProximity(false));
+}
 
 void KisInputManagerTest::testIncrementalAverage()
 {
