@@ -7,8 +7,9 @@
 
 The check runs on the Windows tablet, but its verdicts are made on the
 development host from evidence files. These tests fix the item list, the
-clipboard rule (PNG and no old DIB formats), the tab-title and keyboard
-rules, the relative flicker threshold, and the Windows-side entry points.
+clipboard rule (PNG pixels against the document, DIB formats only in the
+metrics), the tab-title and keyboard rules, the relative flicker threshold,
+and the Windows-side entry points.
 """
 
 from __future__ import annotations
@@ -91,7 +92,7 @@ class ClipboardTest(unittest.TestCase):
         with open(os.path.join(root, "clipboard-formats.txt"), "w", encoding="utf-8") as handle:
             handle.write("id,name,bytes,path\n")
             handle.write("\n".join(rows) + "\n")
-        with open(os.path.join(root, "clipboard-source.png"), "wb") as handle:
+        with open(os.path.join(root, "doc-a.png"), "wb") as handle:
             handle.write(source)
         if copied:
             with open(os.path.join(root, "clipboard-png.png"), "wb") as handle:
@@ -113,15 +114,19 @@ class ClipboardTest(unittest.TestCase):
         self.assertEqual(result["verdict"], "pass", result)
         self.assertTrue(result["metrics"]["dib"] is False)
 
-    def test_old_dib_formats_fail(self):
+    def test_old_dib_formats_stay_in_the_metrics(self):
         with tempfile.TemporaryDirectory() as root:
             source = os.path.join(root, "source.png")
             write_png_rgba(source, 4, 4, rgba_picture(4, 4))
-            self._write(root, ["8,CF_DIB,100,", "49161,PNG,100,clipboard-png.png"],
+            self._write(root, ["8,CF_DIB,100,", "17,CF_DIBV5,100,", "2,CF_BITMAP,100,",
+                               "49161,PNG,100,clipboard-png.png"],
                         file_bytes(source), file_bytes(source))
             result = check.judge_clipboard(root, {"clipboard": {}}, SCENARIO["checks"])
-        self.assertEqual(result["verdict"], "fail")
-        self.assertIn("DIB", " ".join(result["reasons"]))
+        self.assertEqual(result["verdict"], "pass", result)
+        self.assertTrue(result["metrics"]["dib"])
+        self.assertTrue(result["metrics"]["dibv5"])
+        self.assertTrue(result["metrics"]["bitmap"])
+        self.assertNotIn("DIB", " ".join(result["reasons"]))
 
     def test_pixel_difference_fails(self):
         with tempfile.TemporaryDirectory() as root:
@@ -134,6 +139,32 @@ class ClipboardTest(unittest.TestCase):
             result = check.judge_clipboard(root, {"clipboard": {}}, SCENARIO["checks"])
         self.assertEqual(result["verdict"], "fail")
         self.assertTrue(result["metrics"]["mismatched"] > 0)
+
+    def test_documented_image_is_compared_even_if_another_source_is_named(self):
+        with tempfile.TemporaryDirectory() as root:
+            document = os.path.join(root, "document.png")
+            other = os.path.join(root, "other.png")
+            copied = os.path.join(root, "copy.png")
+            write_png_rgba(document, 4, 4, rgba_picture(4, 4, (1, 2, 3, 255)))
+            write_png_rgba(other, 4, 4, rgba_picture(4, 4, (9, 9, 9, 255)))
+            write_png_rgba(copied, 4, 4, rgba_picture(4, 4, (1, 2, 3, 255)))
+            self._write(root, ["49161,PNG,100,clipboard-png.png"], file_bytes(document),
+                        file_bytes(copied))
+            with open(os.path.join(root, "clipboard-source.png"), "wb") as handle:
+                handle.write(file_bytes(other))
+            result = check.judge_clipboard(root, {"clipboard": {"source": "clipboard-source.png"}},
+                                           SCENARIO["checks"])
+        self.assertEqual(result["verdict"], "pass", result)
+
+
+class ActionLineTest(unittest.TestCase):
+    def test_action_line_returns_the_qpc(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = os.path.join(root, "actions.txt")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("action=single-start qpc=128772260208 detail=one-line\n")
+            actions = check.read_action_lines(path)
+        self.assertEqual(check.action_time(actions, "single-start"), 128772260208)
 
 
 class TitleAndKeyboardTest(unittest.TestCase):

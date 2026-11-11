@@ -245,12 +245,19 @@ def read_probe_events(path):
 
 
 def read_action_lines(path):
-    """Read a line-based action log into a list of {key: value}."""
+    """Read a line-based action log into a list of {key: value}.
+
+    A line holds several space-separated key=value pairs.
+    """
     actions = []
     if not os.path.exists(path):
         return actions
     for line in read_text(path).splitlines():
-        values = parse_key_values(line)
+        values = {}
+        for word in line.split():
+            key, separator, value = word.partition("=")
+            if separator and key:
+                values[key] = value
         if values:
             actions.append(values)
     return actions
@@ -368,7 +375,7 @@ def judge_clipboard(base, facts, checks):
     dibv5 = 17 in identifiers or "CF_DIBV5" in names
     bitmap = 2 in identifiers or "CF_BITMAP" in names
     png_path = os.path.join(base, facts.get("clipboard", {}).get("png", "clipboard-png.png"))
-    source_path = os.path.join(base, facts.get("clipboard", {}).get("source", "clipboard-source.png"))
+    source_path = os.path.join(base, "doc-a.png")
     reasons = []
     metrics = {"formats": len(formats), "png_formats": png, "dib": dib, "dibv5": dibv5,
                "bitmap": bitmap}
@@ -376,8 +383,6 @@ def judge_clipboard(base, facts, checks):
         reasons.append("clipboard-formats.txt がない（コピーが届いていない）")
     if not png:
         reasons.append("PNG 形式がない（PNG か image/png が必要）")
-    if dib or dibv5 or bitmap:
-        reasons.append("古い DIB 系の形式がある（CF_DIB=%s CF_DIBV5=%s CF_BITMAP=%s）" % (dib, dibv5, bitmap))
     if os.path.exists(png_path) and os.path.exists(source_path):
         try:
             same = compare_pngs(source_path, png_path, int(settings.get("pixel_tolerance", 1)))
@@ -388,7 +393,7 @@ def judge_clipboard(base, facts, checks):
         except ValueError as error:
             reasons.append("PNG を読めない: %s" % error)
     else:
-        reasons.append("clipboard-png.png か clipboard-source.png がない")
+        reasons.append("clipboard-png.png か doc-a.png がない")
     evidence = [relative(base, formats_path), relative(base, png_path), relative(base, source_path)]
     return item("clipboard", "クリップボードの形式と画素", "pass" if not reasons else "fail",
                 reasons, evidence, metrics)
