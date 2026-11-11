@@ -110,35 +110,44 @@ def run_command(argv, env=None, cwd=None):
 FAILED_LINE = re.compile(r"^\s*failed:\s*(.*)$")
 
 
-def status_files(run_root, host, target):
+def status_files(run_root, host, target, since=None):
     """Return the possible status.txt files of one target, newest run first.
 
     run-surface.ps1 writes a status.txt into every run directory and
     run-remote.sh copies the shared status.txt as status-<target>.txt
     (run-linux.sh and run-macos.sh write neither). The newest run directory is
     listed first because its status.txt belongs to the run that just failed.
+    A file written before the run started belongs to an earlier run and is
+    left out, so a runner that died before writing anything is not blamed for
+    the previous failure.
     """
     out = os.path.join(run_root, host["name"])
+
+    def fresh(path):
+        return since is None or os.path.getmtime(path) >= since - 5
+
     newest, newest_time = None, None
     if os.path.isdir(out):
         for name in os.listdir(out):
             path = os.path.join(out, name)
             status = os.path.join(path, "status.txt")
-            if not os.path.isdir(path) or not os.path.exists(status):
+            if not os.path.isdir(path) or not os.path.exists(status) or not fresh(status):
                 continue
-            stamp = os.path.getmtime(path)
+            stamp = os.path.getmtime(status)
             if newest_time is None or stamp > newest_time:
                 newest, newest_time = status, stamp
     paths = [newest] if newest else []
     for name in (target.get("runner_target"), target["name"]):
         if name:
-            paths.append(os.path.join(out, "status-%s.txt" % name))
+            path = os.path.join(out, "status-%s.txt" % name)
+            if os.path.exists(path) and fresh(path):
+                paths.append(path)
     return paths
 
 
-def status_last_line(run_root, host, target):
+def status_last_line(run_root, host, target, since=None):
     """Return the last line of the target's status.txt, or None."""
-    for path in status_files(run_root, host, target):
+    for path in status_files(run_root, host, target, since):
         if not os.path.exists(path):
             continue
         with open(path, encoding="utf-8", errors="replace") as handle:
@@ -235,7 +244,7 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                                          run_detail(run_root, host, target, started))
                     continue
                 failures.append("%s/%s round %d" % (host["name"], target["name"], number))
-                line = status_last_line(run_root, host, target)
+                line = status_last_line(run_root, host, target, started)
                 reason = failed_reason(line)
                 if events:
                     events_log.write(events, "target-failed", label, target["name"], number,
