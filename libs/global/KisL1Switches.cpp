@@ -102,9 +102,6 @@ int readTextureBuffers()
     return -1;
 }
 
-}
-}
-
 // The pen and frame paths call these accessors for every event and every
 // frame. Reading the environment there would add the environment lock and a
 // string allocation to the measured path, so each value is read once per
