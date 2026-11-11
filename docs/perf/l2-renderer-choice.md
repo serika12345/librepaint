@@ -72,7 +72,10 @@ WARP に戻す。desktop を明示していても、desktop の構成が失敗�
 `KisQPainterCanvas` に切り替える。OpenGL キャンバスの初期化が `OPENGL_FAILED` を返した
 場合も同じく QPainter に戻る。
 
-起動後に desktop の OpenGL が壊れる場合の自動の戻しはない。利用者が
+Windows では、起動後の最初のフレームの検査（3.5）が失敗した renderer を
+`kritadisplayrc` に記録し、次の起動で `selectSurfaceConfig()` がその renderer を飛ばす。
+明示した `OpenGLRenderer` はこの記録より優先するため、利用者は設定から戻せる。
+検査をすり抜けて起動後に描画が壊れる場合の自動の戻しはない。利用者が
 `kritadisplayrc` の `OpenGLRenderer` を `"angle"`、`"software"`、`"none"` に変えるか、
 GUI の設定を変えて再起動する。起動そのものができない場合は設定ファイルを直接編集する。
 
@@ -269,6 +272,30 @@ Q4 への依存は大きい。Q4 で ANGLE を外すと、選べる ANGLE はな
 | コード量の見込み | 100〜200 行 | 150〜250 行と一覧の保守 | 0〜30 行 |
 | Q4 で ANGLE を外す場合 | 戻す先を Qt のソフトウェア OpenGL と QPainter に変えて成立する | 分岐が不要になり、実装しない | ANGLE を選べなくなる |
 | Q4 でフォークを残す場合 | ANGLE へ戻す形で成立する | 成立する | 現在の動作を保つ |
+
+### 3.5 上策の条件 2 と 7 の実装（2026-11-11）
+
+Windows は、最初の OpenGL コンテキストの初期化の後に
+`KisOpenGLStartupCheck::verifyFirstFrameOnCurrentContext()` を 1 回呼ぶ。現在の
+コンテキストで小さな頂点・断片シェーダーをコンパイルしてリンクし、8×8 のオフスクリーンの
+フレームバッファーに三角形を描き、中央の 1 画素を読み戻して期待する色（64,128,191,255、
+許容 3 階調）と比べる。失敗した段（コンテキスト、シェーダー、リンク、フレームバッファー、
+描画、読み戻し、画素）を理由として記録する。
+
+失敗した renderer の名前（`OpenGLRenderer` と同じ `"desktop"`、`"angle"`、`"software"`）を
+`kritadisplayrc` の `OpenGLFirstFrameFailedRenderers` に書き、次の起動の
+`selectSurfaceConfig()` はその renderer を候補から外して次を選ぶ。すべての候補に印が
+あるときは印を無視して全部を試す。ドライバーの更新で直る道を残し、QPainter は最後の手段に
+とどめるためである。その renderer の検査が成功した起動では、印を消す。
+
+明示した `OpenGLRenderer`（利用者が設定した値）と L1 の描画方式の切り替えは印を無視する。
+これは条件 7 の戻しを、印が残っていても効かせるためである。`"angle"`、`"software"`、
+`"none"` のどれも、起動できない状態からの復帰に使える。
+
+Windows の既定は `"angle"` のままで、desktop を既定にする変更は Q4 の判断の後に分けて
+行う。失敗を起こす隠れた変数 `LIBREPAINT_TEST_FAIL_OPENGL_FIRST_FRAME` は契約テスト
+（`KisOpenGLStartupCheckContractTest`）だけのための入口で、Intel・AMD・NVIDIA の実機で
+検査を確かめた後に消す。削除の条件は `KisOpenGLStartupCheck.h` に書いてある。
 
 ## 4. L2 で desktop を既定にする条件
 
