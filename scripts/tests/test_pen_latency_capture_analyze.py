@@ -310,6 +310,47 @@ class DisplayGapTest(unittest.TestCase):
         self.assertAlmostEqual(group["l2p_signed_gap_ms"]["p50"], 50.0, delta=0.5)
 
 
+class CollapsedIntervalTest(unittest.TestCase):
+    """A short injected interval does not become a speed of its own.
+
+    The injector can send two samples 0.2 ms apart when it catches up after a
+    scheduling delay while the positions still advance one step. The 2026-11-11
+    08:47 run showed one ink frame at 18.14 px/ms in a 0.9 px/ms trajectory
+    for that reason. The speed then comes from the nearest normal pair, so the
+    frame stays in the trajectory's speed group and the milliseconds distance
+    keeps the same divisor as the rest of the line.
+    """
+
+    def test_a_collapsed_interval_stays_in_the_trajectory_speed_group(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            path = os.path.join(directory, "inject.csv")
+            with open(path, newline="") as handle:
+                rows = list(csv.DictReader(handle))
+                fields = list(rows[0].keys())
+            target = None
+            for index in range(20, len(rows) - 20):
+                row, previous = rows[index], rows[index - 1]
+                if (row["phase"].startswith("move") and row["pressed"] == "1"
+                        and previous["phase"].startswith("move") and previous["pressed"] == "1"
+                        and row["band"] == previous["band"]):
+                    target = index
+                    break
+            self.assertIsNotNone(target)
+            rows[target]["time_ns"] = str(int(rows[target - 1]["time_ns"]) + 200_000)
+            with open(path, "w", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerows(rows)
+            result = capture_analyze.analyze_run(directory)
+        speeds = [group["speed_px_ms"] for group in result["ink.speed_groups"]]
+        self.assertEqual(len(speeds), 1, speeds)
+        self.assertAlmostEqual(speeds[0], 0.5, delta=0.1)
+        for group in result["l2p.speed_groups"]:
+            self.assertLess(group["speed_px_ms"], 1.0)
+            self.assertAlmostEqual(group["l2p_signed_gap_ms"]["p50"], 50.0, delta=1.0)
+
+
 class PresentationCheckTest(unittest.TestCase):
     def test_check_reads_the_capture_frames_and_reports_the_presented_delay(self):
         # presentation_check consumes capture_analyze.frame_samples, whose

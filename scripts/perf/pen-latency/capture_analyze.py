@@ -98,6 +98,56 @@ def segments(samples):
     return result
 
 
+# The injector can send two samples a fraction of a millisecond apart when it
+# catches up after a scheduling delay. The positions still advance one step,
+# so that pair alone reports a speed many times the trajectory's (18.14 px/ms
+# in a 0.9 px/ms run, 2026-11-11 08:47). A pair shorter than this fraction of
+# the usual interval is collapsed; the speed then comes from the nearest pair
+# that is not.
+COLLAPSED_INTERVAL_RATIO = 0.5
+
+
+def median_interval_ms(times):
+    """Median sample interval of a time series, or 0 when it has fewer than two."""
+    intervals = [(b - a) / 1e6 for a, b in zip(times, times[1:]) if b > a]
+    return statistics.median(intervals) if intervals else 0.0
+
+
+def pair_speed(times, xs, second):
+    """Pointer speed from the two samples that end at second."""
+    duration_ms = (times[second] - times[second - 1]) / 1e6
+    if duration_ms <= 0:
+        return 0.0
+    return abs(xs[second] - xs[second - 1]) / duration_ms
+
+
+def robust_pair_speed(times, xs, second, interval_ms, span=6):
+    """Speed at the pair ending at second, skipping a collapsed interval.
+
+    interval_ms is the usual sample interval of the trajectory. When the
+    bracketing pair is shorter than half of it, the nearest pair whose
+    interval is closest to the usual one gives the speed that applied at that
+    position. The crossing time is unaffected: it still comes from the actual
+    bracketing pair.
+    """
+    if not interval_ms:
+        return pair_speed(times, xs, second)
+    duration_ms = (times[second] - times[second - 1]) / 1e6
+    if duration_ms >= interval_ms * COLLAPSED_INTERVAL_RATIO:
+        return pair_speed(times, xs, second)
+    best = None
+    for candidate in range(max(1, second - span), min(len(times), second + span + 1)):
+        candidate_ms = (times[candidate] - times[candidate - 1]) / 1e6
+        if candidate_ms < interval_ms * COLLAPSED_INTERVAL_RATIO:
+            continue
+        score = (abs(candidate_ms / interval_ms - 1.0), abs(candidate - second))
+        if best is None or score < best[0]:
+            best = (score, candidate)
+    if best is None:
+        return pair_speed(times, xs, second)
+    return pair_speed(times, xs, best[1])
+
+
 class Pass:
     """One moving part of the trajectory with the dwells around it."""
 
@@ -106,6 +156,7 @@ class Pass:
         self.before, self.move, self.after = before, move, after
         self.times = [s[0] for s in move]
         self.xs = [s[3] for s in move]
+        self.interval_ms = median_interval_ms(self.times)
         self.start_x, self.end_x = self.xs[0], self.xs[-1]
         self.direction = 1 if self.end_x > self.start_x else -1
 
@@ -114,7 +165,8 @@ class Pass:
 
         The speed comes from the two injected samples that bracket the
         crossing, so a trajectory that changes speed inside the line still
-        gets the speed that applied at that position.
+        gets the speed that applied at that position. A collapsed interval
+        is replaced by the nearest pair with the usual interval.
         """
         lo, hi = sorted((self.start_x, self.end_x))
         if not lo + EDGE_PX < x < hi - EDGE_PX:
@@ -126,8 +178,7 @@ class Pass:
             return None
         x0, x1 = keys[i - 1], keys[i]
         t0, t1 = self.times[i - 1], self.times[i]
-        duration_ms = (t1 - t0) / 1e6
-        speed = abs(x1 - x0) / duration_ms if duration_ms > 0 else 0.0
+        speed = robust_pair_speed(self.times, self.xs, i, self.interval_ms)
         time = t0 + (t1 - t0) * (target - x0) / (x1 - x0) if x1 != x0 else t0
         return time, speed
 
@@ -136,17 +187,20 @@ class Pass:
         return None if located is None else located[0]
 
 
-def pen_tip_at(inject_times, inject_xs, time_ns):
+def pen_tip_at(inject_times, inject_xs, time_ns, interval_ms=None):
     """Return (pointer x, pointer speed in px/ms) at a capture frame time.
 
     The pointer position comes from the two injected samples that bracket the
     frame time, so it is the pen tip when the display was captured rather
     than the older position the frame shows. The speed is measured over the
     same two samples, as the milliseconds conversion of the pen tip to line
-    end distance requires (docs/perf/l2p-prediction.md).
+    end distance requires (docs/perf/l2p-prediction.md). A collapsed
+    interval gets the speed of the nearest normal pair.
     """
     if not inject_times:
         return None, 0.0
+    if len(inject_times) < 2:
+        return inject_xs[0], 0.0
     index = bisect.bisect_right(inject_times, time_ns)
     if index <= 0:
         first, second = 0, min(1, len(inject_times) - 1)
@@ -159,8 +213,9 @@ def pen_tip_at(inject_times, inject_xs, time_ns):
         t0, t1 = inject_times[first], inject_times[second]
         x0, x1 = inject_xs[first], inject_xs[second]
         x = x0 + (x1 - x0) * (time_ns - t0) / (t1 - t0) if t1 != t0 else x0
-    duration_ms = (inject_times[second] - inject_times[first]) / 1e6
-    speed = abs(inject_xs[second] - inject_xs[first]) / duration_ms if duration_ms > 0 else 0.0
+    speed = robust_pair_speed(
+        inject_times, inject_xs, max(1, second),
+        median_interval_ms(inject_times) if interval_ms is None else interval_ms)
     return x, speed
 
 
@@ -222,6 +277,7 @@ def frame_samples(directory):
     all_passes = passes(injected)
     inject_times = [sample[0] for sample in injected]
     inject_xs = [sample[3] for sample in injected]
+    inject_interval_ms = median_interval_ms(inject_times)
 
     offsets = {"hover": [], "ink": []}
     for pass_ in all_passes:
@@ -246,7 +302,7 @@ def frame_samples(directory):
             crossed, speed = located
             if not 0 <= t - crossed < MAX_LATENCY_NS:
                 continue
-            pen_x, pen_speed = pen_tip_at(inject_times, inject_xs, t)
+            pen_x, pen_speed = pen_tip_at(inject_times, inject_xs, t, inject_interval_ms)
             line_end = value - offset[pass_.kind]
             signed_gap = pass_.direction * (pen_x - line_end) if pen_x is not None else None
             samples.append((pass_.kind, t, crossed, detection["arrival"], speed,
