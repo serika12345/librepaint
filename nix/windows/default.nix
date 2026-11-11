@@ -2,7 +2,7 @@
   pkgs,
   source,
   auditWindowsPackage,
-  useQtFork ? true,
+  useQtFork ? false,
   pnameSuffix ? "",
 }:
 

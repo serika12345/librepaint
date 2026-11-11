@@ -1,7 +1,7 @@
 {
   pkgs,
   source,
-  useQtFork ? true,
+  useQtFork ? false,
   pnameSuffix ? "",
 }:
 
@@ -791,7 +791,7 @@ pkgs.stdenv.mkDerivation {
     "-DPython_INCLUDE_DIR=${targetPython}/include/python3.11"
     "-DPython_LIBRARY=${targetPython}/lib/python3.11/config-3.11/libpython3.11.dll.a"
     "-DUSE_DRMINGW=ON"
-  ] ++ lib.optional useQtFork "-DHAVE_HDR=ON";
+  ];
 
   preConfigure = ''
     source ${buildPreparer}

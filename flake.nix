@@ -1002,6 +1002,9 @@
         pkgs = windowsPkgs;
         source = linuxBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
+        # Keep the fork build available until Q4 stage 7 passes; the default
+        # of nix/windows is the official Qt.
+        useQtFork = true;
       };
       # Q4 (removing the Qt fork) uses official Qt 6.11.3 from the shared
       # overlay.  Keep it a separate package set so the fork build and its
