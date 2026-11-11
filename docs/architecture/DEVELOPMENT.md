@@ -194,6 +194,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
 | `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が70以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
 | `thread_cpu.ps1` / `thread_cpu.py` | Windows。対象が`thread_cpu`を`on`にした回だけ、アプリのプロセスと各スレッドのCPU時間を500msごとに`threads.csv`へ書く。`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU秒、GUIスレッドと描画スレッド、待ちの理由を出す |
+| `power.ps1` / `power.py` | Windows。対象が`power`を`on`にした回だけ、`Win32_Battery`（残量%、`BatteryStatus`、`EstimatedRunTime`）と、使えるなら`root\wmi`の`BatteryStatus`（`RemainingCapacity` mWh、`DischargeRate` mW、`PowerOnline`）を1秒ごとに`power.csv`へ書く。`power.py`が合成入力の区間の平均の放電の速さ（mW）と放電量（mWh）を出し、ACにつながっていた回を`power_ac=1`として集計から外す |
 | `run-surface.ps1`の待ち | `surface_state_wait`が`on`（既定）の回は、アプリの起動前に`surface_state.ps1 -WaitForProcessorPerformance`を別の`powershell.exe`で動かす。待ちの中は言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`から`% Processor Performance`を読む。`-Out`は待ちでは不要（省略できる）。親は120秒に15秒を足した実時間で打ち切り、止まらない読み取りを`Stop-Process`で終わらせる。結果は`surface-state-wait.out`と`meta.txt`の`surface_state_wait_*`に残す |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
@@ -343,6 +344,38 @@ CPUの比較では、`hosts.json`のWindowsの対象に`thread_cpu`を`on`と書
 GUIスレッド（`main_thread`）と描画スレッド（`paintgl_thread`）の時間、待ちの理由の回数を出す。
 `analyze.py`は`thread_cpu`の1行を出し、`run.py`は`== thread CPU (input interval)`に
 対象ごとの中央値を出す。既定は`off`で、CPUの比較の両方の対象だけ`on`にする。
+
+電力の比較では、`hosts.json`のWindowsの対象に`power`を`on`と書くと、`power.ps1`が
+アプリの起動前から終了後まで、`Win32_Battery`の`EstimatedChargeRemaining`、
+`BatteryStatus`、`EstimatedRunTime`と、`root\wmi`の`BatteryStatus`が使える場合は
+`RemainingCapacity`（mWh）、`DischargeRate`（mW）、`PowerOnline`、`Charging`、
+`Discharging`を1秒ごとに`power.csv`へ書く。時刻はQueryPerformanceCounterで、
+`inject.csv`と同じ時計である。`power.py`が合成入力の区間の
+平均の放電の速さ（`rate_mw`）と放電量（`energy_mwh` = `rate_mw` × 区間の秒 ÷ 3600）を出し、
+残量の差（`remaining_mwh_delta`）と残量%の差（`charge_pct_delta`）も併記する。
+`root\wmi`が使えない回は残量%と`BatteryStatus`だけで、`rate_mw`と`energy_mwh`は出さない。
+`meta.txt`の`power_ac`は、`PowerOnline`が真、`Charging`が真、または`BatteryStatus`が
+2（AC）か6〜9（充電中）のサンプルが1つでもあったとき1になる。`run.py`は`power_ac=1`の回を
+電力の中央値から外し、`== battery power (input interval)`に外した回数を出す。既定は`off`で、
+電力の比較の両方の対象だけ`on`にする。
+
+電池だけで測るときの手順は次のとおり。
+
+1. SurfaceのACを外し、電池だけで動かす。`power_ac=1`の回は集計から外れるため、ACの回と
+   混ぜない。開始は充電100%前後とし、80%を切ったら止めて、その旨を記録する。
+2. 画面の明るさ、表示（2736×1824@59）、起動するアプリ、`kritarc`を回の間で変えない。
+   ほかのアプリを閉じ、`surface_state_wait`（既定`on`）で`% Processor Performance`が
+   70%以上を2回続けるまで待ってから始める。
+3. 比べる2つの対象の`hosts.json`に`power: "on"`を書き、同じセッションの中で交互に
+   各5回測る。回ごとの放電量のばらつきが5%以上なら、各10回まで増やす。
+4. `analyze.py`の`power`の1行（`rate` mW、`discharged` mWh）と、`run.py`の
+   `== battery power (input interval)`の中央値で比べる。ACの回、`power.csv`のない回、
+   `rate_mw`のない回は比べない。
+
+SRUM（`powercfg /srumutil`）は、アプリごとのエネルギー推定を一定の長い区間（分〜時の粒度）で
+記録するため、1回の入力区間（約33秒）の前後差として切り出せず、実行中の変化も追えない。
+この計測では使わず、`power.csv`の1秒ごとの放電の速さを主にする。`EstimatedRunTime`は
+分単位で粗く、`EstimatedChargeRemaining`は1%刻みなので、どちらも補助にだけ使う。
 
 各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
 `% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。
