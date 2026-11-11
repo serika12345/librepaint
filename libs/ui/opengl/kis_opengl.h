@@ -66,10 +66,20 @@ public:
     };
 
 public:
+    /**
+     * Choose the surface format and renderer.
+     *
+     * userForcedRenderer is true when OpenGLRenderer in kritadisplayrc (or
+     * the L1 renderer switch) names a renderer explicitly. The failure marks
+     * of the first frame check are then ignored, so a user can always return
+     * to a renderer that was skipped automatically. See
+     * KisOpenGLStartupCheck.h and docs/perf/l2-renderer-choice.md.
+     */
     static RendererConfig selectSurfaceConfig(KisOpenGL::OpenGLRenderer preferredRenderer,
                                               KisConfig::RootSurfaceFormat preferredRootSurfaceFormat,
                                               KisConfig::CanvasSurfaceBitDepthMode preferredCanvasSurfaceBitMode,
-                                              bool enableDebug);
+                                              bool enableDebug,
+                                              bool userForcedRenderer = false);
 
     static void setDefaultSurfaceConfig(const RendererConfig &config);
 

@@ -672,11 +672,17 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
             preferredRenderer = KisOpenGL::RendererAuto;
         }
 
+        // An explicit renderer (kritadisplayrc or the L1 switch) ignores the
+        // failure marks of the first frame check, so the user can always
+        // return to a renderer that was skipped automatically.
+        const bool userForcedRenderer =
+            kritarc.contains(QStringLiteral("OpenGLRenderer")) || !l1Renderer.isEmpty();
+
         const KisConfig::CanvasSurfaceBitDepthMode bitDepthMode =
             KisConfig::canvasSurfaceBitDepthMode(&kritarc);
 
         KisOpenGL::RendererConfig config =
-            KisOpenGL::selectSurfaceConfig(preferredRenderer, rootSurfaceFormat, bitDepthMode, enableOpenGLDebug);
+            KisOpenGL::selectSurfaceConfig(preferredRenderer, rootSurfaceFormat, bitDepthMode, enableOpenGLDebug, userForcedRenderer);
 
         // H3 (vertical sync): LIBREPAINT_L1_SWAP_INTERVAL=0 or 1 overrides the
         // surface setting. -1 (unset) keeps the normal value. This switch is

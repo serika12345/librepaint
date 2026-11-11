@@ -52,6 +52,7 @@
 
 #include <color/KisSurfaceColorSpaceWrapper.h>
 #include "KisOpenGLModeProber.h"
+#include "KisOpenGLStartupCheck.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
 #include "opengl/kis_opengl.h"
@@ -353,6 +354,28 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
     } else {
         qWarning() << "Could not open" << log.fileName() << "for writing:" << log.errorString();
     }
+
+#ifdef Q_OS_WIN
+    // L2 condition 2: after the context is up, confirm that this renderer can
+    // compile a shader, draw offscreen and read the pixels back. A failure is
+    // written to kritadisplayrc and the next launch skips this renderer.
+    // See KisOpenGLStartupCheck.h and docs/perf/l2-renderer-choice.md.
+    static bool firstFrameChecked = false;
+    if (!firstFrameChecked) {
+        firstFrameChecked = true;
+
+        const QString rendererName =
+            KisOpenGL::convertOpenGLRendererToConfig(KisOpenGL::getCurrentOpenGLRenderer());
+        QString failureReason;
+        if (!KisOpenGLStartupCheck::verifyFirstFrameOnCurrentContext(rendererName, &failureReason)) {
+            const QString message =
+                QStringLiteral("OpenGL first frame check failed for %1: %2")
+                    .arg(rendererName, failureReason);
+            warnUI << message;
+            KisUsageLogger::writeSysInfo(message + QStringLiteral("\n"));
+        }
+    }
+#endif
 }
 
 const QString &KisOpenGL::getDebugText()
@@ -879,7 +902,8 @@ struct DetectionDebug : public QDebug
 KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRenderer preferredRenderer,
                                                          KisConfig::RootSurfaceFormat preferredRootSurfaceFormat,
                                                          KisConfig::CanvasSurfaceBitDepthMode preferredCanvasSurfaceBitMode,
-                                                         bool enableDebug)
+                                                         bool enableDebug,
+                                                         bool userForcedRenderer)
 {
     QVector<KLocalizedString> warningMessages;
 
@@ -1081,6 +1105,43 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
             supportedRenderers |= it.key();
         }
     }
+
+#ifdef Q_OS_WIN
+    // L2 condition 2: a renderer whose first frame check failed in an earlier
+    // launch is left out here, so the next candidate is chosen instead. An
+    // explicit choice in kritadisplayrc ignores the marks: that is the way
+    // back when the mark is stale. See KisOpenGLStartupCheck.h.
+    {
+        QStringList candidateNames;
+        for (auto it = renderersToTest.constBegin(); it != renderersToTest.constEnd(); ++it) {
+            candidateNames << convertOpenGLRendererToConfig(it.key());
+        }
+
+        const QStringList keptNames =
+            KisOpenGLStartupCheck::renderersToTry(candidateNames, !userForcedRenderer);
+
+        for (auto it = renderersToTest.begin(); it != renderersToTest.end();) {
+            const QString name = convertOpenGLRendererToConfig(it.key());
+            if (!keptNames.contains(name)) {
+                dbgOpenGL << "Skipping" << name
+                          << "because its first frame check failed in an earlier launch";
+                it = renderersToTest.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // The fallback config must not point at a skipped renderer either.
+        if (!renderersToTest.contains(defaultRenderer)) {
+            defaultConfig = generateSurfaceConfig(renderersToTest.constBegin().key(),
+                                                  makeDefaultSurfaceFormatPair(),
+                                                  false,
+                                                  shouldInhibitCompatibilityProfile);
+        }
+    }
+#else
+    Q_UNUSED(userForcedRenderer);
+#endif
 
     OpenGLRenderer preferredByQt = preferredAutoRenderer;
 

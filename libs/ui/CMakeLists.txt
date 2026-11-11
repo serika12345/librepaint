@@ -1605,6 +1605,31 @@ set_target_properties(kritauiopenglrendererconfigobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiopenglstartupcheckobjects OBJECT
+    opengl/KisOpenGLStartupCheck.cpp
+)
+target_compile_definitions(kritauiopenglstartupcheckobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiopenglstartupcheckobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauiopenglstartupcheckobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::OpenGL
+)
+set_target_properties(kritauiopenglstartupcheckobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauiscreeninformationobjects OBJECT
     opengl/KisScreenInformationAdapter.cpp
 )
@@ -1787,6 +1812,7 @@ add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
+    $<TARGET_OBJECTS:kritauiopenglstartupcheckobjects>
     $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
     $<TARGET_OBJECTS:kritauiabstractframecacheswapperobjects>
     $<TARGET_OBJECTS:kritauiinmemoryframecacheswapperobjects>

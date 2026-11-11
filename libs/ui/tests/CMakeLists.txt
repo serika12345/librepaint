@@ -62,6 +62,16 @@ target_compile_definitions(KisOpenGLRendererConfigContractTest PRIVATE
 )
 
 kis_add_test(
+    KisOpenGLStartupCheckContractTest.cpp
+    LINK_LIBRARIES
+        kritauiopenglstartupcheckobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisOpenGLStartupCheckContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisScreenInformationAdapterContractTest.cpp
     TEST_NAME KisScreenInformationAdapterContractTest
     LINK_LIBRARIES
