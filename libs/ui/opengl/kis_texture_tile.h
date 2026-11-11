@@ -8,8 +8,6 @@
 
 #include <QRect>
 #include <QRectF>
-#include <QHash>
-#include <QSize>
 // no forward-declaration, used to get GL* primitive types defined
 #include <QOpenGLFunctions>
 
@@ -19,23 +17,6 @@
 class KisOpenGLBufferCircularStorage;
 class KisTextureTileUpdateInfo;
 class QOpenGLBuffer;
-
-/**
- * Whether a full-tile update may write into the existing texture storage.
- *
- * glTexImage2D replaces the storage of a texture level even when the size and
- * format are unchanged. A full-tile update that keeps the level size can use
- * glTexSubImage2D instead. The decision is a free function so the contract
- * test can check it without an OpenGL context. The switch is for the L1
- * measurements only; KisL1Switches.h owns the removal condition.
- */
-namespace KisTextureStorage
-{
-inline bool canReuseLevel(bool enabled, const QSize &allocated, const QSize &patch)
-{
-    return enabled && allocated.isValid() && allocated == patch;
-}
-}
 
 
 struct KisGLTexturesInfo {
@@ -116,7 +97,6 @@ private:
     QOpenGLFunctions *f;
     KisOpenGLBufferCircularStorage *m_bufferStorage;
     bool m_mipmapHasBeenAllocated = false;
-    QHash<int, QSize> m_levelSizes;
     Q_DISABLE_COPY(KisTextureTile)
 };
 

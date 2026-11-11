@@ -45,9 +45,6 @@ KRITAGLOBAL_EXPORT QString openGLRenderer();
 /// L2 CPU cause: texture buffer (PBO) uploads; -1 keeps the renderer default,
 /// 0 disables them (the ANGLE default) and 1 enables them on every renderer.
 KRITAGLOBAL_EXPORT int textureBuffers();
-/// GPU-memory churn: reuse a texture level when a full-tile update has the
-/// same size, instead of allocating it again with glTexImage2D.
-KRITAGLOBAL_EXPORT bool reuseTextureStorage();
 /// GPU-object churn: reuse the frame fence object and only renew the GLsync.
 KRITAGLOBAL_EXPORT bool reuseGlSync();
 /// Context switches: skip makeCurrent() when the widget context is already
@@ -74,7 +71,6 @@ KRITAGLOBAL_EXPORT bool readDisableMoveCompression();
 KRITAGLOBAL_EXPORT bool readDisableUpdateThrottle();
 KRITAGLOBAL_EXPORT QString readOpenGLRenderer();
 KRITAGLOBAL_EXPORT int readTextureBuffers();
-KRITAGLOBAL_EXPORT bool readReuseTextureStorage();
 KRITAGLOBAL_EXPORT bool readReuseGlSync();
 KRITAGLOBAL_EXPORT bool readSkipRedundantMakeCurrent();
 KRITAGLOBAL_EXPORT bool readDisableColorSelectorGl();

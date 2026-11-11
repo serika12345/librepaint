@@ -7,7 +7,6 @@
 #include "kis_global.h"
 
 #include <KisLatencyProbe.h>
-#include <KisL1Switches.h>
 
 #include <QDebug>
 #include "opengl/kis_opengl.h"
@@ -122,7 +121,6 @@ KisTextureTile::KisTextureTile(const QRect &imageRect, const KisGLTexturesInfo *
                  m_texturesInfo->height, 0,
                  m_texturesInfo->format,
                  m_texturesInfo->type, fd);
-    m_levelSizes.insert(0, QSize(m_texturesInfo->width, m_texturesInfo->height));
 
     restoreTextureParameters();
 
@@ -347,33 +345,14 @@ void KisTextureTile::update(const KisTextureTileUpdateInfo &updateInfo, bool blo
         KisOpenGLBufferCircularStorage::BufferBinder b(
             m_bufferStorage, &fd, updateInfo.patchPixelsLength());
 
-        // The L1 switch keeps the existing storage when a full-tile update
-        // has the same level size; KisL1Switches.h owns the removal
-        // condition. glTexImage2D otherwise replaces the storage on every
-        // full-tile update.
-        const bool reuseStorage =
-            KisTextureStorage::canReuseLevel(
-                KisL1Switches::reuseTextureStorage(),
-                m_levelSizes.value(patchLevelOfDetail), patchSize);
-        if (reuseStorage) {
-            KisLatencyProbe::mark("gpu_texture_reuse");
-            f->glTexSubImage2D(GL_TEXTURE_2D, patchLevelOfDetail,
-                            patchOffset.x(), patchOffset.y(),
-                            patchSize.width(), patchSize.height(),
-                            m_texturesInfo->format,
-                            m_texturesInfo->type,
-                            fd);
-        } else {
-            KisLatencyProbe::mark("gpu_texture_image");
-            f->glTexImage2D(GL_TEXTURE_2D, patchLevelOfDetail,
-                         m_texturesInfo->internalFormat,
-                         patchSize.width(),
-                         patchSize.height(), 0,
-                         m_texturesInfo->format,
-                         m_texturesInfo->type,
-                         fd);
-            m_levelSizes.insert(patchLevelOfDetail, patchSize);
-        }
+        KisLatencyProbe::mark("gpu_texture_image");
+        f->glTexImage2D(GL_TEXTURE_2D, patchLevelOfDetail,
+                     m_texturesInfo->internalFormat,
+                     patchSize.width(),
+                     patchSize.height(), 0,
+                     m_texturesInfo->format,
+                     m_texturesInfo->type,
+                     fd);
 
     } else {
         const GLvoid *fd = updateInfo.data();

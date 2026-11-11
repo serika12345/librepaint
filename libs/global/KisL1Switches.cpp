@@ -102,11 +102,6 @@ int readTextureBuffers()
     return -1;
 }
 
-bool readReuseTextureStorage()
-{
-    return flagValue("LIBREPAINT_L1_REUSE_TEXTURE_STORAGE");
-}
-
 bool readReuseGlSync()
 {
     return flagValue("LIBREPAINT_L1_REUSE_GL_SYNC");
@@ -173,12 +168,6 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
-    return value;
-}
-
-bool reuseTextureStorage()
-{
-    static const bool value = Detail::readReuseTextureStorage();
     return value;
 }
 
