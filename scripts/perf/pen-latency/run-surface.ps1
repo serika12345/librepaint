@@ -636,6 +636,24 @@ function Start-StepWatchdog([string]$name, [int]$seconds, [string[]]$statusPaths
         -ArgumentList @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)
 }
 
+function Close-CheckWindows($app) {
+    # Close the windows the application left open (for example the settings
+    # dialog), except the main window, so a step that hit its limit does not
+    # leave the dialog in front of the next step.
+    if (-not $app) { return }
+    try {
+        foreach ($line in ([Q4Check]::WindowList($app.Process.Id) -split "`r?`n")) {
+            if (-not $line) { continue }
+            $parts = $line.Split('|')
+            if ($parts.Count -lt 3) { continue }
+            if ([int64]$parts[0] -eq $app.Handle.ToInt64()) { continue }
+            if ($parts[1] -match 'tooltips|IME|MSCTF') { continue }
+            if (-not $parts[2]) { continue }
+            [void][Q4Check]::CloseWindow([IntPtr][int64]$parts[0])
+        }
+    } catch { }
+}
+
 function Invoke-CheckStep($app, [string]$name, [int]$seconds, [scriptblock]$body) {
     # Run one step under its own limit and write "step <name> start" and
     # "step <name> end <result>" to the status files, so the reader sees the
@@ -654,8 +672,10 @@ function Invoke-CheckStep($app, [string]$name, [int]$seconds, [scriptblock]$body
         $timedOut = Test-Path -LiteralPath $marker
         Stop-CheckWatchdog $watchdog
         if ($timedOut) {
-            # The watchdog wrote the end line; write it here if it was stopped
-            # between the marker and the status files.
+            # The watchdog also closes the dialog and writes the end line;
+            # close again and write the line here in case it was stopped
+            # between the marker and its work.
+            Close-CheckWindows $app
             $pattern = '^step ' + [regex]::Escape($name) + ' end timeout$'
             if (-not (Select-String -Path $script:runStatus -Pattern $pattern -Quiet)) {
                 Log ('step ' + $name + ' end timeout')
