@@ -62,8 +62,11 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
-static bool OPENGL_SUCCESS = false;
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 
+static bool OPENGL_SUCCESS = false;
 
 class KisOpenGLCanvas2::CanvasBridge
     : public KisOpenGLCanvasRenderer::CanvasBridge
