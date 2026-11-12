@@ -372,27 +372,19 @@ let
     kitemviews = tuneFramework { package = previous.kitemviews; };
     kwidgetsaddons = tuneFramework { package = previous.kwidgetsaddons; removePythonBindings = true; };
     libkdcraw = tuneFramework { package = previous.libkdcraw; };
+    # LibrePaint's animation playback uses MLT's core, its FFmpeg producer and
+    # the SDL2 audio module only.  The Qt modules and every other optional
+    # module are separate programs or effects, so leave them out of the
+    # Windows build and pass no Qt packages to the framework.
     mlt = (previous.mlt.override {
-      qtbase = qt.qtbase;
-      qtsvg = qt.qtsvg;
-      qt5compat = qt.qt5compat;
-      wrapQtAppsHook = qt.wrapQtAppsHook;
+      qtbase = null;
+      qtsvg = null;
+      qt5compat = null;
+      wrapQtAppsHook = null;
     }).overrideAttrs (old: {
-      # MLT's generic nixpkgs expression adds Unix display dependencies and
-      # the optional OpenCV effects module even for a MinGW target.  Krita's
-      # animation renderer uses the framework, Qt and FFmpeg modules.  Its
-      # command wrapper is also a Unix shell artifact; the portable
-      # application supplies MLT's paths directly at startup.
-      buildInputs = lib.filter (
-        input:
-        let name = lib.toLower (inputName input);
-        in !lib.hasPrefix "libx11" name
-      && !(lib.hasInfix "opencv" name)
-      && !(lib.hasInfix "frei0r" name)
-      && !lib.hasPrefix "movit" name
-      && !lib.hasPrefix "pango" name
-      && !lib.hasPrefix "sox" name
-      ) (old.buildInputs or [ ]) ++ [
+      buildInputs = [
+        pkgs.ffmpeg
+        pkgs.SDL2
         pkgs.windows.dlfcn
         pkgs.windows.pthreads
       ];
@@ -408,14 +400,36 @@ let
         substituteInPlace CMakeLists.txt \
           --replace-fail 'string(REPLACE "iconv" "pthread" MLT_PTHREAD_LIBS "''${Iconv_LIBRARY}")' \
                          'set(MLT_PTHREAD_LIBS "${pkgs.windows.pthreads}/lib/libpthread.dll.a")'
-        substituteInPlace src/modules/gdk/producer_pixbuf.c \
-          --replace-fail '#include <BaseTsd.h>' '#include <basetsd.h>'
       '';
-      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-        "-DMOD_OPENCV=OFF"
+      cmakeFlags = lib.filter (flag: !(lib.hasInfix "MOD_" flag)) (old.cmakeFlags or [ ]) ++ [
+        "-DMOD_AVFORMAT=ON"
+        "-DMOD_SDL2=ON"
+        "-DMOD_DECKLINK=OFF"
         "-DMOD_FREI0R=OFF"
+        "-DMOD_GDK=OFF"
+        "-DMOD_GLAXNIMATE_QT6=OFF"
+        "-DMOD_JACKRACK=OFF"
+        "-DMOD_KDENLIVE=OFF"
         "-DMOD_MOVIT=OFF"
+        "-DMOD_NDI=OFF"
+        "-DMOD_NORMALIZE=OFF"
+        "-DMOD_OLDFILM=OFF"
+        "-DMOD_OPENCV=OFF"
+        "-DMOD_OPENFX=OFF"
+        "-DMOD_PLUS=OFF"
+        "-DMOD_PLUSGPL=OFF"
+        "-DMOD_QT6=OFF"
+        "-DMOD_RESAMPLE=OFF"
+        "-DMOD_RNNOISE=OFF"
+        "-DMOD_RTAUDIO=OFF"
+        "-DMOD_RUBBERBAND=OFF"
+        "-DMOD_SDL1=OFF"
         "-DMOD_SOX=OFF"
+        "-DMOD_SPATIALAUDIO=OFF"
+        "-DMOD_VIDSTAB=OFF"
+        "-DMOD_VORBIS=OFF"
+        "-DMOD_XINE=OFF"
+        "-DMOD_XML=OFF"
       ];
       dontWrapQtApps = true;
       preFixup = "";
