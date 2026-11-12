@@ -707,38 +707,36 @@
               # ZVBI implements broadcast teletext and has no Win32 thread
               # backend.  It is outside Krita's animation media paths.
               withZvbi = false;
+              # LibrePaint reads no Blu-ray, encrypted or streamed media, no
+              # tracked music modules and no GPU compute, and its text paths
+              # use Qt rather than FFmpeg's drawtext and subtitle filters.
+              withBluray = false;
+              withGnutls = false;
+              withGmp = false;
+              withOpenmpt = false;
+              withRist = false;
+              withSrt = false;
+              withSsh = false;
+              withOpencl = false;
+              withVulkan = false;
+              withZimg = false;
+              withSoxr = false;
+              withSpeex = false;
+              withVidStab = false;
+              withXvid = false;
+              withXml2 = false;
+              withOpenjpeg = false;
+              withMp3lame = false;
+              withFontconfig = false;
+              withFreetype = false;
+              withFribidi = false;
+              withHarfbuzz = false;
+              withSdl2 = false;
+              withNetwork = false;
+              buildFfplay = false;
             }).overrideAttrs (old: {
               meta = (old.meta or { }) // { broken = false; };
             });
-
-            # Rubber Band's JNI binding is unrelated to MLT's native audio
-            # filter and selects a target JDK that does not exist for MinGW.
-            # Keep the C++ time-stretching library while omitting standalone
-            # plugin formats and command-line programs from this dependency.
-            rubberband = previous.rubberband.overrideAttrs (old: {
-              nativeBuildInputs = [
-                previous.buildPackages.meson
-                previous.buildPackages.ninja
-                previous.buildPackages.pkg-config
-              ];
-              buildInputs = (old.buildInputs or [ ]) ++ [
-                previous.windows.pthreads
-              ];
-              mesonFlags = (old.mesonFlags or [ ]) ++ [
-                "-Djni=disabled"
-                "-Dladspa=disabled"
-                "-Dlv2=disabled"
-                "-Dvamp=disabled"
-                "-Dcmdline=disabled"
-              ];
-            });
-
-            # RtAudio 5's JACK backend is a Unix implementation whose pthread
-            # condition variables cannot be combined with the Win32 critical
-            # sections selected by its Windows platform layer.  Use RtAudio's
-            # native WASAPI backend; JACK itself remains available separately
-            # with its WinMME and PortAudio drivers.
-            rtaudio = previous.rtaudio.override { jackSupport = false; };
 
             # giflib 6.1.3 has adopted a new Makefile, so the bundled MinGW
             # patch (written for 5.2) no longer applies.  Replace it only for
