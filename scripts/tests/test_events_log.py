@@ -55,7 +55,7 @@ class FormatTest(unittest.TestCase):
     def test_kinds_are_the_designed_set(self):
         self.assertEqual(events_log.KINDS,
                          ("run-start", "target-start", "target-done", "target-failed",
-                          "target-abandoned", "step", "step-timeout", "run-done"))
+                          "target-abandoned", "rest", "step", "step-timeout", "run-done"))
 
 
 class WriteTest(unittest.TestCase):

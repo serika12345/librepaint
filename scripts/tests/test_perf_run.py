@@ -14,6 +14,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 import csv
 from contextlib import redirect_stdout
@@ -168,7 +169,9 @@ class DeviceShiftTest(unittest.TestCase):
     def test_a_throttled_device_is_told_from_a_device_without_a_record(self):
         self.assertFalse(run.device_performance_low({"surface_state": {}}))
         self.assertFalse(run.device_performance_low(
-            {"surface_state": {"during_min_processor_performance_pct": "60"}}))
+            {"surface_state": {"during_min_processor_performance_pct": "70"}}))
+        self.assertTrue(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "69.9"}}))
         self.assertTrue(run.device_performance_low(
             {"surface_state": {"during_min_processor_performance_pct": "42"}}))
         self.assertFalse(run.device_performance_low(
@@ -250,11 +253,14 @@ class RunnerCommandTest(unittest.TestCase):
             _, env, _ = run.runner_for(host, target, scenario, root)
             self.assertEqual(env["PRESENTMON"], "off")
 
-    def test_device_state_recording_is_off_unless_the_target_asks_for_it(self):
+    def test_device_state_recording_is_light_by_default(self):
         scenario = {"trajectory": {}, "name": "test"}
         host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
         target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
         with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE"], "light")
+            target["surface_state"] = "off"
             _, env, _ = run.runner_for(host, target, scenario, root)
             self.assertEqual(env["SURFACE_STATE"], "off")
             for mode in ("on", "light"):
@@ -538,7 +544,7 @@ class StateSummaryTest(unittest.TestCase):
         self.assertEqual(summary["hosts"]["h"]["targets"]["T"]["surface_state_modes"],
                          {"off": 1, "on": 1, "light": 1})
 
-    def test_a_run_below_60_percent_is_left_out_and_marked(self):
+    def test_a_run_below_70_percent_is_left_out_and_marked(self):
         with tempfile.TemporaryDirectory() as root:
             values = ("77", "42", "75")
             for n, value in enumerate(values, start=1):
@@ -562,7 +568,7 @@ class StateSummaryTest(unittest.TestCase):
         self.assertEqual(data["surface_state_waits"], {"ready": 3})
         rows = run.judge(summary, self.SCENARIO)
         notes = "; ".join(row[8] for row in rows)
-        self.assertIn("1 run(s) left out: processor performance below 60%", notes)
+        self.assertIn("1 run(s) left out: processor performance below 70%", notes)
 
     def test_a_run_whose_app_was_not_in_front_is_left_out(self):
         summary = self.summarize([
@@ -646,7 +652,10 @@ class EarlyStopTest(unittest.TestCase):
         calls, failures, lines = self.measure(
             ["failed: app exited before showing a window", "failed: capture failed",
              "failed: no main window", "failed: other", "failed: other again"])
-        self.assertEqual(len(calls), 5, calls)
+        # The five failed runs are not usable, so the target gets five more
+        # runs up to the limit of twice the scenario's count; the successes
+        # are usable and the target finishes at the limit.
+        self.assertEqual(len(calls), 10, calls)
         self.assertEqual(len(failures), 5)
         self.assertNotIn("target-abandoned", self.kinds(lines))
 
@@ -655,6 +664,57 @@ class EarlyStopTest(unittest.TestCase):
         failed = [fields for fields in lines if fields[1] == "target-failed"]
         self.assertEqual([fields[5] for fields in failed], ["failed: capture failed"] * 2)
         self.assertEqual([fields[4] for fields in failed], ["1", "2"])
+
+    def measure_device_runs(self, values, rest_seconds=None, runs=2):
+        """Run measure_runs where each run records a processor performance."""
+        calls = []
+
+        def fake_runner(host, target, scenario, run_root):
+            return ["true"], {}, None
+
+        def fake_command(argv, env=None, cwd=None):
+            calls.append(list(argv))
+            number = len(calls)
+            host_dir = os.path.join(self._root, "w")
+            path = os.path.join(host_dir, "LibrePaint-20261112-120000-%d" % number)
+            os.makedirs(path)
+            # Make the newest directory unambiguous when runs finish together.
+            stamp = time.time() + number
+            os.utime(path, (stamp, stamp))
+            value = values[number - 1] if number <= len(values) else "80"
+            with open(os.path.join(path, "meta.txt"), "w") as handle:
+                handle.write("surface_state_mode=light\n")
+                if value is not None:
+                    handle.write("surface_state_during_min_processor_performance_pct=%s\n" % value)
+            return 0
+
+        scenario = dict(self.SCENARIO)
+        scenario["runs"] = runs
+        if rest_seconds is not None:
+            scenario["rest_seconds"] = rest_seconds
+        with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                mock.patch.object(run, "run_command", side_effect=fake_command), \
+                mock.patch.object(run.time, "sleep") as sleep:
+            failures = run.measure_runs([self.HOST], scenario, self._root, "l1", self.events)
+        with open(self.events, encoding="utf-8") as handle:
+            lines = [line.split("\t") for line in handle.read().splitlines()]
+        return calls, failures, lines, sleep
+
+    def test_a_low_run_is_replaced_by_another_run(self):
+        calls, failures, _, _ = self.measure_device_runs(["42", "80"])
+        self.assertEqual(len(calls), 3, calls)
+        self.assertEqual(failures, [])
+
+    def test_added_runs_stop_at_twice_the_scenario_count(self):
+        calls, failures, _, _ = self.measure_device_runs(["42", "42", "42", "42"])
+        self.assertEqual(len(calls), 4, calls)
+        self.assertEqual(failures, [])
+
+    def test_rest_seconds_waits_between_windows_runs_only(self):
+        calls, _, lines, sleep = self.measure_device_runs(["80", "80"], rest_seconds=90)
+        self.assertEqual(len(calls), 2, calls)
+        sleep.assert_called_once_with(90.0)
+        self.assertEqual(self.kinds(lines).count("rest"), 1)
 
 
 class VerdictTest(unittest.TestCase):
