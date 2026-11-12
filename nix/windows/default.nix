@@ -94,6 +94,11 @@ let
       librepaintGmic
       (lib.getBin pkgs.libjxl)
       (lib.getLib pkgs.libogg)
+      # MLT imports libdl.dll and its SDL2 module imports SDL2.dll.  PE
+      # imports carry no store references, and sdl2-compat installs its DLL
+      # in the dev output, so name both as roots.
+      pkgs.windows.dlfcn
+      (lib.getDev pkgs.SDL2)
     ];
 
   # Windows PE import tables retain DLL names rather than Nix store paths.
