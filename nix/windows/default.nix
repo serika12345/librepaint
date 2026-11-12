@@ -88,15 +88,7 @@ let
     ++ [
       librepaintGmic
       (lib.getBin pkgs.libjxl)
-      (lib.getLib pkgs.gdk-pixbuf)
-      (lib.getDev pkgs.gdk-pixbuf)
-      (lib.getLib pkgs.libebur128)
-      (lib.getLib pkgs.libexif)
       (lib.getLib pkgs.libogg)
-      (lib.getLib pkgs.libsamplerate)
-      (lib.getLib pkgs.rnnoise)
-      (lib.getLib pkgs.rtaudio)
-      (lib.getLib pkgs.rubberband)
     ];
 
   # Windows PE import tables retain DLL names rather than Nix store paths.
