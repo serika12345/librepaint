@@ -4,8 +4,8 @@
 
 Inputs:
 - a scenario file (scripts/perf/scenarios/*.json): trajectory, application
-  settings, number of runs, spread limit, and the per-metric regression
-  threshold in milliseconds;
+  settings, number of runs, the rest between Windows runs, spread limit, and
+  the per-metric regression threshold in milliseconds;
 - a local hosts file (not tracked; see scripts/perf/hosts.example.json): how
   to reach every host and how to start every target there.
 
@@ -24,15 +24,15 @@ over all runs. A Windows target can set "presentmon": "off" to leave
 PresentMon out for a comparison, "env" to pass environment variables to the
 measured application (run-surface.ps1 records them in meta.txt), and
 "kritarc" to set root kritarc keys for one run (the file is restored after
-the run). A Windows target records the device state (surface_state.ps1) only
-when it sets "surface_state": "on" (one WMI sample per second) or "light"
-(one Get-Counter call per five seconds, no per-second process list); the
-default is off, so the recording tool does not perturb the measurement.
-Before every run the runner waits, unless the target sets
-"surface_state_wait": "off", for the device's % Processor Performance to reach
-70 % twice in a row (one Get-Counter read per five seconds, at most 120 s);
-a run whose reading stayed below 60 % during the measurement is marked and
-left out of the aggregation. A Windows target that sets "thread_cpu": "on"
+the run). A Windows target records the device state (surface_state.ps1) with
+"surface_state": "light" (the default: one Get-Counter call per five seconds,
+no per-second process list) or "on" (one WMI sample per second); only an
+explicit "off" records nothing. Before every run the runner waits, unless the
+target sets "surface_state_wait": "off", for the device's % Processor
+Performance to reach 75 % twice in a row (one Get-Counter read per five
+seconds, at most 120 s); a run whose reading stayed below 70 % during the
+measurement is marked and left out of the aggregation. A Windows target that
+sets "thread_cpu": "on"
 has thread_cpu.ps1 sample the process and thread CPU counters; the table then
 shows the CPU time inside the injected input window. A target that sets
 "power": "on" has power.ps1 sample the battery once a second; the table then
@@ -169,12 +169,11 @@ def failed_reason(line):
     return match.group(1) if match else None
 
 
-def run_detail(run_root, host, target, started):
-    """Return the state and medians of the run that just finished.
+def latest_run_dir(run_root, host, target, started):
+    """Return the directory of the run that this target just finished, or None.
 
     The runner names each run directory <target>-<date>-<time>-<n>; only the
-    directory made after this run started belongs to it. A run without a
-    capture (the application did not start) has no medians.
+    directory made after this run started belongs to it.
     """
     out = os.path.join(run_root, host["name"])
     newest, newest_time = None, None
@@ -188,6 +187,15 @@ def run_detail(run_root, host, target, started):
                 continue
             if newest_time is None or stamp > newest_time:
                 newest, newest_time = path, stamp
+    return newest
+
+
+def run_detail(run_root, host, target, started):
+    """Return the state and medians of the run that just finished.
+
+    A run without a capture (the application did not start) has no medians.
+    """
+    newest = latest_run_dir(run_root, host, target, started)
     if newest is None or not os.path.exists(os.path.join(newest, "capture.csv")):
         return "state=unknown hover=- ink=-"
     result = capture_analyze.analyze_run(newest)
@@ -207,28 +215,43 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
 
     A target whose run fails twice in a row for the same reason (the text
     after "failed: " of status.txt) skips its remaining rounds; the other
-    targets continue. Every start, result and early stop is written to the
-    event log when one is given.
+    targets continue. A target gets another run while fewer than
+    scenario["runs"] of its runs are usable (no failure and no processor
+    performance below the limit) and it has not used twice that many runs.
+    A Windows target rests for the scenario's "rest_seconds" after every run
+    except the last one. Every start, result, early stop and rest is written
+    to the event log when one is given.
 
     Returns the names of the failed runs.
     """
     failures = []
     abandoned = set()
     previous_reason = {}
+    rest_seconds = scenario.get("rest_seconds", 0)
+    started_runs = {(host["name"], target["name"]): 0
+                    for host in hosts for target in host["targets"]}
+    usable = {key: 0 for key in started_runs}
+
+    def needs_run(key):
+        return (key not in abandoned
+                and usable[key] < scenario["runs"]
+                and started_runs[key] < 2 * scenario["runs"])
+
     if events:
         events_log.write(events, "run-start", label, "-", "-",
                          "scenario %s, %d rounds, %d host(s)" % (
                              scenario["name"], scenario["runs"], len(hosts)))
-    for round_index in range(scenario["runs"]):
-        if all((host["name"], target["name"]) in abandoned
-               for host in hosts for target in host["targets"]):
+    while True:
+        pending = [key for key in started_runs if needs_run(key)]
+        if not pending:
             break
         for host in hosts:
             for target in host["targets"]:
                 key = (host["name"], target["name"])
-                if key in abandoned:
+                if key not in pending:
                     continue
-                number = round_index + 1
+                number = started_runs[key] + 1
+                started_runs[key] = number
                 if events:
                     events_log.write(events, "target-start", label, target["name"], number,
                                      "host %s" % host["name"])
@@ -239,26 +262,36 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                     status = run_command(collect)
                 if status == 0:
                     previous_reason.pop(key, None)
+                    path = latest_run_dir(run_root, host, target, started)
+                    state = surface_state(path) if path else {}
+                    if not device_performance_low({"surface_state": state}):
+                        usable[key] += 1
                     if events:
                         events_log.write(events, "target-done", label, target["name"], number,
                                          run_detail(run_root, host, target, started))
-                    continue
-                failures.append("%s/%s round %d" % (host["name"], target["name"], number))
-                line = status_last_line(run_root, host, target, started)
-                reason = failed_reason(line)
-                if events:
-                    events_log.write(events, "target-failed", label, target["name"], number,
-                                     line or "no status.txt")
-                if reason is not None and previous_reason.get(key) == reason:
-                    abandoned.add(key)
-                    if events:
-                        events_log.write(events, "target-abandoned", label, target["name"], number,
-                                         "same failure twice: %s" % reason)
                 else:
-                    if reason is None:
-                        previous_reason.pop(key, None)
+                    failures.append("%s/%s round %d" % (host["name"], target["name"], number))
+                    line = status_last_line(run_root, host, target, started)
+                    reason = failed_reason(line)
+                    if events:
+                        events_log.write(events, "target-failed", label, target["name"], number,
+                                         line or "no status.txt")
+                    if reason is not None and previous_reason.get(key) == reason:
+                        abandoned.add(key)
+                        if events:
+                            events_log.write(events, "target-abandoned", label, target["name"], number,
+                                             "same failure twice: %s" % reason)
                     else:
-                        previous_reason[key] = reason
+                        if reason is None:
+                            previous_reason.pop(key, None)
+                        else:
+                            previous_reason[key] = reason
+                if rest_seconds and host["kind"] == "windows" \
+                        and any(needs_run(other) for other in started_runs):
+                    if events:
+                        events_log.write(events, "rest", label, target["name"], number,
+                                         "rest_seconds=%s" % rest_seconds)
+                    time.sleep(float(rest_seconds))
     return failures
 
 
@@ -310,15 +343,14 @@ def target_kritarc(target):
 def target_surface_state(target):
     """Return how the Windows runner records the device state for this target.
 
-    "off" (the default) records nothing: the per-second WMI samples were
-    suspected of changing the device's power state during a measurement
-    (2026-11-11 05:40). "on" keeps the per-second samples of temperature,
-    processor performance, total CPU and the busiest processes. "light" reads
-    only the CPU counters, with one Get-Counter call per five seconds, and
-    samples the temperature and the busiest processes before and after the
-    run.
+    "light" (the default) reads only the CPU counters, with one Get-Counter
+    call per five seconds, and samples the temperature and the busiest
+    processes before and after the run. "on" keeps the per-second samples of
+    temperature, processor performance, total CPU and the busiest processes.
+    "off" records nothing: the per-second WMI samples were suspected of
+    changing the device's power state during a measurement (2026-11-11 05:40).
     """
-    mode = target.get("surface_state", "off")
+    mode = target.get("surface_state", "light")
     if not isinstance(mode, str) or mode not in SURFACE_STATE_MODES:
         raise SystemExit("target %s: surface_state must be one of %s" % (
             target["name"], ", ".join(SURFACE_STATE_MODES)))
@@ -329,7 +361,7 @@ def target_surface_state_wait(target):
     """Return whether the Windows runner waits for the device to recover.
 
     The wait is on by default: each run starts only after % Processor
-    Performance reached 70 % twice in a row (one Get-Counter read every five
+    Performance reached 75 % twice in a row (one Get-Counter read every five
     seconds, at most 120 s). The 2026-11-11 measurements showed the device at
     42-50 % for minutes, and runs taken there were not comparable
     (progress.md, q4-cpu). A target sets "surface_state_wait": "off" to
@@ -450,11 +482,11 @@ def run_excluded(run):
 # A device that falls to this % Processor Performance during a run is far from
 # its nominal clock; the 2026-11-11 sessions showed runs at 42-50 % whose
 # latency did not match the runs around them (progress.md, q4-cpu).
-DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT = 60.0
+DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT = 70.0
 
 
 def device_performance_low(run):
-    """Whether the device's recorded % Processor Performance stayed below 60.
+    """Whether the device's recorded % Processor Performance stayed below 70.
 
     A reading of 0 is a failed read rather than a measurement (see
     during_performance_readings), so it does not make the run low. Runs

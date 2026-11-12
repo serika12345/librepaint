@@ -1125,7 +1125,7 @@ try {
         # the runner.
         if ($surfaceStateWait -eq 'on' -and (Test-Path $surfaceScript)) {
             try {
-                $waitLines = @(Invoke-SurfaceStateWait $surfaceScript $dir 120 70)
+                $waitLines = @(Invoke-SurfaceStateWait $surfaceScript $dir 120 75)
                 if ($waitLines.Count) {
                     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $waitLines
                     Log ("surface state wait: " + ($waitLines -join ' '))

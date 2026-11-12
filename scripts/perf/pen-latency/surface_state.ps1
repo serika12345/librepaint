@@ -26,7 +26,8 @@
 #     state (-WaitForProcessorPerformance): it reads % Processor Performance
 #     from the language-independent Win32_PerfFormattedData_Counters_
 #     ProcessorInformation class every five seconds and returns as soon as the
-#     value is at least 70 for two samples in a row. A device that took the
+#     value is at least the requested minimum for two samples in a row (the
+#     runner asks for 75). A device that took the
 #     2026-11-11 measurements stayed at 42-50 % for minutes; starting a run
 #     there produced values that cannot be compared (progress.md, q4-cpu).
 #     The wait is capped (120 s by default) so a device that does not recover
@@ -67,7 +68,7 @@ param(
     [string]$StopFile,
     [ValidateSet('on', 'light')][string]$Mode = 'on',
     [switch]$WaitForProcessorPerformance,
-    [int]$WaitMinimumPct = 70,
+    [int]$WaitMinimumPct = 75,
     [int]$WaitConsecutiveSamples = 2,
     [int]$WaitTimeoutSeconds = 120,
     [int]$WaitSampleSeconds = 5

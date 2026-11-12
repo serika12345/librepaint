@@ -17,12 +17,12 @@
 # RUN_NAME names the run directories (default: TARGET), so that two
 # versions of one application can be told apart.
 # PRESENTMON=off skips PresentMon for one measurement; the default is on.
-# SURFACE_STATE is off (the default), on or light: whether run-surface.ps1
-# records the device state around the run. run.py fills it from the target's
-# "surface_state" in hosts.json.
+# SURFACE_STATE is off unless the caller sets it; run.py passes the target's
+# "surface_state" (the default for a target is light): whether run-surface.ps1
+# records the device state around the run.
 # SURFACE_STATE_WAIT is on (the default) or off: whether run-surface.ps1 holds
 # each run until the device's % Processor Performance has recovered (two
-# samples of at least 70 %, at most 120 s). run.py fills it from the target's
+# samples of at least 75 %, at most 120 s). run.py fills it from the target's
 # "surface_state_wait" in hosts.json.
 # THREAD_CPU is off (the default) or on: whether thread_cpu.ps1 samples the
 # process and thread CPU counters during the run. run.py fills it from the

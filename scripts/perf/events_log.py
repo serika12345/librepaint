@@ -15,6 +15,7 @@ Kinds:
 - target-done: one target's run succeeded (detail: state and medians);
 - target-failed: one target's run failed (detail: last line of status.txt);
 - target-abandoned: the target's remaining runs were skipped;
+- rest: the rest between two runs started (detail: rest_seconds);
 - step: the automatic check's step started or ended (detail: step name);
 - step-timeout: a step (or the target) passed its limit;
 - run-done: the group ended (detail: exit code).
@@ -24,7 +25,7 @@ import datetime
 import os
 
 KINDS = ("run-start", "target-start", "target-done", "target-failed",
-         "target-abandoned", "step", "step-timeout", "run-done")
+         "target-abandoned", "rest", "step", "step-timeout", "run-done")
 
 
 def line(kind, label, target, run, detail="", now=None):

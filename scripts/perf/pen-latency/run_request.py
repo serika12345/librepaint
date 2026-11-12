@@ -15,13 +15,14 @@ application starts, backs up the file, and restores it after the run.
 A display check opens one image instead of the generated canvas and captures
 the whole screen at 100 % and 400 % zoom (see display_check.py).
 
-A target can carry "surface_state": "on" or "light" to record the device state
-around the run; the default is "off" (no recording). This is a runner setting,
-not an environment variable for the application.
+A target can carry "surface_state": "off", "on" or "light" to record the
+device state around the run. run.py sends "light" for a Windows target that
+does not set it; build_request itself defaults to "off" (no recording). This
+is a runner setting, not an environment variable for the application.
 
 A target can also carry "surface_state_wait": "off" to skip the wait that
 otherwise holds each run until the device's % Processor Performance has
-recovered (two samples of at least 70 %, one Get-Counter read every five
+recovered (two samples of at least 75 %, one Get-Counter read every five
 seconds, at most 120 seconds). The wait is a runner setting as well.
 
 A target can carry "thread_cpu": "on" to have thread_cpu.ps1 sample the
