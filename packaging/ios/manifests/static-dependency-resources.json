@@ -3,24 +3,24 @@
   "scope": "Static QtBase and KF6 non-code resources linked into LibrePaint for iOS",
   "sources": {
     "qtbase": {
-      "version": "6.11.3",
+      "version": "6.12.0",
       "flake_attr": "source-qtbase",
-      "archive_name": "qtbase-everywhere-src-6.11.3.tar.xz",
-      "archive_sha256": "46de0710b594945a5d446ae44354daa386141c6903c53781b2ca547bc62f8f8f",
+      "archive_name": "qtbase-everywhere-src-6.12.0.tar.xz",
+      "archive_sha256": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
       "canonical_manifest": "packaging/ios/qt/modules.json"
     },
     "kcolorscheme": {
-      "version": "6.28.0",
+      "version": "6.31.0",
       "flake_attr": "source-kcolorscheme",
-      "archive_name": "kcolorscheme-6.28.0.tar.xz",
-      "archive_sha256": "129c98fd9ba3428cafbd7263557a9ea47c0d4f157b8a5f56b209a95dc9815e6a",
+      "archive_name": "kcolorscheme-6.31.0.tar.xz",
+      "archive_sha256": "41a8b12a4d9f4fdada70e4853879a2f43a7bf43e870a18c6038eebd956a1f863",
       "canonical_manifest": "packaging/ios/frameworks/frameworks.json"
     },
     "kwidgetsaddons": {
-      "version": "6.28.0",
+      "version": "6.31.0",
       "flake_attr": "source-kwidgetsaddons",
-      "archive_name": "kwidgetsaddons-6.28.0.tar.xz",
-      "archive_sha256": "6bb6a22e40bc8cfaeda08276b771488294ad417e7802b27bdc455202afdabd7d",
+      "archive_name": "kwidgetsaddons-6.31.0.tar.xz",
+      "archive_sha256": "94d1a1ba334a383c38b7f4238d93895ddd2b40f3d6511b16937bc951b542b5a5",
       "canonical_manifest": "packaging/ios/frameworks/frameworks.json"
     }
   },
