@@ -198,6 +198,14 @@
                   "-DBUILD_TESTING=OFF"
                 ];
                 doCheck = false;
+                # Without the loader plugin libjxl has no use for gdk-pixbuf,
+                # which would otherwise pull GLib into the Windows graph.
+                nativeBuildInputs = previous.lib.filter
+                  (input: !(previous.lib.hasPrefix "gdk-pixbuf" (previous.lib.getName input)))
+                  (old.nativeBuildInputs or [ ]);
+                buildInputs = previous.lib.filter
+                  (input: !(previous.lib.hasPrefix "gdk-pixbuf" (previous.lib.getName input)))
+                  (old.buildInputs or [ ]);
                 postInstall = (old.postInstall or "") + ''
                   moveToOutput "bin/benchmark_xl.exe" "$benchmark"
                   mkdir -p "$benchmark"
@@ -372,32 +380,6 @@
               }
             );
 
-            # GLib's Nix expression selects target-side Python tooling when
-            # cross compiling.  These tools execute during the build, so use
-            # the Linux build-platform variants and avoid a target Python
-            # closure in the Windows runtime graph.
-            glib = (previous.glib.override {
-              docutils = previous.buildPackages.docutils;
-              gettext = previous.buildPackages.gettext;
-              libxslt = previous.buildPackages.libxslt;
-              meson = previous.buildPackages.meson;
-              ninja = previous.buildPackages.ninja;
-              pkg-config = previous.buildPackages.pkg-config;
-              perl = previous.buildPackages.perl;
-              python3 = previous.buildPackages.python3;
-              python3Packages = previous.buildPackages.python3Packages;
-            }).overrideAttrs (old: {
-              # Sysprof captures Linux performance data and its implementation
-              # requires endian.h.  GLib keeps this optional input enabled on
-              # Windows in nixpkgs, but LibrePaint does not use the feature.
-              buildInputs = previous.lib.filter (input: input != previous.libsysprof-capture) (old.buildInputs or [ ]);
-              mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Dsysprof=disabled" ];
-              # The argument above is the Linux Gettext because msgfmt runs
-              # during the build.  GLib also links libintl at runtime, so add
-              # the Windows library separately for Meson and dependants.
-              propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ previous.gettext ];
-            });
-
             graphite2 = previous.graphite2.override {
               cmake = previous.buildPackages.cmake;
               pkg-config = previous.buildPackages.pkg-config;
@@ -408,24 +390,31 @@
             # GLib and GObject APIs are separate convenience bindings that
             # nixpkgs enables on Windows, and nothing in the Windows graph
             # selects them.
-            harfbuzz = previous.harfbuzz.overrideAttrs (old: {
-              buildInputs = previous.lib.filter
-                (input: previous.lib.getName input != "glib")
-                (old.buildInputs or [ ]);
-              mesonFlags = (old.mesonFlags or [ ]) ++ [
-                "-Dglib=disabled"
-                "-Dgobject=disabled"
-              ];
-            });
+            harfbuzz = previous.harfbuzz.overrideAttrs (old:
+              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                buildInputs = previous.lib.filter
+                  (input: previous.lib.getName input != "glib")
+                  (old.buildInputs or [ ]);
+                mesonFlags = (old.mesonFlags or [ ]) ++ [
+                  "-Dglib=disabled"
+                  "-Dgobject=disabled"
+                  "-Dintrospection=disabled"
+                ];
+              }
+            );
 
             # libmypaint selects GLib support only for its introspection data
             # or --with-glib.  LibrePaint uses the brush engine directly, so
             # keep the plain C library without that optional dependency.
-            libmypaint = previous.libmypaint.overrideAttrs (old: {
-              buildInputs = previous.lib.filter
-                (input: previous.lib.getName input != "glib")
-                (old.buildInputs or [ ]);
-            });
+            # GLib previously supplied libintl transitively; the translated
+            # brush setting names still need gettext's dgettext.
+            libmypaint = previous.libmypaint.overrideAttrs (old:
+              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                buildInputs = previous.lib.filter
+                  (input: previous.lib.getName input != "glib")
+                  (old.buildInputs or [ ]) ++ [ previous.gettext ];
+              }
+            );
 
             # Fontconfig's configure probes select the Unix locale switcher
             # when cross compiling with MinGW, although that API is absent on
