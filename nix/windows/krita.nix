@@ -42,17 +42,16 @@ let
     withSerialPort = false;
     withSpeech = false;
     withWebSockets = false;
-  }).overrideAttrs (old: {
+  }).overridePythonAttrs (old: {
     # FindPyQt6 only imports QtCore to obtain version and SIP metadata.  D-Bus
     # integration pulls target introspection machinery into a native Python
     # environment during cross evaluation and is unrelated to binding source
     # generation.
+    # overridePythonAttrs keeps the Python module closure in step with the
+    # dependency list; overrideAttrs left dbus-python in withPackages.
     dependencies = lib.filter (
       input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
     ) (old.dependencies or [ ]);
-    propagatedBuildInputs = lib.filter (
-      input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
-    ) (old.propagatedBuildInputs or [ ]);
   });
   hostPython = buildPkgs.python3.withPackages (pythonPackages: [
     hostPyQt6
