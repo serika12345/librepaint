@@ -387,6 +387,8 @@ let
         pkgs.SDL2
         pkgs.windows.dlfcn
         pkgs.windows.pthreads
+        # MLT core converts metadata text with iconv on Windows.
+        pkgs.libiconv
       ];
       nativeBuildInputs = [
         buildPkgs.cmake
