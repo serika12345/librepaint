@@ -319,6 +319,11 @@
               doCheck = false;
             });
 
+            # LibrePaint consumes Eigen headers only.  Documentation generation
+            # selects a target Graphviz executable, which cannot run while
+            # cross compiling and is not needed in the packaged application.
+            eigen_5 = previous.eigen_5.override { withDoc = false; };
+
             # The MinGW build of libwebp's optional img2webp command fails to
             # link.  Qt only needs the core decoder library; leave image
             # conversion programs out of the Windows dependency closure.
