@@ -11,12 +11,12 @@ let
   qt = pkgs.qt6Packages;
   pythonPackages = pkgs.python3Packages;
   runtimePyQt = pythonRuntime.runtimePyQt;
+  # Stock packages come from the binary cache.  MLT pins its own FFmpeg, so
+  # the bundle carries two FFmpeg releases until the release packaging
+  # selects the shipped files.
   ffmpeg = pkgs.ffmpeg;
-  mltOpenCV = pkgs.opencv4.override { ffmpeg-headless = ffmpeg; };
-  frei0r = pkgs.frei0r.override { opencv = mltOpenCV; };
-  mlt = qt.mlt.override {
-    inherit ffmpeg frei0r;
-  };
+  frei0r = pkgs.frei0r;
+  mlt = qt.mlt;
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.gettext

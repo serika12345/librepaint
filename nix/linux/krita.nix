@@ -7,7 +7,10 @@ let
   inherit (pkgs) lib;
   pythonPackages = pkgs.python3Packages;
 
-  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
+  # The stock PyQt6 comes from the binary cache.  Its unused bindings and
+  # their Qt modules (WebEngine and others) stay in the runtime closure
+  # until the release packaging selects the shipped files.
+  runtimePyQt = pythonPackages.pyqt6;
 
   # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
   # LibrePaint CMake files find. It is shared with linux-dependencies so that
@@ -50,7 +53,6 @@ let
     pkgs.SDL2
     pkgs.zug
     runtimePyQt
-    pkgs.qt6.qtmultimedia
   ]
   ++ (with pkgs.kdePackages; [
     breeze-icons

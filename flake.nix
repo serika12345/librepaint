@@ -13,22 +13,22 @@
     inputs@{ nixpkgs, ... }:
     let
       system = "aarch64-darwin";
-      # Every platform uses the same Qt release (nix/qt/overlay.nix).
+      # Qt module trimming for the builds that compile Qt (nix/qt/overlay.nix).
       qtOverlay = import ./nix/qt/overlay.nix { inherit nixpkgs; };
-      # The KDE Frameworks are built without their unused Python bindings.
-      # The Windows set leaves it out: its MinGW frameworks never pulled
-      # PySide6, so the overlay would only rebuild them unchanged.
+      # The Android builds compile the KDE Frameworks without their unused
+      # Python bindings.  Linux and macOS take the stock frameworks from the
+      # binary cache; the bindings are a separate output outside the runtime
+      # closure.  The Windows set never pulled PySide6.
       kdeOverlay = import ./nix/kde/overlay.nix;
+      # Linux and macOS take stock Qt from the binary cache; nix/qt/overlay.nix
+      # only trims Qt for the cross builds that compile Qt themselves.
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ qtOverlay kdeOverlay ];
       };
       linuxSystem = "x86_64-linux";
       linuxPkgs = import nixpkgs {
         system = linuxSystem;
         overlays = [
-          qtOverlay
-          kdeOverlay
           (_final: previous: {
             opencolorio = previous.opencolorio.overrideAttrs (old: {
               # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
