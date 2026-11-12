@@ -8,34 +8,11 @@
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
-  # Qt's host tools do not need systemd/journald.  Leaving it enabled brings
-  # a hardware TPM integration suite into the native tool dependency graph.
-  hostQtBase = buildPkgs.qt6Packages.qtbase.override {
-    systemdSupport = false;
-    qttranslations = null;
-  };
-  hostQtPackageSet = buildPkgs // {
-    qt6 = buildPkgs.qt6 // {
-      qtbase = hostQtBase;
-    };
-  };
-  # KDE Frameworks invokes lrelease while building translations.  Expose just
-  # that Linux executable: adding the complete qttools package to a target
-  # build would run its host Qt setup hook beside the target Qt hook.
-  hostQtToolsPackage = (buildPkgs.qt6Packages.qttools.override {
-    qtbase = hostQtBase;
-    qtdeclarative = null;
-  }).overrideAttrs (_: {
-    propagatedBuildInputs = [ hostQtBase ];
-    # KDE only runs lrelease.  Avoid compiling Qt Assistant and Designer,
-    # which are unrelated desktop applications and dominate this host build.
-    cmakeFlags = [
-      "-DFEATURE_assistant=OFF"
-      "-DFEATURE_designer=OFF"
-      "-DFEATURE_distancefieldgenerator=OFF"
-      "-DFEATURE_pixeltool=OFF"
-    ];
-  });
+  # The Windows cross build runs Qt's Linux tools (lrelease, moc, uic).  Use
+  # the stock nixpkgs packages so they come from the binary cache.
+  hostQtBase = buildPkgs.qt6Packages.qtbase;
+  hostQtPackageSet = buildPkgs;
+  hostQtToolsPackage = buildPkgs.qt6Packages.qttools;
   hostQtTools = buildPkgs.runCommand "qttools-host-lrelease" { } ''
     mkdir -p "$out/bin"
     ln -s ${hostQtToolsPackage}/bin/lrelease "$out/bin/lrelease"
@@ -51,9 +28,7 @@ let
   # Qt translation catalogs are platform-independent.  Generate them with
   # the native Linguist tools, then expose only the data directory to the
   # Windows closure so no host Qt setup hook enters a target build.
-  hostQtTranslationsPackage = buildPkgs.qt6Packages.qttranslations.override {
-    qttools = hostQtToolsPackage;
-  };
+  hostQtTranslationsPackage = buildPkgs.qt6Packages.qttranslations;
   qtTranslationsData = buildPkgs.runCommand "qttranslations-windows-data" { } ''
     mkdir -p "$out/share/qt-6"
     cp -a ${hostQtTranslationsPackage}/translations \

@@ -54,7 +54,10 @@
         };
         overlays = [
           qtOverlay
-          (final: previous: {
+          # Every entry below adjusts a MinGW target package.  The guard keeps the
+          # Linux build tools of the cross build identical to stock nixpkgs, so
+          # they come from the binary cache.
+          (final: previous: previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
             # nixpkgs' MinGW patch series currently targets CPython 3.11.
             # Keep the target package-set aliases on that supported series so
             # indirect consumers such as OpenColorIO and PyQt do not fall
