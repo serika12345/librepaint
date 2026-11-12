@@ -192,7 +192,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す。速さごとの値と、速さが変わった直後の値も出す |
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
-| `surface_state.ps1` | Windows。対象が`surface_state`を`on`または`light`にした回だけ、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が70以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
+| `surface_state.ps1` | Windows。対象が`surface_state`を`off`にしない限り（既定`light`）、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が75以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
 | `thread_cpu.ps1` / `thread_cpu.py` | Windows。対象が`thread_cpu`を`on`にした回だけ、アプリのプロセスと各スレッドのCPU時間を500msごとに`threads.csv`へ書く。`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU秒、GUIスレッドと描画スレッド、待ちの理由を出す |
 | `power.ps1` / `power.py` | Windows。対象が`power`を`on`にした回だけ、`Win32_Battery`（残量%、`BatteryStatus`、`EstimatedRunTime`）と、使えるなら`root\wmi`の`BatteryStatus`（`RemainingCapacity` mWh、`DischargeRate` mW、`PowerOnline`）を1秒ごとに`power.csv`へ書く。`power.py`が合成入力の区間の平均の放電の速さ（mW）と放電量（mWh）を出し、ACにつながっていた回を`power_ac=1`として集計から外す |
 | `run-surface.ps1`の待ち | `surface_state_wait`が`on`（既定）の回は、アプリの起動前に`surface_state.ps1 -WaitForProcessorPerformance`を別の`powershell.exe`で動かす。待ちの中は言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`から`% Processor Performance`を読む。`-Out`は待ちでは不要（省略できる）。親は120秒に15秒を足した実時間で打ち切り、止まらない読み取りを`Stop-Process`で終わらせる。結果は`surface-state-wait.out`と`meta.txt`の`surface_state_wait_*`に残す |
@@ -317,10 +317,10 @@ bit 32の行の数、`outline_gate`のextraの内訳とズーム、`tool_action`
 再生し`PenInject.cs`を通らないため、`run-surface.ps1`が`Invoke-Capture`の直前に最前面の窓を
 同じ形式で書き、取り込みを使わない計測では`PenInject.cs`の値を使う。
 
-回ごとの端末の状態は`surface_state.ps1`が記録する。記録は対象ごとに切り、既定は記録なしとする
-（2026-11-11 05:04 の計測で、1秒ごとの WMI の採取が `% Processor Performance` を 42〜50% に下げ、
-採取側の WmiPrvSE が上位プロセスに毎秒現れたため）。`hosts.json`のWindowsの対象に
-`surface_state`を書くと記録する。`on`は熱ゾーンの温度（`root/wmi`の
+回ごとの端末の状態は`surface_state.ps1`が記録する。記録は対象ごとに切り、既定は`light`とする
+（2026-11-11 05:04 の計測で、`on`の1秒ごとの WMI の採取が `% Processor Performance` を 42〜50% に下げ、
+採取側の WmiPrvSE が上位プロセスに毎秒現れたため）。`hosts.json`のWindowsの対象の
+`surface_state`で切り替え、`off`にすると記録しない。`on`は熱ゾーンの温度（`root/wmi`の
 `MSAcpi_ThermalZoneTemperature`の最大値）、`% Processor Performance`、全体のCPU使用率、
 CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中・計測の後に取る。`light`は
 `Get-Counter`を5秒ごとに1回呼び、CPU使用率と`% Processor Performance`だけを取る
@@ -367,7 +367,7 @@ GUIスレッド（`main_thread`）と描画スレッド（`paintgl_thread`）の
    混ぜない。開始は充電100%前後とし、80%を切ったら止めて、その旨を記録する。
 2. 画面の明るさ、表示（2736×1824@59）、起動するアプリ、`kritarc`を回の間で変えない。
    ほかのアプリを閉じ、`surface_state_wait`（既定`on`）で`% Processor Performance`が
-   70%以上を2回続けるまで待ってから始める。
+   75%以上を2回続けるまで待ってから始める。
 3. 比べる2つの対象の`hosts.json`に`power: "on"`を書き、同じセッションの中で交互に
    各5回測る。回ごとの放電量のばらつきが5%以上なら、各10回まで増やす。
 4. `analyze.py`の`power`の1行（`rate` mW、`discharged` mWh）と、`run.py`の
@@ -380,7 +380,7 @@ SRUM（`powercfg /srumutil`）は、アプリごとのエネルギー推定を�
 分単位で粗く、`EstimatedChargeRemaining`は1%刻みなので、どちらも補助にだけ使う。
 
 各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
-`% Processor Performance`が70以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。
+`% Processor Performance`が75以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。
 既定で有効）。読み取りは言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`
 から行う。待ちは`run-surface.ps1`が別の`powershell.exe`で動かし、120秒に15秒を足した
 実時間で止まらなければそのプロセスを終了する。2026-11-11の最初の待ちでは、呼び出しが
@@ -393,9 +393,9 @@ SRUM（`powercfg /srumutil`）は、アプリごとのエネルギー推定を�
 （待ちの効果を測る比較用）。待った結果は`meta.txt`の`surface_state_wait`（`ready`/`timeout`/`unavailable`/`off`）、
 `surface_state_wait_seconds`、`surface_state_wait_min_pct`、`surface_state_wait_source`
 （`wmi`）、`surface_state_wait_timed_out`（親が打ち切ったとき`process`）に残し、`run.py`は
-`== device recovery waits`に回数を出す。計測中の最小が60%未満だった回は、`run.py`が
-`== device state below 60% (left out)`に回の名前と値で並べ、集計から外して表に
-`N run(s) left out: processor performance below 60% during the run`と出す
+`== device recovery waits`に回数を出す。計測中の最小が70%未満だった回は、`run.py`が
+`== device state below 70% (left out)`に回の名前と値で並べ、集計から外して表に
+`N run(s) left out: processor performance below 70% during the run`と出す
 （`surface_state`が`off`の回は値がないため、この判定をしない）。`surface-state.csv`の
 `processor_performance_pct`が0以下の値は読み取りの失敗として扱い、最小値から除く
 （2026-11-11 08:54:44の回は55回中1回が0で、181と180の間、全体のCPU使用率は14%だった）。
@@ -475,6 +475,11 @@ Linuxの計測はこの状態で、設定は既定のままだった）。`run.p
 各機器への入り方、対象の起動方法、取り込みの補正値を定める。各回で対象を交互に1回ずつ測り、
 集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
 すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
+シナリオの`rest_seconds`（既定0）は、Windowsの対象の回と回の間の休みの秒数である。各回の後
+（失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、失敗せず、
+計測中の`% Processor Performance`が70%を下回らなかった回（比較に使える回）がシナリオの
+`runs`に達するまで、対象ごとに回を足す。足せる回は対象ごとに`runs`回まで（合計は最大2倍）で、
+値のない回は使える回と数える。
 
 ```sh
 scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
@@ -486,7 +491,8 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 （`run.py`と`check.py`の`--events`で変える）。行は「時刻（ISO 8601、秒まで）<TAB>種類<TAB>ラベル<TAB>対象<TAB>回<TAB>詳細」で、
 1行を書くたびにファイルを閉じる（`tail -F`で追える）。種類は`run-start`（計測の組の開始）、
 `target-start`、`target-done`（成功。詳細に状態とホバー・インクの中央値）、`target-failed`
-（詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`step`（自動の確認の
+（詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`rest`（回と回の間の
+休みの開始。詳細に秒数）、`step`（自動の確認の
 手順の開始と終了。詳細に手順の名前）、`step-timeout`、`run-done`（終了コード）である。
 同じ対象で、同じ理由（`status.txt`の最後の行の`failed: `から後ろ）の失敗が2回続いたら、
 `run.py`はその対象の残りの回を回さずに`target-abandoned`を書き、ほかの対象は続ける。
