@@ -14,8 +14,17 @@ let
   python = pkgs.python3;
   pythonPackages = pkgs.python3Packages;
   pythonVersion = python.pythonVersion;
-  # Stock PyQt6 from the binary cache; see nix/linux/krita.nix.
-  runtimePyQt = pythonPackages.pyqt6;
+  # PyQt6 6.11 guards its QRangeModel helpers with QT_VERSION, which moc does
+  # not see through the macOS Qt frameworks, so moc skips the classes that
+  # the bindings use and QtCore fails to load (QPyTableRange::staticMetaObject).
+  # nixpkgs' own darwin build fails the same import check.  Remove this when
+  # the pinned PyQt6 builds on darwin without it.
+  runtimePyQt = pythonPackages.pyqt6.overridePythonAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace qpy/QtCore/qpycore_qrangemodel.h \
+        --replace-fail '#if QT_VERSION >= 0x060a00' '#if 1'
+    '';
+  });
   runtimePython = python.withPackages (packages: [
     runtimePyQt
     packages."pyqt6-sip"

@@ -44,9 +44,7 @@ pkgs.stdenv.mkDerivation {
   # falls back to javac, as Qt 6.11 did.  Remove this when the Android build
   # supplies an offline Gradle cache for Qt.
   postPatch = ''
-    for jar in src/android/jar src/network/android/jar src/plugins/networkinformation/android/jar; do
-      rm "$jar/gradle/libs.versions.toml"
-    done
+    find . -path '*/android/jar/gradle/libs.versions.toml' -delete
     # CMake's add_jar passes its own -classpath after Qt's compile flags,
     # which drops android.jar from the fallback; add it to INCLUDE_JARS.
     substituteInPlace cmake/QtJavaHelpers.cmake \

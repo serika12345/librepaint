@@ -17,15 +17,15 @@ let
   sourceLocks = {
     ecm = {
       archiveName = "extra-cmake-modules-${kfVersion}.tar.xz";
-      archiveSha256 = "a32e24b267e8528d0253bc8df18bdc00e676560a43b796533e1b1406f4eef4db";
+      archiveSha256 = "8f74af329e4c918358bfe54316f8cf4d530c28444595a3e2fb15075f72877f17";
     };
     kconfig = {
       archiveName = "kconfig-${kfVersion}.tar.xz";
-      archiveSha256 = "24e26e516b7904a26661eab7d2064bee1ac57165571e85b4da6020fd36f14322";
+      archiveSha256 = "5572e3e098f7cf5d06c78cd941924333c0e84646d2a18aa6b4c9a6f7eae8a5c9";
     };
     qttools = {
       archiveName = "qttools-everywhere-src-${qtVersion}.tar.xz";
-      archiveSha256 = "8e61835a679c93fa9c6065b142353c2071ba68e297898937c32a03777fcaf50d";
+      archiveSha256 = "8dab8f3611496486a470ad5f115ceea584f36bc22a2b8b6f6ebdbafbb8160693";
     };
   };
 
