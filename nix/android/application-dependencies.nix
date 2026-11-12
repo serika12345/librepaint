@@ -79,9 +79,12 @@ let
     };
   };
 
+  # MLT 7.38 reads AVCodec.sample_fmts and pix_fmts, which FFmpeg 9 removed.
+  # nixpkgs builds its own MLT against FFmpeg 8 for the same reason; remove
+  # this pin when the Android MLT moves to a release that supports FFmpeg 9.
   ffmpeg = pkgs.stdenv.mkDerivation {
     pname = "ffmpeg-android-${androidAbi}";
-    inherit (pkgs.ffmpeg) version src;
+    inherit (pkgs.ffmpeg_8) version src;
     strictDeps = true;
     dontPatchELF = true;
     dontStrip = true;
@@ -164,7 +167,7 @@ let
     passthru = { inherit androidAbi; };
     meta = {
       description = "FFmpeg built from pinned source for Android ${androidAbi}";
-      inherit (pkgs.ffmpeg.meta) license;
+      inherit (pkgs.ffmpeg_8.meta) license;
       platforms = [ "x86_64-linux" ];
       sourceProvenance = with lib.sourceTypes; [ fromSource ];
     };

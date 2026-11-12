@@ -38,6 +38,17 @@ pkgs.stdenv.mkDerivation {
     pkgs.python3
   ];
 
+  # Qt 6.12 builds a JAR with Gradle when its directory holds build.gradle,
+  # settings.gradle and gradle/libs.versions.toml, and Gradle then needs
+  # network access to resolve its plugins.  Without the version catalog Qt
+  # falls back to javac, as Qt 6.11 did.  Remove this when the Android build
+  # supplies an offline Gradle cache for Qt.
+  postPatch = ''
+    for jar in src/android/jar src/network/android/jar src/plugins/networkinformation/android/jar; do
+      rm "$jar/gradle/libs.versions.toml"
+    done
+  '';
+
   configurePhase = ''
     runHook preConfigure
 
