@@ -78,7 +78,12 @@ let
     kdePackages = librepaintUnwrapped.windowsGmicKdePackages;
     qt6 = librepaintUnwrapped.windowsGmicQtPackages;
   }).overrideAttrs (old: {
-    buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.windows.pthreads ];
+    # G'MIC's curl support downloads filters from URLs as part of its command
+    # language.  The portable application ships its local filter set only.
+    buildInputs = lib.filter (input: lib.getName input != "curl") (old.buildInputs or [ ]) ++ [
+      pkgs.windows.pthreads
+    ];
+    cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-DENABLE_CURL=OFF" ];
   });
   pythonVersion = librepaintUnwrapped.windowsPython.pythonVersion;
   pythonCompactVersion = lib.replaceStrings [ "." ] [ "" ] pythonVersion;

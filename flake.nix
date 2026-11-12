@@ -82,17 +82,13 @@
             # MinGW's libstdc++ exposes the equivalent wchar_t pointer
             # overload.  Preserve Unicode path handling and pass that overload
             # the string storage explicitly.
-            opencolorio = previous.opencolorio.overrideAttrs (old:
+            opencolorio = (previous.opencolorio.override {
+              pythonBindings = false;
+              buildApps = false;
+            }).overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                # FindPython must run a native interpreter while compiling and
-                # linking the extension against the ABI-matched Windows
-                # interpreter.  Its public MinGW headers use winpthreads.
+                # OpenColorIO's own MinGW headers are built with winpthreads.
                 buildInputs = (old.buildInputs or [ ]) ++ [ previous.windows.pthreads ];
-                cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-                  "-DPython_EXECUTABLE=${previous.buildPackages.python311}/bin/python3.11"
-                  "-DPython_INCLUDE_DIR=${final.python311}/include/python3.11"
-                  "-DPython_LIBRARY=${final.python311}/lib/python3.11/config-3.11/libpython3.11.dll.a"
-                ];
                 postPatch = (old.postPatch or "") + ''
                   substituteInPlace src/OpenColorIO/transforms/FileTransform.cpp \
                     --replace-fail \
@@ -346,12 +342,13 @@
                   (old.NIX_CFLAGS_COMPILE or "")
                   "-DHWY_DISABLED_TARGETS=(HWY_AVX2|(HWY_AVX2-1))"
                 ];
-                postPatch = (old.postPatch or "") + ''
-                  substituteInPlace plugins/gdk-pixbuf/CMakeLists.txt \
-                    --replace-fail \
-                      'execute_process(COMMAND ''${PKG_CONFIG_EXECUTABLE} gdk-pixbuf-2.0 --variable gdk_pixbuf_moduledir --define-variable=prefix=''${CMAKE_INSTALL_PREFIX} OUTPUT_VARIABLE GDK_PIXBUF_MODULEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)' \
-                      'set(GDK_PIXBUF_MODULEDIR "'$out'/${previous.gdk-pixbuf.moduleDir}")'
-                '';
+                cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                  "-DJPEGXL_ENABLE_TOOLS=OFF"
+                  "-DJPEGXL_ENABLE_BENCHMARK=OFF"
+                  "-DJPEGXL_ENABLE_EXAMPLES=OFF"
+                  "-DBUILD_TESTING=OFF"
+                ];
+                doCheck = false;
                 postInstall = (old.postInstall or "") + ''
                   moveToOutput "bin/benchmark_xl.exe" "$benchmark"
                   mkdir -p "$benchmark"
@@ -378,15 +375,19 @@
               }
             );
 
-            # libheif's optional example programs use WebP's mux API but the
-            # upstream CMake targets omit libwebpmux when cross-linking for
-            # Windows.  Krita consumes libheif itself (whose HEIF/AVIF codec
-            # support links successfully), not these sample command-line
-            # programs.  Keep the complete library and GDK loader while
-            # leaving the non-runtime examples out of the target build.
+            # Krita consumes libheif itself for HEIF and AVIF, whose encoding
+            # uses libaom and decoding uses libaom and dav1d.  The example
+            # programs and the gdk-pixbuf loader are outside that path.
             libheif = previous.libheif.overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                buildInputs = previous.lib.filter
+                  (input:
+                    let name = previous.lib.getName input;
+                    in name != "rav1e" && !(previous.lib.hasPrefix "gdk-pixbuf" name))
+                  (old.buildInputs or [ ]);
                 cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                  "-DWITH_RAV1E=OFF"
+                  "-DWITH_GDK_PIXBUF=OFF"
                   "-DWITH_EXAMPLES=OFF"
                 ];
                 postInstall = ''
@@ -849,6 +850,29 @@
               pkg-config = previous.buildPackages.pkg-config;
               python3 = previous.buildPackages.python3;
             };
+
+            # LibrePaint uses HarfBuzz only for shaping and layout.  The
+            # GLib and GObject APIs are separate convenience bindings that
+            # nixpkgs enables on Windows, and nothing in the Windows graph
+            # selects them.
+            harfbuzz = previous.harfbuzz.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input: previous.lib.getName input != "glib")
+                (old.buildInputs or [ ]);
+              mesonFlags = (old.mesonFlags or [ ]) ++ [
+                "-Dglib=disabled"
+                "-Dgobject=disabled"
+              ];
+            });
+
+            # libmypaint selects GLib support only for its introspection data
+            # or --with-glib.  LibrePaint uses the brush engine directly, so
+            # keep the plain C library without that optional dependency.
+            libmypaint = previous.libmypaint.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input: previous.lib.getName input != "glib")
+                (old.buildInputs or [ ]);
+            });
 
             # Fontconfig's configure probes select the Unix locale switcher
             # when cross compiling with MinGW, although that API is absent on
