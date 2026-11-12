@@ -438,16 +438,24 @@ let
       # The portable bundle installs Poppler's CMap data beside its DLLs.
       # Resolve that data relative to the loaded module instead of retaining
       # the Nix store prefix used during the cross build.
-      # Krita consumes Poppler through its Qt 6 frontend.  The Cairo and GLib
-      # frontends are separate Unix-oriented APIs and pull X11 into a Windows
-      # build without providing any Krita functionality.
+      # Krita consumes Poppler through its Qt 6 frontend to render PDF pages
+      # as images.  The Cairo and GLib frontends are separate Unix-oriented
+      # APIs, and the signature verification and URL loading backends are not
+      # part of that path.
       cmakeFlags = (old.cmakeFlags or [ ]) ++ [
         "-DENABLE_RELOCATABLE=ON"
         "-DENABLE_CAIRO=OFF"
         "-DENABLE_GLIB=OFF"
+        "-DENABLE_NSS3=OFF"
+        "-DENABLE_LIBCURL=OFF"
+        "-DENABLE_GPGME=OFF"
       ];
       propagatedBuildInputs = lib.filter
-        (input: !(lib.hasPrefix "cairo" (lib.toLower (inputName input))))
+        (input:
+          let name = lib.toLower (inputName input);
+          in !(lib.hasPrefix "cairo" name)
+          && !(lib.hasPrefix "nss" name)
+          && !(lib.hasPrefix "curl" name))
         (old.propagatedBuildInputs or [ ]);
     });
 
@@ -607,7 +615,6 @@ class PyQtBindings(_PyQtBindings):
     pkgs.fontconfig
     pkgs.freetype
     pkgs.fribidi
-    pkgs.glib
     pkgs.gsl
     pkgs.giflib
     pkgs.harfbuzz
