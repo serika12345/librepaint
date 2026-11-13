@@ -42,6 +42,11 @@ pkgs.stdenv.mkDerivation {
     pkgs.python3
   ];
 
+  # Same javac fallback as nix/android/qtbase.nix.
+  postPatch = ''
+    find . -path '*/android/jar/gradle/libs.versions.toml' -delete
+  '';
+
   configurePhase = ''
     runHook preConfigure
 
