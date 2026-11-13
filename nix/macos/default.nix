@@ -11,8 +11,11 @@ let
       inherit (frameworks) ki18n;
     };
   };
-  python = pkgs.python3;
-  pythonPackages = pkgs.python3Packages;
+  python = import ../pyqt6.nix {
+    inherit lib;
+    python = pkgs.python3;
+  };
+  pythonPackages = python.pkgs;
   pythonVersion = python.pythonVersion;
   runtimePyQt = pythonPackages.pyqt6;
   runtimePython = python.withPackages (packages: [
@@ -60,6 +63,7 @@ let
       source
       frameworks
       kseexpr
+      pythonPackages
       pythonRuntime
       ;
   };

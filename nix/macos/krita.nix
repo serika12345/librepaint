@@ -3,13 +3,13 @@
   source,
   frameworks,
   kseexpr,
+  pythonPackages,
   pythonRuntime,
 }:
 
 let
   inherit (pkgs) lib;
   qt = pkgs.qt6Packages;
-  pythonPackages = pkgs.python3Packages;
   runtimePyQt = pythonRuntime.runtimePyQt;
   # Stock packages come from the binary cache. nixpkgs pins MLT to ffmpeg_8,
   # which the bundle also ships as the ffmpeg executables, so the bundle
