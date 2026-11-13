@@ -11,12 +11,12 @@ let
   qt = pkgs.qt6Packages;
   pythonPackages = pkgs.python3Packages;
   runtimePyQt = pythonRuntime.runtimePyQt;
-  ffmpeg = pkgs.ffmpeg;
-  mltOpenCV = pkgs.opencv4.override { ffmpeg-headless = ffmpeg; };
-  frei0r = pkgs.frei0r.override { opencv = mltOpenCV; };
-  mlt = qt.mlt.override {
-    inherit ffmpeg frei0r;
-  };
+  # Stock packages come from the binary cache. nixpkgs pins MLT to ffmpeg_8,
+  # which the bundle also ships as the ffmpeg executables, so the bundle
+  # carries one FFmpeg.
+  ffmpeg = pkgs.ffmpeg_8;
+  frei0r = pkgs.frei0r;
+  mlt = qt.mlt;
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.gettext
