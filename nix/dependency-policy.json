@@ -1,0 +1,54 @@
+{
+  "targets": {
+    "linux": {"attrs": ["packages.x86_64-linux.librepaint-linux-appimage"], "target_patterns": ["^.+-x86_64-unknown-linux-musl(-|$)"]},
+    "macos": {"attrs": ["packages.aarch64-darwin.librepaint-macos"], "target_patterns": []},
+    "windows": {"attrs": ["packages.x86_64-linux.librepaint-windows-upstream-qt-archive"], "target_patterns": ["^.+-x86_64-w64-mingw32(-|$)"]},
+    "android": {"attrs": ["packages.x86_64-linux.librepaint-android", "packages.x86_64-linux.librepaint-android-x86_64"], "target_patterns": ["^.+-android-(arm64-v8a|x86_64)(-|$)"]},
+    "ios": {"attrs": ["packages.aarch64-darwin.librepaint-ios-ipa"], "target_patterns": ["^.+-ios(-|$)"]}
+  },
+  "own_patterns": ["^librepaint", "^krita-plugin-gmic", "^krita-ios", "^closure-info$"],
+  "small_patterns": ["-hook$", "\\.sh$", "\\.bash$", "\\.patch$", "\\.pc$", "\\.conf$", "\\.cmake$", "-mkspec$", "^xcrun$", "-generated-[0-9]+$", "^git$", "^validate-pkg-config$"],
+  "host_local_allow": {
+    "linux": [
+      {"match": "^(python3(\\.1[0-9]+)?-)?(pyqt6|pyqt6-sip|sip|pyqt-builder)-[0-9]", "reason": "PyQt6 6.12.0 is not in nixpkgs yet; remove with nix/pyqt6.nix when nixpkgs has it"},
+      {"match": "^python3(\\.1[0-9]+)?-[0-9.]+-env$", "reason": "Python environment that contains the PyQt6 above"}
+    ],
+    "macos": [
+      {"match": "^(kcodecs|kcolorscheme|kcompletion|kconfig|kcoreaddons|kguiaddons|ki18n|kitemviews|kseexpr|kwidgetsaddons|libkdcraw)-[0-9]", "reason": "KDE Frameworks for darwin are not in the binary cache"},
+      {"match": "^(python3(\\.1[0-9]+)?-)?(pyqt6|pyqt6-sip|sip|pyqt-builder)-[0-9]", "reason": "PyQt6 6.12.0 is not in nixpkgs yet; the darwin PyQt6 of nixpkgs is not cached either"},
+      {"match": "^python3(\\.1[0-9]+)?-[0-9.]+-env$", "reason": "Python environment that contains the PyQt6 above"}
+    ],
+    "windows": [
+      {"match": "^qttools-host-(lrelease|gmic)$", "reason": "small wrappers that expose the stock Linux Qt tools"},
+      {"match": "^qttranslations-windows-data$", "reason": "small data copy of the stock Qt translations"},
+      {"match": "^icu4c-build-root-", "reason": "build-root helper of the stock ICU cross build"},
+      {"match": "^pkg-config-wrapper-", "reason": "wrapper of the stock pkg-config"},
+      {"match": "^(python3(\\.1[0-9]+)?-)?(pyqt6|pyqt6-sip|sip|pyqt-builder)-[0-9]", "reason": "PyQt6 6.12.0 is not in nixpkgs yet"},
+      {"match": "^python3(\\.1[0-9]+)?-[0-9.]+-env$", "reason": "Python environment that contains the PyQt6 above"},
+      {"match": "^python3-3\\.11\\.[0-9]+$", "reason": "Python 3.11 interpreter used for the cross build; why it misses the cache is not investigated", "provisional": true},
+      {"match": "^python3\\.11-", "reason": "Python 3.11 packaging tools; why they miss the cache is not investigated", "provisional": true}
+    ],
+    "android": [
+      {"match": "^(android-sdk-|androidsdk|androidenv-android-sdk-license$)", "reason": "Android SDK needs a license acceptance and is not in the binary cache"},
+      {"match": "^gradle-", "reason": "Gradle distribution wrapper; not investigated", "provisional": true},
+      {"match": "^ncurses-abi5-compat-", "reason": "needed by the Android NDK; not investigated", "provisional": true}
+    ],
+    "ios": [
+      {"match": "^krita-(kconfig-compiler-host|kf6-host-tooling)-", "reason": "KDE host tools built for the pinned KDE Frameworks"}
+    ]
+  },
+  "version_rules": {
+    "same_version_groups": [
+      {"name": "qt-modules", "pname_regex": "^qt(base|declarative|svg|tools|shadertools|languageserver|5compat|imageformats|multimedia|translations)$", "version_prefix": "6."},
+      {"name": "kde-frameworks", "pname_regex": "^(kcodecs|kcolorscheme|kcompletion|kconfig|kcoreaddons|kguiaddons|ki18n|kitemviews|kwidgetsaddons)$", "version_prefix": "6."}
+    ],
+    "cross_qt_minor_match": true,
+    "pyqt_matches_qt": true,
+    "min_versions": [
+      {"when": {"pname": "pyqt6", "version_prefix": "6.12"}, "require": [{"pname": "pyqt6-sip", "min": "13.13"}, {"pname": "sip", "min": "6.17"}, {"pname": "pyqt-builder", "min": "1.20"}]}
+    ],
+    "pairs": [
+      {"name": "mlt-ffmpeg", "pname": "mlt", "depends_on_pname": "ffmpeg", "allowed": {"7.38": ["8"], "7.40": ["8"], "7.42": ["8"]}}
+    ]
+  }
+}
