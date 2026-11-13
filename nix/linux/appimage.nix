@@ -113,32 +113,12 @@ let
         cp -a extras/. root/
 
         # Nixpkgs bootstrap removes these libraries' build-time libc references
-        # with nuke-refs. Drop its inert markers from the staged ELF search paths.
-        python3 - <<'PYTHON'
-        from pathlib import Path
-        import stat
-        import subprocess
-
-        for pattern in ("*-libidn2-*/lib/libidn2.so.*.*", "*-libunistring-*/lib/libunistring.so.*.*"):
-            for library in Path("root/nix/store").glob(pattern):
-                if library.is_symlink() or not library.is_file():
-                    continue
-                rpath = subprocess.check_output(["patchelf", "--print-rpath", str(library)], text=True).rstrip("\n")
-                entries = rpath.split(":")
-                retained = [entry for entry in entries
-                            if not entry.startswith("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-")]
-                if entries == retained:
-                    continue
-                if retained == [""]:
-                    raise ValueError(f"{library}: removing erased markers would hide an empty RPATH entry")
-                mode = stat.S_IMODE(library.stat().st_mode)
-                library.chmod(mode | stat.S_IWUSR)
-                try:
-                    operation = ["--set-rpath", ":".join(retained)] if retained else ["--remove-rpath"]
-                    subprocess.run(["patchelf", *operation, str(library)], check=True)
-                finally:
-                    library.chmod(mode)
-        PYTHON
+        # with nuke-refs. Drop its inert markers from the staged ELF search
+        # paths. Issue #80: OpenColorIO's install RPATH prefixes an absolute
+        # libdir with $ORIGIN/..; rewrite the malformed entries to the absolute
+        # store path. Remove the OpenColorIO rule when upstream supports an
+        # absolute install libdir in its default RPATH calculation.
+        python3 ${../../scripts/platform/clean-appimage-rpaths.py} root
 
         mksquashfs root "$out" -noappend -all-root -comp zstd -Xcompression-level 19 \
           -processors "$NIX_BUILD_CORES" -offset $(stat -L -c%s ${appImageRuntime})
