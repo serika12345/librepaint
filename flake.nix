@@ -187,8 +187,15 @@
                 nativeBuildInputs = previous.lib.filter
                   (input: !(previous.lib.hasPrefix "gdk-pixbuf" (previous.lib.getName input)))
                   (old.nativeBuildInputs or [ ]);
+                # LibrePaint needs only the headers/library, not the test or
+                # profiling inputs (see docs/architecture/DEPENDENCIES.md).
                 buildInputs = previous.lib.filter
-                  (input: !(previous.lib.hasPrefix "gdk-pixbuf" (previous.lib.getName input)))
+                  (input:
+                    let name = previous.lib.getName input;
+                    in
+                    !(previous.lib.hasPrefix "gdk-pixbuf" name)
+                    && !(previous.lib.hasPrefix "gperftools" name)
+                    && !(previous.lib.hasPrefix "gtest" name))
                   (old.buildInputs or [ ]);
                 postInstall = (old.postInstall or "") + ''
                   moveToOutput "bin/benchmark_xl.exe" "$benchmark"
@@ -354,12 +361,35 @@
               doCheck = false;
             });
 
+            # LibrePaint needs only the headers/library, not the test or
+            # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+            zug = previous.zug.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input: !(previous.lib.hasPrefix "catch2" (previous.lib.getName input)))
+                (old.buildInputs or [ ]);
+            });
+
+            # LibrePaint needs only the headers/library, not the test or
+            # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+            lager = previous.lager.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input:
+                  let name = previous.lib.getName input;
+                  in !(previous.lib.hasPrefix "catch2" name) && !(previous.lib.hasPrefix "cereal" name))
+                (old.buildInputs or [ ]);
+            });
+
             # xsimd is a header-only dependency in LibrePaint.  Its package
             # normally compiles an extensive test suite even though MinGW
             # tests cannot run on the Linux builder.
             xsimd = previous.xsimd.overrideAttrs (old: {
               cmakeFlags = previous.lib.filter (flag: flag != "-DBUILD_TESTS=ON") (old.cmakeFlags or [ ]) ++ [ "-DBUILD_TESTS=OFF" ];
               doCheck = false;
+              # LibrePaint needs only the headers/library, not the test or
+              # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+              buildInputs = previous.lib.filter
+                (input: !(previous.lib.hasPrefix "doctest" (previous.lib.getName input)))
+                (old.buildInputs or [ ]);
             });
 
             # SQLite's Tcl extension is not needed by Qt.  Disabling it avoids
