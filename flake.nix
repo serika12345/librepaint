@@ -240,7 +240,9 @@
             # Keep this Windows-only allowance for nixpkgs' broken MinGW target.
             # Animation export needs libx264, libx265, libtheora, libwebp and
             # built-in APNG/GIF with only scale/palette filters; drop the rest.
-            ffmpeg = (previous.ffmpeg.override {
+            # nixpkgs' MLT pins ffmpeg_8, so unify the portable application on
+            # that series and ship one FFmpeg instead of two.
+            ffmpeg_8 = (previous.ffmpeg_8.override {
               # OpenAPV's current MinGW build unconditionally links POSIX
               # pthreads.  Krita's animation import/export uses FFmpeg's
               # established image and video codecs, not APV encoding.
@@ -278,6 +280,7 @@
             }).overrideAttrs (old: {
               meta = (old.meta or { }) // { broken = false; };
             });
+            ffmpeg = final.ffmpeg_8;
 
             # giflib 6.1.3 has adopted a new Makefile, so the bundled MinGW
             # patch (written for 5.2) no longer applies.  Replace it only for
