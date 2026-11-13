@@ -23,19 +23,6 @@
       linuxSystem = "x86_64-linux";
       linuxPkgs = import nixpkgs {
         system = linuxSystem;
-        overlays = [
-          (_final: previous: {
-            opencolorio = previous.opencolorio.overrideAttrs (old: {
-              # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
-              # $ORIGIN/../. Supply the Nix runtime directory at construction.
-              # Remove this Issue #80 workaround when upstream supports an
-              # absolute install libdir in its default RPATH calculation.
-              cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-                "-DCMAKE_INSTALL_RPATH=${placeholder "out"}/lib"
-              ];
-            });
-          })
-        ];
       };
       # The current nixpkgs KDE/Qt MinGW graph is not marked as supported.
       # Keep the platform allowance local to the Windows cross set; all native
