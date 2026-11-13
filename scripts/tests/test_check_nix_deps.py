@@ -754,6 +754,150 @@ class ExitCodeTest(unittest.TestCase):
         self.assertIn("target", str(result["error"]))
 
 
+class PnameVersionTest(unittest.TestCase):
+    def test_structured_attrs_pname_and_version(self) -> None:
+        entry = {
+            "version": 4,
+            "structuredAttrs": {
+                "pname": "pyqt6",
+                "version": "6.11.0",
+                "name": "python3.14-pyqt6-6.11.0",
+            },
+            "env": {
+                "dev": output_path(1, "python3.14-pyqt6-6.11.0-dev"),
+                "dist": output_path(1, "python3.14-pyqt6-6.11.0-dist"),
+                "out": output_path(1, "python3.14-pyqt6-6.11.0"),
+            },
+        }
+        self.assertEqual(
+            check_nix_deps.env_pname_version(entry, "python3.14-pyqt6-6.11.0"),
+            ("pyqt6", "6.11.0"),
+        )
+
+    def test_top_level_version_is_not_a_package_version(self) -> None:
+        entry = {
+            "version": 4,
+            "structuredAttrs": {"pname": "pyqt6"},
+            "env": {"out": output_path(1, "python3.14-pyqt6-6.11.0")},
+        }
+        self.assertEqual(
+            check_nix_deps.env_pname_version(entry, "python3.14-pyqt6-6.11.0"),
+            ("pyqt6", "6.11.0"),
+        )
+
+    def test_names_with_python_prefix(self) -> None:
+        cases = {
+            "python3.14-pyqt6-6.11.0": ("pyqt6", "6.11.0"),
+            "python3.14-sip-6.16.1": ("sip", "6.16.1"),
+            "python3.14-pyqt6-sip-13.10.2": ("pyqt6-sip", "13.10.2"),
+            "python3.14-pyqt-builder-1.19.1": ("pyqt-builder", "1.19.1"),
+        }
+        for name, expected in cases.items():
+            self.assertEqual(check_nix_deps.env_pname_version({}, name), expected)
+
+    def test_unstable_names_split(self) -> None:
+        self.assertEqual(
+            check_nix_deps.env_pname_version({}, "x264-0-unstable-2025-09-10"),
+            ("x264", "0-unstable-2025-09-10"),
+        )
+        self.assertEqual(
+            check_nix_deps.version_tuple("0-unstable-2025-09-10"), (0,)
+        )
+        self.assertEqual(
+            check_nix_deps.env_pname_version(
+                {}, "libsodium-1.0.22-unstable-2026-07-08"
+            ),
+            ("libsodium", "1.0.22-unstable-2026-07-08"),
+        )
+        self.assertEqual(
+            check_nix_deps.version_tuple("1.0.22-unstable-2026-07-08"),
+            (1, 0, 22),
+        )
+
+    def pyqt_graph(self, pyqt_name: str, structured: bool):
+        root_key, root = make_entry(0, "librepaint-1.0")
+        pyqt_key, pyqt = make_entry(1, pyqt_name)
+        root["inputDrvs"] = {pyqt_key: ["out"]}
+        if structured:
+            pyqt["version"] = 4
+            pyqt["env"] = {"out": output_path(1, pyqt_name)}
+            pyqt["structuredAttrs"] = {
+                "pname": "pyqt6",
+                "version": pyqt_name.rsplit("-", 1)[-1],
+                "name": pyqt_name,
+            }
+        qtbase_key, qtbase = make_entry(2, "qtbase-6.12.0")
+        pyqt["inputDrvs"] = {qtbase_key: ["out"]}
+        entries = {root_key: root, pyqt_key: pyqt, qtbase_key: qtbase}
+        return entries, [root_key]
+
+    def test_pyqt_matches_qt_with_structured_attrs(self) -> None:
+        entries, roots = self.pyqt_graph("python3.14-pyqt6-6.11.0", True)
+        result = run_check(
+            entries, roots, make_policy(version_rules={"pyqt_matches_qt": True})
+        )
+        self.assertEqual(result["exit_code"], 1)
+        self.assertEqual(rules_of(result), ["pyqt_matches_qt"])
+
+    def test_pyqt_matches_qt_from_name_only(self) -> None:
+        entries, roots = self.pyqt_graph("python3.14-pyqt6-6.11.0", False)
+        result = run_check(
+            entries, roots, make_policy(version_rules={"pyqt_matches_qt": True})
+        )
+        self.assertEqual(result["exit_code"], 1)
+        self.assertEqual(rules_of(result), ["pyqt_matches_qt"])
+
+    def min_versions_policy(self) -> dict[str, object]:
+        return make_policy(
+            version_rules={
+                "min_versions": [
+                    {
+                        "when": {"pname": "pyqt6", "version_prefix": "6.12"},
+                        "require": [
+                            {"pname": "pyqt6-sip", "min": "13.13"},
+                            {"pname": "sip", "min": "6.17"},
+                            {"pname": "pyqt-builder", "min": "1.20"},
+                        ],
+                    }
+                ]
+            }
+        )
+
+    def min_versions_graph(self, sip: str):
+        names = {
+            0: "librepaint-1.0",
+            1: "python3.14-pyqt6-6.12.0",
+            2: f"python3.14-sip-{sip}",
+            3: "python3.14-pyqt6-sip-13.13.1",
+            4: "python3.14-pyqt-builder-1.21.0",
+        }
+        entries = {}
+        keys = {}
+        for index, name in names.items():
+            key, entry = make_entry(index, name)
+            entries[key] = entry
+            keys[index] = key
+        entries[keys[0]]["inputDrvs"] = {
+            keys[1]: ["out"],
+            keys[2]: ["out"],
+            keys[3]: ["out"],
+            keys[4]: ["out"],
+        }
+        return entries, [keys[0]]
+
+    def test_min_versions_from_name_only(self) -> None:
+        entries, roots = self.min_versions_graph("6.16.1")
+        result = run_check(entries, roots, self.min_versions_policy())
+        self.assertEqual(result["exit_code"], 1)
+        self.assertEqual(rules_of(result), ["min_versions"])
+
+    def test_min_versions_from_name_only_passes(self) -> None:
+        entries, roots = self.min_versions_graph("6.17.3")
+        result = run_check(entries, roots, self.min_versions_policy())
+        self.assertEqual(result["exit_code"], 0)
+        self.assertEqual(result["version_violations"], [])
+
+
 class PolicyAndVersionTest(unittest.TestCase):
     def test_policy_patterns_compile(self) -> None:
         policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
