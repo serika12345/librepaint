@@ -209,8 +209,8 @@ assert lib.assertMsg (
 ) "Qt SVG source archive name does not match its pinned version";
 assert lib.assertMsg (
   packageSpec.source.archive_sha256
-  == "9bdf6fa4b5a2d91c3eaa2edd12263fdff0ae19d0ac25d3c99946cd4189a07123"
-) "Qt SVG source archive hash differs from the audited Qt 6.11.3 archive";
+  == "e4ab39534ec97987b1b9b60ef7f4d3253d5912a69f8c713a01753174a4029331"
+) "Qt SVG source archive hash differs from the audited Qt 6.12.0 archive";
 assert lib.assertMsg (
   packageSpec.dependencies.target_packages == [ "zlib" ]
 ) "Qt SVG target package dependencies must be exactly [ zlib ]";

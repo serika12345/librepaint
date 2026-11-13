@@ -17,7 +17,7 @@
     },
     {
       "name": "libdeflate",
-      "version": "1.25",
+      "version": "1.26",
       "source_flake_attr": "source-libdeflate",
       "dependencies": [],
       "cmake_args": [
@@ -34,7 +34,7 @@
     },
     {
       "name": "expat",
-      "version": "2.8.2",
+      "version": "2.9.0",
       "source_flake_attr": "source-expat",
       "dependencies": [],
       "cmake_args": [
@@ -53,7 +53,7 @@
     },
     {
       "name": "libpng",
-      "version": "1.6.58",
+      "version": "1.6.59",
       "source_flake_attr": "source-libpng",
       "dependencies": [
         "zlib"
@@ -72,7 +72,7 @@
     },
     {
       "name": "libjpeg-turbo",
-      "version": "3.1.4.1",
+      "version": "3.2.0",
       "source_flake_attr": "source-libjpeg-turbo",
       "dependencies": [],
       "cmake_args": [
@@ -135,14 +135,14 @@
         "libjpeg-turbo",
         "libdeflate"
       ],
-    "cmake_args": [
-      "-DBUILD_SHARED_LIBS=OFF",
-      "-Dtiff-framework=OFF",
-      "-Dtiff-tools=OFF",
-      "-Dtiff-tests=OFF",
-      "-Dtiff-contrib=OFF",
-      "-Dtiff-docs=OFF",
-      "-Dtiff-cxx=OFF",
+      "cmake_args": [
+        "-DBUILD_SHARED_LIBS=OFF",
+        "-Dtiff-framework=OFF",
+        "-Dtiff-tools=OFF",
+        "-Dtiff-tests=OFF",
+        "-Dtiff-contrib=OFF",
+        "-Dtiff-docs=OFF",
+        "-Dtiff-cxx=OFF",
         "-Dzlib=ON",
         "-Djpeg=ON",
         "-Dlibdeflate=ON",
@@ -183,7 +183,7 @@
     },
     {
       "name": "imath",
-      "version": "3.2.2",
+      "version": "3.2.3",
       "source_flake_attr": "source-imath",
       "dependencies": [],
       "cmake_args": [
@@ -201,7 +201,7 @@
     },
     {
       "name": "openexr",
-      "version": "3.4.13",
+      "version": "3.5.1",
       "source_flake_attr": "source-openexr",
       "dependencies": [
         "imath",
@@ -223,7 +223,7 @@
     },
     {
       "name": "libffi",
-      "version": "3.7.1",
+      "version": "3.8.0",
       "source_flake_attr": "source-libffi",
       "build_system": "autotools",
       "dependencies": [],
@@ -241,7 +241,7 @@
     },
     {
       "name": "pcre2",
-      "version": "10.47",
+      "version": "10.49",
       "source_flake_attr": "source-pcre2",
       "build_system": "autotools",
       "dependencies": [],
@@ -263,7 +263,7 @@
     },
     {
       "name": "glib",
-      "version": "2.88.1",
+      "version": "2.88.3",
       "source_flake_attr": "source-glib",
       "build_system": "meson",
       "dependencies": [
@@ -339,7 +339,7 @@
     },
     {
       "name": "boost",
-      "version": "1.89.0",
+      "version": "1.91.0",
       "source_flake_attr": "source-boost",
       "build_system": "boost_headers",
       "dependencies": [],
@@ -456,7 +456,7 @@
     },
     {
       "name": "exiv2",
-      "version": "0.28.8",
+      "version": "0.28.9",
       "source_flake_attr": "source-exiv2",
       "dependencies": [
         "zlib"
@@ -516,7 +516,7 @@
     },
     {
       "name": "harfbuzz",
-      "version": "13.2.1",
+      "version": "14.5.1",
       "source_flake_attr": "source-harfbuzz",
       "dependencies": [
         "freetype"
@@ -567,7 +567,7 @@
     },
     {
       "name": "fontconfig",
-      "version": "2.18.2",
+      "version": "2.18.3",
       "source_flake_attr": "source-fontconfig",
       "build_system": "autotools",
       "dependencies": [
@@ -592,14 +592,36 @@
         "--with-add-fonts=/System/Library/Fonts"
       ],
       "make_targets": [
-        ["-C", "fc-const", "all"],
-        ["-C", "fc-genericfamily", "all"],
-        ["-C", "src", "all"]
+        [
+          "-C",
+          "fc-const",
+          "all"
+        ],
+        [
+          "-C",
+          "fc-genericfamily",
+          "all"
+        ],
+        [
+          "-C",
+          "src",
+          "all"
+        ]
       ],
       "make_install_targets": [
-        ["-C", "src", "install"],
-        ["-C", "fontconfig", "install"],
-        ["install-pkgconfigDATA"]
+        [
+          "-C",
+          "src",
+          "install"
+        ],
+        [
+          "-C",
+          "fontconfig",
+          "install"
+        ],
+        [
+          "install-pkgconfigDATA"
+        ]
       ],
       "artifacts": [
         "lib/libfontconfig.a"
@@ -653,7 +675,7 @@
     },
     {
       "name": "fribidi",
-      "version": "1.0.16",
+      "version": "1.0.17",
       "source_flake_attr": "source-fribidi",
       "build_system": "meson",
       "dependencies": [],
@@ -679,7 +701,11 @@
       "build_system": "make",
       "dependencies": [],
       "cmake_args": [],
-      "make_targets": [["libgif.a"]],
+      "make_targets": [
+        [
+          "libgif.a"
+        ]
+      ],
       "make_install_files": [
         {
           "source": "gif_lib.h",
@@ -690,8 +716,12 @@
           "destination": "lib/libgif.a"
         }
       ],
-      "artifacts": ["lib/libgif.a"],
-      "required_paths": ["include/gif_lib.h"]
+      "artifacts": [
+        "lib/libgif.a"
+      ],
+      "required_paths": [
+        "include/gif_lib.h"
+      ]
     },
     {
       "name": "brotli",
@@ -739,7 +769,7 @@
     },
     {
       "name": "libde265",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "source_flake_attr": "source-libde265",
       "dependencies": [],
       "cmake_args": [
@@ -747,7 +777,9 @@
         "-DENABLE_DEC265=OFF",
         "-DENABLE_SDL=OFF"
       ],
-      "artifacts": ["lib/libde265.a"],
+      "artifacts": [
+        "lib/libde265.a"
+      ],
       "required_paths": [
         "include/libde265/de265.h",
         "lib/pkgconfig/libde265.pc"
@@ -767,7 +799,9 @@
         "-DENABLE_ASSEMBLY=OFF",
         "-DENABLE_HDR10_PLUS=OFF"
       ],
-      "artifacts": ["lib/libx265.a"],
+      "artifacts": [
+        "lib/libx265.a"
+      ],
       "required_paths": [
         "include/x265.h",
         "lib/pkgconfig/x265.pc"
@@ -775,7 +809,7 @@
     },
     {
       "name": "libaom",
-      "version": "3.12.1",
+      "version": "3.15.1",
       "source_flake_attr": "source-libaom",
       "dependencies": [],
       "cmake_args": [
@@ -785,7 +819,9 @@
         "-DENABLE_EXAMPLES=OFF",
         "-DENABLE_TOOLS=OFF"
       ],
-      "artifacts": ["lib/libaom.a"],
+      "artifacts": [
+        "lib/libaom.a"
+      ],
       "required_paths": [
         "include/aom/aom_codec.h",
         "lib/pkgconfig/aom.pc"
@@ -793,9 +829,13 @@
     },
     {
       "name": "libheif",
-      "version": "1.23.1",
+      "version": "1.23.6",
       "source_flake_attr": "source-libheif",
-      "dependencies": ["libde265", "x265", "libaom"],
+      "dependencies": [
+        "libde265",
+        "x265",
+        "libaom"
+      ],
       "cmake_args": [
         "-DBUILD_SHARED_LIBS=OFF",
         "-DBUILD_TESTING=OFF",
@@ -809,7 +849,9 @@
         "-DWITH_AOM_DECODER=ON",
         "-DWITH_AOM_ENCODER=ON"
       ],
-      "artifacts": ["lib/libheif.a"],
+      "artifacts": [
+        "lib/libheif.a"
+      ],
       "required_paths": [
         "include/libheif/heif.h",
         "lib/cmake/libheif/libheif-config.cmake"
@@ -819,7 +861,11 @@
       "name": "libjxl",
       "version": "0.12.0",
       "source_flake_attr": "source-libjxl",
-      "dependencies": ["brotli", "libhwy", "lcms2"],
+      "dependencies": [
+        "brotli",
+        "libhwy",
+        "lcms2"
+      ],
       "cmake_args": [
         "-DBUILD_SHARED_LIBS=OFF",
         "-DBUILD_TESTING=OFF",
@@ -854,10 +900,12 @@
     },
     {
       "name": "libraw",
-      "version": "0.22.1",
+      "version": "0.22.3",
       "source_flake_attr": "source-libraw",
       "build_system": "autotools",
-      "dependencies": ["lcms2"],
+      "dependencies": [
+        "lcms2"
+      ],
       "cmake_args": [],
       "configure_args": [
         "--disable-examples",
@@ -876,7 +924,7 @@
     },
     {
       "name": "yaml-cpp",
-      "version": "0.8.0",
+      "version": "0.9.0",
       "source_flake_attr": "source-yaml-cpp",
       "dependencies": [],
       "cmake_args": [
@@ -887,7 +935,9 @@
         "-DYAML_CPP_BUILD_CONTRIB=OFF",
         "-DINSTALL_GTEST=OFF"
       ],
-      "artifacts": ["lib/libyaml-cpp.a"],
+      "artifacts": [
+        "lib/libyaml-cpp.a"
+      ],
       "required_paths": [
         "include/yaml-cpp/yaml.h",
         "lib/cmake/yaml-cpp/yaml-cpp-config.cmake"
@@ -901,7 +951,9 @@
       "dependencies": [],
       "cmake_args": [],
       "meson_args": [],
-      "artifacts": ["lib/libpystring.a"],
+      "artifacts": [
+        "lib/libpystring.a"
+      ],
       "required_paths": [
         "include/pystring/pystring.h",
         "lib/pkgconfig/pystring.pc"
@@ -911,7 +963,9 @@
       "name": "minizip-ng",
       "version": "4.2.2",
       "source_flake_attr": "source-minizip-ng",
-      "dependencies": ["zlib"],
+      "dependencies": [
+        "zlib"
+      ],
       "cmake_args": [
         "-DBUILD_SHARED_LIBS=OFF",
         "-DMZ_COMPAT=OFF",
@@ -934,7 +988,9 @@
         "-DMZ_BUILD_ZSTD=OFF",
         "-DMZ_BUILD_OPENSSL=OFF"
       ],
-      "artifacts": ["lib/libminizip-ng.a"],
+      "artifacts": [
+        "lib/libminizip-ng.a"
+      ],
       "required_paths": [
         "include/minizip-ng/mz.h",
         "lib/cmake/minizip-ng/minizip-ng-config.cmake"
@@ -966,7 +1022,9 @@
         "-DOCIO_USE_SIMD=OFF",
         "-DOCIO_USE_SSE2NEON=OFF"
       ],
-      "artifacts": ["lib/libOpenColorIO.a"],
+      "artifacts": [
+        "lib/libOpenColorIO.a"
+      ],
       "required_paths": [
         "include/OpenColorIO/OpenColorIO.h",
         "lib/cmake/OpenColorIO/OpenColorIOConfig.cmake"
@@ -974,7 +1032,7 @@
     },
     {
       "name": "poppler",
-      "version": "26.06.0",
+      "version": "26.10.0",
       "source_flake_attr": "source-poppler",
       "requires_qt": true,
       "dependencies": [
@@ -1022,15 +1080,19 @@
     },
     {
       "name": "libkdcraw",
-      "version": "26.04.3",
+      "version": "26.08.3",
       "source_flake_attr": "source-libkdcraw",
       "requires_qt": true,
-      "dependencies": ["libraw"],
+      "dependencies": [
+        "libraw"
+      ],
       "cmake_args": [
         "-DBUILD_SHARED_LIBS=OFF",
         "-DBUILD_TESTING=OFF"
       ],
-      "artifacts": ["lib/libKDcrawQt6.a"],
+      "artifacts": [
+        "lib/libKDcrawQt6.a"
+      ],
       "required_paths": [
         "lib/cmake/KDcrawQt6/KDcrawQt6Config.cmake",
         "lib/cmake/KDcrawQt6/FindLibRaw.cmake"

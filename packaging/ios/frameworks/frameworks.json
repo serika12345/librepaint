@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "frameworks_version": "6.28.0",
+  "frameworks_version": "6.31.0",
   "target_defaults": {
-    "qt_version": "6.11.3",
+    "qt_version": "6.12.0",
     "sdk_lock": {
       "name": "iphoneos",
       "cmake_cache_value": "iphoneos",
@@ -40,7 +40,7 @@
     "host_inputs": {
       "ecm": {
         "flake_attr": "host-ecm",
-        "version": "6.28.0"
+        "version": "6.31.0"
       },
       "gettext": {
         "nixpkgs_attr": "gettext",
@@ -48,19 +48,19 @@
       },
       "kconfig": {
         "flake_attr": "kf6-host-tooling",
-        "version": "6.28.0"
+        "version": "6.31.0"
       },
       "python3": {
         "nixpkgs_attr": "python3",
-        "version": "3.14.6"
+        "version": "3.14.8"
       },
       "qtbase": {
         "flake_attr": "host-qtbase",
-        "version": "6.11.3"
+        "version": "6.12.0"
       },
       "qttools": {
         "flake_attr": "host-qttools",
-        "version": "6.11.3"
+        "version": "6.12.0"
       }
     },
     "forbidden": {
@@ -96,12 +96,12 @@
   "packages": [
     {
       "name": "ecm",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-ecm",
       "source": {
         "flake_attr": "source-ecm",
-        "archive_name": "extra-cmake-modules-6.28.0.tar.xz",
-        "archive_sha256": "a32e24b267e8528d0253bc8df18bdc00e676560a43b796533e1b1406f4eef4db"
+        "archive_name": "extra-cmake-modules-6.31.0.tar.xz",
+        "archive_sha256": "8f74af329e4c918358bfe54316f8cf4d530c28444595a3e2fb15075f72877f17"
       },
       "host_only": true,
       "dependencies": [],
@@ -142,12 +142,12 @@
     },
     {
       "name": "kconfig",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kconfig",
       "source": {
         "flake_attr": "source-kconfig",
-        "archive_name": "kconfig-6.28.0.tar.xz",
-        "archive_sha256": "24e26e516b7904a26661eab7d2064bee1ac57165571e85b4da6020fd36f14322"
+        "archive_name": "kconfig-6.31.0.tar.xz",
+        "archive_sha256": "5572e3e098f7cf5d06c78cd941924333c0e84646d2a18aa6b4c9a6f7eae8a5c9"
       },
       "patches": [
         "packaging/ios/frameworks/patches/kconfig-ios-no-tools.patch"
@@ -246,12 +246,12 @@
     },
     {
       "name": "kwidgetsaddons",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kwidgetsaddons",
       "source": {
         "flake_attr": "source-kwidgetsaddons",
-        "archive_name": "kwidgetsaddons-6.28.0.tar.xz",
-        "archive_sha256": "6bb6a22e40bc8cfaeda08276b771488294ad417e7802b27bdc455202afdabd7d"
+        "archive_name": "kwidgetsaddons-6.31.0.tar.xz",
+        "archive_sha256": "94d1a1ba334a383c38b7f4238d93895ddd2b40f3d6511b16937bc951b542b5a5"
       },
       "dependencies": [
         "ecm"
@@ -329,12 +329,12 @@
     },
     {
       "name": "kcodecs",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kcodecs",
       "source": {
         "flake_attr": "source-kcodecs",
-        "archive_name": "kcodecs-6.28.0.tar.xz",
-        "archive_sha256": "b0a9ae34b389c6460adad5323d21bb9e43638acb58da9685f8dc8d821c38a4d8"
+        "archive_name": "kcodecs-6.31.0.tar.xz",
+        "archive_sha256": "2d889f4afd881ae3bc532753c7a2758f45842d4ca828a171d52c8f396128d081"
       },
       "dependencies": [
         "ecm"
@@ -405,12 +405,12 @@
     },
     {
       "name": "kcompletion",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kcompletion",
       "source": {
         "flake_attr": "source-kcompletion",
-        "archive_name": "kcompletion-6.28.0.tar.xz",
-        "archive_sha256": "8aa9cbc36139adfa8e3b2c744cc94714afe154d21cef8a3a2d5f4d311be7cc3c"
+        "archive_name": "kcompletion-6.31.0.tar.xz",
+        "archive_sha256": "b9b0023059c09fadfd9aa5d6cf40b3fb0a72d9b45e73b2146c29c20dfab35689"
       },
       "dependencies": [
         "kcodecs",
@@ -489,12 +489,12 @@
     },
     {
       "name": "kcoreaddons",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kcoreaddons",
       "source": {
         "flake_attr": "source-kcoreaddons",
-        "archive_name": "kcoreaddons-6.28.0.tar.xz",
-        "archive_sha256": "a713febee2f43bc31986d6c27d846ccab556fc7bc7c1919c3a662495720b431a"
+        "archive_name": "kcoreaddons-6.31.0.tar.xz",
+        "archive_sha256": "d3a843249177a6e51714a7211c73829cb071dbebe4f30404423bbbc57ca5ee95"
       },
       "dependencies": [
         "ecm"
@@ -618,12 +618,12 @@
     },
     {
       "name": "kguiaddons",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kguiaddons",
       "source": {
         "flake_attr": "source-kguiaddons",
-        "archive_name": "kguiaddons-6.28.0.tar.xz",
-        "archive_sha256": "f46aeca80707e774fcffe8aa82e464a81056ce84f613347a5c9cc24c1c9a8432"
+        "archive_name": "kguiaddons-6.31.0.tar.xz",
+        "archive_sha256": "d440bbe350282b03c828d5987a6db1f0a4f5d87a528907bf19e1e5bb76d4b219"
       },
       "dependencies": [
         "ecm"
@@ -730,12 +730,12 @@
     },
     {
       "name": "ki18n",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-ki18n",
       "source": {
         "flake_attr": "source-ki18n",
-        "archive_name": "ki18n-6.28.0.tar.xz",
-        "archive_sha256": "820ce5858c6db732d68da53572a0e7db8353e4372d2122debcfb0f9ff10b85db"
+        "archive_name": "ki18n-6.31.0.tar.xz",
+        "archive_sha256": "9fa271c7a33b856451de1ed3ff105626c2763fbd3b11d3210b02cb30de43f2ba"
       },
       "dependencies": [
         "ecm"
@@ -855,12 +855,12 @@
     },
     {
       "name": "kitemviews",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kitemviews",
       "source": {
         "flake_attr": "source-kitemviews",
-        "archive_name": "kitemviews-6.28.0.tar.xz",
-        "archive_sha256": "2b474a0a0ca1d59111ab864d4f05100e0056b5204d52dfbab6776ca0fbfdd402"
+        "archive_name": "kitemviews-6.31.0.tar.xz",
+        "archive_sha256": "cf0d9bf175619ed76cda99a20b04d349082a7c0e4bd1b2ce1dcf2631131cabcd"
       },
       "dependencies": [
         "ecm"
@@ -942,12 +942,12 @@
     },
     {
       "name": "kcolorscheme",
-      "version": "6.28.0",
+      "version": "6.31.0",
       "source_flake_attr": "source-kcolorscheme",
       "source": {
         "flake_attr": "source-kcolorscheme",
-        "archive_name": "kcolorscheme-6.28.0.tar.xz",
-        "archive_sha256": "129c98fd9ba3428cafbd7263557a9ea47c0d4f157b8a5f56b209a95dc9815e6a"
+        "archive_name": "kcolorscheme-6.31.0.tar.xz",
+        "archive_sha256": "41a8b12a4d9f4fdada70e4853879a2f43a7bf43e870a18c6038eebd956a1f863"
       },
       "dependencies": [
         "kconfig",
