@@ -46,6 +46,11 @@ let
           version = "6.12.0";
           hash = "sha256-0+Ahtxa66IAiRCL50biU0tU95+YOYNvEP4YHI/nMMAs=";
         };
+        # Qt 6.12 drops operator!= for QLocale in C++20 mode, which GCC 16 uses by default;
+        # the generated PyQt6 6.12.0 code calls it explicitly.
+        env = (old.env or { }) // {
+          NIX_CFLAGS_COMPILE = toString [ (old.env.NIX_CFLAGS_COMPILE or "") "-std=gnu++17" ];
+        };
         # 6.12.0 no longer ships the two enumeration values this patch removes.
         patches = lib.filter (
           patch:
