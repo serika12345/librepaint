@@ -47,6 +47,10 @@ pkgs.stdenv.mkDerivation {
     for jar in src/android/jar src/network/android/jar src/plugins/networkinformation/android/jar; do
       rm "$jar/gradle/libs.versions.toml"
     done
+    # CMake's add_jar passes its own -classpath after Qt's compile flags,
+    # which drops android.jar from the fallback; add it to INCLUDE_JARS.
+    substituteInPlace cmake/QtJavaHelpers.cmake \
+      --replace-fail 'INCLUDE_JARS ''${arg_INCLUDE_JARS}' 'INCLUDE_JARS ''${arg_INCLUDE_JARS} ''${QT_ANDROID_JAR}'
   '';
 
   configurePhase = ''
