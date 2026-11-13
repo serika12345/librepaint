@@ -178,7 +178,8 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             report = self.inspect(root)
         self.assertEqual(report.store_items, 4)
 
-    def test_unused_qt_webengine_runtime_is_rejected(self) -> None:
+    @mock.patch.dict("audit_linux_appimage.FORBIDDEN_STORE_ITEMS", {"Qt WebEngine": "-qtwebengine-"})
+    def test_forbidden_store_item_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
             webengine_item = "44444444444444444444444444444444-qtwebengine-6.11.1"

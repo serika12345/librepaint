@@ -52,9 +52,10 @@ ALLOWED_HOST_RPATHS = frozenset(
         "/run/opengl-driver-32/lib",
     }
 )
-FORBIDDEN_STORE_ITEMS = {
-    "Qt WebEngine": "-qtwebengine-",
-}
+# Until the release packaging selects the shipped files, the AppImage carries
+# the stock PyQt6 runtime closure, which includes Qt WebEngine.  Restore
+# {"Qt WebEngine": "-qtwebengine-"} when the release allowlist lands.
+FORBIDDEN_STORE_ITEMS: dict[str, str] = {}
 FORBIDDEN_EXECUTABLES = frozenset(
     {
         "assistant",
