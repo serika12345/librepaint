@@ -456,6 +456,8 @@ let
     # run immediately.  A Linux builder cannot execute those PE binaries, so
     # feed their results from the exact Qt configuration selected above.  The
     # remaining probes are compile/link checks and continue to run normally.
+    # PyQt6 6.12.0's QtGui config test also reports PyQt_Metal and PyQt_Vulkan;
+    # neither exists for the Windows target.
     postPatch = (old.postPatch or "") + ''
       substituteInPlace project.py \
         --replace-fail \
@@ -465,7 +467,7 @@ let
 class PyQtBindings(_PyQtBindings):
     _target_test_output = {
         "QtCore": ["shared"],
-        "QtGui": ["PyQt_OpenGL_ES2", "PyQt_XCB", "PyQt_Wayland"],
+        "QtGui": ["PyQt_OpenGL_ES2", "PyQt_Metal", "PyQt_XCB", "PyQt_Wayland", "PyQt_Vulkan"],
         "QtNetwork": [],
         "QtPrintSupport": [],
     }
