@@ -38,9 +38,15 @@ let
   # The cross set's buildPackages.python3Packages.pyqt6 is a different
   # derivation from the native one and misses the binary cache; take the build
   # machine's Python tools from the native package set.
-  hostPythonPackages = hostPkgs.python3Packages;
+  # PyQt6 6.12.0 matches Qt 6.12.0; nixpkgs still has 6.11.0, so the host
+  # bindings come from nix/pyqt6.nix as on Linux and macOS.
+  hostPyqtPython = import ../pyqt6.nix {
+    lib = hostPkgs.lib;
+    python = hostPkgs.python3;
+  };
+  hostPythonPackages = hostPyqtPython.pkgs;
   hostPyQt6 = hostPythonPackages.pyqt6;
-  hostPython = hostPkgs.python3.withPackages (pythonPackages: [
+  hostPython = hostPyqtPython.withPackages (pythonPackages: [
     hostPyQt6
     pythonPackages.setuptools
     pythonPackages.sip
