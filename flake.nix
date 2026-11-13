@@ -842,7 +842,7 @@
             py = (import ./nix/pyqt6.nix {
               inherit (linuxPkgs) lib;
               python = linuxPkgs.python3;
-            }).withPackages (p: [ p.pyqt6 p.pyqt6-sip ]);
+            }).withPackages (p: [ p.pyqt6 p.pyqt6-sip p.sip ]);
           in
           linuxPkgs.runCommand "pyqt6-612-check" {
             nativeBuildInputs = [ py ];
@@ -859,14 +859,10 @@
             python ${./cmake/modules/FindPyQt6.py} > find-pyqt6.out
             grep -q 'pyqt_version_str:6.12.0' find-pyqt6.out
             python -c "import sipbuild; print(sipbuild.__file__)" > sipbuild.out
-            if [ -e ${./cmake/modules/FindSIP.py} ]; then
-              python ${./cmake/modules/FindSIP.py} > find-sip.out
-            fi
+            python ${./cmake/modules/FindSIP.py} > find-sip.out
+            grep -q 'sip_version_str:6.17.3' find-sip.out
             mkdir -p "$out"
-            cp versions.txt find-pyqt6.out sipbuild.out "$out/"
-            if [ -e find-sip.out ]; then
-              cp find-sip.out "$out/"
-            fi
+            cp versions.txt find-pyqt6.out sipbuild.out find-sip.out "$out/"
           '';
       };
 
