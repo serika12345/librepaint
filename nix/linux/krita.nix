@@ -158,10 +158,12 @@ in
       pkgs.wrapGAppsHook3
     ];
 
+    # Use the FFmpeg that nixpkgs' MLT is pinned to, so the closure carries one
+    # FFmpeg.
     paths = [
       librepaintUnwrapped
       librepaintGmic
-      (lib.getBin pkgs.ffmpeg)
+      (lib.getBin pkgs.ffmpeg_8)
     ];
 
     # This is intentionally the same runtime wrapper as nixpkgs' Krita
@@ -186,7 +188,7 @@ in
           gappsWrapperArgsHook
           wrapQtApp "$out/bin/LibrePaint" \
             "''${gappsWrapperArgs[@]}" \
-            --prefix PATH : "${lib.makeBinPath [ pkgs.ffmpeg ]}" \
+            --prefix PATH : "${lib.makeBinPath [ pkgs.ffmpeg_8 ]}" \
             --prefix PYTHONPATH : "${runtimePythonPath}" \
             --set FONTCONFIG_FILE "${pkgs.fontconfig.out}/etc/fonts/fonts.conf" \
             --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"
