@@ -37,9 +37,17 @@ let
         };
       });
 
-      # PyQt6 6.12.0 matches Qt 6.12.0; nixpkgs still has 6.11.0.  Remove this file when nixpkgs
-      # packages PyQt6 6.12.0 (it also needs sip 6.17 and PyQt-builder 1.20).
-      pyqt6 = super.pyqt6.overridePythonAttrs (old: {
+      # PyQt6 6.12.0 is not cached, so build only the bindings LibrePaint's Python plugins import
+      # (QtCore, QtGui, QtWidgets, QtXml, QtQml); this also keeps Qt WebEngine and Qt Multimedia
+      # (FFmpeg 9) out of the PyQt6 closure.
+      pyqt6 = (super.pyqt6.override {
+        withLocation = false;
+        withMultimedia = false;
+        withPdf = false;
+        withSerialPort = false;
+        withSpeech = false;
+        withWebSockets = false;
+      }).overridePythonAttrs (old: {
         version = "6.12.0";
         src = self.fetchPypi {
           pname = "pyqt6";
@@ -57,6 +65,20 @@ let
           !(lib.hasInfix "qt-6.12.patch" (patch.name or ""))
           && !(lib.hasInfix "qt-6.12.patch" (patch.url or ""))
         ) (old.patches or [ ]);
+        nativeBuildInputs = lib.filter (
+          input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
+        ) old.nativeBuildInputs;
+        buildInputs = lib.filter (
+          input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
+        ) old.buildInputs;
+        pythonImportsCheck = [
+          "PyQt6"
+          "PyQt6.QtCore"
+          "PyQt6.QtGui"
+          "PyQt6.QtWidgets"
+          "PyQt6.QtXml"
+          "PyQt6.QtQml"
+        ];
       });
     };
     self = py;
