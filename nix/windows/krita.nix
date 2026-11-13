@@ -138,10 +138,9 @@ let
       # HDR texture colour-space API consumed by the small colour selector,
       # this carries the ANGLE, tablet, shortcut and backing-store fixes that
       # are part of Krita's Windows feature set.  The fork branch
-      # for-krita/6.11.3 matches the Qt release of the other platforms
-      # (nix/qt/overlay.nix).  The upstream variant keeps the official Qt
-      # 6.11.3 sources from that overlay and has no ANGLE path, so it also
-      # has no qwindowseglcontext.cpp.
+      # for-krita/6.11.3 is the Qt release this Windows build carries.  The
+      # upstream variant keeps nixpkgs' official Qt sources and has no ANGLE
+      # path, so it also has no qwindowseglcontext.cpp.
     } // lib.optionalAttrs useQtFork {
       version = "6.11.3";
       src = pkgs.fetchFromGitHub {

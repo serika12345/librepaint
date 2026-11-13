@@ -14,7 +14,7 @@ let
   python = pkgs.python3;
   pythonPackages = pkgs.python3Packages;
   pythonVersion = python.pythonVersion;
-  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
+  runtimePyQt = pythonPackages.pyqt6;
   runtimePython = python.withPackages (packages: [
     runtimePyQt
     packages."pyqt6-sip"
