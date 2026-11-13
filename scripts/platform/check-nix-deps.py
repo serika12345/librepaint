@@ -40,6 +40,7 @@ HASH_PREFIX = re.compile(r"^[0-9a-z]{32}-")
 VERSION_PATTERN = re.compile(r"^[0-9]+(?:\.[0-9]+)*")
 TARGET_SUFFIX_PATTERN = re.compile(r"^\^\.\+(.*?)\(\-\|\$\)$")
 ASCII_LETTERS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+PYTHON_NAME_PREFIX = re.compile(r"^python3(?:\.[0-9]+)?-")
 
 
 class GraphError(Exception):
@@ -156,11 +157,25 @@ def strip_target_suffix(pname: str, suffixes: Sequence[str]) -> str:
 
 
 def env_pname_version(entry: Mapping[str, Any], name: str) -> tuple[str, str]:
-    """Read pname and version from env, env.__json, or the name."""
+    """Read pname and version from structuredAttrs, env, env.__json, or the name.
 
+    Derivations that use __structuredAttrs keep pname and version in
+    structuredAttrs. The top-level version of the JSON is the format version of
+    the derivation and is never read. A pname taken from the name loses the
+    Python package prefix (python3.14-pyqt6 -> pyqt6).
+    """
+
+    pname = ""
+    version = ""
+    structured = entry.get("structuredAttrs")
+    if isinstance(structured, dict):
+        pname = structured.get("pname") or ""
+        version = structured.get("version") or ""
     env = entry.get("env") or {}
-    pname = env.get("pname")
-    version = env.get("version")
+    if not pname:
+        pname = env.get("pname") or ""
+    if not version:
+        version = env.get("version") or ""
     if not pname or not version:
         raw = env.get("__json")
         if isinstance(raw, str):
@@ -170,13 +185,13 @@ def env_pname_version(entry: Mapping[str, Any], name: str) -> tuple[str, str]:
                 embedded = None
             if isinstance(embedded, dict):
                 if not pname:
-                    pname = embedded.get("pname")
+                    pname = embedded.get("pname") or ""
                 if not version:
-                    version = embedded.get("version")
+                    version = embedded.get("version") or ""
     if not pname or not version:
         parsed_pname, parsed_version = parse_drv_name(name)
         if not pname:
-            pname = parsed_pname
+            pname = PYTHON_NAME_PREFIX.sub("", parsed_pname, count=1)
         if not version:
             version = parsed_version
     return str(pname or ""), str(version or "")
