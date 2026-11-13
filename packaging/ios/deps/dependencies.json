@@ -532,6 +532,7 @@
         "-DHB_BUILD_SUBSET=OFF",
         "-DHB_BUILD_RASTER=OFF",
         "-DHB_BUILD_VECTOR=OFF",
+        "-DHB_BUILD_GPU=OFF",
         "-DBUILD_FRAMEWORK=OFF"
       ],
       "artifacts": [
@@ -817,7 +818,8 @@
         "-DENABLE_TESTS=OFF",
         "-DENABLE_DOCS=OFF",
         "-DENABLE_EXAMPLES=OFF",
-        "-DENABLE_TOOLS=OFF"
+        "-DENABLE_TOOLS=OFF",
+        "-DENABLE_APPS=OFF"
       ],
       "artifacts": [
         "lib/libaom.a"

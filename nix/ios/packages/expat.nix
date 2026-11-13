@@ -86,6 +86,7 @@ mkIOSCMakePackage {
     consumer_build="$NIX_BUILD_TOP/expat-consumer"
     cmake \
       -S ${../tests/expat-consumer} \
+      -DKRITA_IOS_EXPAT_VERSION=${packageSpec.version} \
       -B "$consumer_build" \
       -G Ninja \
       -DCMAKE_SYSTEM_NAME=iOS \

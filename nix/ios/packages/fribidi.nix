@@ -82,7 +82,7 @@ mkIOSMesonPackage {
     config_header="$out/include/fribidi/fribidi-config.h"
     unicode_header="$out/include/fribidi/fribidi-unicode-version.h"
     public_header="$out/include/fribidi/fribidi.h"
-    grep -Eq '^#define[[:space:]]+FRIBIDI_VERSION[[:space:]]+"1\.0\.16"([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+FRIBIDI_VERSION[[:space:]]+"${lib.escapeRegex packageSpec.version}"([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+FRIBIDI_INTERFACE_VERSION[[:space:]]+4([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+FRIBIDI_SIZEOF_INT[[:space:]]+4([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+FRIBIDI_UNICODE_VERSION[[:space:]]+"16\.0\.0"([[:space:]]|$)' "$unicode_header"
@@ -111,7 +111,7 @@ mkIOSMesonPackage {
     export PKG_CONFIG_DIR=
     export PKG_CONFIG_LIBDIR="$out/lib/pkgconfig"
     export PKG_CONFIG_SYSROOT_DIR=
-    test "$(pkg-config --modversion fribidi)" = "1.0.16"
+    test "$(pkg-config --modversion fribidi)" = "${packageSpec.version}"
     pkg_cflags="$(pkg-config --cflags fribidi)"
     pkg_libs="$(pkg-config --static --libs fribidi)"
     grep -Fq -- "-I$out/include/fribidi" <<<"$pkg_cflags"
