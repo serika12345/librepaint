@@ -1292,6 +1292,44 @@ Xcode／SDK／Clangの版ごとに分離する。署名の認証情報はロー�
 旧GCルートを解放し、**Nixストア全体のごみ収集**後に集約依存物を再構築する。
 全レシピが固定・コミット済みで、削除範囲への承認を得た保守時に使う。
 
+### 依存の検査
+
+構築の前に、依存の版の整合とキャッシュの利用を派生物のグラフだけで検査する。
+検査は構築を行わない。規則と許可一覧は `nix/dependency-policy.json` が正本。
+
+```sh
+python3 scripts/platform/check-nix-deps.py --platform all
+python3 scripts/platform/check-nix-deps.py --platform windows --json build/nix-deps.json
+```
+
+`--platform` は `linux`、`macos`、`windows`、`android`、`ios`、`all`（既定）。
+`--save-graph` は取得したグラフを `<platform>-<n>.json` として保存し、
+`--graph-dir` はそのディレクトリを読んで取得を省く。
+`--cache-snapshot` は `{"<ハッシュ32文字>": true/false}` の JSON をキャッシュの代わりに使い、
+`--save-cache-snapshot` は照会の結果を保存する。
+`--json` は表示と同じ内容を JSON に書く。
+
+出力はプラットフォームごとに、手元構築の件数（own、small、target、host）、
+キャッシュの件数、host の違反、許可の警告、未使用の許可、判定不能、
+版の違反と警告を並べ、最後に`結果: 合格`または
+`結果: 不合格（host の違反 N 件、版の違反 M 件）`を出す。
+終了コードは合格 0、違反 1、取得・設定・ネットワーク・グラフの誤り 2。
+`--platform all` は 1 つのプラットフォームが失敗しても残りを検査し、最後に 2 で終わる。
+
+許可一覧に項目を足すのは、キャッシュに無い構築機側の派生物を、許可した理由と
+除去条件を説明できる場合に限る。`match` はハッシュと`.drv`を除いた名前を小文字にした
+文字列への`re.search`の正規表現とし、`^`と`$`は項目側に書く。
+原因をまだ特定していないものは`provisional: true`を付け、暫定の許可だけに当たる
+派生物は警告として表示され、失敗にはならない。原因を特定したら`provisional`を外すか
+項目を削除する。対象側の派生物は`target_patterns`で数え、許可一覧には入れない。
+未使用の許可は出力に現れるため、不要になった項目は削除する。
+
+検査の単体試験は次のコマンドで動かす。
+
+```sh
+python3 -m unittest discover -s scripts/tests -p "test_check_nix_deps.py"
+```
+
 ### Ninjaの依存記録の修復
 
 `premature end of file; recovering`とともに変更のない対象が再構築される場合は、
