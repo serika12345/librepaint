@@ -34,44 +34,50 @@ self: super: {
   # PyQt6 6.12.0 is not cached, so build only the bindings LibrePaint's Python plugins import
   # (QtCore, QtGui, QtWidgets, QtXml, QtQml); this also keeps Qt WebEngine and Qt Multimedia
   # (FFmpeg 9) out of the PyQt6 closure.
-  pyqt6 = (super.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  }).overridePythonAttrs (old: {
-    version = "6.12.0";
-    src = self.fetchPypi {
-      pname = "pyqt6";
-      version = "6.12.0";
-      hash = "sha256-0+Ahtxa66IAiRCL50biU0tU95+YOYNvEP4YHI/nMMAs=";
+  # overridePythonAttrs drops .override; wrap the package so that consumers
+  # (nix/windows/krita.nix) can still pass qt6Packages and the binding switches.
+  pyqt6 =
+    let
+      build = args: (super.pyqt6.override args).overridePythonAttrs (old: {
+        version = "6.12.0";
+        src = self.fetchPypi {
+          pname = "pyqt6";
+          version = "6.12.0";
+          hash = "sha256-0+Ahtxa66IAiRCL50biU0tU95+YOYNvEP4YHI/nMMAs=";
+        };
+        # Qt 6.12 drops operator!= for QLocale in C++20 mode, which GCC 16 uses by default;
+        # the generated PyQt6 6.12.0 code calls it explicitly.
+        env = (old.env or { }) // {
+          NIX_CFLAGS_COMPILE = toString [ (old.env.NIX_CFLAGS_COMPILE or "") "-std=gnu++17" ];
+        };
+        # 6.12.0 no longer ships the two enumeration values this patch removes.
+        patches = lib.filter (
+          patch:
+          !(lib.hasInfix "qt-6.12.patch" (patch.name or ""))
+          && !(lib.hasInfix "qt-6.12.patch" (patch.url or ""))
+        ) (old.patches or [ ]);
+        nativeBuildInputs = lib.filter (
+          input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
+        ) old.nativeBuildInputs;
+        buildInputs = lib.filter (
+          input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
+        ) old.buildInputs;
+        pythonImportsCheck = [
+          "PyQt6"
+          "PyQt6.QtCore"
+          "PyQt6.QtGui"
+          "PyQt6.QtWidgets"
+          "PyQt6.QtXml"
+          "PyQt6.QtQml"
+        ];
+      });
+    in
+    lib.makeOverridable build {
+      withLocation = false;
+      withMultimedia = false;
+      withPdf = false;
+      withSerialPort = false;
+      withSpeech = false;
+      withWebSockets = false;
     };
-    # Qt 6.12 drops operator!= for QLocale in C++20 mode, which GCC 16 uses by default;
-    # the generated PyQt6 6.12.0 code calls it explicitly.
-    env = (old.env or { }) // {
-      NIX_CFLAGS_COMPILE = toString [ (old.env.NIX_CFLAGS_COMPILE or "") "-std=gnu++17" ];
-    };
-    # 6.12.0 no longer ships the two enumeration values this patch removes.
-    patches = lib.filter (
-      patch:
-      !(lib.hasInfix "qt-6.12.patch" (patch.name or ""))
-      && !(lib.hasInfix "qt-6.12.patch" (patch.url or ""))
-    ) (old.patches or [ ]);
-    nativeBuildInputs = lib.filter (
-      input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
-    ) old.nativeBuildInputs;
-    buildInputs = lib.filter (
-      input: !(builtins.elem (input.pname or "") [ "qtquick3d" "qtquicktimeline" "qtwebchannel" ])
-    ) old.buildInputs;
-    pythonImportsCheck = [
-      "PyQt6"
-      "PyQt6.QtCore"
-      "PyQt6.QtGui"
-      "PyQt6.QtWidgets"
-      "PyQt6.QtXml"
-      "PyQt6.QtQml"
-    ];
-  });
 }
