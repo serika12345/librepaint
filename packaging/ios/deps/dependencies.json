@@ -214,7 +214,7 @@
         "-DOPENEXR_BUILD_TESTS=OFF"
       ],
       "artifacts": [
-        "lib/libOpenEXR-3_4.a"
+        "lib/libOpenEXR-3_5.a"
       ],
       "required_paths": [
         "include/OpenEXR/ImfRgbaFile.h",
