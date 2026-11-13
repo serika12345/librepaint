@@ -1255,6 +1255,37 @@
         librepaint-windows-upstream-qt-archive = windowsUpstreamQtPackages.librepaintArchive;
         librepaint-windows-upstream-qt-unwrapped = windowsUpstreamQtPackages.librepaintUnwrapped;
         windows-upstream-qt-dependencies = windowsUpstreamQtPackages.dependencyInputs;
+        pyqt6-612-check =
+          let
+            py = (import ./nix/pyqt6.nix {
+              inherit (linuxPkgs) lib;
+              python = linuxPkgs.python3;
+            }).withPackages (p: [ p.pyqt6 p.pyqt6-sip ]);
+          in
+          linuxPkgs.runCommand "pyqt6-612-check" {
+            nativeBuildInputs = [ py ];
+            QT_QPA_PLATFORM = "offscreen";
+          } ''
+            set -e
+            python -c '
+            from PyQt6 import QtCore, QtGui, QtWidgets, QtXml, QtQml, QtSvg
+            assert QtCore.PYQT_VERSION_STR == "6.12.0", QtCore.PYQT_VERSION_STR
+            assert QtCore.QT_VERSION_STR == "6.12.0", QtCore.QT_VERSION_STR
+            print("PyQt6", QtCore.PYQT_VERSION_STR)
+            print("Qt", QtCore.QT_VERSION_STR)
+            ' > versions.txt
+            python ${./cmake/modules/FindPyQt6.py} > find-pyqt6.out
+            grep -q 'pyqt_version_str:6.12.0' find-pyqt6.out
+            python -c "import sipbuild; print(sipbuild.__file__)" > sipbuild.out
+            if [ -e ${./cmake/modules/FindSIP.py} ]; then
+              python ${./cmake/modules/FindSIP.py} > find-sip.out
+            fi
+            mkdir -p "$out"
+            cp versions.txt find-pyqt6.out sipbuild.out "$out/"
+            if [ -e find-sip.out ]; then
+              cp find-sip.out "$out/"
+            fi
+          '';
       };
 
       checks.${system} = {
