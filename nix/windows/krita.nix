@@ -35,25 +35,7 @@ let
       "$out/share/qt-6/translations"
   '';
   hostPythonPackages = buildPkgs.python3Packages;
-  hostPyQt6 = (hostPythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  }).overrideAttrs (old: {
-    # FindPyQt6 only imports QtCore to obtain version and SIP metadata.  D-Bus
-    # integration pulls target introspection machinery into a native Python
-    # environment during cross evaluation and is unrelated to binding source
-    # generation.
-    dependencies = lib.filter (
-      input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
-    ) (old.dependencies or [ ]);
-    propagatedBuildInputs = lib.filter (
-      input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
-    ) (old.propagatedBuildInputs or [ ]);
-  });
+  hostPyQt6 = hostPythonPackages.pyqt6;
   hostPython = buildPkgs.python3.withPackages (pythonPackages: [
     hostPyQt6
     pythonPackages.setuptools
