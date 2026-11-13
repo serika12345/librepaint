@@ -44,16 +44,19 @@
             # indirect consumers such as OpenColorIO and PyQt do not fall
             # back to the default, unbuildable CPython 3.14 cross package.
             # Native generators continue to use buildPackages.python3.
+            # PyQt6 6.12.0 is used on the target side too, to match the Qt 6.12.0 the plugins link.
             python311 = previous.python311.override {
-              packageOverrides = _: pythonPrevious: {
-                # pybind11's default cross policy builds its internal test
-                # extension modules when host and build CPUs have equal word
-                # sizes.  Those tests use the native interpreter headers and
-                # cannot be linked into Windows modules.  The installed
-                # headers, CMake metadata and setup hook used by OpenColorIO
-                # are independent of these test-only modules.
-                pybind11 = pythonPrevious.pybind11.override { buildTests = false; };
-              };
+              packageOverrides = previous.lib.composeExtensions
+                (import ./nix/pyqt6-overrides.nix { lib = previous.lib; })
+                (_: pythonPrevious: {
+                  # pybind11's default cross policy builds its internal test
+                  # extension modules when host and build CPUs have equal word
+                  # sizes.  Those tests use the native interpreter headers and
+                  # cannot be linked into Windows modules.  The installed
+                  # headers, CMake metadata and setup hook used by OpenColorIO
+                  # are independent of these test-only modules.
+                  pybind11 = pythonPrevious.pybind11.override { buildTests = false; };
+                });
             };
             python311Packages = final.python311.pkgs;
             python3 =
