@@ -1,5 +1,6 @@
 {
   pkgs,
+  hostPkgs,
   source,
   useQtFork ? false,
   pnameSuffix ? "",
@@ -34,9 +35,12 @@ let
     cp -a ${hostQtTranslationsPackage}/translations \
       "$out/share/qt-6/translations"
   '';
-  hostPythonPackages = buildPkgs.python3Packages;
+  # The cross set's buildPackages.python3Packages.pyqt6 is a different
+  # derivation from the native one and misses the binary cache; take the build
+  # machine's Python tools from the native package set.
+  hostPythonPackages = hostPkgs.python3Packages;
   hostPyQt6 = hostPythonPackages.pyqt6;
-  hostPython = buildPkgs.python3.withPackages (pythonPackages: [
+  hostPython = hostPkgs.python3.withPackages (pythonPackages: [
     hostPyQt6
     pythonPackages.setuptools
     pythonPackages.sip

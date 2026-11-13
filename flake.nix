@@ -983,6 +983,7 @@
       };
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
+        hostPkgs = linuxPkgs;
         source = linuxBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
         # Keep the fork build available until Q4 stage 7 passes; the default
@@ -994,6 +995,7 @@
       # cached dependencies stay untouched.
       windowsUpstreamQtPackages = import ./nix/windows {
         pkgs = windowsPkgs;
+        hostPkgs = linuxPkgs;
         source = linuxBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
         useQtFork = false;

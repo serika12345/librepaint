@@ -1,5 +1,6 @@
 {
   pkgs,
+  hostPkgs,
   source,
   auditWindowsPackage,
   useQtFork ? false,
@@ -13,6 +14,7 @@ let
   librepaintUnwrapped = import ./krita.nix {
     inherit
       pkgs
+      hostPkgs
       source
       useQtFork
       pnameSuffix
