@@ -1,0 +1,19 @@
+{
+  "derivations": {
+    "/nix/store/00000000000000000000000000000000-librepaint-1.0.drv": {
+      "outputs": {
+        "out": {"path": "/nix/store/00000000000000000000000000000000-librepaint-1.0"}
+      },
+      "inputDrvs": {
+        "/nix/store/11111111111111111111111111111111-zlib-1.2.drv": ["out"]
+      }
+    },
+    "/nix/store/11111111111111111111111111111111-zlib-1.2.drv": {
+      "outputs": {
+        "out": {"path": "/nix/store/11111111111111111111111111111111-zlib-1.2"},
+        "debug": {"path": "/nix/store/11111111111111111111111111111111-zlib-1.2-debug"}
+      },
+      "inputDrvs": {}
+    }
+  }
+}
