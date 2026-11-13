@@ -5,11 +5,15 @@
 
 let
   inherit (pkgs) lib;
-  pythonPackages = pkgs.python3Packages;
+  pyqtPython = import ../pyqt6.nix {
+    inherit lib;
+    python = pkgs.python3;
+  };
+  pythonPackages = pyqtPython.pkgs;
 
-  # The stock PyQt6 comes from the binary cache. Its unused bindings and
-  # their Qt modules stay in the runtime closure until the release packaging
-  # selects the shipped files.
+  # PyQt6 6.12.0 matches Qt 6.12.0 and is built by nix/pyqt6.nix with only the
+  # bindings the Python plugins import; nixpkgs still has 6.11.0. Remove
+  # nix/pyqt6.nix when nixpkgs packages 6.12.0.
   runtimePyQt = pythonPackages.pyqt6;
 
   # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
