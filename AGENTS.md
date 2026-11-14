@@ -69,7 +69,8 @@ application bundling so local changes reuse the binary cache.
 A `path:` flake or any copy of the repository root copies the whole tree,
 including `.git`, into the Nix store; never use `path:` references to this
 repository. `scripts/nix-guard/nix` (first on PATH in direnv shells) rejects
-them and logs every nix call; `scripts/check-store-hygiene.py` runs in
+them and `builtins.getFlake` calls that do not take a remote flake reference,
+and logs every nix call; `scripts/check-store-hygiene.py` runs in
 `verify`, `verify-quick` and the incremental builds; `scripts/store-guard.py`
 (systemd timer) logs and removes leaked source copies.
 

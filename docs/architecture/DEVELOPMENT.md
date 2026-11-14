@@ -59,8 +59,16 @@ verify-quick
 ## Nix ストアの肥大化の防止
 
 `path:`形式のFlake評価は`.gitignore`を無視し、リポジトリー全体をNix storeへ複製する。
-この複製は`build/`、`.cache/`、`.git/`を含み、1件で数十GiBになる。LibrePaintは
-次の4つで発生を防ぎ、起きた複製を記録して片付ける。
+この複製は`build/`、`.cache/`、`.git/`を含み、1件で数十GiBになる。`nix eval --impure --expr`
+の中の`builtins.getFlake`も同じ複製を作る。追跡されない150MBのファイルを持つ一時の
+小さなGitリポジトリーでの実測は次のとおり。
+
+- `builtins.getFlake (toString ./.)`は143MBを複製し、`build/`と`.git/`を含む。
+- `builtins.getFlake "path:<パス>"`も同じ複製を作る。
+- `builtins.getFlake "git+file://<パス>"`の複製は0MBで、追跡されたファイルだけを読む。
+- `nix flake metadata .`などのCLIも、追跡されたファイルだけを読む。
+
+LibrePaintは次の4つで発生を防ぎ、起きた複製を記録して片付ける。
 
 1. `build/`、`.cache/`、`logs/`はリポジトリーの外の状態ディレクトリーへの
    シンボリックリンクにする。`.envrc`が`scripts/ensure-state-links.py`を呼び、
@@ -89,6 +97,11 @@ loginctl enable-linger $USER
 
 ログは`$LIBREPAINT_STATE_ROOT/nix-calls.log`（`nix`の呼び出し）と
 `$LIBREPAINT_STATE_ROOT/store-guard.log`（初めて見た複製、削除、空きの警告）に置く。
+
+### 安全な書き方
+
+`builtins.getFlake`へはリモートの参照だけを渡す。作業ツリーの評価には
+`builtins.getFlake "git+file://$PWD"`を使う。属性だけを読むときは`nix eval .#<属性>`を使う。
 
 ### 違反したときの直し方
 
