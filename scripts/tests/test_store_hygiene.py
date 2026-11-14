@@ -193,6 +193,15 @@ class CheckStoreHygieneTests(unittest.TestCase):
     def test_free_space_limit_reports_the_option_as_basis(self):
         self.assertEqual(hygiene.free_space_limit(min_free_gib=50), (50, "--min-free-gib"))
 
+    def test_main_accepts_the_options(self):
+        with mock.patch.object(hygiene, "worktree_warnings", return_value=[]), mock.patch.object(
+            hygiene, "worktree_problems", return_value=[]
+        ):
+            self.assertEqual(hygiene.main(["--root", self.root, "--skip-free"]), 0)
+            self.assertEqual(
+                hygiene.main(["--root", self.root, "--skip-free", "--min-free-gib", "10"]), 0
+            )
+
     def test_large_tree_reports_five_largest_directories(self):
         for index in range(6):
             directory = os.path.join(self.root, "area%d" % index)

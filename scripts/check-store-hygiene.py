@@ -208,8 +208,9 @@ def main(argv=None):
         "--min-free-gib",
         type=int,
         default=None,
-        help="lower bound in GiB; defaults to 15%% of the volume, between %d and %d"
-        % (MIN_FREE_GIB_FLOOR, MIN_FREE_GIB_MAX),
+        help="lower bound in GiB; defaults to 15%% of the volume, between {0} and {1}".format(
+            MIN_FREE_GIB_FLOOR, MIN_FREE_GIB_MAX
+        ),
     )
     parser.add_argument("--skip-free", action="store_true", help="do not check free space in /nix")
     args = parser.parse_args(argv)
