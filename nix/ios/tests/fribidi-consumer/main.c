@@ -2,8 +2,8 @@
 
 #include <stddef.h>
 
-#if FRIBIDI_MAJOR_VERSION != 1 || FRIBIDI_MINOR_VERSION != 0 || FRIBIDI_MICRO_VERSION != 16
-#  error "The Krita iOS FriBidi contract requires version 1.0.16"
+#if FRIBIDI_MAJOR_VERSION != 1 || FRIBIDI_MINOR_VERSION != 0 || FRIBIDI_MICRO_VERSION != 17
+#  error "The Krita iOS FriBidi contract requires version 1.0.17"
 #endif
 
 #if FRIBIDI_INTERFACE_VERSION != 4

@@ -17,7 +17,7 @@
 #  error "The Krita iOS Expat contract requires 1024 context bytes"
 #endif
 
-#if XML_MAJOR_VERSION != 2 || XML_MINOR_VERSION != 8 || XML_MICRO_VERSION != 2
+#if XML_MAJOR_VERSION != 2 || XML_MINOR_VERSION != 9 || XML_MICRO_VERSION != 0
 #  error "Unexpected Expat API version"
 #endif
 

@@ -85,7 +85,7 @@ mkIOSMesonPackage {
     grep -Eq '^#define[[:space:]]+FRIBIDI_VERSION[[:space:]]+"${lib.escapeRegex packageSpec.version}"([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+FRIBIDI_INTERFACE_VERSION[[:space:]]+4([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+FRIBIDI_SIZEOF_INT[[:space:]]+4([[:space:]]|$)' "$config_header"
-    grep -Eq '^#define[[:space:]]+FRIBIDI_UNICODE_VERSION[[:space:]]+"16\.0\.0"([[:space:]]|$)' "$unicode_header"
+    grep -Eq '^#define[[:space:]]+FRIBIDI_UNICODE_VERSION[[:space:]]+"18\.0\.0"([[:space:]]|$)' "$unicode_header"
     grep -Fq '# include "fribidi-deprecated.h"' "$public_header"
 
     archive="$out/lib/libfribidi.a"
