@@ -381,6 +381,35 @@ class NixGuardTests(unittest.TestCase):
         self.run_nix(["build", "path:%s#x" % self.repo])
         self.assertEqual(len(self.logged_lines()), 2)
 
+    def assert_rejected(self, expression):
+        result = self.run_nix(["eval", "--impure", "--expr", expression])
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("getFlake", result.stderr)
+        self.assertFalse(os.path.exists(self.calls))
+
+    def assert_passed(self, expression):
+        result = self.run_nix(["eval", "--impure", "--expr", expression])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(self.calls, "r", encoding="utf-8") as handle:
+            self.assertIn(expression, handle.read())
+
+    def test_getflake_with_local_path_is_rejected(self):
+        self.assert_rejected("(builtins.getFlake (toString ./.)).outPath")
+
+    def test_getflake_with_path_reference_is_rejected(self):
+        self.assert_rejected('(builtins.getFlake "path:/x").outPath')
+
+    def test_getflake_with_absolute_string_is_rejected(self):
+        self.assert_rejected('(builtins.getFlake "/x").outPath')
+
+    def test_getflake_with_remote_references_passes(self):
+        self.assert_passed('(builtins.getFlake "git+file:///x").outPath')
+        os.remove(self.calls)
+        self.assert_passed('(builtins.getFlake "github:NixOS/nixpkgs/0000000000000000000000000000000000000000").outPath')
+
+    def test_expression_without_getflake_passes(self):
+        self.assert_passed("1 + 1")
+
 
 if __name__ == "__main__":
     unittest.main()
