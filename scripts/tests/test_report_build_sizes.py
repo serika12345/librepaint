@@ -191,6 +191,82 @@ class PathInfoShapeTest(unittest.TestCase):
                                  ["/nix/store/a"], ["/nix/store/b"]])
 
 
+class StorePathTest(unittest.TestCase):
+    """The graph and nix path-info may name outputs without the store."""
+
+    def graph_with_shape(self, name_only: bool):
+        entries, roots, sizes = fixed_graph()
+        if name_only:
+            for entry in entries.values():
+                for output in (entry.get("outputs") or {}).values():
+                    if isinstance(output, dict) and output.get("path"):
+                        output["path"] = str(output["path"]).rsplit("/", 1)[-1]
+        return entries, roots, sizes
+
+    def report_through_path_info(
+        self, name_only_graph: bool, name_only_answer: bool
+    ) -> tuple[dict[str, object], list[list[str]]]:
+        entries, roots, sizes = self.graph_with_shape(name_only_graph)
+        graph = report_build_sizes.check_nix_deps.normalize_graph(
+            {"derivations": entries}
+        )
+        normalized_roots = [root.rsplit("/", 1)[-1] for root in roots]
+        calls: list[list[str]] = []
+
+        def run(paths):
+            calls.append(list(paths))
+            answer = {}
+            for path in paths:
+                if path not in sizes:
+                    continue
+                key = path.rsplit("/", 1)[-1] if name_only_answer else path
+                answer[key] = {"path": key, "narSize": sizes[path]}
+            return json.dumps(answer)
+
+        def sizes_query(paths):
+            return report_build_sizes.query_sizes(paths, run)
+
+        report = report_build_sizes.platform_report(
+            graph,
+            make_policy(),
+            "test",
+            normalized_roots,
+            lambda _path: False,
+            sizes_query=sizes_query,
+            sleep=lambda _delay: None,
+        )
+        return report, calls
+
+    def assert_totals(self, report: dict[str, object]) -> None:
+        buckets = report["buckets"]
+        self.assertEqual(buckets["own"]["size"], 3 * MIB)
+        self.assertEqual(buckets["small"]["size"], MIB // 2)
+        self.assertEqual(buckets["target"]["size"], 100 * MIB)
+        self.assertEqual(buckets["host"]["size"], 235 * MIB)
+        self.assertEqual(report["dependency"]["unknown"], 1)
+
+    def assert_full_store_arguments(self, calls: list[list[str]]) -> None:
+        paths = [path for call in calls for path in call]
+        self.assertTrue(paths)
+        for path in paths:
+            self.assertTrue(path.startswith("/nix/store/"), path)
+
+    def test_name_only_graph_and_name_only_answer(self) -> None:
+        report, calls = self.report_through_path_info(True, True)
+        self.assert_totals(report)
+        self.assert_full_store_arguments(calls)
+
+    def test_name_only_graph_and_full_answer(self) -> None:
+        report, calls = self.report_through_path_info(True, False)
+        self.assert_totals(report)
+        self.assert_full_store_arguments(calls)
+
+    def test_full_graph_and_full_answer(self) -> None:
+        report, calls = self.report_through_path_info(False, False)
+        self.assert_totals(report)
+        self.assert_full_store_arguments(calls)
+
+
 class BucketTotalTest(unittest.TestCase):
     def test_counts_and_sizes_per_bucket(self) -> None:
         result = report_for()
