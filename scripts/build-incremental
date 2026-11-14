@@ -110,8 +110,10 @@ compile_commands_link_path="${LIBREPAINT_COMPILE_COMMANDS_LINK_PATH:-$repo_root/
 boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
 native_plan_manifest=""
 native_config_fingerprint="$({
-    printf 'schema=2\n'
+    printf 'schema=3\n'
     printf 'preset=%s\n' "$preset"
+    printf 'buildInputs=%s\n' "${buildInputs:-}"
+    printf 'nativeBuildInputs=%s\n' "${nativeBuildInputs:-}"
     sha256sum "$repo_root/CMakePresets.json"
     printf 'cmake=%s\n' "$(command -v cmake || true)"
     printf 'ninja=%s\n' "$(command -v ninja || true)"
@@ -150,7 +152,9 @@ configure_native() {
     # build/ is a symbolic link into the state root. AUTOMOC writes moc include
     # paths relative to the logical build directory, which the compiler resolves
     # through the link; configuring with the physical path keeps them valid.
-    cmake --preset "$preset" -B "$(realpath -m -- "$build_dir")"
+    # --fresh drops the cached compiler, Qt and KDE Frameworks paths of an earlier
+    # development shell, which a plain re-configure keeps.
+    cmake --preset "$preset" --fresh -B "$(realpath -m -- "$build_dir")"
     check_native_boundaries
     mkdir -p "$(dirname -- "$marker_path")"
     {
