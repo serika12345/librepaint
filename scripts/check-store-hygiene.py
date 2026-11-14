@@ -25,6 +25,63 @@ def load_ensure_state_links():
     return module
 
 
+def load_worktree_gc():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "worktree-gc.py")
+    spec = importlib.util.spec_from_file_location("worktree_gc", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+WORKTREE_VIOLATIONS = ("prunable", "inside-repo", "unregistered")
+WORKTREE_FIXES = {
+    "prunable": "run: python3 scripts/worktree-gc.py --apply",
+    "inside-repo": "remove it and create worktrees outside the repository",
+    "unregistered": "register it with: python3 scripts/new-worktree.py --adopt <path> --purpose <reason>",
+}
+
+
+def worktree_report(root):
+    return load_worktree_gc().classify(root)
+
+
+def worktree_problems(root):
+    problems = []
+    for entry in worktree_report(root)["entries"]:
+        category = entry["category"]
+        if category in WORKTREE_VIOLATIONS:
+            problems.append(
+                (
+                    "worktree %s: %s" % (category, entry["path"]),
+                    WORKTREE_FIXES[category],
+                )
+            )
+    return problems
+
+
+def worktree_warnings(root):
+    report = worktree_report(root)
+    warnings = []
+    for entry in report["entries"]:
+        if entry["category"] == "eligible":
+            warnings.append(
+                (
+                    "worktree is eligible for removal: %s" % entry["path"],
+                    "run: python3 scripts/worktree-gc.py --apply",
+                )
+            )
+    if len(report["ledger"]) > 4:
+        warnings.append(
+            (
+                "the worktree ledger records %d worktrees, over 4"
+                % len(report["ledger"]),
+                "remove finished worktrees with: python3 scripts/worktree-gc.py --apply",
+            )
+        )
+    return warnings
+
+
+
 def directory_size(path):
     total = 0
     stack = [path]
@@ -86,6 +143,8 @@ def check(root, min_free_gib=DEFAULT_MIN_FREE_GIB, skip_free=False):
             )
         )
 
+    problems.extend(worktree_problems(root))
+
     total, top_directories = apparent_size(root)
     if total > MAX_APPARENT_BYTES:
         lines = [
@@ -131,6 +190,9 @@ def main(argv=None):
     for message, fix in problems:
         print("check-store-hygiene: %s" % message, file=sys.stderr)
         print("check-store-hygiene: %s" % fix, file=sys.stderr)
+    for message, fix in worktree_warnings(root):
+        print("check-store-hygiene: warning: %s" % message, file=sys.stderr)
+        print("check-store-hygiene: warning: %s" % fix, file=sys.stderr)
     if problems:
         return 1
     return 0
