@@ -370,6 +370,67 @@ class StoreGuardTests(unittest.TestCase):
         self.assertIn("15% of the 666 GiB volume", self.events[0])
 
 
+class StoreGuardIntervalTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="store-guard-due-")
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.state = os.path.join(self.tmp, "state")
+        self.store = os.path.join(self.tmp, "store")
+        os.makedirs(self.store)
+
+        patches = [
+            mock.patch.object(store_guard, "state_root", return_value=self.state),
+            mock.patch.object(store_guard, "STORE", self.store),
+            mock.patch.object(store_guard, "repository_root", return_value=self.tmp),
+            mock.patch.object(store_guard, "process_table", return_value=""),
+            mock.patch.object(store_guard, "query_referrers", return_value=fake_result(1)),
+            mock.patch.object(store_guard, "free_gib", return_value=500.0),
+            mock.patch.object(
+                store_guard.store_hygiene,
+                "free_space_limit",
+                return_value=(100, "15% of the 666 GiB volume"),
+            ),
+            mock.patch.object(store_guard, "send_event", return_value=True),
+            mock.patch.object(store_guard, "delete_store_path", return_value=fake_result(0)),
+        ]
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def store_state(self, last_run):
+        os.makedirs(self.state, exist_ok=True)
+        store_guard.save_state({"last_run": last_run})
+
+    def test_recent_run_is_skipped(self):
+        self.store_state(store_guard.now())
+        with mock.patch.object(store_guard, "query_path_info", return_value={}) as query:
+            self.assertEqual(store_guard.main(["--if-due", "3600"]), 0)
+        self.assertFalse(query.called)
+
+    def test_elapsed_interval_runs_and_records_the_start(self):
+        os.makedirs(os.path.join(self.store, "one-source"))
+        started = store_guard.now() - 7200
+        self.store_state(started)
+        with mock.patch.object(store_guard, "query_path_info", return_value={}) as query:
+            self.assertEqual(store_guard.main(["--if-due", "3600"]), 0)
+        self.assertTrue(query.called)
+        self.assertGreater(store_guard.load_state()["last_run"], started)
+
+    def test_unavailable_lock_runs_nothing(self):
+        self.store_state(0)
+        with mock.patch.object(store_guard, "try_lock", return_value=None), mock.patch.object(
+            store_guard, "query_path_info", return_value={}
+        ) as query:
+            self.assertEqual(store_guard.main(["--if-due", "3600"]), 0)
+        self.assertFalse(query.called)
+
+    def test_dry_run_does_not_record_the_start(self):
+        self.store_state(0)
+        with mock.patch.object(store_guard, "query_path_info", return_value={}), mock.patch("builtins.print"):
+            self.assertEqual(store_guard.main(["--dry-run", "--if-due", "3600"]), 0)
+        self.assertEqual(store_guard.load_state()["last_run"], 0)
+
+
 class MacOSCompatibilityTests(unittest.TestCase):
     def test_process_table_uses_ps_keywords_available_on_macos(self):
         with mock.patch.object(

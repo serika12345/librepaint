@@ -8,6 +8,7 @@ deleted when no other path refers to them.  The script also warns through
 """
 
 import argparse
+import fcntl
 import importlib.util
 import json
 import os
@@ -38,6 +39,10 @@ def state_root():
 
 def state_file():
     return os.path.join(state_root(), "store-guard.state")
+
+
+def lock_file():
+    return state_file() + ".lock"
 
 
 def log_file():
@@ -161,6 +166,46 @@ def save_state(state):
         os.replace(path + ".tmp", path)
     except OSError:
         pass
+
+
+def try_lock():
+    """Take the run lock without blocking; return None when another run holds it."""
+    path = lock_file()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handle = open(path, "a+", encoding="utf-8")
+    except OSError:
+        return None
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
+
+
+def release_lock(handle):
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        handle.close()
+
+
+def run_if_due(seconds, dry_run=False):
+    lock = try_lock()
+    if lock is None:
+        return 0
+    try:
+        state = load_state()
+        last_run = float(state.get("last_run") or 0)
+        if now() - last_run < seconds:
+            return 0
+        if not dry_run:
+            state["last_run"] = now()
+            save_state(state)
+        return run(dry_run=dry_run)
+    finally:
+        release_lock(lock)
 
 
 def single_line(text):
@@ -404,8 +449,16 @@ def run(dry_run=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="report only; write no state or log and delete nothing")
+    parser.add_argument(
+        "--if-due",
+        type=int,
+        metavar="SECONDS",
+        help="run only when the last run started at least SECONDS ago; writes no state with --dry-run",
+    )
     args = parser.parse_args(argv)
-    return run(dry_run=args.dry_run)
+    if args.if_due is None:
+        return run(dry_run=args.dry_run)
+    return run_if_due(args.if_due, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
