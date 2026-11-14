@@ -29,6 +29,7 @@ POLICY_PATH = ROOT / "nix" / "dependency-policy.json"
 BATCH_SIZE = 200
 DEFAULT_TOP = 15
 MIB = 1024 * 1024
+STORE_DIR = "/nix/store"
 BUCKETS = ("own", "small", "target", "host")
 DEPENDENCY_BUCKETS = ("small", "target", "host")
 
@@ -53,6 +54,14 @@ check_nix_deps = load_check_module()
 # ---------------------------------------------------------------------------
 
 
+def store_path(path: str) -> str:
+    """Return the path in the full store form, with the store directory."""
+
+    if path.startswith("/"):
+        return path
+    return f"{STORE_DIR}/{path}"
+
+
 def parse_path_info(data: Any) -> dict[str, int]:
     """Return path -> narSize from either accepted nix path-info shape."""
 
@@ -63,7 +72,7 @@ def parse_path_info(data: Any) -> dict[str, int]:
             return
         if isinstance(size, bool) or not isinstance(size, int) or size < 0:
             return
-        sizes[path] = size
+        sizes[store_path(path)] = size
 
     if isinstance(data, dict):
         for key, value in data.items():
@@ -127,7 +136,7 @@ def output_paths(
     for name in sorted(outputs):
         output = outputs[name]
         if isinstance(output, dict) and output.get("path"):
-            paths.append(str(output["path"]))
+            paths.append(store_path(str(output["path"])))
     return paths
 
 
