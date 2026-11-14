@@ -167,7 +167,7 @@
       },
       "artifacts": {
         "expected_counts": {
-          "static_archives": 34,
+          "static_archives": 35,
           "standalone_objects": 24
         },
         "exact_static_archive_set": true,
@@ -180,6 +180,7 @@
           "lib/libQt6Concurrent.a",
           "lib/libQt6Core.a",
           "lib/libQt6DeviceDiscoverySupport.a",
+          "lib/libQt6EntryPoint.a",
           "lib/libQt6FbSupport.a",
           "lib/libQt6Gui.a",
           "lib/libQt6Network.a",
