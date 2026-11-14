@@ -563,6 +563,24 @@ def walk_graph(
 # ---------------------------------------------------------------------------
 
 
+def bucket_of(
+    view: PlatformView,
+    own_patterns: Sequence[re.Pattern[str]],
+    small_patterns: Sequence[re.Pattern[str]],
+    drv: str,
+) -> str:
+    """Return own, small, target or host for one local derivation."""
+
+    info = view.info(drv)
+    if any(pattern.search(info.matched) for pattern in own_patterns):
+        return "own"
+    if any(pattern.search(info.matched) for pattern in small_patterns):
+        return "small"
+    if view.matches_target(info.target_name):
+        return "target"
+    return "host"
+
+
 def classify(
     view: PlatformView,
     policy: Mapping[str, Any],
@@ -587,14 +605,7 @@ def classify(
 
     for drv in sorted(local):
         info = view.info(drv)
-        if any(pattern.search(info.matched) for pattern in own_patterns):
-            bucket = "own"
-        elif any(pattern.search(info.matched) for pattern in small_patterns):
-            bucket = "small"
-        elif view.matches_target(info.target_name):
-            bucket = "target"
-        else:
-            bucket = "host"
+        bucket = bucket_of(view, own_patterns, small_patterns, drv)
         counts[bucket] += 1
         if bucket != "host":
             continue
