@@ -1310,9 +1310,9 @@ python3 scripts/platform/check-nix-deps.py --platform windows --json build/nix-d
 `--json` は表示と同じ内容を JSON に書く。
 
 出力はプラットフォームごとに、手元構築の件数（own、small、target、host）、
-キャッシュの件数、host の違反、許可の警告、未使用の許可、判定不能、
+キャッシュの件数、host の違反、件数の超過、許可の警告、未使用の許可、判定不能、
 版の違反と警告を並べ、最後に`結果: 合格`または
-`結果: 不合格（host の違反 N 件、版の違反 M 件）`を出す。
+`結果: 不合格（host の違反 N 件、版の違反 M 件、件数の超過 K 件）`を出す。
 終了コードは合格 0、違反 1、取得・設定・ネットワーク・グラフの誤り 2。
 `--platform all` は 1 つのプラットフォームが失敗しても残りを検査し、最後に 2 で終わる。
 
@@ -1323,6 +1323,15 @@ python3 scripts/platform/check-nix-deps.py --platform windows --json build/nix-d
 派生物は警告として表示され、失敗にはならない。原因を特定したら`provisional`を外すか
 項目を削除する。対象側の派生物は`target_patterns`で数え、許可一覧には入れない。
 未使用の許可は出力に現れるため、不要になった項目は削除する。
+
+`local_build_limits`は、プラットフォームごとに、手元で構築する`target`（対象側）と
+`host`（構築機側）の派生物の件数の上限を持つ。無駄な手元構築が増えたことを検出するための
+値であり、`own`と`small`には上限を付けない。件数が上限を超えると`件数の超過`として
+表示し、終了コード1で失敗する。上限が書かれていないプラットフォームや種別は検査しない。
+上限を超えたときは、原則として依存を減らす。必要な増加なら、
+`docs/architecture/DEPENDENCIES.md`に根拠を書き、`docs/perf/DECISIONS.md`に理由を1行
+書いてから、`nix/dependency-policy.json`の上限を上げる。依存を減らして件数が下がった
+ときは、上限を新しい値に下げる。
 
 検査の単体試験は次のコマンドで動かす。
 
