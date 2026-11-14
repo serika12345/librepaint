@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+# Guard every nix call: record it and reject path: flakes of this repository.
+#
+# This file is placed first on PATH so that "nix" resolves here.  It finds the
+# real nix further down PATH and passes every argument through unchanged.
+
+set -u
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repo_root="$(cd -- "$script_dir/../.." && pwd -P)"
+if [[ -n "${LIBREPAINT_REPO_ROOT:-}" ]]; then
+    repo_root="$(cd -- "$LIBREPAINT_REPO_ROOT" 2>/dev/null && pwd -P || printf '%s' "$LIBREPAINT_REPO_ROOT")"
+fi
+state_root="${LIBREPAINT_STATE_ROOT:-$HOME/.local/state/librepaint}"
+log_file="$state_root/nix-calls.log"
+log_limit=20971520
+
+real_nix=""
+IFS=: read -r -a path_entries <<<"${PATH:-}"
+for entry in "${path_entries[@]}"; do
+    [[ -n "$entry" ]] || continue
+    entry_dir="$(cd -- "$entry" 2>/dev/null && pwd -P)" || continue
+    [[ "$entry_dir" == "$script_dir" ]] && continue
+    if [[ -x "$entry_dir/nix" && ! -d "$entry_dir/nix" ]]; then
+        real_nix="$entry_dir/nix"
+        break
+    fi
+done
+
+log_call() {
+    local timestamp epoch parent_line pid cmd ppid stat_line depth
+    timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    epoch="$(date +%s)"
+    parent_line=""
+    pid="$PPID"
+    depth=0
+    while [[ -n "$pid" && "$pid" -gt 0 && "$depth" -lt 6 ]]; do
+        cmd=""
+        if [[ -r "/proc/$pid/cmdline" ]]; then
+            cmd="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)"
+        fi
+        if [[ -z "$cmd" ]]; then
+            cmd="$(ps -o args= -p "$pid" 2>/dev/null)"
+        fi
+        cmd="${cmd% }"
+        parent_line+="${parent_line:+ <- }$pid:$cmd"
+        ppid=""
+        if [[ -r "/proc/$pid/stat" ]]; then
+            stat_line="$(cat "/proc/$pid/stat" 2>/dev/null)"
+            ppid="$(sed -E 's/^[0-9]+ \(.*\) . ([0-9]+) .*/\1/' <<<"$stat_line")"
+        fi
+        if [[ -z "$ppid" || "$ppid" == "$stat_line" ]]; then
+            ppid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')"
+        fi
+        pid="$ppid"
+        depth=$((depth + 1))
+    done
+    mkdir -p -- "$state_root" 2>/dev/null || true
+    if [[ -f "$log_file" ]]; then
+        local size
+        size="$(wc -c <"$log_file" 2>/dev/null || echo 0)"
+        if [[ "$size" -gt "$log_limit" ]]; then
+            mv -f -- "$log_file" "$log_file.1" 2>/dev/null || true
+        fi
+    fi
+    {
+        printf 'time=%s epoch=%s cwd=%s argv=' "$timestamp" "$epoch" "$PWD"
+        printf '%q ' "$@"
+        printf 'parents=%s\n' "$parent_line"
+    } >>"$log_file" 2>/dev/null || true
+}
+
+log_call "$@"
+
+if [[ -z "$real_nix" ]]; then
+    echo "nix-guard: cannot find the real nix on PATH (excluding $script_dir)" >&2
+    exit 127
+fi
+
+worktree_roots=("$repo_root")
+if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    while IFS= read -r line; do
+        if [[ "$line" == worktree\ * ]]; then
+            worktree_roots+=("${line#worktree }")
+        fi
+    done < <(git -C "$repo_root" worktree list --porcelain 2>/dev/null)
+fi
+
+normalize() {
+    realpath -m -- "$1" 2>/dev/null || printf '%s\n' "$1"
+}
+
+path_within() {
+    local target="$1" base="$2"
+    [[ "$base" == "/" ]] && return 0
+    [[ "$target" == "$base" || "$target" == "$base"/* ]]
+}
+
+reject() {
+    echo "nix-guard: $1" >&2
+    echo "nix-guard: $2" >&2
+    echo "nix-guard: set LIBREPAINT_NIX_GUARD=off only to run a command that has been reviewed." >&2
+    exit 2
+}
+
+if [[ "${LIBREPAINT_NIX_GUARD:-}" != "off" ]]; then
+    for argument in "$@"; do
+        case "$argument" in
+            path:*)
+                reference="${argument#path:}"
+                reference="${reference%%[#?]*}"
+                [[ -n "$reference" ]] || reference="."
+                reference_path="$(normalize "$reference")"
+                for root in "${worktree_roots[@]}"; do
+                    root_path="$(normalize "$root")"
+                    if path_within "$reference_path" "$root_path" \
+                        || path_within "$root_path" "$reference_path"; then
+                        reject "refusing the path: flake reference $argument" \
+                            "a path: flake copies the whole repository tree, including .git, into the Nix store; use .#<output> in a Git worktree instead."
+                    fi
+                done
+                ;;
+        esac
+    done
+
+    cwd="$(pwd -P)"
+    under_repository=0
+    for root in "${worktree_roots[@]}"; do
+        if path_within "$cwd" "$(normalize "$root")"; then
+            under_repository=1
+            break
+        fi
+    done
+    if [[ "$under_repository" == "1" ]] \
+        && ! git -C "$cwd" rev-parse --show-toplevel >/dev/null 2>&1; then
+        for argument in "$@"; do
+            case "$argument" in
+                .|.'#'*|./*|/*|path:*|git+file:*)
+                    reject "Git does not recognize $cwd as a worktree, and $argument is a flake reference" \
+                        "Nix treats such a reference as path: and copies the whole tree; fix the Git ownership or safe.directory setting, or run from a worktree."
+                    ;;
+            esac
+        done
+    fi
+fi
+
+exec "$real_nix" "$@"

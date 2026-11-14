@@ -15,6 +15,7 @@ shift 4
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_root="$(cd -- "$script_dir/../.." && pwd -P)"
+export PATH="$repo_root/scripts/nix-guard:$PATH"
 case "$platform" in
     android-x86_64)
         configuration_root="$repo_root/nix/android"

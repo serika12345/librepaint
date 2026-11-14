@@ -33,6 +33,7 @@ EOF
 }
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+export PATH="$repo_root/scripts/nix-guard:$PATH"
 cd "$repo_root"
 platform="${1:-}"
 operation="${2:-}"
