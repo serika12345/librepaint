@@ -158,6 +158,28 @@ nix.settings.max-free = "300GiB";
 scripts/ensure-state-links.py --migrate
 ```
 
+## 外部のバイナリキャッシュに載せる前の確認
+
+`flake.nix`と`nix/`は、実験用の構築オプション、一時的な緩和、実験用の切り替えを残さない。
+診断は評価時の上書き（`nix build --impure --expr`の`overrideAttrs`）と`--keep-failed`で行い、
+リポジトリーには入れない。移行のための一時的な処理は、削除条件をコメントに書く。
+外部のバイナリキャッシュには、次の確認を終えたFlakeで構築し直した派生物だけを載せる。
+
+- `python3 scripts/check-flake-hygiene.py`が通る。この検査は、診断用の構築オプション
+  （`ninjaFlags`、`makeFlags`と`buildFlags`の`-k`、`NIX_DEBUG`、`enableDebugging`、
+  `separateDebugInfo`）と、目印のコメント（`EXPERIMENT`、`XXX`、`TEMP`、`DEBUG ONLY`）を
+  `flake.nix`と`nix/**/*.nix`から列挙する。理由のコメント（`nixpkgs`、`Issue #`、
+  `remove when`、`drop when`、`removal`）が同じ行か直前の行にある既存の行は対象にしない。
+- Linux AppImageの監査にあるQt WebEngineの禁止の緩和
+  （`scripts/platform/audit-linux-appimage.py`、配布物の確定まで）を、許可リスト方式に戻す。
+- `nix/dependency-policy.json`の`provisional`の項目（`python3-3.11`、`gradle`、
+  `ncurses-abi5-compat`）を調べ、理由を確定するか、不要にする。
+- Windowsのフォーク版の切り替え（`useQtFork`、`flake.nix`の`windowsPackages`）を、
+  主指標の確認（完了条件4）の後に除く。
+- `nix/pyqt6-overrides.nix`と、darwinのPyQt6の修正を、nixpkgsがPyQt6 6.12.0と
+  その修正を取り込んだ後に除く。
+- 載せる派生物は、上の確認の後のFlakeで構築し直したものだけにする。
+
 ## 作業ツリーの作成と片付け
 
 作業ツリーごとに`.direnv`と`build/nix-profiles`がNixのGCルートを作り、閉包を固定する。
