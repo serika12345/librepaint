@@ -99,8 +99,14 @@ loginctl enable-linger $USER
 
 ログは`$LIBREPAINT_STATE_ROOT/nix-calls.log`（`nix`の呼び出し）と
 `$LIBREPAINT_STATE_ROOT/store-guard.log`（初めて見た複製、削除、空きの警告）に置く。
+`.envrc`も、`direnv`の読み込みから1時間ごとに`scripts/store-guard.py --if-due 3600`を
+バックグラウンドで実行する。
 
 ### macOSでの有効化
+
+macOSは、バックグラウンドのジョブが`~/Documents`を読めない（TCC）。導入するには、
+`python3`にフルディスクアクセスを許可する必要がある（利用者が行うシステムの設定）。
+許可しない場合は、direnvの読み込みから1時間ごとに動く。
 
 macOSにはsystemdがないため、`scripts/launchd/dev.librepaint.store-guard.plist`を
 `sed`で書き換えて`~/Library/LaunchAgents/`へ置き、`launchctl`で登録する。
