@@ -8,6 +8,16 @@
 #include <KoTestConfig.h>
 #include <KisSynchronizedConnection.h>
 
+// Qt 6.12 removed this macro from <QtTest/qtest_widgets.h>; the test mains
+// below keep using it.
+#ifndef QTEST_DISABLE_KEYPAD_NAVIGATION
+#  ifdef QT_KEYPAD_NAVIGATION
+#    define QTEST_DISABLE_KEYPAD_NAVIGATION QApplication::setNavigationMode(Qt::NavigationModeNone);
+#  else
+#    define QTEST_DISABLE_KEYPAD_NAVIGATION
+#  endif
+#endif
+
 #define SIMPLE_MAIN_IMPL(TestObject) \
     qputenv("LANGUAGE", "en"); \
     QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates)); \
