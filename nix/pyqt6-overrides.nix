@@ -50,6 +50,12 @@ self: super: {
         env = (old.env or { }) // {
           NIX_CFLAGS_COMPILE = toString [ (old.env.NIX_CFLAGS_COMPILE or "") "-std=gnu++17" ];
         };
+        # Darwin needs <QtCore/qglobal.h> for moc to see Q_OBJECT in the rangemodel
+        # header (nixpkgs 90b113326f); drop this when nixpkgs' PyQt6 6.12.0 has it.
+        postPatch = (old.postPatch or "") + lib.optionalString super.pyqt6.stdenv.hostPlatform.isDarwin ''
+          substituteInPlace qpy/QtCore/qpycore_qrangemodel.h \
+            --replace-fail '#include <qglobal.h>' '#include <QtCore/qglobal.h>'
+        '';
         # 6.12.0 no longer ships the two enumeration values this patch removes.
         patches = lib.filter (
           patch:
