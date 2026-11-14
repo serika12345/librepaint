@@ -8,6 +8,7 @@ deleted when no other path refers to them.  The script also warns through
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import subprocess
@@ -19,6 +20,7 @@ STORE = "/nix/store"
 MIN_CANDIDATE_BYTES = 1 * GIB
 MIN_FREE_GIB = 100
 WARNING_INTERVAL_SECONDS = 3600
+WORKTREE_CHECK_INTERVAL_SECONDS = 24 * 60 * 60
 
 
 class StoreError(Exception):
@@ -49,6 +51,19 @@ def nix_calls_log():
 
 def oc_sh():
     return os.path.join(repository_root(), "build", "agent-loop", "oc.sh")
+
+
+def load_worktree_gc():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "worktree-gc.py")
+    spec = importlib.util.spec_from_file_location("worktree_gc", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def worktree_listing(root):
+    environ = {"LIBREPAINT_STATE_ROOT": state_root()}
+    return load_worktree_gc().classify(root, environ=environ)
 
 
 def now():
@@ -122,6 +137,7 @@ def load_state():
     data.setdefault("known", {})
     data.setdefault("last_warning", 0)
     data.setdefault("delete_forbidden", False)
+    data.setdefault("last_worktree_check", 0)
     return data
 
 
@@ -201,6 +217,62 @@ def delete_eligible(path):
     if not os.path.lexists(os.path.join(path, "flake.nix")):
         return False
     return any(os.path.lexists(os.path.join(path, name)) for name in ("build", ".cache", "po"))
+
+
+def worktree_message(report):
+    actionable = [
+        entry
+        for entry in report.get("entries", [])
+        if entry.get("category") in ("prunable", "unregistered", "eligible")
+    ]
+    if not actionable:
+        return ""
+    parts = []
+    for category in ("prunable", "unregistered", "eligible"):
+        paths = [entry["path"] for entry in actionable if entry["category"] == category]
+        if paths:
+            parts.append("%s %d件 (%s)" % (category, len(paths), ", ".join(paths)))
+    return "確認: 放置の作業ツリーがある（%s）。scripts/worktree-gc.py --apply で片付ける" % "、".join(parts)
+
+
+def worktree_log_record(report):
+    grouped = {}
+    for entry in report.get("entries", []):
+        grouped.setdefault(entry["category"], []).append(entry["path"])
+    return {
+        "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+        "worktrees": {category: sorted(paths) for category, paths in sorted(grouped.items())},
+    }
+
+
+def check_worktrees(state):
+    if now() - float(state.get("last_worktree_check") or 0) < WORKTREE_CHECK_INTERVAL_SECONDS:
+        return
+    try:
+        report = worktree_listing(repository_root())
+    except Exception as error:
+        append_log(
+            {
+                "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+                "error": "cannot list worktrees: %s" % error,
+            }
+        )
+        return
+
+    message = worktree_message(report)
+    if not message:
+        state["last_worktree_check"] = now()
+        return
+    append_log(worktree_log_record(report))
+    if not send_event(message):
+        append_log(
+            {
+                "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+                "warning": message,
+                "delivery": "failed",
+            }
+        )
+    state["last_worktree_check"] = now()
 
 
 def run(dry_run=False):
@@ -299,6 +371,7 @@ def run(dry_run=False):
                 append_log({"time": stamp, "warning": message, "delivery": "failed"})
 
     if not dry_run:
+        check_worktrees(state)
         save_state(state)
 
     if dry_run:
