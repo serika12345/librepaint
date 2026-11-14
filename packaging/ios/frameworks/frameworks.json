@@ -1030,14 +1030,14 @@
           "KF6::KF6ColorScheme_resources_1"
         ],
         "install_manifest": {
-          "relative_path_count": 62,
-          "sorted_relative_path_sha256": "4afaca87e81a34ae345544a6561ed37eeeb9defcbe66ee5c49b32208374ecbbc"
+          "relative_path_count": 63,
+          "sorted_relative_path_sha256": "f76691b892aae966c3a79a1456cb02a670589e7a7f44aa70f045af9074b1fe07"
         },
         "translation_inventory": {
-          "relative_path_count": 45,
-          "sorted_relative_path_sha256": "f4691492a53e9e26862872387bab991d588188249d67a96113eff922bf2369d0",
+          "relative_path_count": 46,
+          "sorted_relative_path_sha256": "b9b8b2dd23843ef581a87107241984d4b5edb865ff0e943a109738f2b6618613",
           "file_counts_by_extension": {
-            "mo": 45
+            "mo": 46
           }
         }
       }
