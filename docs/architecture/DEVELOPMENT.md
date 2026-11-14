@@ -100,6 +100,28 @@ loginctl enable-linger $USER
 ログは`$LIBREPAINT_STATE_ROOT/nix-calls.log`（`nix`の呼び出し）と
 `$LIBREPAINT_STATE_ROOT/store-guard.log`（初めて見た複製、削除、空きの警告）に置く。
 
+### macOSでの有効化
+
+macOSにはsystemdがないため、`scripts/launchd/dev.librepaint.store-guard.plist`を
+`sed`で書き換えて`~/Library/LaunchAgents/`へ置き、`launchctl`で登録する。
+plistの`@REPO@`はリポジトリーの絶対パス、`@HOME@`はホームディレクトリーに置き換える。
+
+```sh
+mkdir -p ~/Library/LaunchAgents "$HOME/.local/state/librepaint"
+sed -e "s|@REPO@|$PWD|g" -e "s|@HOME@|$HOME|g" \
+  scripts/launchd/dev.librepaint.store-guard.plist \
+  > "$HOME/Library/LaunchAgents/dev.librepaint.store-guard.plist"
+launchctl bootstrap gui/$(id -u) "$HOME/Library/LaunchAgents/dev.librepaint.store-guard.plist"
+```
+
+`StartInterval`は600秒なので、10分ごとに`scripts/store-guard.py`を実行する。
+標準出力と標準エラーは`$LIBREPAINT_STATE_ROOT/store-guard.out`へ書く。
+解除するときは次のとおり。
+
+```sh
+launchctl bootout gui/$(id -u)/dev.librepaint.store-guard
+```
+
 ### 安全な書き方
 
 `builtins.getFlake`へはリモートの参照だけを渡す。作業ツリーの評価には

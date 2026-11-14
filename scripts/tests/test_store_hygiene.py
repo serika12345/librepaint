@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import plistlib
 import shutil
 import subprocess
 import sys
@@ -358,6 +359,44 @@ class StoreGuardTests(unittest.TestCase):
         self.assertEqual(len(self.events), 1)
         self.assertIn("100GiB", self.events[0])
         self.assertIn("15% of the 666 GiB volume", self.events[0])
+
+
+class MacOSCompatibilityTests(unittest.TestCase):
+    def test_process_table_uses_ps_keywords_available_on_macos(self):
+        with mock.patch.object(
+            store_guard, "run_command", return_value=fake_result(0, "1 0 01:00 ps\n")
+        ) as command:
+            self.assertEqual(store_guard.process_table(), "1 0 01:00 ps\n")
+        self.assertEqual(command.call_args[0][0], ["ps", "-eo", "pid,ppid,etime,args"])
+
+    def test_missing_proc_directory_yields_no_processes(self):
+        self.assertEqual(ensure_links.proc_cwd_entries("/nonexistent-proc"), [])
+
+
+class LaunchdTemplateTests(unittest.TestCase):
+    def template(self):
+        path = os.path.join(SCRIPTS, "launchd", "dev.librepaint.store-guard.plist")
+        with open(path, "rb") as handle:
+            return plistlib.load(handle)
+
+    def test_template_runs_store_guard_every_ten_minutes(self):
+        data = self.template()
+        self.assertEqual(data["Label"], "dev.librepaint.store-guard")
+        self.assertEqual(data["StartInterval"], 600)
+        self.assertTrue(data["RunAtLoad"])
+        self.assertEqual(
+            data["ProgramArguments"],
+            ["/usr/bin/env", "python3", "@REPO@/scripts/store-guard.py"],
+        )
+
+    def test_template_defines_environment_and_output_paths(self):
+        data = self.template()
+        environment = data["EnvironmentVariables"]
+        self.assertEqual(environment["LIBREPAINT_STATE_ROOT"], "@HOME@/.local/state/librepaint")
+        self.assertIn("/nix/var/nix/profiles/default/bin", environment["PATH"].split(":"))
+        self.assertIn("/usr/bin", environment["PATH"].split(":"))
+        self.assertEqual(data["StandardOutPath"], "@HOME@/.local/state/librepaint/store-guard.out")
+        self.assertEqual(data["StandardErrorPath"], "@HOME@/.local/state/librepaint/store-guard.out")
 
 
 class NixGuardTests(unittest.TestCase):
