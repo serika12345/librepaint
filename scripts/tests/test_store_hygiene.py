@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 SCRIPTS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(SCRIPTS)
 GIB = 1024**3
 
 
@@ -170,6 +171,18 @@ class CheckStoreHygieneTests(unittest.TestCase):
 
 def fake_result(returncode=0, stdout="", stderr=""):
     return SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+
+
+class FlakeSourceTests(unittest.TestCase):
+    def test_outputs_reject_path_evaluation(self):
+        with open(os.path.join(ROOT, "flake.nix"), "r", encoding="utf-8") as handle:
+            source = handle.read()
+        outputs = source.split("outputs", 1)[1]
+        self.assertIn(
+            "assert (!(builtins.pathExists ./.git || builtins.pathExists ./build))",
+            outputs,
+        )
+        self.assertIn("must be evaluated as a Git tree", outputs)
 
 
 class StoreGuardTests(unittest.TestCase):

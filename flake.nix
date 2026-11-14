@@ -11,6 +11,7 @@
 
   outputs =
     inputs@{ nixpkgs, ... }:
+    assert (!(builtins.pathExists ./.git || builtins.pathExists ./build)) || throw "LibrePaint must be evaluated as a Git tree (.#… in a worktree, or git+file://…), not as a path: flake or a getFlake of a plain path: that copies .git, build/ and .cache/ into the Nix store. Use builtins.getFlake \"git+file://$PWD\" or nix eval .#attr.";
     let
       system = "aarch64-darwin";
       # The KDE Frameworks are built without their unused Python bindings.
