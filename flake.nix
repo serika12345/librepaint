@@ -507,6 +507,7 @@
               "scripts/platform/check-release-assets"
               "scripts/platform/clean-appimage-rpaths.py"
               "scripts/platform/enter-incremental-environment"
+              "scripts/platform/report-build-sizes.py"
               "scripts/platform/sign-android-draft-release"
               "scripts/platform/verify-android-release-apk.py"
               "scripts/run-shared-test-env"
