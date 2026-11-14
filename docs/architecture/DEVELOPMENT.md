@@ -128,6 +128,52 @@ nix.settings.max-free = "300GiB";
 scripts/ensure-state-links.py --migrate
 ```
 
+## 作業ツリーの作成と片付け
+
+作業ツリーごとに`.direnv`と`build/nix-profiles`がNixのGCルートを作り、閉包を固定する。
+作成だけして片付けないと、状態ディレクトリーと閉包が残り、ストアが肥大化する。
+リポジトリーの中に作った作業ツリーは、`path:`の複製にも巻き込まれる。
+
+作成には`scripts/new-worktree.py`を使う。置き場は`LIBREPAINT_WORKTREE_ROOT`
+（既定`~/Documents/librepaint-wt`）の下で、リポジトリーの外になる。
+
+```sh
+scripts/new-worktree.py NAME --purpose "作業の目的" --new-branch NAME
+scripts/new-worktree.py NAME --purpose "作業の目的" --branch BRANCH
+scripts/new-worktree.py NAME --purpose "作業の目的" --detach REF
+```
+
+`--owner claude|opencode|user`で作成者を記録する。作成した作業ツリーでは
+`build`、`.cache`、`logs`が状態ディレクトリーへのシンボリックリンクになり、
+台帳`$LIBREPAINT_STATE_ROOT/worktrees.json`
+（既定`~/.local/state/librepaint/worktrees.json`）に名前、目的、作成者、
+枝または参照、作成時刻が入る。
+
+すでにある作業ツリーは移動せずに登録する。
+
+```sh
+scripts/new-worktree.py --adopt PATH --purpose "作業の目的"
+```
+
+片付けの一覧は`scripts/worktree-gc.py`で出す。既定は一覧だけで、7日より新しい
+最終コミットの作業ツリーは対象にしない。
+
+```sh
+scripts/worktree-gc.py
+scripts/worktree-gc.py --days 14
+scripts/worktree-gc.py --apply
+```
+
+一覧は`prunable`（ディレクトリーがない）、`unregistered`（台帳にない）、
+`inside-repo`（リポジトリーの中）、`eligible`（片付けてよい）、
+`needs-review`（変更、未push、新しいコミット、利用中のプロセスなどがある）に分かれる。
+`--apply`は`prunable`と`eligible`だけを処理し、作業ツリー、台帳の項目、
+状態ディレクトリーを削除する。`unregistered`と`inside-repo`は削除しない。
+
+`scripts/check-store-hygiene.py`は`prunable`、`inside-repo`、`unregistered`を違反にし、
+`eligible`と台帳の4件超を警告にする。`scripts/store-guard.py`は1日1回一覧を取り、
+片付けられる作業ツリーがあれば`oc.sh event`で知らせる。自動では削除しない。
+
 ## 編集と検証
 
 ### 増分構築

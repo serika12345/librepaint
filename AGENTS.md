@@ -74,6 +74,11 @@ and logs every nix call; `scripts/check-store-hygiene.py` runs in
 `verify`, `verify-quick` and the incremental builds; `scripts/store-guard.py`
 (systemd timer) logs and removes leaked source copies.
 
+Create worktrees only with `scripts/new-worktree.py` (never `git worktree add`
+directly, never inside the repository), and remove them at the end of the task
+with `scripts/worktree-gc.py --apply`; specs and agent instructions must not
+contain `git worktree add`.
+
 ## Implementation
 
 1. Read the relevant code, tests, CMake target, and the CHARTER clause.
