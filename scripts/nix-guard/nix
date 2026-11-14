@@ -103,7 +103,44 @@ reject() {
     exit 2
 }
 
+remote_getflake_prefixes=(
+    '"git+file:'
+    '"github:'
+    '"gitlab:'
+    '"git+https:'
+    '"git+ssh:'
+    '"tarball+https:'
+    '"https:'
+    '"http:'
+)
+
+getflake_argument_is_remote() {
+    local remainder="$1" prefix
+    remainder="${remainder#"${remainder%%[![:space:]]*}"}"
+    if [[ "$remainder" == "("* ]]; then
+        remainder="${remainder:1}"
+        remainder="${remainder#"${remainder%%[![:space:]]*}"}"
+    fi
+    for prefix in "${remote_getflake_prefixes[@]}"; do
+        if [[ "$remainder" == "$prefix"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 if [[ "${LIBREPAINT_NIX_GUARD:-}" != "off" ]]; then
+    for argument in "$@"; do
+        rest="$argument"
+        while [[ "$rest" == *getFlake* ]]; do
+            rest="${rest#*getFlake}"
+            if ! getflake_argument_is_remote "$rest"; then
+                reject "refusing a getFlake call that does not take a remote flake reference: $argument" \
+                    "builtins.getFlake with a plain path, a path: reference or a variable copies the whole repository, including .git, into the Nix store; write builtins.getFlake \"git+file://\$PWD\" or nix eval .#<output> instead."
+            fi
+        done
+    done
+
     for argument in "$@"; do
         case "$argument" in
             path:*)
