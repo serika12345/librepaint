@@ -466,11 +466,17 @@
               relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
               topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
             in
+            # Repository maintenance tooling is not read by the build, so
+            # excluding it keeps tooling-only commits from invalidating the
+            # application compilation cache.
             !(builtins.elem topLevel [
               ".cache"
               ".direnv"
+              ".envrc"
               ".git"
+              ".gitattributes"
               ".github"
+              ".gitignore"
               ".gitlab"
               "AGENTS.md"
               "build-ios"
@@ -487,18 +493,40 @@
               "packaging/macos/macos-bundle-launcher.c"
               "packaging/macos/macos-deploy.py"
               "packaging/macos/qt.conf"
+              "scripts/build-incremental"
+              "scripts/check-store-hygiene.py"
+              "scripts/ensure-state-links.py"
+              "scripts/new-worktree.py"
               "scripts/platform/audit-linux-appimage.py"
               "scripts/platform/audit-macos-bundle.py"
               "scripts/platform/audit-windows-package.py"
+              "scripts/platform/build-android-incremental"
+              "scripts/platform/build-windows-incremental"
               "scripts/platform/check-macos-release-dmg"
+              "scripts/platform/check-nix-deps.py"
               "scripts/platform/check-release-assets"
+              "scripts/platform/clean-appimage-rpaths.py"
+              "scripts/platform/enter-incremental-environment"
               "scripts/platform/sign-android-draft-release"
               "scripts/platform/verify-android-release-apk.py"
-              "scripts/tests/test_android_release_apk.py"
-              "scripts/tests/test_linux_release_appimage.py"
-              "scripts/tests/test_macos_release_bundle.py"
-              "scripts/tests/test_windows_release_package.py"
+              "scripts/run-shared-test-env"
+              "scripts/run-test"
+              "scripts/store-guard.py"
+              "scripts/verify"
+              "scripts/verify-quick"
+              "scripts/worktree-gc.py"
             ])
+            && !(builtins.any
+              (directory: relativePath == directory
+                || packageSet.lib.hasPrefix "${directory}/" relativePath)
+              [
+                "scripts/docs"
+                "scripts/launchd"
+                "scripts/nix-guard"
+                "scripts/perf"
+                "scripts/systemd"
+                "scripts/tests"
+              ])
             && !(excludeAndroidPackage && (
               relativePath == "packaging/android/apk"
               || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
