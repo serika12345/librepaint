@@ -16,8 +16,17 @@ import sys
 import tempfile
 
 
-NIX_HASH = rb"[0-9abcdfghijklmnpqrsvwxyz]{32}"
+NIX_HASH_CHARS = rb"[0-9abcdfghijklmnpqrsvwxyz]"
+NIX_HASH = NIX_HASH_CHARS + rb"{32}"
 STORE_REFERENCE_PATTERN = re.compile(rb"/nix/store/(" + NIX_HASH + rb")-")
+# Qt keeps some QLibraryInfo paths, such as the translation directory, as
+# UTF-16LE, so the same store reference also occurs with a zero byte after
+# every character.
+STORE_REFERENCE_UTF16LE_PATTERN = re.compile(
+    rb"/\x00n\x00i\x00x\x00/\x00s\x00t\x00o\x00r\x00e\x00/\x00"
+    rb"((?:" + NIX_HASH_CHARS + rb"\x00){32})"
+    rb"-\x00"
+)
 NEEDED_PATTERN = re.compile(r"Shared library: \[([^]]+)\]")
 RPATH_PATTERN = re.compile(r"Library (?:rpath|runpath): \[([^]]*)\]")
 INTERPRETER_PATTERN = re.compile(r"Requesting program interpreter: ([^]]+)\]")
@@ -275,7 +284,11 @@ def _referenced_store_hashes(path: Path) -> set[bytes]:
         while chunk := stream.read(1024 * 1024):
             data = overlap + chunk
             references.update(STORE_REFERENCE_PATTERN.findall(data))
-            overlap = data[-80:]
+            references.update(
+                match.replace(b"\x00", b"")
+                for match in STORE_REFERENCE_UTF16LE_PATTERN.findall(data)
+            )
+            overlap = data[-100:]
     return references
 
 

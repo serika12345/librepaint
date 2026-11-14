@@ -150,6 +150,32 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             with self.assertRaisesRegex(audit.AuditError, "missing Nix store references"):
                 self.inspect(root)
 
+    def test_utf16le_store_reference_connects_runtime_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            translations_hash = "8" * 32
+            translations_item = f"{translations_hash}-qttranslations-6.12.0"
+            translations = root / "nix/store" / translations_item / "translations"
+            translations.mkdir(parents=True)
+            (translations / "qtbase_en.qm").write_bytes(b"translation\n")
+            executable = root / "nix/store" / APP_ITEM / "bin/krita"
+            with executable.open("ab") as stream:
+                stream.write(
+                    f"/nix/store/{translations_item}/translations".encode("utf-16-le")
+                )
+            report = self.inspect(root)
+        self.assertEqual(report.store_items, 3)
+
+    def test_missing_utf16le_store_reference_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            missing_hash = "9" * 32
+            (root / "nix/store" / APP_ITEM / "reference.bin").write_bytes(
+                f"/nix/store/{missing_hash}-missing/share/data".encode("utf-16-le")
+            )
+            with self.assertRaisesRegex(audit.AuditError, "missing Nix store references"):
+                self.inspect(root)
+
     def test_unreferenced_store_item_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
