@@ -24,7 +24,6 @@ K_FLAG = re.compile(r"(?<![A-Za-z0-9_-])-k(?![A-Za-z0-9_-])")
 BUILD_OPTION_PATTERNS = (
     ("NIX_DEBUG", re.compile(r"\bNIX_DEBUG\b")),
     ("enableDebugging", re.compile(r"\benableDebugging\b")),
-    ("dontStrip = true", re.compile(r"\bdontStrip\s*=\s*true\b")),
     ("separateDebugInfo", re.compile(r"\bseparateDebugInfo\b")),
 )
 
@@ -32,7 +31,6 @@ RULES = (
     "buildOptions: -k in ninjaFlags, makeFlags, or buildFlags",
     "buildOptions: NIX_DEBUG",
     "buildOptions: enableDebugging",
-    "buildOptions: dontStrip = true",
     "buildOptions: separateDebugInfo",
     "markers: EXPERIMENT",
     "markers: XXX",
