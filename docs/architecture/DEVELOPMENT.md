@@ -930,10 +930,11 @@ systemctl --user list-units "q*" "librepaint-*" "l1-*" "l2-*" "win-*" --no-legen
 構成指紋にはQtの定義、CMakeフラグ、ソース準備が含まれるため、`nix/windows`を変えたときは
 新しい木が作られる。配布用のZIPは`nix build .#librepaint-windows-upstream-qt-archive`で作る。
 
-Q4（Qtのフォークをやめる）の準備として、正式版Qt 6.11.3で構築する別の出力を持つ。
-Qtの定義はLinuxとmacOSと同じ`nix/qt/overlay.nix`を使い、MinGWの交差構築だけを
-`nix/windows/krita.nix`の`useQtFork = false`で切り替える。フォーク版の出力と
-キャッシュは変えない。
+Q4（Qtのフォークをやめる）の準備として、正式版Qt 6.12.0（nixpkgsの`qt6`。Linux、
+macOS、Android、iOSと同じ版）で構築する別の出力を持つ。Qtの定義は、
+`nix/windows/krita.nix`の`qt`（nixpkgsの`qt6Packages`のMinGW交差構築）をそのまま使い、
+`useQtFork = false`で、フォーク版（`dimula73/qtbase`の`for-krita/6.11.3`）の差し替えを
+外す。フォーク版の出力とキャッシュは変えない。
 
 ```sh
 nix build .#windows-upstream-qt-dependencies --no-link

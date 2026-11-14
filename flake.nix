@@ -576,9 +576,9 @@
         # of nix/windows is the official Qt.
         useQtFork = true;
       };
-      # Q4 (removing the Qt fork) uses official Qt 6.11.3 from the shared
-      # overlay.  Keep it a separate package set so the fork build and its
-      # cached dependencies stay untouched.
+      # Q4 (removing the Qt fork) uses the official Qt 6.12.0 from nixpkgs.
+      # Keep it a separate package set so the fork build and its cached
+      # dependencies stay untouched.
       windowsUpstreamQtPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         hostPkgs = linuxPkgs;
