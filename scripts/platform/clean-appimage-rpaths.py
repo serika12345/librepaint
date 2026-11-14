@@ -51,16 +51,16 @@ def write_rpath(path: Path, entries: list[str]) -> None:
 
 
 def drop_erased_markers(entries: list[str]) -> list[str]:
-    retained = [
+    """Drop erased markers; an RPATH of markers alone becomes empty.
+
+    write_rpath removes an empty RPATH entirely, so the file keeps no
+    empty RPATH entry.
+    """
+    return [
         entry
         for entry in entries
         if not entry.startswith(ERASED_MARKER_PREFIX)
     ]
-    if not retained:
-        raise ValueError(
-            "removing erased markers would hide an empty RPATH entry"
-        )
-    return retained
 
 
 def absolutise_origin_entries(entries: list[str]) -> list[str]:

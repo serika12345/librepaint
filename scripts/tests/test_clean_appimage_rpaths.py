@@ -177,13 +177,14 @@ class CleanAppImageRpathsTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.current_rpath(library), EXTERNAL_RPATH)
 
-    def test_erased_marker_without_remaining_entry_fails(self):
+    def test_erased_markers_only_rpath_is_removed(self):
         library = self.elf(self.store / f"{HASH}-libidn2-2.3.8/lib/libidn2.so.0.4.0")
         self.set_rpath(library, f"/nix/store/{ERASED_HASH}-libidn2-2.3.8/lib:")
         self.elf(self.store / OCIO_ITEM / OCIO_LIB)
         result = self.run_script()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("empty RPATH entry", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"--remove-rpath {library}", self.calls())
+        self.assertFalse(self.current_rpath(library))
 
     def test_non_elf_and_hidden_files(self):
         directory = self.store / OCIO_ITEM / "lib"
