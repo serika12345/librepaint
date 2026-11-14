@@ -12,7 +12,9 @@ import os
 import sys
 
 MAX_APPARENT_BYTES = 8 * 1024**3
-DEFAULT_MIN_FREE_GIB = 100
+MIN_FREE_GIB_MAX = 100
+MIN_FREE_GIB_FLOOR = 30
+MIN_FREE_GIB_FRACTION = 0.15
 NIX_STORE = "/nix"
 GIB = 1024**3
 
@@ -132,7 +134,29 @@ def free_gib(path=NIX_STORE):
     return stats.f_bavail * stats.f_frsize / GIB
 
 
-def check(root, min_free_gib=DEFAULT_MIN_FREE_GIB, skip_free=False):
+def volume_gib(path=NIX_STORE):
+    stats = os.statvfs(path)
+    return stats.f_blocks * stats.f_frsize / GIB
+
+
+def minimum_free_gib(volume):
+    """Smallest allowed free space, in GiB, for a volume of ``volume`` GiB."""
+    scaled = int(volume * MIN_FREE_GIB_FRACTION)
+    return min(MIN_FREE_GIB_MAX, max(MIN_FREE_GIB_FLOOR, scaled))
+
+
+def free_space_limit(path=NIX_STORE, min_free_gib=None):
+    """Return the applied free-space limit in GiB and the text of its basis."""
+    if min_free_gib is not None:
+        return min_free_gib, "--min-free-gib"
+    volume = volume_gib(path)
+    return minimum_free_gib(volume), "%d%% of the %.0f GiB volume" % (
+        int(MIN_FREE_GIB_FRACTION * 100),
+        volume,
+    )
+
+
+def check(root, min_free_gib=None, skip_free=False):
     problems = []
     ensure = load_ensure_state_links()
     for path in ensure.check_roots(root):
@@ -164,11 +188,12 @@ def check(root, min_free_gib=DEFAULT_MIN_FREE_GIB, skip_free=False):
 
     if not skip_free and os.path.isdir(NIX_STORE):
         available = free_gib()
-        if available < min_free_gib:
+        limit, basis = free_space_limit(min_free_gib=min_free_gib)
+        if available < limit:
             problems.append(
                 (
-                    "/nix has %.1f GiB free, below the %d GiB limit"
-                    % (available, min_free_gib),
+                    "/nix has %.1f GiB free, below the %d GiB limit (%s)"
+                    % (available, limit, basis),
                     "delete leaked -source paths or old generations; see docs/architecture/DEVELOPMENT.md",
                 )
             )
@@ -179,7 +204,13 @@ def check(root, min_free_gib=DEFAULT_MIN_FREE_GIB, skip_free=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=None, help="repository root to inspect")
-    parser.add_argument("--min-free-gib", type=int, default=DEFAULT_MIN_FREE_GIB)
+    parser.add_argument(
+        "--min-free-gib",
+        type=int,
+        default=None,
+        help="lower bound in GiB; defaults to 15%% of the volume, between %d and %d"
+        % (MIN_FREE_GIB_FLOOR, MIN_FREE_GIB_MAX),
+    )
     parser.add_argument("--skip-free", action="store_true", help="do not check free space in /nix")
     args = parser.parse_args(argv)
 

@@ -18,7 +18,6 @@ import time
 GIB = 1024**3
 STORE = "/nix/store"
 MIN_CANDIDATE_BYTES = 1 * GIB
-MIN_FREE_GIB = 100
 WARNING_INTERVAL_SECONDS = 3600
 WORKTREE_CHECK_INTERVAL_SECONDS = 24 * 60 * 60
 
@@ -59,6 +58,17 @@ def load_worktree_gc():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def load_store_hygiene():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "check-store-hygiene.py")
+    spec = importlib.util.spec_from_file_location("check_store_hygiene", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+store_hygiene = load_store_hygiene()
 
 
 def worktree_listing(root):
@@ -347,6 +357,7 @@ def run(dry_run=False):
 
     try:
         available = free_gib()
+        limit, basis = store_hygiene.free_space_limit()
     except OSError as error:
         report["warning"] = ""
         if not dry_run:
@@ -358,13 +369,16 @@ def run(dry_run=False):
             )
         available = None
 
-    if available is not None and available < MIN_FREE_GIB:
+    if available is not None and available < limit:
         stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now()))
-        report["warning"] = "%.1f GiB free" % available
+        report["warning"] = "%.1f GiB free, below the %d GiB limit (%s)" % (available, limit, basis)
         if dry_run:
             print("store-guard: /nix free space is %s" % report["warning"])
         elif now() - float(state.get("last_warning") or 0) >= WARNING_INTERVAL_SECONDS:
-            message = "停止: Nix ストアの空きが 100GiB 未満（%.1fGiB）。store-guard のログを確認する" % available
+            message = (
+                "停止: Nix ストアの空きが %dGiB 未満（%.1fGiB、下限は %s）。"
+                "store-guard のログを確認する" % (limit, available, basis)
+            )
             if send_event(message):
                 state["last_warning"] = now()
             else:

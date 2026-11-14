@@ -79,7 +79,9 @@ LibrePaintは次の4つで発生を防ぎ、起きた複製を記録して片付
    拒否する。direnvのシェル、`scripts/run-shared-test-env`、`scripts/build-incremental`、
    `scripts/platform/enter-incremental-environment`がこのディレクトリーを`PATH`へ足す。
 3. `scripts/check-store-hygiene.py`が、実体の状態ディレクトリー、8GiBを超える
-   リポジトリーの見かけの大きさ、`/nix`の空き100GiB未満を検査する。`verify`、
+   リポジトリーの見かけの大きさ、`/nix`の空きがボリュームの大きさに応じた下限
+   （全体の15%を30〜100GiBに収めた値。1.3TiBで100GiB、228GiBで34GiB）未満を
+   検査する。`--min-free-gib`で下限を指定できる。`verify`、
    `verify-quick`、`scripts/build-incremental`、`scripts/run-shared-test-env`が
    `nix`を呼ぶ前に実行する。
 4. `scripts/store-guard.py`が`/nix/store`の`-source`を調べ、初めて見た1GiB超の複製を

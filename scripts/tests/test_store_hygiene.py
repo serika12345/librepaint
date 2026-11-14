@@ -168,6 +168,30 @@ class CheckStoreHygieneTests(unittest.TestCase):
         with mock.patch.object(hygiene, "free_gib", side_effect=AssertionError("called")):
             self.assertEqual(hygiene.check(self.root, skip_free=True), [])
 
+    def test_minimum_free_gib_scales_with_the_volume(self):
+        self.assertEqual(hygiene.minimum_free_gib(228), 34)
+        self.assertEqual(hygiene.minimum_free_gib(1.3 * 1024), 100)
+        self.assertEqual(hygiene.minimum_free_gib(40), 30)
+
+    def test_free_space_message_shows_limit_and_volume(self):
+        with mock.patch.object(hygiene, "NIX_STORE", self.tmp), mock.patch.object(
+            hygiene, "free_gib", return_value=20.0
+        ), mock.patch.object(hygiene, "volume_gib", return_value=228.0):
+            problems = hygiene.check(self.root)
+        messages = "\n".join(message for message, _ in problems)
+        self.assertIn("below the 34 GiB limit", messages)
+        self.assertIn("15% of the 228 GiB volume", messages)
+
+    def test_explicit_min_free_gib_overrides_the_volume(self):
+        with mock.patch.object(hygiene, "NIX_STORE", self.tmp), mock.patch.object(
+            hygiene, "free_gib", return_value=20.0
+        ), mock.patch.object(hygiene, "volume_gib", return_value=228.0):
+            problems = hygiene.check(self.root, min_free_gib=10)
+        self.assertEqual(problems, [])
+
+    def test_free_space_limit_reports_the_option_as_basis(self):
+        self.assertEqual(hygiene.free_space_limit(min_free_gib=50), (50, "--min-free-gib"))
+
     def test_large_tree_reports_five_largest_directories(self):
         for index in range(6):
             directory = os.path.join(self.root, "area%d" % index)
@@ -223,6 +247,11 @@ class StoreGuardTests(unittest.TestCase):
             mock.patch.object(store_guard, "process_table", return_value=""),
             mock.patch.object(store_guard, "query_referrers", return_value=fake_result(1)),
             mock.patch.object(store_guard, "free_gib", side_effect=lambda: self.available),
+            mock.patch.object(
+                store_guard.store_hygiene,
+                "free_space_limit",
+                return_value=(100, "15% of the 666 GiB volume"),
+            ),
             mock.patch.object(store_guard, "send_event", side_effect=lambda message: self.events.append(message) or True),
             mock.patch.object(store_guard, "delete_store_path", side_effect=delete),
         ]
@@ -328,6 +357,7 @@ class StoreGuardTests(unittest.TestCase):
             self.assertEqual(store_guard.run(), 0)
         self.assertEqual(len(self.events), 1)
         self.assertIn("100GiB", self.events[0])
+        self.assertIn("15% of the 666 GiB volume", self.events[0])
 
 
 class NixGuardTests(unittest.TestCase):
