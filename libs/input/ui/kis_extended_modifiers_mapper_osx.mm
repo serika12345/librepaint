@@ -8,7 +8,7 @@
 
 #import <QDebug>
 #import <QFlag>
-#import <qmutex.h>
+#import <QMutex>
 #import <AppKit/AppKit.h>
 
 #include <algorithm>
