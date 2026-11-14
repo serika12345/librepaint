@@ -802,9 +802,6 @@ pkgs.stdenv.mkDerivation {
   '';
 
   enableParallelBuilding = true;
-  # Continue after a compile failure so that one build reports every
-  # failing translation unit.
-  ninjaFlags = [ "-k" "0" ];
 
   passthru = {
     inherit
