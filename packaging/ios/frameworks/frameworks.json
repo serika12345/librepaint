@@ -604,8 +604,8 @@
           "KF6::CoreAddons"
         ],
         "install_manifest": {
-          "relative_path_count": 199,
-          "sorted_relative_path_sha256": "0ef957fac03b7362a745f3cedabd31060c2c95c4330154151803f04fefc659e3"
+          "relative_path_count": 201,
+          "sorted_relative_path_sha256": "32c211de71b2f1bfdb3c0b7171c511a6812fc761af5ce1ab137d7f859ba1ab6f"
         },
         "translation_inventory": {
           "relative_path_count": 112,
@@ -688,8 +688,7 @@
                 "path": "lib/cmake/KF6GuiAddons/KF6GuiAddonsConfig.cmake",
                 "dependencies": [
                   "Wayland",
-                  "Qt6WaylandClient",
-                  "QtWaylandScanner"
+                  "Qt6WaylandClient"
                 ]
               },
               "x11": {
@@ -831,15 +830,15 @@
           "KF6::I18nLocaleData"
         ],
         "install_manifest": {
-          "relative_path_count": 163,
-          "sorted_relative_path_sha256": "0f99cc91fdabb1c2aeeaa3615453e40bd56589fd1301ad072adc853de4b359f0"
+          "relative_path_count": 164,
+          "sorted_relative_path_sha256": "fdd1ce4cc35f0ce20cafa1ad8878a7da4b09f200e23a468aaace1694992419ce"
         },
         "translation_inventory": {
-          "relative_path_count": 129,
-          "sorted_relative_path_sha256": "09ca0bbb501587bc0d22b7850d224c9c9df0666451d99c76d2ce21b989f1dd32",
+          "relative_path_count": 130,
+          "sorted_relative_path_sha256": "f502f2c13e376d9e1da1d34f0713520298acd8d1df4adc7d95511544d122e6c8",
           "file_counts_by_extension": {
             "js": 14,
-            "mo": 103,
+            "mo": 104,
             "pmap": 6,
             "pmapc": 6
           }
