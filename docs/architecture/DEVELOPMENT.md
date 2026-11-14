@@ -70,7 +70,7 @@ verify-quick
 
 LibrePaintは次の4つで発生を防ぎ、起きた複製を記録して片付ける。
 
-1. `build/`、`.cache/`、`logs/`はリポジトリーの外の状態ディレクトリーへの
+1. `build/`、`.cache/`、`logs/`、`build-ios/`はリポジトリーの外の状態ディレクトリーへの
    シンボリックリンクにする。`.envrc`が`scripts/ensure-state-links.py`を呼び、
    置き場は環境変数`LIBREPAINT_STATE_ROOT`（既定`~/.local/state/librepaint`）の下の
    `<作業ツリー名>-<realpathのハッシュ>/`になる。
@@ -144,7 +144,7 @@ scripts/new-worktree.py NAME --purpose "作業の目的" --detach REF
 ```
 
 `--owner claude|opencode|user`で作成者を記録する。作成した作業ツリーでは
-`build`、`.cache`、`logs`が状態ディレクトリーへのシンボリックリンクになり、
+`build`、`.cache`、`logs`、`build-ios`が状態ディレクトリーへのシンボリックリンクになり、
 台帳`$LIBREPAINT_STATE_ROOT/worktrees.json`
 （既定`~/.local/state/librepaint/worktrees.json`）に名前、目的、作成者、
 枝または参照、作成時刻が入る。

@@ -49,7 +49,7 @@ _build
 _install
 _staging
 _packaging
-build-ios/
+build-ios
 logs/ios/
 /result
 /result-*

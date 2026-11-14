@@ -63,7 +63,8 @@ Processes that do not inherit that shell use
 expressions keep inputs small and separate dependency builds from
 application bundling so local changes reuse the binary cache.
 
-`build/`, `.cache/` and `logs/` in the repository root are symlinks to
+`build/`, `.cache/`, `logs/` and `build-ios/` in the repository root are
+symlinks to
 `$LIBREPAINT_STATE_ROOT/<worktree>-<hash>/…`; direnv creates them
 (`scripts/ensure-state-links.py`), and `--migrate` moves existing directories.
 A `path:` flake or any copy of the repository root copies the whole tree,

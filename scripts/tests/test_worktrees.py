@@ -11,7 +11,6 @@ from unittest import mock
 
 SCRIPTS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(SCRIPTS)
-STATE_NAMES = ("build", ".cache", "logs")
 
 
 def load(module_name, filename):
@@ -27,6 +26,8 @@ worktree_gc = load("worktree_gc", "worktree-gc.py")
 ensure_links = load("ensure_state_links", "ensure-state-links.py")
 hygiene = load("check_store_hygiene", "check-store-hygiene.py")
 store_guard = load("store_guard", "store-guard.py")
+
+STATE_NAMES = ensure_links.STATE_NAMES
 
 
 class RepositoryCase(unittest.TestCase):
@@ -55,7 +56,7 @@ class RepositoryCase(unittest.TestCase):
         self.git(self.repo, "config", "user.name", "Agent")
         self.copy_scripts()
         with open(os.path.join(self.repo, ".gitignore"), "w", encoding="utf-8") as handle:
-            handle.write("build\n.cache\nlogs\n")
+            handle.write("\n".join(STATE_NAMES) + "\n")
         with open(os.path.join(self.repo, "README"), "w", encoding="utf-8") as handle:
             handle.write("repository\n")
         self.git(self.repo, "add", "-A")

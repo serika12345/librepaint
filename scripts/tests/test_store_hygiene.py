@@ -45,6 +45,22 @@ class EnsureStateLinksTests(unittest.TestCase):
             environ=self.env,
         )
 
+    def test_build_ios_is_a_state_name(self):
+        self.assertIn("build-ios", ensure_links.STATE_NAMES)
+
+    def test_build_ios_migrates_like_other_state_directories(self):
+        build_ios = os.path.join(self.root, "build-ios")
+        os.makedirs(os.path.join(build_ios, "krita"))
+        self.ensure("build-ios", migrate=True)
+        self.assertTrue(os.path.islink(build_ios))
+        target = os.readlink(build_ios)
+        self.assertTrue(os.path.isdir(os.path.join(target, "krita")))
+
+    def test_check_finds_real_build_ios_directory(self):
+        build_ios = os.path.join(self.root, "build-ios")
+        os.makedirs(build_ios)
+        self.assertIn(build_ios, ensure_links.check_roots(self.root))
+
     def test_default_creates_absolute_links(self):
         for name in ensure_links.STATE_NAMES:
             self.ensure(name)

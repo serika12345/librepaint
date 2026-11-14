@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Keep mutable build state outside the repository.
 
-The repository root's ``build``, ``.cache`` and ``logs`` entries are symbolic
-links into ``$LIBREPAINT_STATE_ROOT/<worktree>-<hash>/``.  A ``path:`` flake
-copies the whole repository root into the Nix store, so the entries must not
-be real directories.
+The repository root's ``build``, ``.cache``, ``logs`` and ``build-ios``
+entries are symbolic links into ``$LIBREPAINT_STATE_ROOT/<worktree>-<hash>/``.
+A ``path:`` flake copies the whole repository root into the Nix store, so the
+entries must not be real directories.
 
 Without arguments the script creates missing links and refuses to touch real
 directories.  ``--migrate`` moves real directories into the state root and
@@ -20,7 +20,7 @@ import os
 import subprocess
 import sys
 
-STATE_NAMES = ("build", ".cache", "logs")
+STATE_NAMES = ("build", ".cache", "logs", "build-ios")
 DEFAULT_STATE_ROOT = "~/.local/state/librepaint"
 
 
