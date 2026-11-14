@@ -456,7 +456,7 @@
         ];
       };
       mkLibrepaintBuildSource =
-        packageSet: excludeAndroidPackage:
+        packageSet: excludeAndroidPackage: excludeIosPackaging:
         packageSet.lib.cleanSourceWith {
           name = "librepaint-source";
           src = ./.;
@@ -532,6 +532,21 @@
               relativePath == "packaging/android/apk"
               || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
             ))
+            # iOS manifests are flake inputs for the iOS build and are not read
+            # by the Krita compilation, so excluding them keeps manifest-only
+            # edits from invalidating other platforms' compilation cache.
+            && !(excludeIosPackaging && builtins.any
+              (directory: relativePath == directory
+                || packageSet.lib.hasPrefix "${directory}/" relativePath)
+              [
+                "packaging/ios/deps"
+                "packaging/ios/e2e"
+                "packaging/ios/frameworks"
+                "packaging/ios/qt"
+                "packaging/ios/smoke"
+                "packaging/ios/tests"
+              ])
+            && !(excludeIosPackaging && relativePath == "packaging/ios/versions.env")
             && !(packageSet.lib.hasPrefix "README" topLevel);
         };
       # Policy files use an independent source so policy-only edits preserve
@@ -558,9 +573,10 @@
             ])
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
-      librepaintBuildSource = mkLibrepaintBuildSource pkgs false;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false;
-      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true;
+      librepaintBuildSource = mkLibrepaintBuildSource pkgs false true;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false true;
+      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true true;
+      iosBuildSource = mkLibrepaintBuildSource pkgs false false;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
@@ -574,7 +590,7 @@
         qtManifestFile = ./packaging/ios/qt/modules.json;
         frameworkManifestFile = ./packaging/ios/frameworks/frameworks.json;
         pluginProfileFile = ./packaging/ios/manifests/initial-plugin-profile.json;
-        kritaSource = librepaintBuildSource;
+        kritaSource = iosBuildSource;
       };
       macosPackages = import ./nix/macos {
         inherit pkgs;
