@@ -6,6 +6,13 @@
     "android": {"attrs": ["packages.x86_64-linux.librepaint-android", "packages.x86_64-linux.librepaint-android-x86_64"], "target_patterns": ["^.+-android-(arm64-v8a|x86_64)(-|$)"]},
     "ios": {"attrs": ["packages.aarch64-darwin.librepaint-ios-ipa"], "target_patterns": ["^.+-ios(-|$)"]}
   },
+  "local_build_limits": {
+    "linux": {"target": 4, "host": 4},
+    "macos": {"target": 0, "host": 16},
+    "windows": {"target": 97, "host": 31},
+    "android": {"target": 114, "host": 10},
+    "ios": {"target": 58, "host": 2}
+  },
   "own_patterns": ["^librepaint", "^krita-plugin-gmic", "^krita-ios", "^closure-info$"],
   "small_patterns": ["-hook$", "\\.sh$", "\\.bash$", "\\.patch$", "\\.pc$", "\\.conf$", "\\.cmake$", "-mkspec$", "^xcrun$", "-generated-[0-9]+$", "^git$", "^validate-pkg-config$"],
   "host_local_allow": {

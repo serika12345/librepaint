@@ -304,6 +304,25 @@ def validate_policy(policy: Mapping[str, Any]) -> None:
         compile_patterns(target.get("target_patterns") or [], f"targets.{name}")
         if not isinstance(target.get("attrs") or [], list):
             raise ConfigError(f"targets.{name}.attrs が配列ではありません")
+    limits = policy.get("local_build_limits")
+    if limits is not None:
+        if not isinstance(limits, dict):
+            raise ConfigError("local_build_limits が辞書ではありません")
+        for platform, kinds in limits.items():
+            if not isinstance(kinds, dict):
+                raise ConfigError(
+                    f"local_build_limits.{platform} が辞書ではありません"
+                )
+            for kind, value in kinds.items():
+                if (
+                    not isinstance(value, int)
+                    or isinstance(value, bool)
+                    or value < 0
+                ):
+                    raise ConfigError(
+                        f"local_build_limits.{platform}.{kind} が"
+                        "非負の整数ではありません"
+                    )
     compile_patterns(policy.get("own_patterns") or [], "own_patterns")
     compile_patterns(policy.get("small_patterns") or [], "small_patterns")
     for name, entries in (policy.get("host_local_allow") or {}).items():
@@ -624,6 +643,25 @@ def classify(
     }
 
 
+def local_build_limit_violations(
+    policy: Mapping[str, Any],
+    platform: str,
+    counts: Mapping[str, int],
+) -> list[dict[str, Any]]:
+    """Return the target and host counts that exceed their limits."""
+
+    limits = (policy.get("local_build_limits") or {}).get(platform) or {}
+    exceeded: list[dict[str, Any]] = []
+    for kind in ("target", "host"):
+        if kind not in limits:
+            continue
+        limit = limits[kind]
+        count = counts.get(kind, 0)
+        if count > limit:
+            exceeded.append({"kind": kind, "count": count, "limit": limit})
+    return exceeded
+
+
 # ---------------------------------------------------------------------------
 # Version rules
 # ---------------------------------------------------------------------------
@@ -878,6 +916,7 @@ def error_result(platform: str, message: str) -> dict[str, Any]:
         "platform": platform,
         "counts": {"own": 0, "small": 0, "target": 0, "host": 0, "cached": 0, "sources": 0},
         "host_violations": [],
+        "limit_exceeded": [],
         "allow_warnings": [],
         "unused_allow": [],
         "unknown": [],
@@ -943,14 +982,18 @@ def evaluate(
         return result
 
     host_violations = classification["violations"]
+    limit_exceeded = local_build_limit_violations(
+        policy, platform, classification["counts"]
+    )
     counts = dict(classification["counts"])
     counts["cached"] = len(walked["cached"])
     counts["sources"] = walked["sources"]
-    passed = not host_violations and not version_violations
+    passed = not host_violations and not version_violations and not limit_exceeded
     return {
         "platform": platform,
         "counts": counts,
         "host_violations": host_violations,
+        "limit_exceeded": limit_exceeded,
         "allow_warnings": classification["warnings"],
         "unused_allow": classification["unused"],
         "unknown": [
@@ -1026,6 +1069,14 @@ def result_lines(result: Mapping[str, Any]) -> list[str]:
         ],
     )
     section(
+        "件数の超過",
+        [
+            f"{entry['kind']} の手元構築 {entry['count']} 件が"
+            f"上限 {entry['limit']} を超えました"
+            for entry in result["limit_exceeded"]
+        ],
+    )
+    section(
         "許可の警告",
         [
             f"{entry['name']} {entry['drv']}（{entry['reason']}）"
@@ -1061,9 +1112,11 @@ def result_lines(result: Mapping[str, Any]) -> list[str]:
         lines.append("結果: 合格")
     else:
         lines.append(
-            "結果: 不合格（host の違反 {host} 件、版の違反 {version} 件）".format(
+            "結果: 不合格（host の違反 {host} 件、版の違反 {version} 件、"
+            "件数の超過 {limit} 件）".format(
                 host=len(result["host_violations"]),
                 version=len(result["version_violations"]),
+                limit=len(result["limit_exceeded"]),
             )
         )
     return lines

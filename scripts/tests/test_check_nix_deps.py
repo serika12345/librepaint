@@ -76,6 +76,7 @@ def make_policy(
     target_patterns: list[str] | None = None,
     own: list[str] | None = None,
     small: list[str] | None = None,
+    limits: dict[str, object] | None = None,
 ) -> dict[str, object]:
     if allow is None:
         allow = [{"match": ".*", "reason": "test"}]
@@ -86,6 +87,7 @@ def make_policy(
                 "target_patterns": list(target_patterns or []),
             }
         },
+        "local_build_limits": dict(limits or {}),
         "own_patterns": list(own if own is not None else ["^librepaint"]),
         "small_patterns": list(small if small is not None else ["-hook$"]),
         "host_local_allow": {"test": list(allow)},
@@ -492,6 +494,74 @@ class TargetAndOwnTest(unittest.TestCase):
         self.assertEqual(result["counts"]["small"], 0)
         self.assertEqual(result["counts"]["target"], 1)
         self.assertEqual(result["counts"]["host"], 1)
+
+
+class LocalBuildLimitTest(unittest.TestCase):
+    def graph(self):
+        root_key, root = make_entry(0, "librepaint-1.0")
+        target_key, target = make_entry(
+            1, "qtbase-x86_64-w64-mingw32-6.12.0"
+        )
+        host_key, host = make_entry(2, "hosttool-1.0")
+        root["inputDrvs"] = {target_key: ["out"], host_key: ["out"]}
+        return {
+            root_key: root,
+            target_key: target,
+            host_key: host,
+        }, [root_key]
+
+    def policy(self, limits: dict[str, object]) -> dict[str, object]:
+        return make_policy(
+            allow=[{"match": "^hosttool-", "reason": "test"}],
+            target_patterns=["^.+-x86_64-w64-mingw32(-|$)"],
+            limits=limits,
+        )
+
+    def test_count_equal_to_limit_passes(self) -> None:
+        entries, roots = self.graph()
+        result = run_check(
+            entries,
+            roots,
+            self.policy({"test": {"target": 1, "host": 1}}),
+        )
+        self.assertEqual(result["exit_code"], 0)
+        self.assertEqual(result["limit_exceeded"], [])
+
+    def test_one_over_limit_fails(self) -> None:
+        entries, roots = self.graph()
+        result = run_check(
+            entries,
+            roots,
+            self.policy({"test": {"target": 0, "host": 1}}),
+        )
+        self.assertEqual(result["exit_code"], 1)
+        self.assertEqual(len(result["limit_exceeded"]), 1)
+        exceeded = result["limit_exceeded"][0]
+        self.assertEqual(exceeded["kind"], "target")
+        self.assertEqual(exceeded["count"], 1)
+        self.assertEqual(exceeded["limit"], 0)
+
+    def test_platform_without_limit_is_not_checked(self) -> None:
+        entries, roots = self.graph()
+        result = run_check(
+            entries,
+            roots,
+            self.policy({"other": {"target": 0, "host": 0}}),
+        )
+        self.assertEqual(result["exit_code"], 0)
+        self.assertEqual(result["limit_exceeded"], [])
+
+    def test_negative_limit_fails_validation(self) -> None:
+        with self.assertRaises(check_nix_deps.ConfigError):
+            check_nix_deps.validate_policy(
+                self.policy({"test": {"target": -1}})
+            )
+
+    def test_non_integer_limit_fails_validation(self) -> None:
+        with self.assertRaises(check_nix_deps.ConfigError):
+            check_nix_deps.validate_policy(
+                self.policy({"test": {"host": "4"}})
+            )
 
 
 class CacheWalkTest(unittest.TestCase):
