@@ -368,6 +368,9 @@
             # LibrePaint needs only the headers/library, not the test or
             # profiling inputs (see docs/architecture/DEPENDENCIES.md).
             zug = previous.zug.overrideAttrs (old: {
+              # Building the tests makes configure look for catch2.
+              cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-Dzug_BUILD_TESTS=OFF" ];
+              doCheck = false;
               buildInputs = previous.lib.filter
                 (input: !(previous.lib.hasPrefix "catch2" (previous.lib.getName input)))
                 (old.buildInputs or [ ]);
@@ -376,6 +379,7 @@
             # LibrePaint needs only the headers/library, not the test or
             # profiling inputs (see docs/architecture/DEPENDENCIES.md).
             lager = previous.lager.overrideAttrs (old: {
+              doCheck = false;
               buildInputs = previous.lib.filter
                 (input:
                   let name = previous.lib.getName input;
