@@ -56,6 +56,65 @@ verify-quick
 ローカルFlakeの評価は作業ツリーをNix storeへコピーするため、通常の編集・試験には
 評価済み環境を使う。追加ツールは必要な最小のNixシェルへ定義し、一時利用は`nix shell`で用意する。
 
+## Nix ストアの肥大化の防止
+
+`path:`形式のFlake評価は`.gitignore`を無視し、リポジトリー全体をNix storeへ複製する。
+この複製は`build/`、`.cache/`、`.git/`を含み、1件で数十GiBになる。LibrePaintは
+次の4つで発生を防ぎ、起きた複製を記録して片付ける。
+
+1. `build/`、`.cache/`、`logs/`はリポジトリーの外の状態ディレクトリーへの
+   シンボリックリンクにする。`.envrc`が`scripts/ensure-state-links.py`を呼び、
+   置き場は環境変数`LIBREPAINT_STATE_ROOT`（既定`~/.local/state/librepaint`）の下の
+   `<作業ツリー名>-<realpathのハッシュ>/`になる。
+2. `scripts/nix-guard/nix`が`PATH`の先頭で`nix`の呼び出しを記録し、このリポジトリーを
+   指す`path:`参照と、Gitが作業ツリーを認識できない場所でのFlake参照を終了コード2で
+   拒否する。direnvのシェル、`scripts/run-shared-test-env`、`scripts/build-incremental`、
+   `scripts/platform/enter-incremental-environment`がこのディレクトリーを`PATH`へ足す。
+3. `scripts/check-store-hygiene.py`が、実体の状態ディレクトリー、8GiBを超える
+   リポジトリーの見かけの大きさ、`/nix`の空き100GiB未満を検査する。`verify`、
+   `verify-quick`、`scripts/build-incremental`、`scripts/run-shared-test-env`が
+   `nix`を呼ぶ前に実行する。
+4. `scripts/store-guard.py`が`/nix/store`の`-source`を調べ、初めて見た1GiB超の複製を
+   ログへ記録し、リポジトリーの複製と確認できたものを削除する。
+
+### store-guardの有効化
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp scripts/systemd/* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now librepaint-store-guard.timer
+loginctl enable-linger $USER
+```
+
+ログは`$LIBREPAINT_STATE_ROOT/nix-calls.log`（`nix`の呼び出し）と
+`$LIBREPAINT_STATE_ROOT/store-guard.log`（初めて見た複製、削除、空きの警告）に置く。
+
+### 違反したときの直し方
+
+- 実体の状態ディレクトリーがある: 構築が動いていないときに
+  `scripts/ensure-state-links.py --migrate`を実行する。
+- `path:`参照を拒否された: 作業ツリーで`.#<output>`を使う。Gitの所有者や
+  `safe.directory`の設定を直し、`git rev-parse --show-toplevel`が通るようにする。
+- `/nix`の空きが少ない: `store-guard.log`で漏れた複製を確認し、不要な世代を削除する。
+
+### NixOSの設定
+
+管理者権限で、ストアの自動削除を有効にする。
+
+```nix
+nix.settings.min-free = "100GiB";
+nix.settings.max-free = "300GiB";
+```
+
+### 既存の作業ツリーへの適用
+
+既存の作業ツリーでは、構築が動いていないときに一度だけ次を実行する。
+
+```sh
+scripts/ensure-state-links.py --migrate
+```
+
 ## 編集と検証
 
 ### 増分構築
