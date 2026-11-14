@@ -494,6 +494,7 @@
               "packaging/macos/macos-deploy.py"
               "packaging/macos/qt.conf"
               "scripts/build-incremental"
+              "scripts/check-flake-hygiene.py"
               "scripts/check-store-hygiene.py"
               "scripts/ensure-state-links.py"
               "scripts/new-worktree.py"

@@ -6,6 +6,7 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 python3 "$repo_root/scripts/check-store-hygiene.py"
+python3 "$repo_root/scripts/check-flake-hygiene.py"
 
 if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
     echo "verify must run inside: nix develop .#test" >&2
