@@ -495,6 +495,9 @@ class NixGuardTests(unittest.TestCase):
             check=True,
         )
         self.env = dict(os.environ)
+        # The development shell exports this variable; the guard under test must
+        # resolve the temporary repository from its own location.
+        self.env.pop("LIBREPAINT_REPO_ROOT", None)
         self.env["LIBREPAINT_STATE_ROOT"] = self.state
         self.env["FAKE_NIX_CALLS"] = self.calls
         self.env["PATH"] = guard_dir + os.pathsep + self.fake_bin + os.pathsep + os.environ.get("PATH", "")
