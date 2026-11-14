@@ -34,6 +34,7 @@ EOF
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 export PATH="$repo_root/scripts/nix-guard:$PATH"
+python3 "$repo_root/scripts/check-store-hygiene.py"
 cd "$repo_root"
 platform="${1:-}"
 operation="${2:-}"

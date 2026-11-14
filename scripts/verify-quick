@@ -5,6 +5,8 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
+python3 "$repo_root/scripts/check-store-hygiene.py"
+
 if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
     echo "verify-quick must run inside: nix develop .#test" >&2
     exit 1
