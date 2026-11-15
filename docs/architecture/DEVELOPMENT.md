@@ -23,7 +23,6 @@ Nix（Flakes有効）とdirenvを用意し、シェルのdirenv連携を有効�
 | macOS | macOS | `native` |
 | Linux | Linux | `native` |
 | Windows | x86_64 Linux | `windows` |
-| Windows（正式版Qt、Q4の前段） | x86_64 Linux | `windows-upstream-qt` |
 | Android ARM64／x86_64 | x86_64 Linux | `android`／`android-x86_64` |
 | iOS／iPadOS arm64 | Apple Silicon Macと固定Xcode | `ios` |
 
@@ -174,8 +173,6 @@ scripts/ensure-state-links.py --migrate
   （`scripts/platform/audit-linux-appimage.py`、配布物の確定まで）を、許可リスト方式に戻す。
 - `nix/dependency-policy.json`の`provisional`の項目（`python3-3.11`、`gradle`、
   `ncurses-abi5-compat`）を調べ、理由を確定するか、不要にする。
-- Windowsのフォーク版の切り替え（`useQtFork`、`flake.nix`の`windowsPackages`）を、
-  主指標の確認（完了条件4）の後に除く。
 - `nix/pyqt6-overrides.nix`と、darwinのPyQt6の修正を、nixpkgsがPyQt6 6.12.0と
   その修正を取り込んだ後に除く。
 - 載せる派生物は、上の確認の後のFlakeで構築し直したものだけにする。
@@ -924,18 +921,18 @@ nix build .#librepaint-windows-archive
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
 
-正式版Qt版も同じ増分構築の入口を使う。依存は`windows-upstream-qt-dependencies`の
-構築結果を再利用し、`krita`ターゲットで`krita.dll`と`libkrita*.dll`だけを作り直す。
+増分構築では、依存は`windows-dependencies`の構築結果を再利用し、`krita`ターゲットで
+`krita.dll`と`libkrita*.dll`だけを作り直す。
 
 ```sh
-nix build .#windows-upstream-qt-dependencies --no-link
-systemd-run --user --unit=librepaint-win-upstream-qt-configure --collect --wait \
+nix build .#windows-dependencies --no-link
+systemd-run --user --unit=librepaint-win-configure --collect --wait \
   --working-directory "$PWD" \
-  bash -lc './scripts/build-incremental windows-upstream-qt configure'
-systemd-run --user --unit=librepaint-win-upstream-qt-build --collect --wait \
+  bash -lc './scripts/build-incremental windows configure'
+systemd-run --user --unit=librepaint-win-build --collect --wait \
   --working-directory "$PWD" \
-  bash -lc 'CMAKE_BUILD_PARALLEL_LEVEL=5 ./scripts/build-incremental windows-upstream-qt build krita'
-./scripts/build-incremental windows-upstream-qt path
+  bash -lc 'CMAKE_BUILD_PARALLEL_LEVEL=5 ./scripts/build-incremental windows build krita'
+./scripts/build-incremental windows path
 ```
 
 構築の前に、ほかの構築や`verify`が動いていないことを確かめる。
@@ -946,30 +943,19 @@ systemctl --user list-units "q*" "librepaint-*" "l1-*" "l2-*" "win-*" --no-legen
 
 構築は1本のsystemdのuser unitで動かし、終了を待ってから次を始める。
 
-構成指紋がフォーク版と異なるため、ソース配置とNinja木は
-`build/windows/x86_64/<構成指紋>/`の別のディレクトリーになる。コンパイラーキャッシュは
-フォーク版と同じ`.cache/librepaint/ccache/windows`を共有する。初回だけ`configure`が
+構成指紋はQtの定義、CMakeフラグ、ソース準備から作られ、ソース配置とNinja木は
+`build/windows/x86_64/<構成指紋>/`に置く。コンパイラーキャッシュは
+`.cache/librepaint/ccache/windows`を共有する。初回だけ`configure`が
 ソース配置とCMake構成を作り、以後は`build krita`が変更された翻訳単位とDLLだけを更新する。
-構成指紋にはQtの定義、CMakeフラグ、ソース準備が含まれるため、`nix/windows`を変えたときは
-新しい木が作られる。配布用のZIPは`nix build .#librepaint-windows-upstream-qt-archive`で作る。
+`nix/windows`を変えたときは新しい木が作られる。
 
-Q4（Qtのフォークをやめる）の準備として、正式版Qt 6.12.0（nixpkgsの`qt6`。Linux、
-macOS、Android、iOSと同じ版）で構築する別の出力を持つ。Qtの定義は、
-`nix/windows/krita.nix`の`qt`（nixpkgsの`qt6Packages`のMinGW交差構築）をそのまま使い、
-`useQtFork = false`で、フォーク版（`dimula73/qtbase`の`for-krita/6.11.3`）の差し替えを
-外す。フォーク版の出力とキャッシュは変えない。
-
-```sh
-nix build .#windows-upstream-qt-dependencies --no-link
-nix build .#librepaint-windows-upstream-qt-archive
-```
-
-依存だけの出力`windows-upstream-qt-dependencies`は、Qt・KDE Frameworks・コーデックを
-アプリの束ねから分けて構築する。中断しても、完了した依存はストアに残り、
-`librepaint-windows-upstream-qt-archive`の再実行はその続きから進む。
-正式版QtにはANGLEがないため、この版はdesktopのOpenGLだけを使う。
-HDR（`setTextureColorSpace`）は正式版にないAPIなので、この版では
-`HAVE_HDR`を強制せず、CMakeの検出結果に任せる。
+Windowsは正式版Qtだけを使う。Qtの定義は`nix/windows/krita.nix`の`qt`
+（nixpkgsの`qt6Packages`のMinGW交差構築）を使う。依存だけの出力
+`windows-dependencies`は、Qt・KDE Frameworks・コーデックをアプリの束ねから分けて
+構築する。中断しても、完了した依存はストアに残り、`librepaint-windows-archive`の
+再実行はその続きから進む。正式版QtにはANGLEがないため、desktopのOpenGLだけを使う。
+HDR（`setTextureColorSpace`）は正式版にないAPIなので、`HAVE_HDR`を強制せず、
+CMakeの検出結果に任せる。
 
 パッケージ構築は`scripts/platform/audit-windows-package.py`を実行し、全PEファイルが
 x86_64であること、DLLのベース名が一意であること、各インポートが同梱DLLまたは
