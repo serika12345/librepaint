@@ -38,7 +38,6 @@
     ],
     "android": [
       {"match": "^(android-sdk-|androidsdk|androidenv-android-sdk-license$)", "reason": "Android SDK needs a license acceptance and is not in the binary cache"},
-      {"match": "^gradle-", "reason": "wrapper scripts that run the cached nixpkgs Gradle 8.14.6 distribution with JDK 17; the distribution itself comes from the binary cache"},
       {"match": "^ncurses-abi5-compat-", "reason": "i686 ncurses compatibility package in the closure of the Android SDK build-tools, which need a license acceptance and are not in the binary cache"}
     ],
     "ios": [

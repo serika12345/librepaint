@@ -160,6 +160,7 @@ def build_report(
         bucket: {"count": 0, "unknown": 0, "size": 0} for bucket in BUCKETS
     }
     entries: list[dict[str, Any]] = []
+    dependency_paths: set[str] = set()
     for drv in sorted(local):
         bucket = check_nix_deps.bucket_of(
             view, own_patterns, small_patterns, drv
@@ -186,6 +187,8 @@ def build_report(
                 "size": total if known else None,
             }
         )
+        if known and bucket in DEPENDENCY_BUCKETS:
+            dependency_paths.update(paths)
 
     dependency = {
         "count": sum(buckets[bucket]["count"] for bucket in DEPENDENCY_BUCKETS),
@@ -203,6 +206,7 @@ def build_report(
     return {
         "buckets": buckets,
         "dependency": dependency,
+        "dependency_paths": sorted(dependency_paths),
         "top": top[:top_n],
     }
 
@@ -339,6 +343,10 @@ def parse_arguments(argv: Sequence[str] | None) -> argparse.Namespace:
     )
     parser.add_argument("--json", dest="json_path", help="同じ内容を書く JSON")
     parser.add_argument(
+        "--paths-file",
+        help="ストアにある依存（small、target、host）の出力パスを 1 行ずつ書くファイル",
+    )
+    parser.add_argument(
         "--top",
         type=int,
         default=DEFAULT_TOP,
@@ -428,6 +436,17 @@ def main(
         print()
 
     print("\n".join(total_lines(reports)))
+    if args.paths_file:
+        paths = sorted(
+            {
+                path
+                for report in reports
+                for path in report.get("dependency_paths", [])
+            }
+        )
+        Path(args.paths_file).write_text(
+            "".join(f"{path}\n" for path in paths), encoding="utf-8"
+        )
     if args.json_path:
         check_nix_deps.save_json_file(
             Path(args.json_path),

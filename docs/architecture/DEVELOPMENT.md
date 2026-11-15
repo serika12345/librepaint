@@ -170,7 +170,7 @@ scripts/ensure-state-links.py --migrate
   `flake.nix`と`nix/**/*.nix`から列挙する。理由のコメント（`nixpkgs`、`Issue #`、
   `remove when`、`drop when`、`removal`）が同じ行か直前の行にある既存の行は対象にしない。
 - `nix/dependency-policy.json`に、理由を調べていない`provisional`の項目がない。
-  Gradleをキャッシュにある版へ移す作業は[Issue #120](https://github.com/serika12345/librepaint/issues/120)で扱う。
+  Androidは、キャッシュにある標準の`gradle_8`（8.14.6）を使い、JDK 17は各構築段階が`JAVA_HOME`で選ぶ。
 - `nix/pyqt6-overrides.nix`と、darwinのPyQt6の修正を、nixpkgsがPyQt6 6.12.0と
   その修正を取り込んだ後に除く。
 - 載せる派生物は、上の確認の後のFlakeで構築し直したものだけにする。

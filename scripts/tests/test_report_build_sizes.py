@@ -292,6 +292,22 @@ class BucketTotalTest(unittest.TestCase):
         self.assertEqual(dependency["size"], 335 * MIB + MIB // 2)
 
 
+    def test_dependency_paths_hold_the_existing_dependencies_only(self) -> None:
+        result = report_for()
+        self.assertEqual(
+            result["dependency_paths"],
+            sorted(
+                [
+                    output_path(2, "small-hook"),
+                    output_path(3, "qtbase-x86_64-w64-mingw32-6.12.0"),
+                    output_path(4, "hosttool-1.0"),
+                    output_path(6, "huge-1.0"),
+                    output_path(7, "smalltool-1.0"),
+                ]
+            ),
+        )
+
+
 class TopTest(unittest.TestCase):
     def test_top_is_sorted_from_largest(self) -> None:
         result = report_for(top_n=3)
@@ -370,6 +386,48 @@ class CommandLineTest(unittest.TestCase):
         self.assertIn("## linux", output)
         self.assertIn("不明 1 件（構築されていない）", output)
         self.assertIn("## プラットフォームの全体", output)
+
+    def test_paths_file_lists_the_dependency_paths(self) -> None:
+        entries, roots, sizes = fixed_graph()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            graphs = root / "graphs"
+            graphs.mkdir()
+            (graphs / "linux-1.json").write_text(
+                json.dumps({"derivations": entries}), encoding="utf-8"
+            )
+            policy_path = root / "policy.json"
+            write_policy(policy_path)
+            snapshot_path = root / "cache.json"
+            snapshot_path.write_text("{}", encoding="utf-8")
+            paths_path = root / "paths.txt"
+
+            def sizes_query(paths):
+                return {path: sizes[path] for path in paths if path in sizes}
+
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = report_build_sizes.main(
+                    [
+                        "--platform",
+                        "linux",
+                        "--graph-dir",
+                        str(graphs),
+                        "--cache-snapshot",
+                        str(snapshot_path),
+                        "--paths-file",
+                        str(paths_path),
+                    ],
+                    policy_path=policy_path,
+                    sleep=lambda _delay: None,
+                    sizes_query=sizes_query,
+                )
+            lines = paths_path.read_text(encoding="utf-8").splitlines()
+
+        self.assertEqual(code, 0)
+        self.assertEqual(len(lines), 5)
+        self.assertEqual(lines, sorted(lines))
+        self.assertNotIn(output_path(0, "librepaint-1.0"), lines)
+        self.assertNotIn(output_path(5, "missing-lib-1.0"), lines)
 
 
 if __name__ == "__main__":
