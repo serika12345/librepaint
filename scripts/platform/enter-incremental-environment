@@ -20,7 +20,7 @@ case "$platform" in
     android-x86_64)
         configuration_root="$repo_root/nix/android"
         ;;
-    windows-upstream-qt)
+    windows)
         configuration_root="$repo_root/nix/windows"
         ;;
     *)

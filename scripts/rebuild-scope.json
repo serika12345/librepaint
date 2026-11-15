@@ -24,28 +24,23 @@
     },
     "windows/compile": {
       "attrs": [
-        "packages.x86_64-linux.librepaint-windows-unwrapped",
-        "packages.x86_64-linux.librepaint-windows-upstream-qt-unwrapped"
+        "packages.x86_64-linux.librepaint-windows-unwrapped"
       ]
     },
     "windows/package": {
       "attrs": [
         "packages.x86_64-linux.librepaint-windows",
-        "packages.x86_64-linux.librepaint-windows-archive",
-        "packages.x86_64-linux.librepaint-windows-upstream-qt",
-        "packages.x86_64-linux.librepaint-windows-upstream-qt-archive"
+        "packages.x86_64-linux.librepaint-windows-archive"
       ]
     },
     "windows/dependencies": {
       "attrs": [
-        "packages.x86_64-linux.windows-dependencies",
-        "packages.x86_64-linux.windows-upstream-qt-dependencies"
+        "packages.x86_64-linux.windows-dependencies"
       ]
     },
     "windows/shell": {
       "attrs": [
-        "devShells.x86_64-linux.librepaint-windows",
-        "devShells.x86_64-linux.librepaint-windows-upstream-qt"
+        "devShells.x86_64-linux.librepaint-windows"
       ]
     },
     "android/compile": {

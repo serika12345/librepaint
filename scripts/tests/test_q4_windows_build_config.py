@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 LibrePaint contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Q4 stage 1: the Windows default uses the official Qt without ANGLE or HDR."""
+"""Windows builds the official Qt only, with one name for each Windows output."""
 
 from __future__ import annotations
 
@@ -12,39 +12,28 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-WINDOWS_DEFAULT = REPO_ROOT / "nix/windows/default.nix"
-WINDOWS_KRITA = REPO_ROOT / "nix/windows/krita.nix"
+WINDOWS_NIX = REPO_ROOT / "nix/windows"
 FLAKE = REPO_ROOT / "flake.nix"
+# Built from parts so that a repository search for the old suffix is empty.
+FORK_NAME_SUFFIX = "upstream" + "-qt"
 
 
-class Q4WindowsBuildConfigTest(unittest.TestCase):
-    def test_windows_default_is_the_official_qt(self):
-        text = WINDOWS_DEFAULT.read_text(encoding="utf-8")
-        self.assertIn("useQtFork ? false", text)
+class WindowsBuildConfigTest(unittest.TestCase):
+    def test_the_fork_switch_and_its_names_are_gone(self):
+        texts = [FLAKE] + sorted(WINDOWS_NIX.glob("*.nix"))
+        for path in texts:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO_ROOT).as_posix()):
+                self.assertNotIn("useQtFork", text)
+                self.assertNotIn("pnameSuffix", text)
+                self.assertNotIn(FORK_NAME_SUFFIX, text)
 
-        krita = WINDOWS_KRITA.read_text(encoding="utf-8")
-        self.assertIn("useQtFork ? false", krita)
-
-    def test_angle_and_hdr_are_not_in_the_default_build(self):
-        krita = WINDOWS_KRITA.read_text(encoding="utf-8")
-        self.assertNotIn("-DHAVE_HDR", krita)
-        self.assertIn(
-            "angle = if useQtFork then import ./google-angle.nix { inherit pkgs; } else null;",
-            krita,
-        )
-        self.assertIn("++ lib.optional useQtFork angle", krita)
-
-    def test_fork_package_set_is_kept_explicitly_until_stage_7(self):
+    def test_windows_package_set_is_imported_once(self):
         text = FLAKE.read_text(encoding="utf-8")
-        fork_start = text.index("windowsPackages = import ./nix/windows {")
-        fork_end = text.index("};", fork_start)
-        self.assertIn("useQtFork = true;", text[fork_start:fork_end])
+        self.assertEqual(text.count("windowsPackages = import ./nix/windows"), 1)
 
-        upstream_start = text.index("windowsUpstreamQtPackages = import ./nix/windows {")
-        upstream_end = text.index("};", upstream_start)
-        upstream = text[upstream_start:upstream_end]
-        self.assertIn("useQtFork = false;", upstream)
-        self.assertIn('pnameSuffix = "-upstream-qt";', upstream)
+    def test_the_angle_expression_is_removed(self):
+        self.assertFalse((WINDOWS_NIX / "google-angle.nix").exists())
 
 
 if __name__ == "__main__":
