@@ -1,0 +1,473 @@
+{
+  "labels": {
+    "linux/compile": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-linux.librepaintUnwrapped"
+      ]
+    },
+    "linux/package": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-linux",
+        "packages.x86_64-linux.librepaint-linux-appimage"
+      ]
+    },
+    "linux/dependencies": {
+      "attrs": [
+        "packages.x86_64-linux.linux-dependencies"
+      ]
+    },
+    "linux/shell": {
+      "attrs": [
+        "devShells.x86_64-linux.test",
+        "devShells.x86_64-linux.librepaint-linux"
+      ]
+    },
+    "windows/compile": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-windows-unwrapped",
+        "packages.x86_64-linux.librepaint-windows-upstream-qt-unwrapped"
+      ]
+    },
+    "windows/package": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-windows",
+        "packages.x86_64-linux.librepaint-windows-archive",
+        "packages.x86_64-linux.librepaint-windows-upstream-qt",
+        "packages.x86_64-linux.librepaint-windows-upstream-qt-archive"
+      ]
+    },
+    "windows/dependencies": {
+      "attrs": [
+        "packages.x86_64-linux.windows-dependencies",
+        "packages.x86_64-linux.windows-upstream-qt-dependencies"
+      ]
+    },
+    "windows/shell": {
+      "attrs": [
+        "devShells.x86_64-linux.librepaint-windows",
+        "devShells.x86_64-linux.librepaint-windows-upstream-qt"
+      ]
+    },
+    "android/compile": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-android-native",
+        "packages.x86_64-linux.librepaint-android-x86_64-native"
+      ]
+    },
+    "android/package": {
+      "attrs": [
+        "packages.x86_64-linux.librepaint-android",
+        "packages.x86_64-linux.librepaint-android-x86_64"
+      ]
+    },
+    "android/dependencies": {
+      "attrs": [
+        "packages.x86_64-linux.android-dependencies",
+        "packages.x86_64-linux.android-application-dependencies",
+        "packages.x86_64-linux.android-x86_64-dependencies",
+        "packages.x86_64-linux.android-x86_64-application-dependencies"
+      ]
+    },
+    "android/shell": {
+      "attrs": [
+        "devShells.x86_64-linux.librepaint-android",
+        "devShells.x86_64-linux.librepaint-android-x86_64"
+      ]
+    },
+    "macos/compile": {
+      "attrs": [
+        "packages.aarch64-darwin.librepaint-macos-unwrapped"
+      ]
+    },
+    "macos/package": {
+      "attrs": [
+        "packages.aarch64-darwin.librepaint-macos"
+      ]
+    },
+    "macos/dependencies": {
+      "attrs": [
+        "packages.aarch64-darwin.macos-dependencies"
+      ]
+    },
+    "macos/shell": {
+      "attrs": [
+        "devShells.aarch64-darwin.test",
+        "devShells.aarch64-darwin.librepaint-macos"
+      ]
+    },
+    "ios/compile": {
+      "attrs": [
+        "packages.aarch64-darwin.librepaint-ios-app"
+      ]
+    },
+    "ios/package": {
+      "attrs": [
+        "packages.aarch64-darwin.librepaint-ios-ipa"
+      ]
+    },
+    "ios/dependencies": {
+      "attrs": [
+        "packages.aarch64-darwin.ios-dependencies"
+      ]
+    },
+    "ios/shell": {
+      "attrs": [
+        "devShells.aarch64-darwin.librepaint-ios-incremental"
+      ]
+    },
+    "governance": {
+      "alwaysChanges": true,
+      "attrs": [
+        "checks.x86_64-linux.governance",
+        "checks.aarch64-darwin.governance"
+      ]
+    }
+  },
+  "probes": [
+    {
+      "name": "krita-source",
+      "description": "Krita 本体のソース",
+      "path": "libs/image/kis_image.cc",
+      "edit": {
+        "append": "// rebuild-scope probe\n"
+      },
+      "changes": [
+        "*/compile",
+        "*/package"
+      ]
+    },
+    {
+      "name": "test-header",
+      "description": "テストのヘッダー",
+      "path": "sdk/tests/simpletest.h",
+      "edit": {
+        "append": "// rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "test-source",
+      "description": "テストのコード",
+      "path": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "edit": {
+        "append": "// rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "test-cmake",
+      "description": "テストの CMake 定義",
+      "path": "libs/image/tests/CMakeLists.txt",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "benchmark",
+      "description": "ベンチマーク",
+      "path": "benchmarks/kis_stroke_benchmark.cpp",
+      "edit": {
+        "append": "// rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "docs",
+      "description": "文書",
+      "path": "docs/architecture/DEVELOPMENT.md",
+      "edit": {
+        "append": "\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "readme",
+      "description": "README",
+      "path": "README.md",
+      "edit": {
+        "append": "\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "scripts-tool",
+      "description": "リポジトリー管理の道具",
+      "path": "scripts/verify-quick",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "scripts-new-file",
+      "description": "scripts/ の新しいファイル",
+      "path": "scripts/rebuild-scope-probe.sh",
+      "edit": {
+        "create": "rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "top-level-new-file",
+      "description": "リポジトリー直下の新しいファイル",
+      "path": "rebuild-scope-probe.txt",
+      "edit": {
+        "create": "rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "cmake-presets",
+      "description": "CMake のプリセット",
+      "path": "CMakePresets.json",
+      "edit": {
+        "append": "\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "format-config",
+      "description": "整形の設定",
+      "path": ".clang-format",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "flake-comment",
+      "description": "flake.nix のコメント",
+      "path": "flake.nix",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "packaging-appimage",
+      "description": "AppImage の組み立ての道具",
+      "path": "packaging/linux/appimage/build-image.sh",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "packaging-macos-deploy",
+      "description": "macOS の配備の道具",
+      "path": "packaging/macos/macos-deploy.py",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "packaging-android-testrunner",
+      "description": "Android の試験実行器",
+      "path": "packaging/android/testrunner/CMakeLists.txt",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "packaging-ios-script",
+      "description": "iOS の構築と配備の道具",
+      "path": "packaging/ios/scripts/build-smoke.sh",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "packaging-android-apk",
+      "description": "Android の APK の定義",
+      "path": "packaging/android/apk/build.gradle",
+      "edit": {
+        "append": "// rebuild-scope probe\n"
+      },
+      "changes": [
+        "android/package"
+      ]
+    },
+    {
+      "name": "packaging-windows-installer",
+      "description": "Windows のインストーラーの定義",
+      "path": "packaging/windows/installer/installer_krita.nsi",
+      "edit": {
+        "append": "; rebuild-scope probe\n"
+      },
+      "changes": [
+        "windows/compile",
+        "windows/package"
+      ]
+    },
+    {
+      "name": "packaging-ios-license",
+      "description": "iOS が同梱する権利表示",
+      "path": "packaging/ios/manifests/non-code-licenses.md",
+      "edit": {
+        "append": "\nrebuild-scope probe\n"
+      },
+      "changes": [
+        "ios/compile",
+        "ios/package"
+      ]
+    },
+    {
+      "name": "packaging-ios-audit",
+      "description": "iOS の静的資源の検査",
+      "path": "packaging/ios/scripts/audit-static-dependency-resources.py",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": [
+        "ios/compile",
+        "ios/package"
+      ]
+    },
+    {
+      "name": "script-appimage-audit",
+      "description": "AppImage の検査",
+      "path": "scripts/platform/audit-linux-appimage.py",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": [
+        "linux/package"
+      ]
+    },
+    {
+      "name": "script-appimage-rpaths",
+      "description": "AppImage の RPATH 整理",
+      "path": "scripts/platform/clean-appimage-rpaths.py",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": [
+        "linux/package"
+      ]
+    },
+    {
+      "name": "script-windows-audit",
+      "description": "Windows の配布物の検査",
+      "path": "scripts/platform/audit-windows-package.py",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": [
+        "windows/package"
+      ]
+    },
+    {
+      "name": "script-android-audit",
+      "description": "Android の配布物の検査",
+      "path": "scripts/platform/audit-android-package",
+      "edit": {
+        "append": "# rebuild-scope probe\n"
+      },
+      "changes": [
+        "android/package"
+      ]
+    },
+    {
+      "name": "nix-linux-appimage",
+      "description": "AppImage の組み立ての定義",
+      "path": "nix/linux/appimage.nix",
+      "edit": {
+        "insert_after": "clean-appimage-rpaths\\.py\\} root",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "linux/package"
+      ]
+    },
+    {
+      "name": "nix-windows-package",
+      "description": "Windows の ZIP の組み立ての定義",
+      "path": "nix/windows/default.nix",
+      "edit": {
+        "insert_after": "zip -X -9",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "windows/package"
+      ]
+    },
+    {
+      "name": "nix-android-package",
+      "description": "Android の APK の組み立ての定義",
+      "path": "nix/android/default.nix",
+      "edit": {
+        "insert_after": "test -s \"\\$releaseApk\"",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "android/package"
+      ]
+    },
+    {
+      "name": "nix-ios-ipa",
+      "description": "iOS の IPA の組み立ての定義",
+      "path": "nix/ios/ipa.nix",
+      "edit": {
+        "insert_after": "chmod 0755 \"\\$stage/Payload\"",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "ios/package"
+      ]
+    },
+    {
+      "name": "nix-macos-bundle",
+      "description": "macOS のバンドルの組み立ての定義",
+      "path": "nix/macos/krita.nix",
+      "edit": {
+        "insert_after": "outputBin=out",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "macos/package"
+      ]
+    },
+    {
+      "name": "nix-linux-compile",
+      "description": "Linux のコンパイルの定義",
+      "path": "nix/linux/krita.nix",
+      "edit": {
+        "insert_after": "rm -f \"\\$out/bin/krita_version\"",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "linux/compile",
+        "linux/package"
+      ]
+    },
+    {
+      "name": "nix-macos-compile",
+      "description": "macOS のコンパイルの定義",
+      "path": "nix/macos/krita.nix",
+      "edit": {
+        "insert_after": "test -x \"\\$app/Contents/MacOS/LibrePaint\"",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "macos/compile",
+        "macos/package"
+      ]
+    },
+    {
+      "name": "nix-linux-shell",
+      "description": "Linux の開発シェルの定義",
+      "path": "nix/linux/default.nix",
+      "edit": {
+        "insert_after": "echo \"LibrePaint Linux development shell\"",
+        "text": "# rebuild-scope probe"
+      },
+      "changes": [
+        "linux/shell"
+      ]
+    }
+  ]
+}
