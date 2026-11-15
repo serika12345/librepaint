@@ -32,7 +32,8 @@ STATE_NAMES = ensure_links.STATE_NAMES
 
 class RepositoryCase(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp(prefix="worktrees-")
+        # The scripts print resolved paths; /tmp is a symlink to /private/tmp on macOS.
+        self.tmp = os.path.realpath(tempfile.mkdtemp(prefix="worktrees-"))
         self.addCleanup(shutil.rmtree, self.tmp)
         self.origin = os.path.join(self.tmp, "origin.git")
         self.repo = os.path.join(self.tmp, "repo")
@@ -349,7 +350,8 @@ class StoreHygieneWorktreeTests(RepositoryCase):
 
 class StoreGuardWorktreeTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp(prefix="store-guard-worktrees-")
+        # The scripts print resolved paths; /tmp is a symlink to /private/tmp on macOS.
+        self.tmp = os.path.realpath(tempfile.mkdtemp(prefix="store-guard-worktrees-"))
         self.addCleanup(shutil.rmtree, self.tmp)
         self.state = os.path.join(self.tmp, "state")
         self.store = os.path.join(self.tmp, "store")

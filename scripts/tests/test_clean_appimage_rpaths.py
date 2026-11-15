@@ -86,7 +86,8 @@ class CleanAppImageRpathsTest(unittest.TestCase):
     def setUp(self):
         self._temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self._temporary.cleanup)
-        self.base = Path(self._temporary.name)
+        # The script resolves paths; /tmp is a symlink to /private/tmp on macOS.
+        self.base = Path(self._temporary.name).resolve()
         self.root = self.base / "root"
         self.store = self.root / "nix/store"
         self.store.mkdir(parents=True)
