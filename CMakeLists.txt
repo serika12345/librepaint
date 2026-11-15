@@ -316,6 +316,9 @@ endif ()
 option(HIDE_SAFE_ASSERTS "Don't show message box for \"safe\" asserts, just ignore them automatically and dump a message to the terminal." ON)
 add_feature_info("Hide safe asserts" HIDE_SAFE_ASSERTS "Don't show message box for \"safe\" asserts, just ignore them automatically and dump a message to the terminal.")
 
+option(KRITA_INSTALL_NSIS_INSTALLER "Install the NSIS installer definition with the application on Windows" ON)
+add_feature_info("Install NSIS installer definition" KRITA_INSTALL_NSIS_INSTALLER "Install the NSIS installer definition with the application on Windows")
+
 option(INSTALL_BENCHMARKS "Install benchmarks into the installation root to make them packagable" OFF)
 add_feature_info("Install benchmarks" INSTALL_BENCHMARKS "Install benchmarks into the installation root to make them packagable")
 
@@ -1730,7 +1733,7 @@ configure_file(cmake/config/KoConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoConfi
 configure_file(cmake/config/KoTestConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoTestConfig.h )
 configure_file(cmake/config/config_convolution.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_convolution.h)
 
-if(WIN32)
+if(WIN32 AND KRITA_INSTALL_NSIS_INSTALLER)
     include(${CMAKE_CURRENT_LIST_DIR}/packaging/windows/installer/ConfigureInstallerNsis.cmake)
 endif()
 

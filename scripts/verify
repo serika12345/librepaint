@@ -15,6 +15,14 @@ fi
 
 ./scripts/verify-quick
 
+# The Nix build source omits tests and benchmarks, so the product configuration
+# must work without them, and each representative edit must rebuild only the
+# derivations listed in scripts/rebuild-scope.json.
+if [[ "$(uname -s)" == "Linux" ]]; then
+    python3 "$repo_root/scripts/check-test-gating.py" --configure
+fi
+python3 "$repo_root/scripts/check-rebuild-scope.py"
+
 case "$(uname -s)" in
     Darwin)
         preset="tdd-macos"

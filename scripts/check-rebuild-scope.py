@@ -11,11 +11,15 @@ must change.  For every probe this script
      (git+file://<root>?rev=<commit>), and
   3. compares it with the drvPath at HEAD.
 
-A label changes when at least one of its derivations changes.  The check fails
+A probe whose edit is "control" commits the unchanged tree: nothing may change,
+which shows that the commit id and date do not reach any derivation.  A label
+changes when at least one of its derivations changes.  The check fails
 when a label outside the expected set changes or an expected label does not
 change.  The work tree is not evaluated: uncommitted edits are ignored, because
 the work tree's line-ending conversion alters source files and would hide the
-result.  Nothing is built.
+result.  Nothing is built, and the evaluation may not import from derivations.
+Each evaluation copies the repository into the Nix store; the copies of the
+scratch commits are deleted at the end.
 """
 
 from __future__ import annotations
@@ -64,10 +68,14 @@ def always_labels(matrix: dict) -> Set[str]:
     return {name for name, label in matrix["labels"].items() if label.get("alwaysChanges")}
 
 
+def is_control(probe: dict) -> bool:
+    return bool(probe.get("edit", {}).get("control"))
+
+
 def expected_changes(matrix: dict, probe: dict) -> Set[str]:
     """Expand a probe's patterns into labels, plus the labels every edit changes."""
     labels = set(matrix["labels"])
-    expected = set(always_labels(matrix))
+    expected = set() if is_control(probe) else set(always_labels(matrix))
     for pattern in probe["changes"]:
         matched = {label for label in labels if fnmatch.fnmatchcase(label, pattern)}
         if not matched:
@@ -89,14 +97,33 @@ def validate_matrix(matrix: dict) -> List[str]:
             problems.append(f"duplicate probe {probe['name']}")
         names.add(probe["name"])
         edit = probe["edit"]
-        if sum(key in edit for key in ("append", "create", "insert_after")) != 1:
-            problems.append(f"probe {probe['name']}: edit needs exactly one of append, create, insert_after")
+        if sum(key in edit for key in ("append", "create", "insert_after", "control")) != 1:
+            problems.append(
+                f"probe {probe['name']}: edit needs exactly one of append, create, insert_after, control"
+            )
+        if "control" not in edit and not probe.get("path"):
+            problems.append(f"probe {probe['name']}: path is missing")
+        if "control" in edit and probe["changes"]:
+            problems.append(f"probe {probe['name']}: a control probe changes nothing")
         if "insert_after" in edit and "text" not in edit:
             problems.append(f"probe {probe['name']}: insert_after needs text")
         try:
             expected_changes(matrix, probe)
         except ValueError as error:
             problems.append(str(error))
+    compile_labels = {name for name in matrix["labels"] if name.endswith("/compile")}
+    try:
+        controls = [
+            expected_changes(matrix, probe)
+            for probe in matrix["probes"]
+            if compile_labels <= expected_changes(matrix, probe)
+        ]
+    except ValueError:
+        controls = []
+    if not controls:
+        problems.append("no probe changes every compile label; the check needs a positive control")
+    if not any(is_control(probe) for probe in matrix["probes"]):
+        problems.append("no control probe: add an edit of kind control")
     return problems
 
 
@@ -147,8 +174,9 @@ def apply_edit(content: Optional[bytes], edit: dict, path: str) -> bytes:
 
 def scratch_commit(root: str, base: str, edit: dict) -> str:
     """Commit the edit on top of base without touching refs or the work tree."""
-    path = edit["path"]
-    content = apply_edit(git_show(root, base, path), edit, path)
+    path = edit.get("path", "")
+    control = bool(edit.get("control"))
+    content = b"" if control else apply_edit(git_show(root, base, path), edit, path)
     with tempfile.TemporaryDirectory(prefix="rebuild-scope-") as directory:
         env = dict(os.environ, GIT_INDEX_FILE=os.path.join(directory, "index"))
         env.update(
@@ -158,8 +186,9 @@ def scratch_commit(root: str, base: str, edit: dict) -> str:
             GIT_COMMITTER_EMAIL="rebuild-scope@localhost",
         )
         run(["git", "read-tree", base], root, env)
-        blob = run(["git", "hash-object", "-w", "--stdin"], root, env, content).strip()
-        run(["git", "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}"], root, env)
+        if not control:
+            blob = run(["git", "hash-object", "-w", "--stdin"], root, env, content).strip()
+            run(["git", "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}"], root, env)
         tree = run(["git", "write-tree"], root, env).strip()
         return run(["git", "commit-tree", tree, "-p", base, "-m", f"rebuild-scope probe {path}"], root, env).strip()
 
@@ -170,8 +199,11 @@ def nix_string(value: str) -> str:
     return json.dumps(value)
 
 
-def drv_paths(root: str, rev: str, matrix: dict) -> Dict[str, List[str]]:
-    """Evaluate the drvPath of every derivation of every label at rev."""
+def drv_paths(root: str, rev: str, matrix: dict):
+    """Evaluate the drvPath of every derivation of every label at rev.
+
+    Returns the drvPaths by label and the store path of the flake source.
+    """
     request = {
         name: [attr.split(".") for attr in label["attrs"]] for name, label in matrix["labels"].items()
     }
@@ -180,10 +212,15 @@ def drv_paths(root: str, rev: str, matrix: dict) -> Dict[str, List[str]]:
         f"let flake = builtins.getFlake {nix_string(url)};"
         " get = path: builtins.foldl' (set: key: set.${key}) flake path;"
         f" request = builtins.fromJSON {nix_string(json.dumps(request))};"
-        " in builtins.mapAttrs (name: paths: map (path: (get path).drvPath) paths) request"
+        " in { source = flake.outPath;"
+        " drvs = builtins.mapAttrs (name: paths: map (path: (get path).drvPath) paths) request; }"
     )
-    output = run(["nix", "eval", "--json", "--expr", expression], root)
-    return json.loads(output)
+    output = run(
+        ["nix", "eval", "--json", "--option", "allow-import-from-derivation", "false", "--expr", expression],
+        root,
+    )
+    result = json.loads(output)
+    return result["drvs"], result["source"]
 
 
 def changed_labels(base: Dict[str, List[str]], probe: Dict[str, List[str]]) -> Set[str]:
@@ -191,10 +228,24 @@ def changed_labels(base: Dict[str, List[str]], probe: Dict[str, List[str]]) -> S
 
 
 def check_probe(root: str, base_rev: str, base: Dict[str, List[str]], matrix: dict, probe: dict):
-    commit = scratch_commit(root, base_rev, {**probe["edit"], "path": probe["path"]})
-    changed = changed_labels(base, drv_paths(root, commit, matrix))
-    expected = expected_changes(matrix, probe)
-    return probe["name"], changed, expected
+    commit = scratch_commit(root, base_rev, {**probe["edit"], "path": probe.get("path", "")})
+    drvs, source = drv_paths(root, commit, matrix)
+    return probe["name"], changed_labels(base, drvs), expected_changes(matrix, probe), source
+
+
+def delete_store_paths(root: str, paths: List[str], base_source: str) -> None:
+    """Delete the flake source copies of the scratch commits, if nothing uses them."""
+    unique = sorted({path for path in paths if path != base_source})
+    if not unique:
+        return
+    completed = subprocess.run(
+        ["nix", "store", "delete", *unique], cwd=root, capture_output=True, check=False, text=True
+    )
+    if completed.returncode != 0:
+        print(
+            "check-rebuild-scope: scratch sources stay in the Nix store until the next garbage collection",
+            file=sys.stderr,
+        )
 
 
 def describe(labels: Set[str], skip: Set[str]) -> str:
@@ -221,7 +272,8 @@ def render_table(matrix: dict) -> str:
     lines = ["| 編集の種類 | 代表の編集 | 再構築される派生物 |", "| --- | --- | --- |"]
     for probe in matrix["probes"]:
         changes = expected_changes(matrix, probe)
-        lines.append(f"| {probe['description']} | `{probe['path']}` | {describe(changes, skip)} |")
+        path = f"`{probe['path']}`" if probe.get("path") else "なし"
+        lines.append(f"| {probe['description']} | {path} | {describe(changes, skip)} |")
     return "\n".join(lines)
 
 
@@ -251,15 +303,17 @@ def main(argv: Sequence[str]) -> int:
         return 1
     base_rev = run(["git", "rev-parse", "HEAD"], root).strip()
     print(f"check-rebuild-scope: base {base_rev[:12]}, {len(probes)} probe(s)", flush=True)
-    base = drv_paths(root, base_rev, matrix)
+    base, _base_source = drv_paths(root, base_rev, matrix)
 
     failures = 0
+    scratch_sources: List[str] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
         futures = {pool.submit(check_probe, root, base_rev, base, matrix, probe): probe for probe in probes}
         for future in concurrent.futures.as_completed(futures):
             probe = futures[future]
             try:
-                name, changed, expected = future.result()
+                name, changed, expected, source = future.result()
+                scratch_sources.append(source)
             except Exception as error:  # report each probe, then fail
                 failures += 1
                 print(f"FAIL {probe['name']}: {error}", file=sys.stderr, flush=True)
@@ -268,13 +322,14 @@ def main(argv: Sequence[str]) -> int:
             missing = sorted(expected - changed)
             if unexpected or missing:
                 failures += 1
-                print(f"FAIL {name} ({probe['path']})", file=sys.stderr)
+                print(f"FAIL {name} ({probe.get('path') or 'no edit'})", file=sys.stderr)
                 if unexpected:
                     print(f"  rebuilt but not expected: {', '.join(unexpected)}", file=sys.stderr)
                 if missing:
                     print(f"  expected but unchanged: {', '.join(missing)}", file=sys.stderr, flush=True)
             else:
                 print(f"ok   {name}: {', '.join(sorted(changed - always_labels(matrix))) or 'nothing rebuilt'}", flush=True)
+    delete_store_paths(root, scratch_sources, base_source=_base_source)
     if failures:
         print(f"check-rebuild-scope: {failures} probe(s) failed", file=sys.stderr)
         return 1

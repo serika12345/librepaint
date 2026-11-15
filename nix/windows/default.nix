@@ -316,10 +316,8 @@ let
         "$out/bin/plugins/qmltooling" \
         "$out/bin/qml/Qt/test" \
         "$out/bin/qml/QtTest" \
-        "$out/include" \
-        "$out/installer"
+        "$out/include"
       rm -f \
-        "$out/MakeinstallerNsis.cmake" \
         "$out/bin/Qt6QuickTest.dll" \
         "$out/bin/Qt6Test.dll" \
         "$out/bin/krita_version.exe" \
@@ -376,14 +374,14 @@ let
       printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
         > "$out/nix-support/dependency-members"
     '';
+  # The G'MIC plugin compiles against the Krita build, so it belongs to the
+  # package and not to this source-independent aggregate.
   windowsDependencies = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-dependencies"
     { }
     ''
       mkdir -p "$out/nix-support"
       printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
         > "$out/nix-support/windows-dependency-members"
-      printf '%s\n' ${lib.escapeShellArg (toString librepaintGmic)} \
-        >> "$out/nix-support/windows-dependency-members"
     '';
   devShell = pkgs.mkShell {
     inputsFrom = [ incrementalEnv ];

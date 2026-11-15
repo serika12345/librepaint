@@ -310,7 +310,7 @@ Issueへの反映には、後述の「Issueによる作業管理」の依頼・�
 | 一つの振る舞いの変更 | `run-test <target> [ctest-regex]`、影響範囲CTest、`verify-quick` |
 | 広い共有境界・統合 | `verify` |
 | CMake構成 | 対応する`build-incremental <platform> configure`と対象構築・試験 |
-| Nix出力・環境・依存・ソース絞り込み | `nix flake check --no-build --all-systems`と変更出力の構築 |
+| Nix出力・環境・依存・ソース絞り込み | `nix flake check --no-build --all-systems`、`scripts/check-rebuild-scope.py`、変更出力の構築 |
 | 入力・描画・OS境界 | 対象機器の入力、保存、復帰、必要な画像・性能・同期検査 |
 | 配布定義 | 名前付き`nix build`出力、成果物検査、対象OSでの起動と主要操作 |
 
@@ -1464,7 +1464,103 @@ Xcode／SDK／Clangの版ごとに分離する。署名の認証情報はロー�
 旧GCルートを解放し、**Nixストア全体のごみ収集**後に集約依存物を再構築する。
 全レシピが固定・コミット済みで、削除範囲への承認を得た保守時に使う。
 
-構築用のソースは、リポジトリーの管理用の道具（`scripts/` の一部、`.envrc`、`.gitignore`）と、`docs/`、`nix/` を含まない。これらの変更は、Krita 本体の再コンパイルを起こさない。構築の評価は、コミットした木（`.#attr` か `git+file://…?rev=`）で行う。未コミットの作業ツリーを評価すると、`.gitattributes` の改行変換（`*.bat` は CRLF）で `packaging/android/apk/gradlew.bat` の内容が変わり、ソースの内容が変わって、再コンパイルになる。
+### 再構築の範囲
+
+Nixは派生物の入力のハッシュで再構築を決める。入力にファイルを含む派生物は、そのファイルを使わなくても、
+編集のたびに変わる。Krita本体のコンパイルはLinuxで約100分、Windowsで約85分かかるため、編集の種類ごとに
+再構築される派生物を定め、次の3種類の検査で守る。
+
+派生物は、プラットフォーム（Linux、Windows、Android、macOS、iOS）ごとに4区分に分ける。
+
+| 区分 | 内容 | 入力 |
+| --- | --- | --- |
+| コンパイル | Krita本体をコンパイルして導入する。Linuxは`librepaint-linux-unwrapped`、Windowsは`librepaint-windows-unwrapped`、Androidは`librepaint-android-native`（ABIごと）、macOSは`librepaint-macos-unwrapped`、iOSは`krita-ios-app` | プラットフォーム別の構築用ソースと依存 |
+| パッケージ化 | コンパイルの出力を配布物にする。Linuxのラッパーと AppImage、WindowsのZIP、AndroidのAPKとAAB、macOSのバンドル、iOSのIPA | コンパイルの出力と、各プラットフォームの組み立て定義 |
+| 依存 | Qt、KDE Frameworks、サードパーティーライブラリー | 依存の定義と`flake.lock`。構築用ソースを含まない |
+| 開発シェル | `nix develop`の環境 | 依存の定義。構築用ソースを含まない |
+
+構築用のソース（`flake.nix`の`mkLibrepaintBuildSource`）は許可リスト方式で作る。全プラットフォーム共通で
+`3rdparty_vendor`、`CMakeLists.txt`、`COPYING*`、`LICENSES`、`cmake`、`krita`、`libs`、`pch`、`pics`、
+`plugins`、`po`、`qmlmodules`、`sdk`を含め、プラットフォーム別に次を足す。リストにないファイルは、新規に追加しても
+どのコンパイルの入力にもならない。コンパイルが読むファイルを増やすときは、`flake.nix`の
+`*BuildSourceEntries`へ足し、`scripts/rebuild-scope.json`に代表の編集を足す。
+
+| プラットフォーム | 追加する入力 |
+| --- | --- |
+| Linux、Android | なし |
+| Windows | `winquirks` |
+| macOS | `packaging/macos/LibrePaint.icns` |
+| iOS | `packaging/ios/manifests`と`packaging/ios/notices`のうちCMakeが導入する7ファイル |
+
+名前が`tests`、`autotests`、`benchmarks`のディレクトリーは、全プラットフォームの構築用ソースから除く。製品の構築は
+`BUILD_TESTING=OFF`で動くため、CMakeは`if(BUILD_TESTING)`の中でだけこれらのディレクトリーを読む。
+`add_subdirectory`、製品ライブラリーのソース一覧、試験用マクロの呼び出しが、この条件の外でテストのパスを
+読むことはない。Androidの配布物の検査（`scripts/platform/audit-android-package`）とiOSの静的資源の検査
+（`packaging/ios/scripts/audit-static-dependency-resources.py`）は、構築用ソースと別の`lib.fileset`から読む。
+
+編集の種類ごとの再構築範囲を次に示す。表の外の派生物は変わらない。検査用の`governance`派生物は`scripts/`と`docs/`を含む
+方針用のソースを使うため、すべての編集で変わる。表は`scripts/rebuild-scope.json`から生成する
+（`python3 scripts/check-rebuild-scope.py --render-table`）。
+
+<!-- rebuild-scope:begin -->
+| 編集の種類 | 代表の編集 | 再構築される派生物 |
+| --- | --- | --- |
+| Krita 本体のソース | `libs/image/kis_image.cc` | 全プラットフォームのコンパイル、全プラットフォームのパッケージ化 |
+| テストのヘッダー | `sdk/tests/simpletest.h` | なし |
+| テストのコード | `libs/resources/ui/tests/TestResourceUiContract.cpp` | なし |
+| テストの CMake 定義 | `libs/image/tests/CMakeLists.txt` | なし |
+| ベンチマーク | `benchmarks/kis_stroke_benchmark.cpp` | なし |
+| 文書 | `docs/architecture/DEVELOPMENT.md` | なし |
+| README | `README.md` | なし |
+| リポジトリー管理の道具 | `scripts/verify-quick` | なし |
+| scripts/ の新しいファイル | `scripts/rebuild-scope-probe.sh` | なし |
+| リポジトリー直下の新しいファイル | `rebuild-scope-probe.txt` | なし |
+| CMake のプリセット | `CMakePresets.json` | なし |
+| 整形の設定 | `.clang-format` | なし |
+| flake.nix のコメント | `flake.nix` | なし |
+| AppImage の組み立ての道具 | `packaging/linux/appimage/build-image.sh` | なし |
+| macOS の配備の道具 | `packaging/macos/macos-deploy.py` | なし |
+| Android の試験実行器 | `packaging/android/testrunner/CMakeLists.txt` | なし |
+| iOS の構築と配備の道具 | `packaging/ios/scripts/build-smoke.sh` | なし |
+| Android の APK の定義 | `packaging/android/apk/build.gradle` | Androidのパッケージ化 |
+| Windows のインストーラーの定義 | `packaging/windows/installer/installer_krita.nsi` | なし |
+| iOS が同梱する権利表示 | `packaging/ios/manifests/non-code-licenses.md` | iOSのコンパイル、iOSのパッケージ化 |
+| iOS の静的資源の検査 | `packaging/ios/scripts/audit-static-dependency-resources.py` | iOSのコンパイル、iOSのパッケージ化 |
+| AppImage の検査 | `scripts/platform/audit-linux-appimage.py` | Linuxのパッケージ化 |
+| AppImage の RPATH 整理 | `scripts/platform/clean-appimage-rpaths.py` | Linuxのパッケージ化 |
+| Windows の配布物の検査 | `scripts/platform/audit-windows-package.py` | Windowsのパッケージ化 |
+| Android の配布物の検査 | `scripts/platform/audit-android-package` | Androidのパッケージ化 |
+| AppImage の組み立ての定義 | `nix/linux/appimage.nix` | Linuxのパッケージ化 |
+| Windows の ZIP の組み立ての定義 | `nix/windows/default.nix` | Windowsのパッケージ化 |
+| Android の APK の組み立ての定義 | `nix/android/default.nix` | Androidのパッケージ化 |
+| iOS の IPA の組み立ての定義 | `nix/ios/ipa.nix` | iOSのパッケージ化 |
+| macOS のバンドルの組み立ての定義 | `nix/macos/krita.nix` | macOSのパッケージ化 |
+| Linux のコンパイルの定義 | `nix/linux/krita.nix` | Linuxのコンパイル、Linuxのパッケージ化 |
+| macOS のコンパイルの定義 | `nix/macos/krita.nix` | macOSのコンパイル、macOSのパッケージ化 |
+| Linux の開発シェルの定義 | `nix/linux/default.nix` | Linuxの開発シェル |
+| テストのディレクトリーの新しいファイル | `libs/image/tests/rebuild_scope_probe.cpp` | なし |
+| リポジトリー直下の新しいディレクトリー | `rebuild-scope-probe/probe.txt` | なし |
+| 内容の変わらないコミット（コミットの識別子と日時だけが違う） | なし | なし |
+<!-- rebuild-scope:end -->
+
+表のうち、次の結合は現在の構造から生じる。Windowsのインストーラー定義（`packaging/windows/installer`）は、CMakeのオプション`KRITA_INSTALL_NSIS_INSTALLER`を切ったWindowsの構築が読まないため、コンパイルの入力にならない。
+
+- `packaging/ios/scripts/audit-static-dependency-resources.py`は、iOSのアプリ派生物の`postInstallCheck`が実行する。IPAの派生物へ移すには、Xcodeのツールチェーンを`__impureHostDeps`で渡す必要がある。
+- Krita本体のソースの中にある、プラットフォーム専用のディレクトリー（`libs/macosutils`など）と、`krita/data`・`po`・`pics`のデータは、コンパイルと同じ派生物に導入されるため、編集すると全プラットフォームのコンパイルが変わる。これらの残余は[#119](https://github.com/serika12345/librepaint/issues/119)で扱う。
+
+検査は次の3種類で、編集の対象に応じて実行する。
+
+```sh
+python3 scripts/check-test-gating.py              # テストを読むCMake定義の静的検査（verify-quick）
+python3 scripts/check-test-gating.py --configure  # 構築用のLinuxソースをBUILD_TESTING=OFFで構成（verify）
+python3 scripts/check-rebuild-scope.py            # 代表の編集ごとにdrvPathを比べる（verify）
+```
+
+`check-rebuild-scope.py`は、HEADの上に一時インデックスで編集を適用した使い捨てのコミットを作り、`git+file://…?rev=<コミット>`の
+Flakeを評価する。参照、ブランチ、作業ツリーは変わらない。未コミットの作業ツリーは評価しない。作業ツリーの評価では
+`.gitattributes`の改行変換（`*.bat`はCRLF）で`packaging/android/apk/gradlew.bat`の内容が変わり、結果が正しくならない。
+評価1回ごとにリポジトリー全体の複製（約0.5GiB）がNixストアにできる。`--probe <名前>`で探針を絞り、`--jobs`で並列数を変える。
+構築は行わず、`nix build`の前に評価だけで再構築範囲を確かめられる。
 
 ### 依存の検査
 

@@ -298,10 +298,7 @@
       "edit": {
         "append": "; rebuild-scope probe\n"
       },
-      "changes": [
-        "windows/compile",
-        "windows/package"
-      ]
+      "changes": []
     },
     {
       "name": "packaging-ios-license",
@@ -468,6 +465,33 @@
       "changes": [
         "linux/shell"
       ]
+    },
+    {
+      "name": "new-tests-file",
+      "description": "テストのディレクトリーの新しいファイル",
+      "path": "libs/image/tests/rebuild_scope_probe.cpp",
+      "edit": {
+        "create": "// rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "new-top-level-directory",
+      "description": "リポジトリー直下の新しいディレクトリー",
+      "path": "rebuild-scope-probe/probe.txt",
+      "edit": {
+        "create": "rebuild-scope probe\n"
+      },
+      "changes": []
+    },
+    {
+      "name": "control",
+      "description": "内容の変わらないコミット（コミットの識別子と日時だけが違う）",
+      "path": "",
+      "edit": {
+        "control": true
+      },
+      "changes": []
     }
   ]
 }

@@ -747,6 +747,9 @@ pkgs.stdenv.mkDerivation {
     "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON"
     "-DBUILD_TESTING=OFF"
     "-DBUILD_WITH_QT6=ON"
+    # The ZIP omits the installer definition, so the build neither reads nor
+    # installs packaging/windows/installer.
+    "-DKRITA_INSTALL_NSIS_INSTALLER=OFF"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_FFTW3=TRUE"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_GIF=TRUE"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_GSL=TRUE"

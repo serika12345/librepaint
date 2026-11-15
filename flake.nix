@@ -514,10 +514,7 @@
       # assembles, signs or deploys the result is a separate derivation and
       # stays out of these lists.
       linuxBuildSourceEntries = [ ];
-      windowsBuildSourceEntries = [
-        "packaging/windows/installer"
-        "winquirks"
-      ];
+      windowsBuildSourceEntries = [ "winquirks" ];
       macosBuildSourceEntries = [ "packaging/macos/LibrePaint.icns" ];
       androidBuildSourceEntries = [ ];
       iosBuildSourceEntries = [
