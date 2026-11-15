@@ -641,9 +641,18 @@ let
 
   packagingCmake = androidHost.replaceVars ./package.cmake { inherit androidAbi; };
 
+  # gradlew.bat is the Windows launcher and has the attribute eol=crlf, so Nix
+  # reads different bytes for it from a checked-out work tree and from a
+  # commit. The Linux build never runs it, and leaving it out keeps the
+  # derivation the same for both.
+  apkSource = lib.fileset.toSource {
+    root = ../../packaging/android/apk;
+    fileset = lib.fileset.difference ../../packaging/android/apk ../../packaging/android/apk/gradlew.bat;
+  };
+
   androidPackageSource = androidHost.runCommand "${packageName}-package-source" { } ''
     mkdir -p "$out"
-    cp -a ${../../packaging/android/apk} "$out/apk"
+    cp -a ${apkSource} "$out/apk"
     chmod -R u+w "$out/apk"
     install -m 0644 ${packagingCmake} "$out/CMakeLists.txt"
     install -m 0755 ${gradleWrapper} "$out/apk/gradlew"
