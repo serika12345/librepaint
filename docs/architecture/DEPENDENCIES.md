@@ -81,3 +81,15 @@ python3 scripts/platform/report-build-sizes.py
 
 集計の定義は、キャッシュにない派生物の出力の NAR のサイズの合計である。分類は検査と同じ own、small、target、host を使い、own（LibrePaint 自身）は依存の合計に含めず、別の行に示す。依存の合計は small、target、host の合計である。まだ構築されていない出力はサイズ不明として件数だけを数え、サイズを推定して補わない。
 
+
+## 6. バイナリキャッシュへ載せる依存のパス
+
+外部のバイナリキャッシュ（S3 互換のバケット）へ載せる対象は、ビルドが必須な依存のうち、手元のストアにある出力である。LibrePaint 自身（own）の出力は、コミットごとに変わるため対象にしない。対象のパスは、次のコマンドで 1 行ずつファイルに書く。
+
+```sh
+python3 scripts/platform/report-build-sizes.py --platform windows --paths-file windows-paths.txt
+```
+
+プラットフォームごとの `dependencies` のような集約出力は設けない。macOS と iOS の依存を集約出力の入力にたどると、手元で構築する 112 件のうち 41 件（macOS 向けの KDE Frameworks、iOS の生成ソースなど）が漏れた。パスの一覧は、検査と同じ派生物のグラフから作るため、検査と構成が食い違わない。
+
+バイナリキャッシュ形式のストアは、参照先も同じバケットに要求する。`nix copy` は参照先を含むクロージャーを送るため、cache.nixos.org にあるパスも一緒に保存される。圧縮（zstd）後の量は、5 プラットフォームで約 4.1 GiB（2026-11-15 の測定）である。Linux ホストの出力は、Mac から `nix copy --from ssh-ng://<ホスト>` で中継して送る。
