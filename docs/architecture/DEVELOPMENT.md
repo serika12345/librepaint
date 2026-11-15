@@ -169,10 +169,8 @@ scripts/ensure-state-links.py --migrate
   `separateDebugInfo`）と、目印のコメント（`EXPERIMENT`、`XXX`、`TEMP`、`DEBUG ONLY`）を
   `flake.nix`と`nix/**/*.nix`から列挙する。理由のコメント（`nixpkgs`、`Issue #`、
   `remove when`、`drop when`、`removal`）が同じ行か直前の行にある既存の行は対象にしない。
-- Linux AppImageの監査にあるQt WebEngineの禁止の緩和
-  （`scripts/platform/audit-linux-appimage.py`、配布物の確定まで）を、許可リスト方式に戻す。
-- `nix/dependency-policy.json`の`provisional`の項目（`python3-3.11`、`gradle`、
-  `ncurses-abi5-compat`）を調べ、理由を確定するか、不要にする。
+- `nix/dependency-policy.json`に、理由を調べていない`provisional`の項目がない。
+  Gradleをキャッシュにある版へ移す作業は[Issue #120](https://github.com/serika12345/librepaint/issues/120)で扱う。
 - `nix/pyqt6-overrides.nix`と、darwinのPyQt6の修正を、nixpkgsがPyQt6 6.12.0と
   その修正を取り込んだ後に除く。
 - 載せる派生物は、上の確認の後のFlakeで構築し直したものだけにする。
