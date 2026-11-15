@@ -455,101 +455,80 @@
           })
         ];
       };
+      # The Krita compilation of every platform reads only the entries below, so
+      # an edit anywhere else (docs, scripts, nix, the flake, other platforms'
+      # packaging, tests, benchmarks) leaves the compilation derivations
+      # unchanged.  A new top-level entry stays out of the build source until
+      # it is listed here, and scripts/check-test-gating.py configures the
+      # filtered Linux source to prove that the listed entries are enough.
+      buildSourceEntries = [
+        "3rdparty_vendor"
+        "CMakeLists.txt"
+        "COPYING"
+        "COPYING-CMAKE-SCRIPTS"
+        "LICENSES"
+        "cmake"
+        "krita"
+        "libs"
+        "pch"
+        "pics"
+        "plugins"
+        "po"
+        "qmlmodules"
+        "sdk"
+      ];
+      # Directories that exist only to test or benchmark the product.  Product
+      # builds set BUILD_TESTING=OFF, and the CMake configuration enters these
+      # directories only inside if(BUILD_TESTING).
+      buildSourceTestDirectories = [
+        "autotests"
+        "benchmarks"
+        "tests"
+      ];
       mkLibrepaintBuildSource =
-        packageSet: excludeAndroidPackage: excludeIosPackaging:
+        packageSet: platformEntries:
         packageSet.lib.cleanSourceWith {
           name = "librepaint-source";
           src = ./.;
           filter =
             path: _type:
             let
-              relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
-              topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
+              inherit (packageSet) lib;
+              relativePath = lib.removePrefix "${toString ./.}/" (toString path);
+              entries = buildSourceEntries ++ platformEntries;
+              # An entry, a path below it, or a directory that leads to it.
+              onEntry = lib.any (
+                entry:
+                relativePath == entry
+                || lib.hasPrefix "${entry}/" relativePath
+                || lib.hasPrefix "${relativePath}/" entry
+              ) entries;
+              inTestDirectory = lib.any (
+                component: lib.elem component buildSourceTestDirectories
+              ) (lib.splitString "/" relativePath);
             in
-            # Repository maintenance tooling is not read by the build, so
-            # excluding it keeps tooling-only commits from invalidating the
-            # application compilation cache.
-            !(builtins.elem topLevel [
-              ".cache"
-              ".direnv"
-              ".envrc"
-              ".git"
-              ".gitattributes"
-              ".github"
-              ".gitignore"
-              ".gitlab"
-              "AGENTS.md"
-              "build-ios"
-              "docs"
-              "flake.lock"
-              "flake.nix"
-              "logs"
-              "nix"
-              "result"
-            ])
-            && !(builtins.elem relativePath [
-              "packaging/macos/fonts.conf"
-              "packaging/macos/macos-apptodmg.py"
-              "packaging/macos/macos-bundle-launcher.c"
-              "packaging/macos/macos-deploy.py"
-              "packaging/macos/qt.conf"
-              "scripts/build-incremental"
-              "scripts/check-flake-hygiene.py"
-              "scripts/check-store-hygiene.py"
-              "scripts/ensure-state-links.py"
-              "scripts/new-worktree.py"
-              "scripts/platform/audit-linux-appimage.py"
-              "scripts/platform/audit-macos-bundle.py"
-              "scripts/platform/audit-windows-package.py"
-              "scripts/platform/build-android-incremental"
-              "scripts/platform/build-windows-incremental"
-              "scripts/platform/check-macos-release-dmg"
-              "scripts/platform/check-nix-deps.py"
-              "scripts/platform/check-release-assets"
-              "scripts/platform/clean-appimage-rpaths.py"
-              "scripts/platform/enter-incremental-environment"
-              "scripts/platform/report-build-sizes.py"
-              "scripts/platform/sign-android-draft-release"
-              "scripts/platform/verify-android-release-apk.py"
-              "scripts/run-shared-test-env"
-              "scripts/run-test"
-              "scripts/store-guard.py"
-              "scripts/verify"
-              "scripts/verify-quick"
-              "scripts/worktree-gc.py"
-            ])
-            && !(builtins.any
-              (directory: relativePath == directory
-                || packageSet.lib.hasPrefix "${directory}/" relativePath)
-              [
-                "scripts/docs"
-                "scripts/launchd"
-                "scripts/nix-guard"
-                "scripts/perf"
-                "scripts/systemd"
-                "scripts/tests"
-              ])
-            && !(excludeAndroidPackage && (
-              relativePath == "packaging/android/apk"
-              || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
-            ))
-            # iOS manifests are flake inputs for the iOS build and are not read
-            # by the Krita compilation, so excluding them keeps manifest-only
-            # edits from invalidating other platforms' compilation cache.
-            && !(excludeIosPackaging && builtins.any
-              (directory: relativePath == directory
-                || packageSet.lib.hasPrefix "${directory}/" relativePath)
-              [
-                "packaging/ios/deps"
-                "packaging/ios/e2e"
-                "packaging/ios/frameworks"
-                "packaging/ios/qt"
-                "packaging/ios/smoke"
-                "packaging/ios/tests"
-              ])
-            && !(excludeIosPackaging && relativePath == "packaging/ios/versions.env")
-            && !(packageSet.lib.hasPrefix "README" topLevel);
+            toString path == toString ./. || (onEntry && !inTestDirectory);
         };
+      # Entries below packaging/ and platform-only directories that the
+      # compilation of one platform reads in addition.  Packaging that only
+      # assembles, signs or deploys the result is a separate derivation and
+      # stays out of these lists.
+      linuxBuildSourceEntries = [ ];
+      windowsBuildSourceEntries = [
+        "packaging/windows/installer"
+        "winquirks"
+      ];
+      macosBuildSourceEntries = [ "packaging/macos/LibrePaint.icns" ];
+      androidBuildSourceEntries = [ ];
+      iosBuildSourceEntries = [
+        "packaging/ios/manifests/default-resource-bundle-licenses.json"
+        "packaging/ios/manifests/ios-image-licenses.json"
+        "packaging/ios/manifests/non-code-licenses.md"
+        "packaging/ios/manifests/static-dependency-resources.json"
+        "packaging/ios/notices/librepaint-brand-assets.md"
+        "packaging/ios/notices/qtbase-icc-attribution.json"
+        "packaging/ios/notices/retained-functional-assets.md"
+      ];
       # Policy files use an independent source so policy-only edits preserve
       # the application compilation cache.
       mkLibrepaintPolicySource =
@@ -574,10 +553,11 @@
             ])
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
-      librepaintBuildSource = mkLibrepaintBuildSource pkgs false true;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false true;
-      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true true;
-      iosBuildSource = mkLibrepaintBuildSource pkgs false false;
+      macosBuildSource = mkLibrepaintBuildSource pkgs macosBuildSourceEntries;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs linuxBuildSourceEntries;
+      windowsBuildSource = mkLibrepaintBuildSource linuxPkgs windowsBuildSourceEntries;
+      androidBuildSource = mkLibrepaintBuildSource linuxPkgs androidBuildSourceEntries;
+      iosBuildSource = mkLibrepaintBuildSource pkgs iosBuildSourceEntries;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
@@ -595,7 +575,7 @@
       };
       macosPackages = import ./nix/macos {
         inherit pkgs;
-        source = librepaintBuildSource;
+        source = macosBuildSource;
       };
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
@@ -607,12 +587,12 @@
       };
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxAndroidCompileSource;
+        source = androidBuildSource;
         overlays = [ kdeOverlay ];
       };
       linuxAndroidX86_64Packages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxAndroidCompileSource;
+        source = androidBuildSource;
         overlays = [ kdeOverlay ];
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
@@ -620,7 +600,7 @@
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         hostPkgs = linuxPkgs;
-        source = linuxBuildSource;
+        source = windowsBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
         # Keep the fork build available until Q4 stage 7 passes; the default
         # of nix/windows is the official Qt.
@@ -632,7 +612,7 @@
       windowsUpstreamQtPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         hostPkgs = linuxPkgs;
-        source = linuxBuildSource;
+        source = windowsBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
         useQtFork = false;
         pnameSuffix = "-upstream-qt";
@@ -1071,6 +1051,18 @@
         librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
         librepaint-windows-upstream-qt = windowsUpstreamQtPackages.devShell;
+      };
+
+      # The filtered sources that the compilation derivations read.  The test
+      # gating check configures the Linux one (scripts/check-test-gating.py).
+      legacyPackages.${system}.buildSources = {
+        macos = macosBuildSource;
+        ios = iosBuildSource;
+      };
+      legacyPackages.${linuxSystem}.buildSources = {
+        linux = linuxBuildSource;
+        windows = windowsBuildSource;
+        android = androidBuildSource;
       };
 
       formatter.${system} = pkgs.nixfmt;

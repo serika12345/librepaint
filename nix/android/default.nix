@@ -632,6 +632,17 @@ let
     // lib.genAttrs incrementalDiscardedHooks (_hook: "")
   );
 
+  # The package audit and the helper it runs live outside the compilation
+  # source, so editing them rebuilds the package and not the native libraries.
+  # The audit locates its helper relative to its own path.
+  packageAudit = lib.fileset.toSource {
+    root = ../..;
+    fileset = lib.fileset.unions [
+      ../../scripts/platform/audit-android-package
+      ../../scripts/platform/audit-android-cross-library-rtti.py
+    ];
+  };
+
   packagingCmake = androidHost.replaceVars ./package.cmake { inherit androidAbi; };
 
   androidPackageSource = androidHost.runCommand "${packageName}-package-source" { } ''
@@ -781,13 +792,13 @@ let
       install -m 0644 "$releaseAab" "$out/LibrePaint-${androidAbi}.aab"
       # GNU readelf completes the short ELF header output before the auditor's
       # machine-field check closes its pipe; the NDK reader can exit with 74.
-      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${packageAudit}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.apk" \
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
         product
-      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${packageAudit}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.aab" \
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \
