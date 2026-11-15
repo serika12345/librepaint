@@ -282,12 +282,8 @@ let
     ignoreCollisions = true;
   };
 
-  gradleUnwrapped = androidHost.gradle-packages.mkGradle {
-    version = "8.13";
-    hash = "sha256-IPGxF2I3JUpvwgTYQ0GW+hGkz7OHVnUZxhVW6HEK7Xg=";
-    defaultJava = androidHost.jdk17_headless;
-  };
-  gradle = gradleUnwrapped.wrapped;
+  gradle = androidHost.gradle_8.override { java = androidHost.jdk17_headless; };
+  gradleUnwrapped = gradle.unwrapped;
   gradleLockProject = androidHost.stdenvNoCC.mkDerivation {
     pname = "librepaint-android-gradle-lock";
     version = "1";
