@@ -11,6 +11,9 @@
 #include "kis_assert.h"
 #include "kis_debug.h"
 #include "kis_input_event_normalizer_p.h"
+#include "kis_canvas_enter_leave_guard.h"
+
+#include "wintab/KisWintabPacketPeeker.h"
 
 #include <QMap>
 #include <QApplication>
@@ -33,8 +36,6 @@
 #include "kis_native_gesture_shortcut.h"
 #include "kis_input_profile_manager.h"
 #include "kis_extended_modifiers_mapper.h"
-
-#include "config-qt-patches-present.h"
 
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <memory>
@@ -227,19 +228,11 @@ KisInputManager::Private::Private(KisInputManager *qq)
         });
 
     /**
-     * On Windows and Linux we have a proper fix for this bug
-     * patched into our local version of Qt. We don't have a fix
-     * for macOS
+     * Official Qt 6.11.3 does not carry the fork's unbalanced
+     * KeyPress/KeyRelease fixes (747423036c, f8a61ebc5b, 21d400db4f), so the
+     * workaround is needed on Windows as well as on Linux and macOS.
      */
-#ifdef Q_OS_MACOS
-    useUnbalancedKeyPressEventWorkaround = true;
-#endif
-
-    /**
-     * In Linux distributions Qt is not patched, so we should
-     * use workaround for them
-     */
-#if defined Q_OS_LINUX &&  !KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH
+#if defined Q_OS_WIN || defined Q_OS_MACOS || defined Q_OS_LINUX
     useUnbalancedKeyPressEventWorkaround = true;
 #endif
 
@@ -447,12 +440,24 @@ bool KisInputManager::Private::ProximityNotifier::eventFilter(QObject* object, Q
         // Don't block mouse events on tablet since tablet move events are not generated until
         // after tablet press.
 #ifndef Q_OS_MACOS
+        d->setTabletInProximity(true);
         d->blockMouseEvents();
 #endif
+        // A new proximity decides the Wintab trust check again.
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            peeker->beginProximity();
+        }
         break;
     case QEvent::TabletLeaveProximity:
         d->debugEvent<QEvent, false>(event);
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            peeker->endProximity();
+        }
+        d->setTabletInProximity(false);
         d->allowMouseEvents();
+        if (KisInputManagerDetail::confirmLeaveAfterProximity(d->pointerInsideCanvas())) {
+            d->confirmCanvasLeave();
+        }
         break;
 #ifdef Q_OS_WIN
     case QEvent::KeyPress:
@@ -757,6 +762,78 @@ inline QPointF multiplyPoints(const QPointF &pt1, const QPointF &pt2) {
     return QPointF(pt1.x() * pt2.x(), pt1.y() * pt2.y());
 }
 #endif
+
+bool KisInputManager::Private::pointerInsideCanvas() const
+{
+    if (!canvas) {
+        return false;
+    }
+    QWidget *widget = canvas->canvasWidget();
+    if (!widget) {
+        return false;
+    }
+    return widget->rect().contains(widget->mapFromGlobal(QCursor::pos()));
+}
+
+bool KisInputManager::Private::shouldIgnoreCanvasLeave() const
+{
+    const KisInputManagerDetail::CanvasPointerState state{
+        tabletInProximity, tabletPressed, touchActive};
+    return KisInputManagerDetail::canvasLeaveAction(state, pointerInsideCanvas()) ==
+        KisInputManagerDetail::CanvasLeaveAction::Ignore;
+}
+
+/**
+ * A pointer message from the window frame is not a Qt event, so the window
+ * frame cannot tell Qt to send Enter or Leave. Enter is the same recovery as a
+ * tablet move; Leave goes through the same guard as a Qt Leave, with the point
+ * known to be outside the canvas. Repeated messages for the same state are
+ * no-ops. Q4 stage 3 reimplements the fork commit c41d66281e.
+ */
+bool KisInputManager::Private::handleNonClientPointer(bool insideCanvas)
+{
+    if (insideCanvas) {
+        if (containsPointer) {
+            return false;
+        }
+        synthesizeCanvasEnter();
+        return true;
+    }
+
+    const KisInputManagerDetail::CanvasPointerState state{
+        tabletInProximity, tabletPressed, touchActive};
+    if (KisInputManagerDetail::canvasLeaveAction(state, false) ==
+        KisInputManagerDetail::CanvasLeaveAction::Confirm) {
+        confirmCanvasLeave();
+    }
+    return false;
+}
+
+void KisInputManager::Private::confirmCanvasLeave()
+{
+    containsPointer = false;
+    allowMouseEvents();
+    touchHasBlockedPressEvents = false;
+
+    matcher.leaveEvent();
+}
+
+void KisInputManager::Private::synthesizeCanvasEnter()
+{
+    if (containsPointer) {
+        return;
+    }
+
+    containsPointer = true;
+    touchHasBlockedPressEvents = false;
+    matcher.enterEvent();
+}
+
+void KisInputManager::Private::setTabletInProximity(bool value)
+{
+    tabletInProximity = value;
+    eventSuppressor.setTabletInProximity(value);
+}
 
 void KisInputManager::Private::blockMouseEvents()
 {

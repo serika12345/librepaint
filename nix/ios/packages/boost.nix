@@ -6,6 +6,13 @@
 }:
 
 let
+  boostParts = map lib.toInt (lib.splitVersion packageSpec.version);
+  boostLibVersion = "${toString (builtins.elemAt boostParts 0)}_${toString (builtins.elemAt boostParts 1)}";
+  boostVersionNumber = toString (
+    builtins.elemAt boostParts 0 * 100000
+    + builtins.elemAt boostParts 1 * 100
+    + builtins.elemAt boostParts 2
+  );
   boostConfig = ''
     get_filename_component(_BOOST_PREFIX "''${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
     set(Boost_FOUND TRUE)
@@ -77,8 +84,8 @@ mkIOSHeaderPackage {
 
   postInstallCheck = ''
     version_header="$out/include/boost/version.hpp"
-    grep -Eq '^#define[[:space:]]+BOOST_VERSION[[:space:]]+108900([[:space:]]|$)' "$version_header"
-    grep -Eq '^#define[[:space:]]+BOOST_LIB_VERSION[[:space:]]+"1_89"([[:space:]]|$)' "$version_header"
+    grep -Eq '^#define[[:space:]]+BOOST_VERSION[[:space:]]+${boostVersionNumber}([[:space:]]|$)' "$version_header"
+    grep -Eq '^#define[[:space:]]+BOOST_LIB_VERSION[[:space:]]+"${boostLibVersion}"([[:space:]]|$)' "$version_header"
 
     config="$out/lib/cmake/Boost-${packageSpec.version}/BoostConfig.cmake"
     version_config="$out/lib/cmake/Boost-${packageSpec.version}/BoostConfigVersion.cmake"

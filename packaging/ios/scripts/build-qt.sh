@@ -107,8 +107,8 @@ else
     materialize_source() {
         local name="$1"
         local source="$2"
-        local destination="$source_root/$name-6.11.3"
-        local marker="$source_root/$name-6.11.3.source"
+        local destination="$source_root/$name-6.12.0"
+        local marker="$source_root/$name-6.12.0.source"
 
         if [[ -d "$destination" && -f "$marker" && "$(<"$marker")" == "$source" ]]; then
             printf '%s\n' "$destination"

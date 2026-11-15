@@ -8,6 +8,14 @@
 }:
 
 let
+  versionNumber =
+    let
+      v = lib.splitVersion packageSpec.version;
+      n = i: lib.toInt (lib.elemAt v i);
+    in
+    assert lib.length v >= 3;
+    toString (n 0 * 1000000 + n 1 * 1000 + n 2);
+
   expectedCMakeArgs = [
     "-DENABLE_SHARED=OFF"
     "-DENABLE_STATIC=ON"
@@ -71,8 +79,8 @@ mkIOSCMakePackage {
     fi
 
     config_header="$out/include/jconfig.h"
-    grep -Eq '^#define[[:space:]]+LIBJPEG_TURBO_VERSION[[:space:]]+3\.1\.4\.1([[:space:]]|$)' "$config_header"
-    grep -Eq '^#define[[:space:]]+LIBJPEG_TURBO_VERSION_NUMBER[[:space:]]+3001004([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+LIBJPEG_TURBO_VERSION[[:space:]]+${lib.escapeRegex packageSpec.version}([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+LIBJPEG_TURBO_VERSION_NUMBER[[:space:]]+${versionNumber}([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+JPEG_LIB_VERSION[[:space:]]+80([[:space:]]|$)' "$config_header"
     grep -Eq '^#define[[:space:]]+WITH_SIMD[[:space:]]+1([[:space:]]|$)' "$config_header"
 
@@ -159,7 +167,7 @@ mkIOSCMakePackage {
         fi
       done
 
-      if ! grep -a -Fq 'libjpeg-turbo version 3.1.4.1 (build 19800101)' "$archive"; then
+      if ! grep -a -Fq 'libjpeg-turbo version ${packageSpec.version} (build 19800101)' "$archive"; then
         echo "error: $archive does not contain the deterministic libjpeg-turbo build identity" >&2
         exit 1
       fi

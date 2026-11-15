@@ -48,6 +48,8 @@ exec "$BASH" -c '
     shift 5
 
     cd "$repo_root"
+    export PATH="$repo_root/scripts/nix-guard:$PATH"
+    python3 "$repo_root/scripts/check-store-hygiene.py"
     eval "$("$nix_command" print-dev-env "$profile")" >/dev/null
     export PATH="$repo_root/scripts:$PATH"
     export CCACHE_BASEDIR="$repo_root"

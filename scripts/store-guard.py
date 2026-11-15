@@ -1,0 +1,465 @@
+#!/usr/bin/env python3
+"""Watch /nix/store for leaked copies of the repository.
+
+Every store path whose name ends in ``-source`` and whose NAR size exceeds
+1 GiB is recorded once.  Copies that still contain a repository tree are
+deleted when no other path refers to them.  The script also warns through
+``build/agent-loop/oc.sh`` when /nix runs low.
+"""
+
+import argparse
+import fcntl
+import importlib.util
+import json
+import os
+import subprocess
+import sys
+import time
+
+GIB = 1024**3
+STORE = "/nix/store"
+MIN_CANDIDATE_BYTES = 1 * GIB
+WARNING_INTERVAL_SECONDS = 3600
+WORKTREE_CHECK_INTERVAL_SECONDS = 24 * 60 * 60
+
+
+class StoreError(Exception):
+    pass
+
+
+def repository_root():
+    return os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+
+def state_root():
+    return os.path.normpath(
+        os.path.expanduser(os.environ.get("LIBREPAINT_STATE_ROOT", "~/.local/state/librepaint"))
+    )
+
+
+def state_file():
+    return os.path.join(state_root(), "store-guard.state")
+
+
+def lock_file():
+    return state_file() + ".lock"
+
+
+def log_file():
+    return os.path.join(state_root(), "store-guard.log")
+
+
+def nix_calls_log():
+    return os.path.join(state_root(), "nix-calls.log")
+
+
+def oc_sh():
+    return os.path.join(repository_root(), "build", "agent-loop", "oc.sh")
+
+
+def load_worktree_gc():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "worktree-gc.py")
+    spec = importlib.util.spec_from_file_location("worktree_gc", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_store_hygiene():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "check-store-hygiene.py")
+    spec = importlib.util.spec_from_file_location("check_store_hygiene", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+store_hygiene = load_store_hygiene()
+
+
+def worktree_listing(root):
+    environ = {"LIBREPAINT_STATE_ROOT": state_root()}
+    return load_worktree_gc().classify(root, environ=environ)
+
+
+def now():
+    return time.time()
+
+
+def run_command(argv):
+    return subprocess.run(
+        argv,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+
+
+def query_path_info(paths):
+    result = run_command(["nix", "path-info", "--size", "--json"] + list(paths))
+    if result.returncode != 0:
+        raise StoreError(result.stderr.strip() or "nix path-info failed")
+    data = json.loads(result.stdout or "[]")
+    if isinstance(data, dict):
+        return data
+    return {entry["path"]: entry for entry in data}
+
+
+def process_table():
+    result = run_command(["ps", "-eo", "pid,ppid,etime,args"])
+    if result.returncode != 0:
+        return ""
+    return result.stdout
+
+
+def delete_store_path(path):
+    return run_command(["nix-store", "--delete", path])
+
+
+def query_referrers(path):
+    return run_command(["nix-store", "--query", "--referrers", path])
+
+
+def send_event(message):
+    script = oc_sh()
+    if not os.path.isfile(script):
+        return False
+    result = run_command([script, "event", message])
+    return result.returncode == 0
+
+
+def free_gib(path="/nix"):
+    stats = os.statvfs(path)
+    return stats.f_bavail * stats.f_frsize / GIB
+
+
+def source_candidates():
+    try:
+        names = os.listdir(STORE)
+    except OSError as error:
+        raise StoreError("cannot list %s: %s" % (STORE, error))
+    return [os.path.join(STORE, name) for name in sorted(names) if name.endswith("-source")]
+
+
+def load_state():
+    try:
+        with open(state_file(), "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return {"known": {}, "last_warning": 0, "delete_forbidden": False}
+    if not isinstance(data, dict):
+        return {"known": {}, "last_warning": 0, "delete_forbidden": False}
+    data.setdefault("known", {})
+    data.setdefault("last_warning", 0)
+    data.setdefault("delete_forbidden", False)
+    data.setdefault("last_worktree_check", 0)
+    return data
+
+
+def save_state(state):
+    path = state_file()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path + ".tmp", "w", encoding="utf-8") as handle:
+            json.dump(state, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        os.replace(path + ".tmp", path)
+    except OSError:
+        pass
+
+
+def try_lock():
+    """Take the run lock without blocking; return None when another run holds it."""
+    path = lock_file()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handle = open(path, "a+", encoding="utf-8")
+    except OSError:
+        return None
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
+
+
+def release_lock(handle):
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        handle.close()
+
+
+def run_if_due(seconds, dry_run=False):
+    lock = try_lock()
+    if lock is None:
+        return 0
+    try:
+        state = load_state()
+        last_run = float(state.get("last_run") or 0)
+        if now() - last_run < seconds:
+            return 0
+        if not dry_run:
+            state["last_run"] = now()
+            save_state(state)
+        return run(dry_run=dry_run)
+    finally:
+        release_lock(lock)
+
+
+def single_line(text):
+    return " | ".join(line for line in (text or "").splitlines() if line)
+
+
+def append_log(record):
+    path = log_file()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+    except OSError:
+        pass
+
+
+def first_seen_record(path, info):
+    registration = info.get("registrationTime") or 0
+    calls = []
+    try:
+        with open(nix_calls_log(), "r", encoding="utf-8", errors="replace") as handle:
+            lines = handle.readlines()[-20:]
+    except OSError:
+        lines = []
+    for line in lines:
+        epoch = None
+        for field in line.split():
+            if field.startswith("epoch="):
+                try:
+                    epoch = int(field[len("epoch=") :])
+                except ValueError:
+                    epoch = None
+                break
+        if epoch is not None and registration and abs(epoch - registration) <= 120:
+            calls.append(line.rstrip("\n"))
+
+    processes = []
+    for line in process_table().splitlines():
+        if any(word in line for word in ("nix", "direnv", "opencode", "systemd-run")):
+            processes.append(line)
+    processes = processes[:30]
+
+    referrers_result = query_referrers(path)
+    referrers_text = ""
+    if referrers_result.returncode == 0:
+        referrers_text = single_line(referrers_result.stdout)
+
+    return {
+        "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+        "path": path,
+        "narSize": info.get("narSize"),
+        "registrationTime": registration,
+        "nix_calls": calls,
+        "processes": processes,
+        "referrers": referrers_text,
+    }
+
+
+def delete_eligible(path):
+    if not os.path.isdir(path):
+        return False
+    if not os.path.lexists(os.path.join(path, ".git")):
+        return False
+    if not os.path.lexists(os.path.join(path, "flake.nix")):
+        return False
+    return any(os.path.lexists(os.path.join(path, name)) for name in ("build", ".cache", "po"))
+
+
+def worktree_message(report):
+    actionable = [
+        entry
+        for entry in report.get("entries", [])
+        if entry.get("category") in ("prunable", "unregistered", "eligible")
+    ]
+    if not actionable:
+        return ""
+    parts = []
+    for category in ("prunable", "unregistered", "eligible"):
+        paths = [entry["path"] for entry in actionable if entry["category"] == category]
+        if paths:
+            parts.append("%s %d件 (%s)" % (category, len(paths), ", ".join(paths)))
+    return "確認: 放置の作業ツリーがある（%s）。scripts/worktree-gc.py --apply で片付ける" % "、".join(parts)
+
+
+def worktree_log_record(report):
+    grouped = {}
+    for entry in report.get("entries", []):
+        grouped.setdefault(entry["category"], []).append(entry["path"])
+    return {
+        "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+        "worktrees": {category: sorted(paths) for category, paths in sorted(grouped.items())},
+    }
+
+
+def check_worktrees(state):
+    if now() - float(state.get("last_worktree_check") or 0) < WORKTREE_CHECK_INTERVAL_SECONDS:
+        return
+    try:
+        report = worktree_listing(repository_root())
+    except Exception as error:
+        append_log(
+            {
+                "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+                "error": "cannot list worktrees: %s" % error,
+            }
+        )
+        return
+
+    message = worktree_message(report)
+    if not message:
+        state["last_worktree_check"] = now()
+        return
+    append_log(worktree_log_record(report))
+    if not send_event(message):
+        append_log(
+            {
+                "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+                "warning": message,
+                "delivery": "failed",
+            }
+        )
+    state["last_worktree_check"] = now()
+
+
+def run(dry_run=False):
+    state = load_state()
+    report = {"candidates": [], "new": [], "deleted": [], "refused": [], "warning": ""}
+
+    try:
+        candidates = source_candidates()
+        info = query_path_info(candidates) if candidates else {}
+    except (StoreError, ValueError) as error:
+        message = "store-guard: %s" % error
+        print(message, file=sys.stderr)
+        if not dry_run:
+            append_log({"time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())), "error": str(error)})
+        return 1
+
+    known = state["known"]
+    large = {
+        path: entry
+        for path, entry in info.items()
+        if (entry.get("narSize") or 0) > MIN_CANDIDATE_BYTES
+    }
+
+    for path, entry in sorted(large.items()):
+        report["candidates"].append(path)
+        if path in known:
+            continue
+        record = first_seen_record(path, entry)
+        report["new"].append(record)
+        if dry_run:
+            print(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        else:
+            append_log(record)
+            known[path] = {
+                "narSize": entry.get("narSize"),
+                "registrationTime": entry.get("registrationTime"),
+            }
+
+    if not dry_run:
+        for path in sorted(large):
+            if not delete_eligible(path):
+                continue
+            if state["delete_forbidden"]:
+                continue
+            result = delete_store_path(path)
+            stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now()))
+            output = single_line((result.stdout or "") + (result.stderr or ""))
+            if result.returncode == 0:
+                report["deleted"].append(path)
+                append_log({"time": stamp, "deleted": path})
+                continue
+            permission_denied = "permission denied" in output.lower()
+            append_log(
+                {
+                    "time": stamp,
+                    "refused": path,
+                    "permission_denied": permission_denied,
+                    "output": output,
+                }
+            )
+            report["refused"].append(path)
+            if permission_denied:
+                state["delete_forbidden"] = True
+                append_log(
+                    {
+                        "time": stamp,
+                        "delete_disabled": True,
+                        "reason": "deleting store paths requires privileges not held by this user",
+                    }
+                )
+                break
+
+    try:
+        available = free_gib()
+        limit, basis = store_hygiene.free_space_limit()
+    except OSError as error:
+        report["warning"] = ""
+        if not dry_run:
+            append_log(
+                {
+                    "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now())),
+                    "error": "cannot read /nix free space: %s" % error,
+                }
+            )
+        available = None
+
+    if available is not None and available < limit:
+        stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now()))
+        report["warning"] = "%.1f GiB free, below the %d GiB limit (%s)" % (available, limit, basis)
+        if dry_run:
+            print("store-guard: /nix free space is %s" % report["warning"])
+        elif now() - float(state.get("last_warning") or 0) >= WARNING_INTERVAL_SECONDS:
+            message = (
+                "停止: Nix ストアの空きが %dGiB 未満（%.1fGiB、下限は %s）。"
+                "store-guard のログを確認する" % (limit, available, basis)
+            )
+            if send_event(message):
+                state["last_warning"] = now()
+            else:
+                append_log({"time": stamp, "warning": message, "delivery": "failed"})
+
+    if not dry_run:
+        check_worktrees(state)
+        save_state(state)
+
+    if dry_run:
+        print(
+            "store-guard: %d oversized candidates, %d new, %d deleted, %d refused"
+            % (
+                len(report["candidates"]),
+                len(report["new"]),
+                len(report["deleted"]),
+                len(report["refused"]),
+            )
+        )
+    return 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true", help="report only; write no state or log and delete nothing")
+    parser.add_argument(
+        "--if-due",
+        type=int,
+        metavar="SECONDS",
+        help="run only when the last run started at least SECONDS ago; writes no state with --dry-run",
+    )
+    args = parser.parse_args(argv)
+    if args.if_due is None:
+        return run(dry_run=args.dry_run)
+    return run_if_due(args.if_due, dry_run=args.dry_run)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

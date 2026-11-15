@@ -282,12 +282,8 @@ let
     ignoreCollisions = true;
   };
 
-  gradleUnwrapped = androidHost.gradle-packages.mkGradle {
-    version = "8.13";
-    hash = "sha256-IPGxF2I3JUpvwgTYQ0GW+hGkz7OHVnUZxhVW6HEK7Xg=";
-    defaultJava = androidHost.jdk17_headless;
-  };
-  gradle = gradleUnwrapped.wrapped;
+  gradle = androidHost.gradle_8.override { java = androidHost.jdk17_headless; };
+  gradleUnwrapped = gradle.unwrapped;
   gradleLockProject = androidHost.stdenvNoCC.mkDerivation {
     pname = "librepaint-android-gradle-lock";
     version = "1";
@@ -632,11 +628,31 @@ let
     // lib.genAttrs incrementalDiscardedHooks (_hook: "")
   );
 
+  # The package audit and the helper it runs live outside the compilation
+  # source, so editing them rebuilds the package and not the native libraries.
+  # The audit locates its helper relative to its own path.
+  packageAudit = lib.fileset.toSource {
+    root = ../..;
+    fileset = lib.fileset.unions [
+      ../../scripts/platform/audit-android-package
+      ../../scripts/platform/audit-android-cross-library-rtti.py
+    ];
+  };
+
   packagingCmake = androidHost.replaceVars ./package.cmake { inherit androidAbi; };
+
+  # gradlew.bat is the Windows launcher and has the attribute eol=crlf, so Nix
+  # reads different bytes for it from a checked-out work tree and from a
+  # commit. The Linux build never runs it, and leaving it out keeps the
+  # derivation the same for both.
+  apkSource = lib.fileset.toSource {
+    root = ../../packaging/android/apk;
+    fileset = lib.fileset.difference ../../packaging/android/apk ../../packaging/android/apk/gradlew.bat;
+  };
 
   androidPackageSource = androidHost.runCommand "${packageName}-package-source" { } ''
     mkdir -p "$out"
-    cp -a ${../../packaging/android/apk} "$out/apk"
+    cp -a ${apkSource} "$out/apk"
     chmod -R u+w "$out/apk"
     install -m 0644 ${packagingCmake} "$out/CMakeLists.txt"
     install -m 0755 ${gradleWrapper} "$out/apk/gradlew"
@@ -781,13 +797,13 @@ let
       install -m 0644 "$releaseAab" "$out/LibrePaint-${androidAbi}.aab"
       # GNU readelf completes the short ELF header output before the auditor's
       # machine-field check closes its pipe; the NDK reader can exit with 74.
-      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${packageAudit}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.apk" \
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
         product
-      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${packageAudit}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.aab" \
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \

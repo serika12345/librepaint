@@ -218,6 +218,11 @@ bool KisShortcutMatcher::supportsHiResInputEvents()
             && m_d->nativeGestureShortcut->action()->supportsHiResInputEvents(m_d->nativeGestureShortcut->shortcutIndex()));
 }
 
+bool KisShortcutMatcher::compressesMoveEvents()
+{
+    return hasRunningShortcut() && !supportsHiResInputEvents();
+}
+
 bool KisShortcutMatcher::keyPressed(Qt::Key key)
 {
     Private::RecursionNotifier notifier(this);
@@ -387,6 +392,16 @@ void KisShortcutMatcher::enterEvent()
         prepareReadyShortcuts();
         tryActivateReadyShortcut();
     }
+}
+
+bool KisShortcutMatcher::cursorEntered() const
+{
+    return m_d->cursorEntered;
+}
+
+bool KisShortcutMatcher::suppressAllActions() const
+{
+    return m_d->suppressAllActions;
 }
 
 void KisShortcutMatcher::leaveEvent()

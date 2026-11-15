@@ -7,6 +7,7 @@
 #include "freehand_stroke.h"
 
 #include <QElapsedTimer>
+#include <KisLatencyProbe.h>
 #include "KisPerStrokeRandomSource.h"
 #include "KisQStringListFwd.h"
 #include "kis_assert.h"
@@ -193,6 +194,7 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi1.setRandomSource(rnd);
             d->pi1.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintAt(d->pi1);
+            KisLatencyProbe::mark("stroke_dab", d->pi1.pos().x(), d->pi1.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi1.pos());
             break;
         case Data::LINE:
@@ -201,6 +203,7 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi1.setPerStrokeRandomSource(strokeRnd);
             d->pi2.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintLine(d->pi1, d->pi2);
+            KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
         case Data::CURVE:
@@ -212,18 +215,26 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
                                          d->control1,
                                          d->control2,
                                          d->pi2);
+            KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
         case Data::POLYLINE:
             maskedPainter->paintPolyline(d->points, 0, d->points.size());
+            if (!d->points.isEmpty()) {
+                KisLatencyProbe::mark("stroke_dab", d->points.last().x(), d->points.last().y());
+            }
             m_d->efficiencyMeasurer.addSamples(d->points);
             break;
         case Data::POLYGON:
             maskedPainter->paintPolygon(d->points);
+            if (!d->points.isEmpty()) {
+                KisLatencyProbe::mark("stroke_dab", d->points.last().x(), d->points.last().y());
+            }
             m_d->efficiencyMeasurer.addSamples(d->points);
             break;
         case Data::RECT:
             maskedPainter->paintRect(d->rect);
+            KisLatencyProbe::mark("stroke_dab", d->rect.center().x(), d->rect.center().y());
             m_d->efficiencyMeasurer.addSample(d->rect.topLeft());
             m_d->efficiencyMeasurer.addSample(d->rect.topRight());
             m_d->efficiencyMeasurer.addSample(d->rect.bottomRight());
@@ -231,17 +242,21 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             break;
         case Data::ELLIPSE:
             maskedPainter->paintEllipse(d->rect);
+            KisLatencyProbe::mark("stroke_dab", d->rect.center().x(), d->rect.center().y());
             // TODO: add speed measures
             break;
         case Data::PAINTER_PATH:
             maskedPainter->paintPainterPath(d->path);
+            KisLatencyProbe::mark("stroke_dab", d->path.boundingRect().center().x(), d->path.boundingRect().center().y());
             // TODO: add speed measures
             break;
         case Data::QPAINTER_PATH:
             maskedPainter->drawPainterPath(d->path, d->pen);
+            KisLatencyProbe::mark("stroke_dab", d->path.boundingRect().center().x(), d->path.boundingRect().center().y());
             break;
         case Data::QPAINTER_PATH_FILL:
             maskedPainter->drawAndFillPainterPath(d->path, d->pen, d->customColor);
+            KisLatencyProbe::mark("stroke_dab", d->path.boundingRect().center().x(), d->path.boundingRect().center().y());
             break;
         };
 

@@ -1,5 +1,6 @@
 {
   pkgs,
+  hostPkgs,
   source,
   auditWindowsPackage,
 }:
@@ -7,8 +8,13 @@
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
+  incrementalPlatform = "windows";
   librepaintUnwrapped = import ./krita.nix {
-    inherit pkgs source;
+    inherit
+      pkgs
+      hostPkgs
+      source
+      ;
   };
   incrementalDiscardedHooks = [
     "preUnpack"
@@ -68,7 +74,12 @@ let
     kdePackages = librepaintUnwrapped.windowsGmicKdePackages;
     qt6 = librepaintUnwrapped.windowsGmicQtPackages;
   }).overrideAttrs (old: {
-    buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.windows.pthreads ];
+    # G'MIC's curl support downloads filters from URLs as part of its command
+    # language.  The portable application ships its local filter set only.
+    buildInputs = lib.filter (input: lib.getName input != "curl") (old.buildInputs or [ ]) ++ [
+      pkgs.windows.pthreads
+    ];
+    cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-DENABLE_CURL=OFF" ];
   });
   pythonVersion = librepaintUnwrapped.windowsPython.pythonVersion;
   pythonCompactVersion = lib.replaceStrings [ "." ] [ "" ] pythonVersion;
@@ -78,15 +89,12 @@ let
     ++ [
       librepaintGmic
       (lib.getBin pkgs.libjxl)
-      (lib.getLib pkgs.gdk-pixbuf)
-      (lib.getDev pkgs.gdk-pixbuf)
-      (lib.getLib pkgs.libebur128)
-      (lib.getLib pkgs.libexif)
       (lib.getLib pkgs.libogg)
-      (lib.getLib pkgs.libsamplerate)
-      (lib.getLib pkgs.rnnoise)
-      (lib.getLib pkgs.rtaudio)
-      (lib.getLib pkgs.rubberband)
+      # MLT imports libdl.dll and its SDL2 module imports SDL2.dll.  PE
+      # imports carry no store references, and sdl2-compat installs its DLL
+      # in the dev output, so name both as roots.
+      pkgs.windows.dlfcn
+      (lib.getDev pkgs.SDL2)
     ];
 
   # Windows PE import tables retain DLL names rather than Nix store paths.
@@ -300,6 +308,8 @@ let
         cp "$out/bin/libogg.dll" "$out/bin/ogg.dll"
       fi
 
+      # krita/CMakeLists.txt installs the shell extension icons into installer/
+      # on Windows whatever KRITA_INSTALL_NSIS_INSTALLER says.
       rm -rf \
         "$out/bin/plugins/qmltooling" \
         "$out/bin/qml/Qt/test" \
@@ -307,7 +317,6 @@ let
         "$out/include" \
         "$out/installer"
       rm -f \
-        "$out/MakeinstallerNsis.cmake" \
         "$out/bin/Qt6QuickTest.dll" \
         "$out/bin/Qt6Test.dll" \
         "$out/bin/krita_version.exe" \
@@ -354,14 +363,17 @@ let
       find . -print | LC_ALL=C sort | zip -X -9 "$out/LibrePaint-${librepaintUnwrapped.version}-x86_64-windows.zip" -@
     '';
 
-  windowsDependencies = buildPkgs.runCommand "librepaint-windows-dependencies"
+  # Dependency-only output: forces the Qt, KDE and codec builds without the
+  # application, so a failed or interrupted bundle build can resume after the
+  # dependencies are in the store.  The G'MIC plugin compiles against the Krita
+  # build, so it belongs to the package and not to this source-independent
+  # aggregate.
+  dependencyInputs = buildPkgs.runCommand "librepaint-windows-dependency-inputs"
     { }
     ''
       mkdir -p "$out/nix-support"
       printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
-        > "$out/nix-support/windows-dependency-members"
-      printf '%s\n' ${lib.escapeShellArg (toString librepaintGmic)} \
-        >> "$out/nix-support/windows-dependency-members"
+        > "$out/nix-support/dependency-members"
     '';
   devShell = pkgs.mkShell {
     inputsFrom = [ incrementalEnv ];
@@ -378,18 +390,18 @@ let
       export LIBREPAINT_WINDOWS_BUILD_PREPARER=${librepaintUnwrapped.buildPreparer}
       export PYTHONPATH=${librepaintUnwrapped.PYTHONPATH}
       echo "LibrePaint Windows cross environment (x86_64-w64-mingw32)"
-      echo "  build: build-incremental windows build"
+      echo "  build: build-incremental ${incrementalPlatform} build"
     '';
   };
 in
 {
   inherit
+    dependencyInputs
     devShell
     incrementalEnv
     librepaint
     librepaintArchive
     librepaintGmic
     librepaintUnwrapped
-    windowsDependencies
     ;
 }

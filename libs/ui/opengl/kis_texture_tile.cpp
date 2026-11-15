@@ -6,6 +6,8 @@
 
 #include "kis_global.h"
 
+#include <KisLatencyProbe.h>
+
 #include <QDebug>
 #include "opengl/kis_opengl.h"
 #include <cstring>
@@ -104,6 +106,7 @@ KisTextureTile::KisTextureTile(const QRect &imageRect, const KisGLTexturesInfo *
                                              m_texturesInfo);
 
     f->glGenTextures(1, &m_textureId);
+    KisLatencyProbe::mark("gpu_texture_create");
     f->glBindTexture(GL_TEXTURE_2D, m_textureId);
 
     setTextureParameters();
@@ -111,6 +114,7 @@ KisTextureTile::KisTextureTile(const QRect &imageRect, const KisGLTexturesInfo *
     KisOpenGLBufferCircularStorage::BufferBinder binder(
         m_bufferStorage, &fd, fillData.size());
 
+    KisLatencyProbe::mark("gpu_texture_image");
     f->glTexImage2D(GL_TEXTURE_2D, 0,
                  m_texturesInfo->internalFormat,
                  m_texturesInfo->width,
@@ -125,6 +129,7 @@ KisTextureTile::KisTextureTile(const QRect &imageRect, const KisGLTexturesInfo *
 
 KisTextureTile::~KisTextureTile()
 {
+    KisLatencyProbe::mark("gpu_texture_destroy");
     f->glDeleteTextures(1, &m_textureId);
 }
 
@@ -340,6 +345,7 @@ void KisTextureTile::update(const KisTextureTileUpdateInfo &updateInfo, bool blo
         KisOpenGLBufferCircularStorage::BufferBinder b(
             m_bufferStorage, &fd, updateInfo.patchPixelsLength());
 
+        KisLatencyProbe::mark("gpu_texture_image");
         f->glTexImage2D(GL_TEXTURE_2D, patchLevelOfDetail,
                      m_texturesInfo->internalFormat,
                      patchSize.width(),

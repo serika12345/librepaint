@@ -60,6 +60,9 @@ public static class PenInject
     [DllImport("user32.dll")] static extern bool ClientToScreen(IntPtr hwnd, ref POINT point);
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hwnd);
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hwnd, int command);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr window);
     [DllImport("kernel32.dll")] static extern uint SetThreadExecutionState(uint flags);
     [DllImport("winmm.dll")] static extern uint timeBeginPeriod(uint period);
     [DllImport("winmm.dll")] static extern uint timeEndPeriod(uint period);
@@ -88,6 +91,38 @@ public static class PenInject
     static StringBuilder log;
     static IntPtr device;
     static uint frame;
+
+    // Written after ShowWindow/SetForegroundWindow and before the first
+    // injected sample. run-surface.ps1 copies it into meta.txt so a run that
+    // lost the foreground can be told apart from one that was still in front
+    // when the input began (2026-11-11: the canvas stopped repainting in runs
+    // whose input window may not have been in front).
+    public static string ForegroundInjectStart = "unavailable";
+
+    static string ForegroundText(IntPtr hwnd, uint targetPid, out bool appInFront)
+    {
+        IntPtr foreground = GetForegroundWindow();
+        uint pid = 0;
+        GetWindowThreadProcessId(foreground, out pid);
+        string name = "";
+        try { name = Process.GetProcessById((int)pid).ProcessName; } catch { }
+        appInFront = targetPid != 0 && pid == targetPid;
+        return string.Format("pid={0} name={1} visible={2} same_window={3} app={4}",
+            pid, name, IsWindowVisible(foreground), foreground == hwnd, appInFront);
+    }
+
+    static string EnsureForeground(IntPtr hwnd)
+    {
+        uint targetPid = 0;
+        GetWindowThreadProcessId(hwnd, out targetPid);
+        bool appInFront;
+        string first = ForegroundText(hwnd, targetPid, out appInFront);
+        if (appInFront) return first + " retried=False";
+        SetForegroundWindow(hwnd);
+        Thread.Sleep(300);
+        string second = ForegroundText(hwnd, targetPid, out appInFront);
+        return second + " retried=True";
+    }
 
     static void Inject(string phase, uint flags, int x, int y, uint pressure, uint pointerId)
     {
@@ -133,6 +168,7 @@ public static class PenInject
             ShowWindow(hwnd, SW_MAXIMIZE);
             SetForegroundWindow(hwnd);
             Thread.Sleep(1000);
+            ForegroundInjectStart = EnsureForeground(hwnd);
         }
         RECT rect;
         POINT origin = new POINT();

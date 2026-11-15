@@ -11,36 +11,19 @@
 
   outputs =
     inputs@{ nixpkgs, ... }:
+    assert (!(builtins.pathExists ./.git || builtins.pathExists ./build)) || throw "LibrePaint must be evaluated as a Git tree (.#… in a worktree, or git+file://…), not as a path: flake or a getFlake of a plain path: that copies .git, build/ and .cache/ into the Nix store. Use builtins.getFlake \"git+file://$PWD\" or nix eval .#attr.";
     let
       system = "aarch64-darwin";
-      # Every platform uses the same Qt release (nix/qt/overlay.nix).
-      qtOverlay = import ./nix/qt/overlay.nix { inherit nixpkgs; };
       # The KDE Frameworks are built without their unused Python bindings.
       # The Windows set leaves it out: its MinGW frameworks never pulled
       # PySide6, so the overlay would only rebuild them unchanged.
       kdeOverlay = import ./nix/kde/overlay.nix;
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ qtOverlay kdeOverlay ];
       };
       linuxSystem = "x86_64-linux";
       linuxPkgs = import nixpkgs {
         system = linuxSystem;
-        overlays = [
-          qtOverlay
-          kdeOverlay
-          (_final: previous: {
-            opencolorio = previous.opencolorio.overrideAttrs (old: {
-              # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
-              # $ORIGIN/../. Supply the Nix runtime directory at construction.
-              # Remove this Issue #80 workaround when upstream supports an
-              # absolute install libdir in its default RPATH calculation.
-              cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-                "-DCMAKE_INSTALL_RPATH=${placeholder "out"}/lib"
-              ];
-            });
-          })
-        ];
       };
       # The current nixpkgs KDE/Qt MinGW graph is not marked as supported.
       # Keep the platform allowance local to the Windows cross set; all native
@@ -53,23 +36,28 @@
           allowUnsupportedSystem = true;
         };
         overlays = [
-          qtOverlay
-          (final: previous: {
+          # Every entry below adjusts a MinGW target package.  The guard keeps
+          # the Linux build tools of the cross build identical to stock
+          # nixpkgs, so they come from the binary cache.
+          (final: previous: previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
             # nixpkgs' MinGW patch series currently targets CPython 3.11.
             # Keep the target package-set aliases on that supported series so
             # indirect consumers such as OpenColorIO and PyQt do not fall
             # back to the default, unbuildable CPython 3.14 cross package.
             # Native generators continue to use buildPackages.python3.
+            # PyQt6 6.12.0 is used on the target side too, to match the Qt 6.12.0 the plugins link.
             python311 = previous.python311.override {
-              packageOverrides = _: pythonPrevious: {
-                # pybind11's default cross policy builds its internal test
-                # extension modules when host and build CPUs have equal word
-                # sizes.  Those tests use the native interpreter headers and
-                # cannot be linked into Windows modules.  The installed
-                # headers, CMake metadata and setup hook used by OpenColorIO
-                # are independent of these test-only modules.
-                pybind11 = pythonPrevious.pybind11.override { buildTests = false; };
-              };
+              packageOverrides = previous.lib.composeExtensions
+                (import ./nix/pyqt6-overrides.nix { lib = previous.lib; })
+                (_: pythonPrevious: {
+                  # pybind11's default cross policy builds its internal test
+                  # extension modules when host and build CPUs have equal word
+                  # sizes.  Those tests use the native interpreter headers and
+                  # cannot be linked into Windows modules.  The installed
+                  # headers, CMake metadata and setup hook used by OpenColorIO
+                  # are independent of these test-only modules.
+                  pybind11 = pythonPrevious.pybind11.override { buildTests = false; };
+                });
             };
             python311Packages = final.python311.pkgs;
             python3 =
@@ -98,17 +86,13 @@
             # MinGW's libstdc++ exposes the equivalent wchar_t pointer
             # overload.  Preserve Unicode path handling and pass that overload
             # the string storage explicitly.
-            opencolorio = previous.opencolorio.overrideAttrs (old:
+            opencolorio = (previous.opencolorio.override {
+              pythonBindings = false;
+              buildApps = false;
+            }).overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                # FindPython must run a native interpreter while compiling and
-                # linking the extension against the ABI-matched Windows
-                # interpreter.  Its public MinGW headers use winpthreads.
+                # OpenColorIO's own MinGW headers are built with winpthreads.
                 buildInputs = (old.buildInputs or [ ]) ++ [ previous.windows.pthreads ];
-                cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-                  "-DPython_EXECUTABLE=${previous.buildPackages.python311}/bin/python3.11"
-                  "-DPython_INCLUDE_DIR=${final.python311}/include/python3.11"
-                  "-DPython_LIBRARY=${final.python311}/lib/python3.11/config-3.11/libpython3.11.dll.a"
-                ];
                 postPatch = (old.postPatch or "") + ''
                   substituteInPlace src/OpenColorIO/transforms/FileTransform.cpp \
                     --replace-fail \
@@ -180,177 +164,10 @@
               '';
             });
 
-            # nixpkgs enables mbedTLS' pthread-backed locking on every
-            # platform, but does not add the MinGW pthread implementation to
-            # the Windows build.  Keep its thread-safe crypto configuration
-            # and provide winpthreads, which also makes the public
-            # mbedtls/threading.h usable by consumers such as librist.
-            mbedtls = previous.mbedtls.overrideAttrs (old: {
-              propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [
-                previous.windows.pthreads
-              ];
-              NIX_LDFLAGS = (old.NIX_LDFLAGS or "") + " -lpthread";
-            });
-
-            # librist otherwise assumes its bundled Win32 pthread and time
-            # shims even when MinGW winpthreads is present.  Select the
-            # supported MinGW pthread path so clock_gettime is detected and
-            # linked once.  FFmpeg consumes the library; librist's standalone
-            # utilities and its executable tests are not application runtime
-            # components.
-            librist = previous.librist.overrideAttrs (old: {
-              mesonFlags = (old.mesonFlags or [ ]) ++ [
-                "-Dhave_mingw_pthreads=true"
-                "-Dtest=false"
-                "-Dbuilt_tools=false"
-              ];
-            });
-
-            # Gnulib's cross probe sees the MinGW C runtime's internal
-            # wcwidth symbol but <wchar.h> does not declare a callable public
-            # function.  Use Gnulib's own iswprint fallback on Windows; this
-            # only supplies the terminal-column helper and keeps the complete
-            # GnuTLS protocol and codec support intact.
-            gnutls = previous.gnutls.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                postPatch = (old.postPatch or "") + ''
-                  sed -i 's/^#if HAVE_WCWIDTH$/#if HAVE_WCWIDTH \&\& !defined _WIN32/' \
-                    gl/wcwidth.c src/gl/wcwidth.c
-                '';
-              }
-            );
-
-            # curl's MinGW executable records the build shell selected by
-            # libtool even though the Windows program never invokes it.  The
-            # reference crosses from a target output back to the Linux build
-            # machine and violates Nix's output separation.  Scrub that
-            # non-runtime build string while retaining curl and libcurl.
-            curl = previous.curl.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
-                  linuxPkgs.removeReferencesTo
-                ];
-                postFixup = (old.postFixup or "") + ''
-                  if [ -d "$bin" ]; then
-                    remove-references-to -t ${linuxPkgs.bashNonInteractive} "$bin"/bin/*
-                  fi
-                '';
-              }
-            );
-
-            # Zix enables its executable test suite during every build.  Those
-            # target binaries are not part of Sord/Lilv/MLT at runtime and
-            # cannot be run in the Linux cross environment, so build the full
-            # Windows library without constructing the test executables.
-            zix = previous.zix.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                buildInputs = (old.buildInputs or [ ]) ++ [
-                  previous.windows.pthreads
-                ];
-                mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Dtests=disabled" ];
-              }
-            );
-
-            # The cross pkg-config wrapper already prefixes xproto's
-            # includedir, while libX11's configure script prefixes it again.
-            # Pass the concrete target include directory to keep Qt's OpenGL
-            # compatibility dependency buildable on MinGW.
-            libx11 = previous.libx11.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                configureFlags = (old.configureFlags or [ ]) ++ [
-                  "--with-keysymdefdir=${previous.xorgproto}/include/X11"
-                ];
-                NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "")
-                  + " -Wno-error=pointer-to-int-cast";
-                postPatch = (old.postPatch or "") + ''
-                  sed -i '/#include <config.h>/a #include <stdint.h>' \
-                    modules/im/ximcp/imDefIc.c
-                  substituteInPlace modules/im/ximcp/imDefIc.c \
-                    --replace-fail \
-                      '(XIMStyle)p->value' \
-                      '(XIMStyle)(uintptr_t)p->value'
-                  sed -i '/#include "Xlibint.h"/a #ifdef _WIN32\n#undef CreateWindow\n#endif' \
-                    src/xcms/cmsCmap.c
-                '';
-              }
-            );
-
-            # libdv serializes its decoder tables with pthread mutexes on all
-            # targets.  Supply MinGW's pthread implementation so MLT retains
-            # DV import and export support in the Windows package.
-            libdv = previous.libdv.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                buildInputs = (old.buildInputs or [ ]) ++ [
-                  previous.windows.pthreads
-                ];
-                NIX_LDFLAGS = (old.NIX_LDFLAGS or "") + " -lpthread";
-                postPatch = (old.postPatch or "") + ''
-                  substituteInPlace libdv/encode.c \
-                    --replace-fail \
-                      'swab( pcm[j]+i, audio.data + (i*2+j)*channels, 2);' \
-                      'swab((char *)(pcm[j] + i), (char *)(audio.data + (i*2+j)*channels), 2);'
-                  substituteInPlace libdv/headers.c \
-                    --replace-fail \
-                      'if (localtime_r(datetime, &now_t) != NULL )' \
-                      $'#ifdef _WIN32\n\tif (localtime_s(&now_t, datetime) == 0)\n#else\n\tif (localtime_r(datetime, &now_t) != NULL)\n#endif'
-                  substituteInPlace libdv/Makefile.am libdv/Makefile.in \
-                    --replace-fail \
-                      'libdv_la_LDFLAGS = -version-info 4:3:0' \
-                      $'libdv_la_LDFLAGS = -version-info 4:3:0 -no-undefined\nlibdv_la_LIBADD = $(PTHREAD_LIBS)'
-                '';
-                buildPhase = ''
-                  runHook preBuild
-                  make -C libdv libdv.la
-                  runHook postBuild
-                '';
-                installPhase = ''
-                  runHook preInstall
-                  make -C libdv install-libLTLIBRARIES install-pkgincludeHEADERS
-                  mkdir -p "$out/lib/pkgconfig"
-                  install -m 0644 libdv.pc "$out/lib/pkgconfig/libdv.pc"
-                  runHook postInstall
-                '';
-              }
-            );
-
-            # libsamplerate passes a complete module-definition file to
-            # libtool's -export-symbols option.  Current libtool then wraps
-            # that file in another EXPORTS section, producing a malformed
-            # MinGW DLL definition.  Supply the symbol-list format expected
-            # by libtool; the exported API remains identical, including the
-            # newer clone and channel-query entry points.
-            libsamplerate = previous.libsamplerate.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                postPatch = (old.postPatch or "") + ''
-                  sed -i \
-                    -e '/^EXPORTS/d' \
-                    -e 's/[[:space:]]*@[^[:space:]]*[[:space:]]*$//' \
-                    Win32/libsamplerate-0.def
-                '';
-              }
-            );
-
-            # xvidcore's MinGW install supplies a DLL import archive, but the
-            # generic nixpkgs cleanup removes it together with the static
-            # archive.  Keep the import archive under the conventional
-            # lib-prefixed name expected by FFmpeg's linker probe.
-            xvidcore = previous.xvidcore.overrideAttrs (_:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                buildInputs = [ previous.windows.pthreads ];
-                postInstall = ''
-                  rm -f "$out/lib/xvidcore.a"
-                  ln -s xvidcore.dll.a "$out/lib/libxvidcore.dll.a"
-                '';
-              }
-            );
-
-            # libjxl obtains the GDK Pixbuf loader directory from the target
-            # pkg-config file.  That value is an absolute path to the already
-            # built gdk-pixbuf package, so CMake otherwise attempts to modify
-            # a read-only dependency during installation.  Install the loader
-            # in libjxl's own output, where the bundle can collect it together
-            # with the complete JPEG XL codec.
-            libjxl = previous.libjxl.overrideAttrs (old:
+            # LibrePaint loads JPEG XL through the library only.  The command
+            # line tools, benchmarks, examples, tests and the gdk-pixbuf
+            # loader are separate optional programs, so build none of them.
+            libjxl = (previous.libjxl.override { enablePlugins = false; }).overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
                 # MinGW's wide-SIMD decoder paths fail on Windows, including
                 # an AVX-512 aligned stack store. Highway orders AVX targets
@@ -362,12 +179,28 @@
                   (old.NIX_CFLAGS_COMPILE or "")
                   "-DHWY_DISABLED_TARGETS=(HWY_AVX2|(HWY_AVX2-1))"
                 ];
-                postPatch = (old.postPatch or "") + ''
-                  substituteInPlace plugins/gdk-pixbuf/CMakeLists.txt \
-                    --replace-fail \
-                      'execute_process(COMMAND ''${PKG_CONFIG_EXECUTABLE} gdk-pixbuf-2.0 --variable gdk_pixbuf_moduledir --define-variable=prefix=''${CMAKE_INSTALL_PREFIX} OUTPUT_VARIABLE GDK_PIXBUF_MODULEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)' \
-                      'set(GDK_PIXBUF_MODULEDIR "'$out'/${previous.gdk-pixbuf.moduleDir}")'
-                '';
+                cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                  "-DJPEGXL_ENABLE_TOOLS=OFF"
+                  "-DJPEGXL_ENABLE_BENCHMARK=OFF"
+                  "-DJPEGXL_ENABLE_EXAMPLES=OFF"
+                  "-DBUILD_TESTING=OFF"
+                ];
+                doCheck = false;
+                # Without the loader plugin libjxl has no use for gdk-pixbuf,
+                # which would otherwise pull GLib into the Windows graph.
+                nativeBuildInputs = previous.lib.filter
+                  (input: !(previous.lib.hasPrefix "gdk-pixbuf" (previous.lib.getName input)))
+                  (old.nativeBuildInputs or [ ]);
+                # LibrePaint needs only the headers/library, not the test or
+                # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+                buildInputs = previous.lib.filter
+                  (input:
+                    let name = previous.lib.getName input;
+                    in
+                    !(previous.lib.hasPrefix "gdk-pixbuf" name)
+                    && !(previous.lib.hasPrefix "gperftools" name)
+                    && !(previous.lib.hasPrefix "gtest" name))
+                  (old.buildInputs or [ ]);
                 postInstall = (old.postInstall or "") + ''
                   moveToOutput "bin/benchmark_xl.exe" "$benchmark"
                   mkdir -p "$benchmark"
@@ -394,15 +227,19 @@
               }
             );
 
-            # libheif's optional example programs use WebP's mux API but the
-            # upstream CMake targets omit libwebpmux when cross-linking for
-            # Windows.  Krita consumes libheif itself (whose HEIF/AVIF codec
-            # support links successfully), not these sample command-line
-            # programs.  Keep the complete library and GDK loader while
-            # leaving the non-runtime examples out of the target build.
+            # Krita consumes libheif itself for HEIF and AVIF, whose encoding
+            # uses libaom and decoding uses libaom and dav1d.  The example
+            # programs and the gdk-pixbuf loader are outside that path.
             libheif = previous.libheif.overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                buildInputs = previous.lib.filter
+                  (input:
+                    let name = previous.lib.getName input;
+                    in name != "rav1e" && !(previous.lib.hasPrefix "gdk-pixbuf" name))
+                  (old.buildInputs or [ ]);
                 cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                  "-DWITH_RAV1E=OFF"
+                  "-DWITH_GDK_PIXBUF=OFF"
                   "-DWITH_EXAMPLES=OFF"
                 ];
                 postInstall = ''
@@ -411,295 +248,12 @@
               }
             );
 
-            # Vamp's window template uses M_PI before the implementation file
-            # defines its Visual C++ fallback.  GCC 15 diagnoses that ordering
-            # while parsing the template.  Put the same fallback beside the
-            # <cmath> include so the complete host SDK remains available to
-            # Rubber Band and MLT on Windows.
-            vamp-plugin-sdk = previous.vamp-plugin-sdk.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                postPatch = (old.postPatch or "") + ''
-                  substituteInPlace src/vamp-hostsdk/Window.h \
-                    --replace-fail \
-                      '#include <cstdlib>' \
-                      $'#include <cstdlib>\n\n#ifndef M_PI\n#define M_PI 3.14159265358979232846\n#endif'
-                '';
-                postBuild = (old.postBuild or "") + ''
-                  ln -s vamp-simple-host.exe host/vamp-simple-host
-                  ln -s vamp-rdf-template-generator.exe \
-                    rdf/generator/vamp-rdf-template-generator
-                '';
-              }
-            );
-
-            # PortAudio's JACK backend is a Unix integration and creates a
-            # dependency cycle with JACK's Windows PortAudio adapter.  Keep
-            # the native Windows backends and make that PortAudio available
-            # to JACK so its Windows adapter and driver are built as well.
-            portaudio = previous.portaudio.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                buildInputs = previous.lib.filter
-                  (input: !(previous.lib.hasPrefix "libjack" (previous.lib.toLower (previous.lib.getName input))))
-                  (old.buildInputs or [ ]);
-              }
-            );
-
-            # JACK recognises "win32", not "windows", as its Waf platform
-            # name.  The latter silently selects no platform and leaves the
-            # Windows sources and include list unset.  Select the recognised
-            # platform and defensively initialise the process-object includes
-            # to JACK's Win32 implementation.
-            libjack2 = previous.libjack2.overrideAttrs (old:
-              previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
-                buildInputs = (old.buildInputs or [ ]) ++ [
-                  previous.tre
-                  previous.windows.pthreads
-                  final.portaudio
-                ];
-                wafConfigureFlags = map
-                  (flag: if flag == "--platform=windows" then "--platform=win32" else flag)
-                  (old.wafConfigureFlags or [ ]);
-                postPatch = (old.postPatch or "") + ''
-                  sed -i \
-                    "/^    process = bld(features=/a\\    env_includes = ['../windows', '../windows/portaudio']" \
-                    common/wscript
-                  substituteInPlace windows/JackWinNamedPipeServerChannel.cpp \
-                    --replace-fail \
-                      'snprintf(fServerName, sizeof(fServerName), server_name);' \
-                      'snprintf(fServerName, sizeof(fServerName), "%s", server_name);'
-                '';
-              }
-            );
-
-            # On 64-bit Windows libevent correctly represents SOCKET as an
-            # intptr-sized evutil_socket_t, while Unbound's compatibility API
-            # retains an int descriptor.  Route callbacks through Unbound's
-            # existing adapter on Windows as well, and give the adapter the
-            # ABI expected by libevent before narrowing to Unbound's API.
-            unbound =
-              if previous.stdenv.hostPlatform.isMinGW then
-                previous.unbound.overrideAttrs (old: {
-                  postPatch = (old.postPatch or "") + ''
-                    sed -i \
-                      -e 's/^#if UB_EV_TIMEOUT /#if defined(UB_ON_WINDOWS) || UB_EV_TIMEOUT /' \
-                      -e 's/void my_ ## C (int fd/void my_ ## C (evutil_socket_t fd/' \
-                      -e 's/{ (C)(fd, UB_EV_BITS(bits), arg); }/{ (C)((int)fd, UB_EV_BITS(bits), arg); }/' \
-                      -e 's/))(int, short, void\*)$/))(evutil_socket_t, short, void*)/' \
-                      util/ub_event.c util/ub_event_pluggable.c
-                    sed -i \
-                      -e '/UB_EV_BITS_CB(comm_point_udp_ancil_callback)/i #if defined(AF_INET6) \&\& defined(IPV6_PKTINFO) \&\& defined(HAVE_RECVMSG)' \
-                      -e '/UB_EV_BITS_CB(comm_point_udp_ancil_callback)/a #endif' \
-                      -e '/else if(cb == comm_point_udp_ancil_callback)/i #if defined(AF_INET6) \&\& defined(IPV6_PKTINFO) \&\& defined(HAVE_RECVMSG)' \
-                      -e '/return my_comm_point_udp_ancil_callback;/a #endif' \
-                      util/ub_event.c util/ub_event_pluggable.c
-                    sed -i \
-                      -e 's/, fd, bits, cb, arg)/, fd, NATIVE_BITS(bits), NATIVE_BITS_CB(cb), arg)/' \
-                      -e 's/, fd, cb, arg)/, fd, NATIVE_BITS_CB(cb), arg)/' \
-                      util/ub_event.c
-                  '';
-                })
-              else
-                previous.unbound;
-
-            # NSPR chooses a bare `nsinstall` command solely from the MinGW
-            # host tuple.  During a Linux-to-Windows cross build the helper is
-            # a freshly built Linux executable under config/, so retain
-            # NSPR's normal relative path to that build tool.  GCC 15 defaults
-            # to C23, where `bool` is a keyword, so rename NSPR's two legacy
-            # local variables without changing their WinSock representation.
-            nspr = previous.nspr.overrideAttrs (old: {
-              postPatch = (old.postPatch or "") + ''
-                sed -i 's/\<bool\>/boolValue/g' nspr/pr/src/io/prmapopt.c
-                sed -i 's/PRInt32 rvSent;/DWORD rvSent;/g' nspr/pr/src/io/prsocket.c
-                sed -i \
-                  -e 's/^  unsigned long bytes, key;$/  DWORD bytes;\n  ULONG_PTR key;/' \
-                  -e 's/^  int bytes;$/  DWORD bytes;/' \
-                  -e 's/^  PRUint32 bytes;$/  DWORD bytes;/' \
-                  -e 's/^  PRInt32 bytes;$/  DWORD bytes;/' \
-                  nspr/pr/src/md/windows/ntio.c
-                substituteInPlace nspr/pr/src/md/windows/ntio.c \
-                  --replace-fail \
-'InterlockedCompareExchange((PVOID*)&desc->outcome, (PVOID)mwstatus,
-                                     (PVOID)PR_MW_PENDING) ==
-          (PVOID)PR_MW_PENDING' \
-'InterlockedCompareExchange((LONG volatile*)&desc->outcome, (LONG)mwstatus,
-                                     (LONG)PR_MW_PENDING) ==
-          (LONG)PR_MW_PENDING' \
-                  --replace-fail \
-'PRInt32 _PR_MD_SOCKETAVAILABLE(PRFileDesc* fd) {
-  PRInt32 result;
-
-  if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
-    PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
-    return -1;
-  }
-  return result;
-}' \
-'PRInt32 _PR_MD_SOCKETAVAILABLE(PRFileDesc* fd) {
-  u_long result;
-
-  if (ioctlsocket(fd->secret->md.osfd, FIONREAD, &result) < 0) {
-    PR_SetError(PR_BAD_DESCRIPTOR_ERROR, WSAGetLastError());
-    return -1;
-  }
-  return (PRInt32)result;
-}'
-                substituteInPlace nspr/pr/src/md/windows/ntmisc.c \
-                  --replace-fail \
-'  if (exitCode != NULL &&
-      GetExitCodeProcess(process->md.handle, exitCode) == FALSE) {
-    PR_SetError(PR_UNKNOWN_ERROR, GetLastError());
-    return PR_FAILURE;
-  }' \
-'  if (exitCode != NULL) {
-    DWORD nativeExitCode;
-    if (GetExitCodeProcess(process->md.handle, &nativeExitCode) == FALSE) {
-      PR_SetError(PR_UNKNOWN_ERROR, GetLastError());
-      return PR_FAILURE;
-    }
-    *exitCode = (PRInt32)nativeExitCode;
-  }'
-                substituteInPlace nspr/pr/src/md/windows/ntthread.c \
-                  --replace-fail \
-'PRInt32 _PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask) {
-  PRInt32 rv, system_mask;
-
-  rv = GetProcessAffinityMask(GetCurrentProcess(), mask, &system_mask);
-
-  return rv ? 0 : -1;
-}' \
-'PRInt32 _PR_MD_GETTHREADAFFINITYMASK(PRThread* thread, PRUint32* mask) {
-  DWORD_PTR processMask, systemMask;
-  PRInt32 rv;
-
-  rv = GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask);
-  if (rv) {
-    *mask = (PRUint32)processMask;
-  }
-
-  return rv ? 0 : -1;
-}'
-              '';
-              postConfigure = (old.postConfigure or "") + ''
-                sed -i \
-                  's|^NSINSTALL[[:space:]]*=[[:space:]]*nsinstall$|NSINSTALL = $(MOD_DEPTH)/config/$(OBJDIR_NAME)/nsinstall|' \
-                  config/autoconf.mk
-                sed -i \
-                  's|^RC[[:space:]]*=.*$|RC = ${previous.stdenv.cc.targetPrefix}windres|' \
-                  config/autoconf.mk
-              '';
-            });
-
-            # NSS' gyp files use the literal `win` for both native Windows
-            # and MinGW.  nixpkgs passes `Windows`, which silently selects
-            # the Unix source and header branches.  Select NSS' existing
-            # MinGW path and use GNU import-library names and flags.
-            nss = previous.nss.overrideAttrs (old: {
-              postPatch = (old.postPatch or "") + ''
-                substituteInPlace coreconf/config.gypi \
-                  --replace-fail \
-                    "'nspr_libs%': ['libnspr4.lib', 'libplc4.lib', 'libplds4.lib']" \
-                    "'nspr_libs%': ['-lplds4', '-lplc4', '-lnspr4']" \
-                  --replace-fail \
-                    "'zlib_libs%': []" \
-                    "'zlib_libs%': ['-lz']" \
-                  --replace-fail \
-                    "              '_WINDOWS'," \
-                    "              '_WINDOWS', 'WIN32', 'WIN64', '_AMD64_',"
-                substituteInPlace coreconf/config.gypi \
-                  --replace-fail \
-                    "[ '_type==\"shared_library\"', {
-        'product_dir': '<(nss_dist_obj_dir)/lib'
-      }" \
-                    "[ '_type==\"shared_library\"', {
-        'product_dir': '<(nss_dist_obj_dir)/lib',
-        'conditions': [
-          [ 'OS==\"win\" and cc_use_gnu_ld==1', {
-            'product_extension': 'dll',
-            'product_prefix': \"\",
-          }],
-        ],
-      }" \
-                  --replace-fail \
-"          [ 'cc_use_gnu_ld==1', {
-            'ldflags': [
-              '-Wl,--version-script,<(INTERMEDIATE_DIR)/out.>(mapfile)',
-            ],
-          }],
-          [ 'cc_use_gnu_ld!=1 and OS==\"win\"', {" \
-"          [ 'cc_use_gnu_ld==1 and OS!=\"win\"', {
-            'ldflags': [
-              '-Wl,--version-script,<(INTERMEDIATE_DIR)/out.>(mapfile)',
-            ],
-          }],
-          [ 'OS==\"win\"', {"
-                sed -i \
-                  -e "/'-W3',/d" \
-                  -e "/'-w44267',/d" \
-                  -e "/'-w44244',/d" \
-                  -e "/'-w44018',/d" \
-                  -e "/'-w44312',/d" \
-                  -e "/'cflags': \['-WX'\]/d" \
-                  coreconf/config.gypi
-                sed -i 's/!rindex(mod->dllName/!strrchr(mod->dllName/' \
-                  lib/pk11wrap/pk11load.c
-                sed -i 's/\<bool\>/boolValue/g' lib/dev/ckhelper.c
-                sed -i \
-                  -e 's/\<false\>/falseValue/g' \
-                  -e 's/\<true\>/trueValue/g' \
-                  -e 's/\<bool\>/boolValue/g' \
-                  cmd/pwdecrypt/pwdecrypt.c
-                sed -i 's/<Windows\.h>/<windows.h>/' nss-tool/common/util.cc
-                sed -i "s/'advapi32\.lib'/'-ladvapi32'/" \
-                  nss-tool/nss_tool.gyp
-                sed -i \
-                  's/OS=="linux" or OS=="android" or OS=="dragonfly"/OS=="win" or OS=="linux" or OS=="android" or OS=="dragonfly"/g' \
-                  lib/freebl/freebl.gyp
-                while IFS= read -r -d "" defFile; do
-                  sed -i -e '/^;/d' -e 's/[[:space:]]*;.*$//' "$defFile"
-                done < <(find . -name '*.def' -print0)
-              '';
-              preBuild = (old.preBuild or "") + ''
-                mkdir -p .gyp-mingw
-                cp -r \
-                  ${previous.buildPackages.python3Packages.gyp}/${previous.buildPackages.python3.sitePackages}/gyp \
-                  .gyp-mingw/
-                chmod -R u+w .gyp-mingw
-                substituteInPlace .gyp-mingw/gyp/generator/ninja.py \
-                  --replace-fail \
-"      elif self.flavor == 'win' and ext == 'rc':
-        command = 'rc'
-        obj_ext = '.res'
-        has_rc_source = True
-      else:" \
-"      elif self.flavor == 'win' and ext == 'rc':
-        command = 'rc'
-        obj_ext = '.res'
-        has_rc_source = True
-      elif ext == 'def':
-        outputs.append(self.GypPathToNinja(source))
-        continue
-      else:"
-                export PYTHONPATH="$PWD/.gyp-mingw:$PYTHONPATH"
-              '';
-              buildPhase = builtins.replaceStrings
-                [ "-DOS=Windows" ]
-                [ "-DOS=win -Dcc_use_gnu_ld=1 -Dno_zdefs=1 -Ddisable_werror=1 -Dsign_libs=0" ]
-                old.buildPhase;
-            });
-
-            # The MinGW build produces RNNoise's DLL but intentionally skips
-            # its Unix-style command-line demo.  nixpkgs' unconditional copy
-            # of that demo is packaging-only; MLT consumes librnnoise itself.
-            rnnoise = previous.rnnoise.overrideAttrs (_: {
-              postInstall = "";
-            });
-
-            # FFmpeg supports MinGW, but nixpkgs marks the 64-bit target as
-            # broken pending its own cross-build issue.  Keep the allowance
-            # local to this Windows package set so the actual build can supply
-            # Krita's bundled ffmpeg/ffprobe and MLT backend.
-            ffmpeg = (previous.ffmpeg.override {
+            # Keep this Windows-only allowance for nixpkgs' broken MinGW target.
+            # Animation export needs libx264, libx265, libtheora, libwebp and
+            # built-in APNG/GIF with only scale/palette filters; drop the rest.
+            # nixpkgs' MLT pins ffmpeg_8, so unify the portable application on
+            # that series and ship one FFmpeg instead of two.
+            ffmpeg_8 = (previous.ffmpeg_8.override {
               # OpenAPV's current MinGW build unconditionally links POSIX
               # pthreads.  Krita's animation import/export uses FFmpeg's
               # established image and video codecs, not APV encoding.
@@ -707,38 +261,37 @@
               # ZVBI implements broadcast teletext and has no Win32 thread
               # backend.  It is outside Krita's animation media paths.
               withZvbi = false;
+              # LibrePaint reads no Blu-ray, encrypted or streamed media, no
+              # tracked music modules and no GPU compute, and its text paths
+              # use Qt rather than FFmpeg's drawtext and subtitle filters.
+              withBluray = false;
+              withGnutls = false;
+              withGmp = false;
+              withOpenmpt = false;
+              withRist = false;
+              withSrt = false;
+              withSsh = false;
+              withOpencl = false;
+              withVulkan = false;
+              withZimg = false;
+              withSoxr = false;
+              withSpeex = false;
+              withVidStab = false;
+              withXvid = false;
+              withXml2 = false;
+              withOpenjpeg = false;
+              withMp3lame = false;
+              withFontconfig = false;
+              withFreetype = false;
+              withFribidi = false;
+              withHarfbuzz = false;
+              withSdl2 = false;
+              withNetwork = false;
+              buildFfplay = false;
             }).overrideAttrs (old: {
               meta = (old.meta or { }) // { broken = false; };
             });
-
-            # Rubber Band's JNI binding is unrelated to MLT's native audio
-            # filter and selects a target JDK that does not exist for MinGW.
-            # Keep the C++ time-stretching library while omitting standalone
-            # plugin formats and command-line programs from this dependency.
-            rubberband = previous.rubberband.overrideAttrs (old: {
-              nativeBuildInputs = [
-                previous.buildPackages.meson
-                previous.buildPackages.ninja
-                previous.buildPackages.pkg-config
-              ];
-              buildInputs = (old.buildInputs or [ ]) ++ [
-                previous.windows.pthreads
-              ];
-              mesonFlags = (old.mesonFlags or [ ]) ++ [
-                "-Djni=disabled"
-                "-Dladspa=disabled"
-                "-Dlv2=disabled"
-                "-Dvamp=disabled"
-                "-Dcmdline=disabled"
-              ];
-            });
-
-            # RtAudio 5's JACK backend is a Unix implementation whose pthread
-            # condition variables cannot be combined with the Win32 critical
-            # sections selected by its Windows platform layer.  Use RtAudio's
-            # native WASAPI backend; JACK itself remains available separately
-            # with its WinMME and PortAudio drivers.
-            rtaudio = previous.rtaudio.override { jackSupport = false; };
+            ffmpeg = final.ffmpeg_8;
 
             # giflib 6.1.3 has adopted a new Makefile, so the bundled MinGW
             # patch (written for 5.2) no longer applies.  Replace it only for
@@ -812,12 +365,39 @@
               doCheck = false;
             });
 
+            # LibrePaint needs only the headers/library, not the test or
+            # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+            zug = previous.zug.overrideAttrs (old: {
+              # Building the tests makes configure look for catch2.
+              cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-Dzug_BUILD_TESTS=OFF" ];
+              doCheck = false;
+              buildInputs = previous.lib.filter
+                (input: !(previous.lib.hasPrefix "catch2" (previous.lib.getName input)))
+                (old.buildInputs or [ ]);
+            });
+
+            # LibrePaint needs only the headers/library, not the test or
+            # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+            lager = previous.lager.overrideAttrs (old: {
+              doCheck = false;
+              buildInputs = previous.lib.filter
+                (input:
+                  let name = previous.lib.getName input;
+                  in !(previous.lib.hasPrefix "catch2" name) && !(previous.lib.hasPrefix "cereal" name))
+                (old.buildInputs or [ ]);
+            });
+
             # xsimd is a header-only dependency in LibrePaint.  Its package
             # normally compiles an extensive test suite even though MinGW
             # tests cannot run on the Linux builder.
             xsimd = previous.xsimd.overrideAttrs (old: {
               cmakeFlags = previous.lib.filter (flag: flag != "-DBUILD_TESTS=ON") (old.cmakeFlags or [ ]) ++ [ "-DBUILD_TESTS=OFF" ];
               doCheck = false;
+              # LibrePaint needs only the headers/library, not the test or
+              # profiling inputs (see docs/architecture/DEPENDENCIES.md).
+              buildInputs = previous.lib.filter
+                (input: !(previous.lib.hasPrefix "doctest" (previous.lib.getName input)))
+                (old.buildInputs or [ ]);
             });
 
             # SQLite's Tcl extension is not needed by Qt.  Disabling it avoids
@@ -830,44 +410,37 @@
               }
             );
 
-            # Qt's Linux host tools bring this in through systemd.  Its
-            # hardware-backed integration suite is unrelated to the Windows
-            # cross build and cannot affect the resulting application.
-            tpm2-tss = previous.tpm2-tss.overrideAttrs (_: {
-              doCheck = false;
-            });
-
-            # GLib's Nix expression selects target-side Python tooling when
-            # cross compiling.  These tools execute during the build, so use
-            # the Linux build-platform variants and avoid a target Python
-            # closure in the Windows runtime graph.
-            glib = (previous.glib.override {
-              docutils = previous.buildPackages.docutils;
-              gettext = previous.buildPackages.gettext;
-              libxslt = previous.buildPackages.libxslt;
-              meson = previous.buildPackages.meson;
-              ninja = previous.buildPackages.ninja;
-              pkg-config = previous.buildPackages.pkg-config;
-              perl = previous.buildPackages.perl;
-              python3 = previous.buildPackages.python3;
-              python3Packages = previous.buildPackages.python3Packages;
-            }).overrideAttrs (old: {
-              # Sysprof captures Linux performance data and its implementation
-              # requires endian.h.  GLib keeps this optional input enabled on
-              # Windows in nixpkgs, but LibrePaint does not use the feature.
-              buildInputs = previous.lib.filter (input: input != previous.libsysprof-capture) (old.buildInputs or [ ]);
-              mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Dsysprof=disabled" ];
-              # The argument above is the Linux Gettext because msgfmt runs
-              # during the build.  GLib also links libintl at runtime, so add
-              # the Windows library separately for Meson and dependants.
-              propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ previous.gettext ];
-            });
-
             graphite2 = previous.graphite2.override {
               cmake = previous.buildPackages.cmake;
               pkg-config = previous.buildPackages.pkg-config;
               python3 = previous.buildPackages.python3;
             };
+
+            # LibrePaint uses HarfBuzz only for shaping and layout.  The
+            # GLib and GObject APIs are separate convenience bindings that
+            # nixpkgs enables on Windows, and nothing in the Windows graph
+            # selects them.
+            harfbuzz = previous.harfbuzz.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input: previous.lib.getName input != "glib")
+                (old.buildInputs or [ ]);
+              mesonFlags = (old.mesonFlags or [ ]) ++ [
+                "-Dglib=disabled"
+                "-Dgobject=disabled"
+                "-Dintrospection=disabled"
+              ];
+            });
+
+            # libmypaint selects GLib support only for its introspection data
+            # or --with-glib.  LibrePaint uses the brush engine directly, so
+            # keep the plain C library without that optional dependency.
+            # GLib previously supplied libintl transitively; the translated
+            # brush setting names still need gettext's dgettext.
+            libmypaint = previous.libmypaint.overrideAttrs (old: {
+              buildInputs = previous.lib.filter
+                (input: previous.lib.getName input != "glib")
+                (old.buildInputs or [ ]) ++ [ previous.gettext ];
+            });
 
             # Fontconfig's configure probes select the Unix locale switcher
             # when cross compiling with MinGW, although that API is absent on
@@ -882,56 +455,77 @@
           })
         ];
       };
+      # The Krita compilation of every platform reads only the entries below, so
+      # an edit anywhere else (docs, scripts, nix, the flake, other platforms'
+      # packaging, tests, benchmarks) leaves the compilation derivations
+      # unchanged.  A new top-level entry stays out of the build source until
+      # it is listed here, and scripts/check-test-gating.py configures the
+      # filtered Linux source to prove that the listed entries are enough.
+      buildSourceEntries = [
+        "3rdparty_vendor"
+        "CMakeLists.txt"
+        "COPYING"
+        "COPYING-CMAKE-SCRIPTS"
+        "LICENSES"
+        "cmake"
+        "krita"
+        "libs"
+        "pch"
+        "pics"
+        "plugins"
+        "po"
+        "qmlmodules"
+        "sdk"
+      ];
+      # Directories that exist only to test or benchmark the product.  Product
+      # builds set BUILD_TESTING=OFF, and the CMake configuration enters these
+      # directories only inside if(BUILD_TESTING).
+      buildSourceTestDirectories = [
+        "autotests"
+        "benchmarks"
+        "tests"
+      ];
       mkLibrepaintBuildSource =
-        packageSet: excludeAndroidPackage:
+        packageSet: platformEntries:
         packageSet.lib.cleanSourceWith {
           name = "librepaint-source";
           src = ./.;
           filter =
             path: _type:
             let
-              relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
-              topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
+              inherit (packageSet) lib;
+              relativePath = lib.removePrefix "${toString ./.}/" (toString path);
+              entries = buildSourceEntries ++ platformEntries;
+              # An entry, a path below it, or a directory that leads to it.
+              onEntry = lib.any (
+                entry:
+                relativePath == entry
+                || lib.hasPrefix "${entry}/" relativePath
+                || lib.hasPrefix "${relativePath}/" entry
+              ) entries;
+              inTestDirectory = lib.any (
+                component: lib.elem component buildSourceTestDirectories
+              ) (lib.splitString "/" relativePath);
             in
-            !(builtins.elem topLevel [
-              ".cache"
-              ".direnv"
-              ".git"
-              ".github"
-              ".gitlab"
-              "AGENTS.md"
-              "build-ios"
-              "docs"
-              "flake.lock"
-              "flake.nix"
-              "logs"
-              "nix"
-              "result"
-            ])
-            && !(builtins.elem relativePath [
-              "packaging/macos/fonts.conf"
-              "packaging/macos/macos-apptodmg.py"
-              "packaging/macos/macos-bundle-launcher.c"
-              "packaging/macos/macos-deploy.py"
-              "packaging/macos/qt.conf"
-              "scripts/platform/audit-linux-appimage.py"
-              "scripts/platform/audit-macos-bundle.py"
-              "scripts/platform/audit-windows-package.py"
-              "scripts/platform/check-macos-release-dmg"
-              "scripts/platform/check-release-assets"
-              "scripts/platform/sign-android-draft-release"
-              "scripts/platform/verify-android-release-apk.py"
-              "scripts/tests/test_android_release_apk.py"
-              "scripts/tests/test_linux_release_appimage.py"
-              "scripts/tests/test_macos_release_bundle.py"
-              "scripts/tests/test_windows_release_package.py"
-            ])
-            && !(excludeAndroidPackage && (
-              relativePath == "packaging/android/apk"
-              || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
-            ))
-            && !(packageSet.lib.hasPrefix "README" topLevel);
+            toString path == toString ./. || (onEntry && !inTestDirectory);
         };
+      # Entries below packaging/ and platform-only directories that the
+      # compilation of one platform reads in addition.  Packaging that only
+      # assembles, signs or deploys the result is a separate derivation and
+      # stays out of these lists.
+      linuxBuildSourceEntries = [ ];
+      windowsBuildSourceEntries = [ "winquirks" ];
+      macosBuildSourceEntries = [ "packaging/macos/LibrePaint.icns" ];
+      androidBuildSourceEntries = [ ];
+      iosBuildSourceEntries = [
+        "packaging/ios/manifests/default-resource-bundle-licenses.json"
+        "packaging/ios/manifests/ios-image-licenses.json"
+        "packaging/ios/manifests/non-code-licenses.md"
+        "packaging/ios/manifests/static-dependency-resources.json"
+        "packaging/ios/notices/librepaint-brand-assets.md"
+        "packaging/ios/notices/qtbase-icc-attribution.json"
+        "packaging/ios/notices/retained-functional-assets.md"
+      ];
       # Policy files use an independent source so policy-only edits preserve
       # the application compilation cache.
       mkLibrepaintPolicySource =
@@ -956,9 +550,11 @@
             ])
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
-      librepaintBuildSource = mkLibrepaintBuildSource pkgs false;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false;
-      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true;
+      macosBuildSource = mkLibrepaintBuildSource pkgs macosBuildSourceEntries;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs linuxBuildSourceEntries;
+      windowsBuildSource = mkLibrepaintBuildSource linuxPkgs windowsBuildSourceEntries;
+      androidBuildSource = mkLibrepaintBuildSource linuxPkgs androidBuildSourceEntries;
+      iosBuildSource = mkLibrepaintBuildSource pkgs iosBuildSourceEntries;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
@@ -972,11 +568,11 @@
         qtManifestFile = ./packaging/ios/qt/modules.json;
         frameworkManifestFile = ./packaging/ios/frameworks/frameworks.json;
         pluginProfileFile = ./packaging/ios/manifests/initial-plugin-profile.json;
-        kritaSource = librepaintBuildSource;
+        kritaSource = iosBuildSource;
       };
       macosPackages = import ./nix/macos {
         inherit pkgs;
-        source = librepaintBuildSource;
+        source = macosBuildSource;
       };
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
@@ -988,25 +584,27 @@
       };
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxAndroidCompileSource;
-        overlays = [ qtOverlay kdeOverlay ];
+        source = androidBuildSource;
+        overlays = [ kdeOverlay ];
       };
       linuxAndroidX86_64Packages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxAndroidCompileSource;
-        overlays = [ qtOverlay kdeOverlay ];
+        source = androidBuildSource;
+        overlays = [ kdeOverlay ];
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
       };
+      # Windows uses the official Qt from nixpkgs.
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
-        source = linuxBuildSource;
+        hostPkgs = linuxPkgs;
+        source = windowsBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
       };
       policyTools =
         packageSet: with packageSet; [
           bash
-          python3
+          (python3.withPackages (packages: [ packages.pefile ]))
         ];
       mkDocsShell =
         packageSet:
@@ -1069,6 +667,7 @@
       packages.${system} = {
         default = macosPackages.librepaint;
         librepaint-macos = macosPackages.librepaint;
+        librepaint-macos-unwrapped = macosPackages.librepaintUnwrapped;
         macos-dependencies = macosPackages.macosDependencies;
 
         source-zlib = pkgs.zlib.src;
@@ -1252,7 +851,34 @@
         librepaint-windows = windowsPackages.librepaint;
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
-        windows-dependencies = windowsPackages.windowsDependencies;
+        windows-dependencies = windowsPackages.dependencyInputs;
+        pyqt6-612-check =
+          let
+            py = (import ./nix/pyqt6.nix {
+              inherit (linuxPkgs) lib;
+              python = linuxPkgs.python3;
+            }).withPackages (p: [ p.pyqt6 p.pyqt6-sip p.sip ]);
+          in
+          linuxPkgs.runCommand "pyqt6-612-check" {
+            nativeBuildInputs = [ py ];
+            QT_QPA_PLATFORM = "offscreen";
+          } ''
+            set -e
+            python -c '
+            from PyQt6 import QtCore, QtGui, QtWidgets, QtXml, QtQml, QtSvg
+            assert QtCore.PYQT_VERSION_STR == "6.12.0", QtCore.PYQT_VERSION_STR
+            assert QtCore.QT_VERSION_STR == "6.12.0", QtCore.QT_VERSION_STR
+            print("PyQt6", QtCore.PYQT_VERSION_STR)
+            print("Qt", QtCore.QT_VERSION_STR)
+            ' > versions.txt
+            python ${./cmake/modules/FindPyQt6.py} > find-pyqt6.out
+            grep -q 'pyqt_version_str:6.12.0' find-pyqt6.out
+            python -c "import sipbuild; print(sipbuild.__file__)" > sipbuild.out
+            python ${./cmake/modules/FindSIP.py} > find-sip.out
+            grep -q 'sip_version_str:6.17.3' find-sip.out
+            mkdir -p "$out"
+            cp versions.txt find-pyqt6.out sipbuild.out find-sip.out "$out/"
+          '';
       };
 
       checks.${system} = {
@@ -1354,8 +980,8 @@
         default = macosPackages.devShell;
         docs = mkDocsShell pkgs;
         librepaint-macos = macosPackages.devShell;
-        librepaint-test = mkTestShell pkgs macosPackages.librepaint;
-        test = mkTestShell pkgs macosPackages.librepaint;
+        librepaint-test = mkTestShell pkgs macosPackages.librepaintUnwrapped;
+        test = mkTestShell pkgs macosPackages.librepaintUnwrapped;
 
         librepaint-ios = pkgs.mkShellNoCC {
           packages = with pkgs; [
@@ -1405,6 +1031,18 @@
         librepaint-android = linuxAndroidPackages.devShell;
         librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
+      };
+
+      # The filtered sources that the compilation derivations read.  The test
+      # gating check configures the Linux one (scripts/check-test-gating.py).
+      legacyPackages.${system}.buildSources = {
+        macos = macosBuildSource;
+        ios = iosBuildSource;
+      };
+      legacyPackages.${linuxSystem}.buildSources = {
+        linux = linuxBuildSource;
+        windows = windowsBuildSource;
+        android = androidBuildSource;
       };
 
       formatter.${system} = pkgs.nixfmt;

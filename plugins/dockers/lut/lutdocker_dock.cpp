@@ -9,7 +9,6 @@
 #include <OpenColorABI.h>
 #include <OpenColorIO.h>
 #include <OpenColorTypes.h>
-#include <config-hdr.h>
 
 #include <functional>
 #include <QtGlobal>
@@ -53,10 +52,6 @@
 #include "kis_signals_blocker.h"
 #include "krita_utils.h"
 #include <color/KisOcioConfiguration.h>
-#ifdef HAVE_HDR
-#include <color/KisSurfaceColorSpaceWrapper.h>
-#include <opengl/KisOpenGLModeProber.h>
-#endif
 
 
 #include "black_white_point_chooser.h"
@@ -241,18 +236,7 @@ bool LutDockerDock::canChangeExposureAndGamma() const
         m_colorManagement->currentIndex() != (int)KisOcioConfiguration::INTERNAL;
 
 
-#ifdef HAVE_HDR
-    KisSurfaceColorSpaceWrapper currentColorSpace =
-        KisSurfaceColorSpaceWrapper::fromQtColorSpace(
-            KisOpenGLModeProber::instance()->surfaceformatInUse().colorSpace());
-#endif
-
-    const bool exposureManagementEnabled =
-        externalColorManagementEnabled
-#ifdef HAVE_HDR
-            || currentColorSpace == KisSurfaceColorSpaceWrapper::scRGBColorSpace
-#endif
-            ;
+    const bool exposureManagementEnabled = externalColorManagementEnabled;
 
     return exposureManagementEnabled;
 }

@@ -118,7 +118,7 @@ mkIOSCMakePackage {
     done
 
     pc="$out/lib/pkgconfig/harfbuzz.pc"
-    grep -Eq '^Requires\.private:.*freetype2[[:space:]]*>=[[:space:]]*12\.0\.6' "$pc"
+    grep -Eq '^Requires\.private:.*freetype2[[:space:]]*>=[[:space:]]*20\.0\.14' "$pc"
     for framework in CoreFoundation CoreText CoreGraphics; do
       grep -Eq -- "^Libs\.private:.*-framework[[:space:]]+$framework([[:space:]]|$)" "$pc"
     done

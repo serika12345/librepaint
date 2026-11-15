@@ -13,8 +13,10 @@ foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_applicator_factor
     message("    * ${_obj}")
 endforeach()
 
-add_subdirectory(tests)
-add_subdirectory(benchmarks)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+    add_subdirectory(benchmarks)
+endif()
 
 add_library(kritapigmentcompositeparameterinfoobjects OBJECT
     KoCompositeOpParameterInfo.cpp

@@ -11,10 +11,13 @@ let
       inherit (frameworks) ki18n;
     };
   };
-  python = pkgs.python3;
-  pythonPackages = pkgs.python3Packages;
+  python = import ../pyqt6.nix {
+    inherit lib;
+    python = pkgs.python3;
+  };
+  pythonPackages = python.pkgs;
   pythonVersion = python.pythonVersion;
-  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
+  runtimePyQt = pythonPackages.pyqt6;
   runtimePython = python.withPackages (packages: [
     runtimePyQt
     packages."pyqt6-sip"
@@ -54,16 +57,18 @@ let
         ln -s Versions/Current/Python "$out/Python"
         ln -s Versions/Current/Resources "$out/Resources"
       '';
-  librepaint = import ./krita.nix {
+  krita = import ./krita.nix {
     inherit
       pkgs
       source
       frameworks
       kseexpr
+      pythonPackages
       pythonRuntime
       ;
   };
-  macosDependencyMembers = librepaint.macosDependencyMembers;
+  inherit (krita) librepaint librepaintUnwrapped;
+  macosDependencyMembers = librepaintUnwrapped.macosDependencyMembers;
   # Keep a source-independent reference to every direct input used by the
   # macOS app recipe. The manifest makes the members part of this output's
   # runtime closure without trying to merge their overlapping directory trees.
@@ -78,7 +83,7 @@ let
           > "$out/nix-support/macos-dependency-members"
       '';
   devShell = pkgs.mkShell {
-    inputsFrom = [ librepaint ];
+    inputsFrom = [ librepaintUnwrapped ];
     packages = [ pkgs.nixfmt ];
 
     shellHook = ''
@@ -93,6 +98,7 @@ in
     frameworks
     kseexpr
     librepaint
+    librepaintUnwrapped
     macosDependencies
     ;
 }

@@ -6,6 +6,7 @@
  */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include "KisQStringListFwd.h"
 #include "KisWraparoundAxis.h"
 #include "kis_assert.h"
@@ -61,7 +62,9 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
-#include "config-qt-patches-present.h"
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 
 static bool OPENGL_SUCCESS = false;
 
@@ -104,9 +107,6 @@ public:
     }
 
     boost::optional<QRect> updateRect;
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    bool shouldSkipRenderingPass = false;
-#endif
     QRect canvasImageDirtyRect;
     KisOpenGLCanvasRenderer *renderer;
     QScopedPointer<KisOpenGLSync> glSyncObject;
@@ -149,6 +149,12 @@ KisOpenGLCanvas2::KisOpenGLCanvas2(KisCanvas2 *canvas,
 
     d->renderer = new KisOpenGLCanvasRenderer(new CanvasBridge(this), image, displayConfig, displayFilter);
     connect(this, &QOpenGLWidget::frameSwapped, this, [] { KisLatencyProbe::mark("frame_swapped"); });
+    connect(this, &QOpenGLWidget::aboutToResize, this, [] { KisLatencyProbe::mark("gpu_fbo_recreate"); });
+    // Qt emits this after paintGL and before the backing store is composited.
+    // The gap from paintgl_end to here is Qt's composition setup; the gap
+    // from here to frame_swapped contains the platform swap (SwapBuffers on
+    // desktop OpenGL, the ANGLE exchange).
+    connect(this, &QOpenGLWidget::aboutToCompose, this, [] { KisLatencyProbe::mark("canvas_about_to_compose"); });
 
     connect(d->renderer->openGLImageTextures().data(),
             SIGNAL(sigShowFloatingMessage(QString, int, bool)),
@@ -263,10 +269,12 @@ KisOpenGLCanvas2::~KisOpenGLCanvas2()
      * is closed.
      */
 
+    KisLatencyProbe::mark("gl_make_current", 0, 0, 2);
     makeCurrent();
 
     delete d;
 
+    KisLatencyProbe::mark("gl_done_current", 0, 0, 1);
     doneCurrent();
 }
 
@@ -361,6 +369,10 @@ void KisOpenGLCanvas2::initializeGL()
 
     d->renderer->initializeGL();
     KisOpenGLSync::init(context());
+    // Counts the canvas initializations and records the context format. The
+    // official Qt Windows run painted a few frames and then stopped; a second
+    // initialization would mean the canvas was recreated.
+    KisLatencyProbe::mark("canvas_initialize_gl", 0, 0, context() ? 1 : 0);
 
 #ifdef Q_OS_IOS
     d->rendererInitialized = true;
@@ -383,6 +395,7 @@ void KisOpenGLCanvas2::resizeGL(int width, int height)
 
     d->renderer->resizeGL(width, height);
     d->canvasImageDirtyRect = QRect(0, 0, width, height);
+    KisLatencyProbe::mark("canvas_resize_gl", width, height);
 }
 
 void KisOpenGLCanvas2::paintGL()
@@ -394,11 +407,42 @@ void KisOpenGLCanvas2::paintGL()
     }
 #endif
 
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    if (d->shouldSkipRenderingPass) {
-        return;
+#ifdef Q_OS_WIN
+    // Record the thread that paints once per process, so thread_cpu.csv can
+    // separate the GUI thread from driver threads.
+    static bool paintThreadMarked = false;
+    if (!paintThreadMarked) {
+        paintThreadMarked = true;
+        KisLatencyProbe::mark("paintgl_thread", static_cast<qint64>(GetCurrentThreadId()));
     }
 #endif
+
+    // H2 (waiting for the display handoff): finish the GPU work of the
+    // previous frame before starting the next one. The wait must come before
+    // the update-compression early return below. The frames whose previous
+    // GPU work is unfinished are exactly the frames that compression defers,
+    // and a wait placed after the early return is never reached from them.
+    // LIBREPAINT_L1_WAIT_FOR_GPU is for the L1 measurements only;
+    // KisL1Switches.h owns the removal condition.
+    if (KisL1Switches::waitForGpuBeforeNextFrame()) {
+        // l1_h2_state records the decision even when nothing is waited for:
+        // bit 1 = the switch is on, bit 2 = the previous frame's fence exists,
+        // bit 4 = the fence had already completed, bit 8 = the fence was
+        // waited for.
+        qint64 state = 1;
+        if (d->glSyncObject) {
+            state |= 2;
+            if (!d->glSyncObject->isSignaled()) {
+                state |= 8;
+                KisLatencyProbe::mark("gpu_wait_begin");
+                const bool completed = d->glSyncObject->waitForCompletion(100 * 1000 * 1000LL);
+                KisLatencyProbe::mark("gpu_wait_end", 0, 0, completed ? 1 : 0);
+            } else {
+                state |= 4;
+            }
+        }
+        KisLatencyProbe::mark("l1_h2_state", 0, 0, state);
+    }
 
     KisLatencyProbe::mark("paintgl_begin");
     struct ProbePaintEnd {
@@ -457,6 +501,15 @@ void KisOpenGLCanvas2::paintEvent(QPaintEvent *e)
     }
 #endif
 
+    // x/y = the paint event rect, extra bit 1 = the widget is visible, bit 2 =
+    // the widget is minimized, bit 4 = the previous updateRect was still set
+    // (the assert below drops the paint in that case). Together with
+    // canvas_update_issued this separates "Qt never delivered a paint event"
+    // from "a paint event arrived but painted nothing".
+    KisLatencyProbe::mark("canvas_paint_event", e->rect().width(), e->rect().height(),
+                          (isVisible() ? 1 : 0) | (isMinimized() ? 2 : 0) |
+                          (d->updateRect ? 4 : 0));
+
     KIS_SAFE_ASSERT_RECOVER_RETURN(!d->updateRect);
 
     if (qFuzzyCompare(devicePixelRatioF(), qRound(devicePixelRatioF()))) {
@@ -472,27 +525,6 @@ void KisOpenGLCanvas2::paintEvent(QPaintEvent *e)
         d->updateRect = this->rect();
     }
 
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    /**
-     * When using Qt with a proper update paint event compression, then we don't
-     * need to implement our own one in KisCanvas2, instead we should just skip
-     * frames in paintEvent(), when the previous frame hasn't completed yet.
-     */
-    if (isBusy()) {
-        //qWarning() << "WARNING: paint event delivered with the canvas non-ready, rescheduling...";
-        d->shouldSkipRenderingPass = true;
-        QOpenGLWidget::paintEvent(e);
-        d->shouldSkipRenderingPass = false;
-        QTimer::singleShot(0, this,
-            [this, updateRect = *d->updateRect] () {
-                if (updateRect.isEmpty()) {
-                    this->update();
-                } else {
-                    this->update(updateRect);
-                }
-            });
-    } else
-#endif
     {
         QOpenGLWidget::paintEvent(e);
     }
@@ -856,11 +888,18 @@ QVector<QRect> KisOpenGLCanvas2::updateCanvasProjection(const QVector<KisUpdateI
 void KisOpenGLCanvas2::updateCanvasImage(const QRect &imageUpdateRect)
 {
     d->canvasImageDirtyRect |= imageUpdateRect;
+    // x/y = the requested region. The count is the number of QWidget::update
+    // calls the canvas makes; a desktop path that issues more of them than
+    // the ANGLE path is a candidate for its extra CPU time.
+    KisLatencyProbe::mark("canvas_widget_update_request", imageUpdateRect.width(),
+                          imageUpdateRect.height(), 1);
     update(imageUpdateRect);
 }
 
 void KisOpenGLCanvas2::updateCanvasDecorations(const QRect &decoUpdateRect)
 {
+    KisLatencyProbe::mark("canvas_widget_update_request", decoUpdateRect.width(),
+                          decoUpdateRect.height(), 2);
     update(decoUpdateRect);
 }
 bool KisOpenGLCanvas2::callFocusNextPrevChild(bool next)

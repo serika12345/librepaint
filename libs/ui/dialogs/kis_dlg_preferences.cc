@@ -18,7 +18,6 @@
 #include "kis_types.h"
 
 #include <algorithm>
-#include <config-hdr.h>
 #include <functional>
 #include <kguiitem.h>
 #include <kpagedialog.h>
@@ -144,16 +143,10 @@
 #include <kis_signals_blocker.h>
 
 #include "KisDlgConfigureCumulativeUndo.h"
-#include <config-qt-patches-present.h>
 
 #ifdef Q_OS_WIN
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-// this include is Qt5-only, the switch to WinTab is embedded in Qt
-#  include "config_qt5_has_wintab_switch.h"
-#else
-#  include <QtGui/private/qguiapplication_p.h>
-#  include <QtGui/qpa/qplatformintegration.h>
-#endif
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 #include "config-high-dpi-scale-factor-rounding-policy.h"
 #endif
 
@@ -1745,25 +1738,11 @@ void TabletSettingsTab::setDefault()
     m_page->chkUseRightMiddleClickWorkaround->setChecked(
         KisConfig(true).useRightMiddleTabletButtonWorkaround(true));
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)) 
+#if defined Q_OS_WIN
         m_page->radioWintab->setChecked(!cfg.useWin8PointerInput(true));
         m_page->radioWin8PointerInput->setChecked(cfg.useWin8PointerInput(true));
 #else
         m_page->grpTabletApi->setVisible(false);
-#endif
-
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN
-    m_page->chkUsePageUpDownMouseButtonEmulationWorkaround->setChecked(
-        cfg.usePageUpDownMouseButtonEmulationWorkaround(true));
-#endif
-
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS
-    m_page->chkUseHighFunctionKeyMouseButtonEmulationWorkaround->setChecked(
-        cfg.useHighFunctionKeyMouseButtonEmulationWorkaround(true));
-#endif
-
-#if KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS
-    m_page->chkUseIgnoreHistoricTabletEventsWorkaround->setChecked(cfg.useIgnoreHistoricTabletEventsWorkaround(true));
 #endif
 
     m_page->chkUseTimestampsForBrushSpeed->setChecked(false);
@@ -1789,15 +1768,13 @@ TabletSettingsTab::TabletSettingsTab(QWidget* parent, const char* name): QWidget
     m_page->chkUseRightMiddleClickWorkaround->setChecked(
          cfg.useRightMiddleTabletButtonWorkaround());
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-# if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if defined Q_OS_WIN
     QString actualTabletProtocol = "<unknown>";
     using QWindowsApplication = QNativeInterface::Private::QWindowsApplication;
     if (auto nativeWindowsApp = dynamic_cast<QWindowsApplication *>(QGuiApplicationPrivate::platformIntegration())) {
         actualTabletProtocol = nativeWindowsApp->isWinTabEnabled() ? "WinTab" : "Windows Ink";
     }
     m_page->grpTabletApi->setTitle(i18n("Tablet Input API (currently active API: \"%1\")", actualTabletProtocol));
-# endif
     m_page->radioWintab->setChecked(!cfg.useWin8PointerInput());
     m_page->radioWin8PointerInput->setChecked(cfg.useWin8PointerInput());
 
@@ -1816,25 +1793,9 @@ TabletSettingsTab::TabletSettingsTab(QWidget* parent, const char* name): QWidget
 #endif
     m_page->chkUseTimestampsForBrushSpeed->setChecked(cfg.readEntry("useTimestampsForBrushSpeed", false));
 
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN
-    m_page->chkUsePageUpDownMouseButtonEmulationWorkaround->setChecked(
-        cfg.usePageUpDownMouseButtonEmulationWorkaround());
-#else
     m_page->chkUsePageUpDownMouseButtonEmulationWorkaround->hide();
-#endif
-
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS
-    m_page->chkUseHighFunctionKeyMouseButtonEmulationWorkaround->setChecked(
-        cfg.useHighFunctionKeyMouseButtonEmulationWorkaround());
-#else
     m_page->chkUseHighFunctionKeyMouseButtonEmulationWorkaround->hide();
-#endif
-
-#if KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS
-    m_page->chkUseIgnoreHistoricTabletEventsWorkaround->setChecked(cfg.useIgnoreHistoricTabletEventsWorkaround());
-#else
     m_page->chkUseIgnoreHistoricTabletEventsWorkaround->hide();
-#endif
 
     m_page->intMaxAllowedBrushSpeed->setRange(1, 100);
     m_page->intMaxAllowedBrushSpeed->setValue(cfg.readEntry("maxAllowedSpeedValue", 30));
@@ -2031,12 +1992,8 @@ void PerformanceTab::load(bool requestDefault)
     sliderThreadsLimit->setValue(m_lastUsedThreadsLimit);
     sliderFrameClonesLimit->setValue(m_lastUsedClonesLimit);
 
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    m_frameRateModel->data.set(std::make_tuple(cfg.detectFpsLimit(requestDefault), cfg.fpsLimit(requestDefault)));
-#else
     m_frameRateModel->data.set(std::make_tuple(false, cfg.fpsLimit(requestDefault)));
     chkDetectFps->setVisible(false);
-#endif
     {
         KisConfig cfg2(true);
         chkOpenGLFramerateLogging->setChecked(cfg2.enableOpenGLFramerateLogging(requestDefault));
@@ -2099,9 +2056,6 @@ void PerformanceTab::save()
     cfg.setFrameRenderingClones(sliderFrameClonesLimit->value());
     cfg.setFrameRenderingTimeout(sliderFrameTimeout->value() * 1000);
     cfg.setFpsLimit(std::get<int>(*m_frameRateModel->data));
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    cfg.setDetectFpsLimit(std::get<bool>(*m_frameRateModel->data));
-#endif
 
     {
         KisConfig cfg2(true);
@@ -2167,10 +2121,6 @@ namespace {
 QString colorSpaceString(const KisSurfaceColorSpaceWrapper &cs, int depth)
 {
     const QString csString =
-#ifdef HAVE_HDR
-        cs == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace ? "Rec. 2020 PQ" :
-        cs == KisSurfaceColorSpaceWrapper::scRGBColorSpace ? "Rec. 709 Linear" :
-#endif
         cs == KisSurfaceColorSpaceWrapper::sRGBColorSpace ? "sRGB" :
         cs == KisSurfaceColorSpaceWrapper::DefaultColorSpace ? "sRGB" :
         "Unknown Color Space";
@@ -2335,10 +2285,6 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
     lblCurrentRootSurfaceFormat->setText("");
     grpHDRWarning->setVisible(false);
     cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::sRGBColorSpace, 8));
-#ifdef HAVE_HDR
-    cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::bt2020PQColorSpace, 10));
-    cmbPreferedRootSurfaceFormat->addItem(colorSpaceString(KisSurfaceColorSpaceWrapper::scRGBColorSpace, 16));
-#endif
     cmbPreferedRootSurfaceFormat->setCurrentIndex(formatToIndex(KisConfig::BT709_G22));
     slotPreferredSurfaceFormatChanged(cmbPreferedRootSurfaceFormat->currentIndex());
 
@@ -2386,8 +2332,15 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
         slotPreferredSurfaceFormatChanged(cmbPreferedRootSurfaceFormat->currentIndex());
     }
 
-#ifndef HAVE_HDR
     HDR->setEnabled(false);
+
+    // Q4 stage 1 removed the fork's HDR API. Keep the page visible but
+    // disabled until stage 9 rebuilds it.
+    const int hdrTabIndex = tabWidget->indexOf(HDR);
+    KIS_SAFE_ASSERT_RECOVER_NOOP(hdrTabIndex >= 0);
+    if (hdrTabIndex >= 0) {
+        tabWidget->setTabText(hdrTabIndex, i18n("HDR Settings (not available in this version)"));
+    }
 
     /**
      * We hide the HDR page in Wayland mode, because the mode is managed
@@ -2395,13 +2348,10 @@ DisplaySettingsTab::DisplaySettingsTab(QWidget *parent, const char *name)
      * systems just to promote the existence of this feature.
      */
     if (KisPlatformPluginInterfaceFactory::instance()->surfaceColorManagedByOS()) {
-        const int hdrTabIndex = tabWidget->indexOf(HDR);
-        KIS_SAFE_ASSERT_RECOVER_NOOP(hdrTabIndex >= 0);
         if (hdrTabIndex >= 0) {
             tabWidget->setTabVisible(hdrTabIndex, false);
         }
     }
-#endif
 
     const QStringList openglWarnings = KisOpenGL::getOpenGLWarnings();
     if (openglWarnings.isEmpty()) {
@@ -3265,33 +3215,16 @@ bool KisDlgPreferences::editPreferences(std::optional<PageDesc>page)
         cfg.setUseRightMiddleTabletButtonWorkaround(
             m_tabletSettings->m_page->chkUseRightMiddleClickWorkaround->isChecked());
 
-#if defined Q_OS_WIN && (defined QT5_HAS_WINTAB_SWITCH || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)) 
+#if defined Q_OS_WIN
         cfg.setUseWin8PointerInput(m_tabletSettings->m_page->radioWin8PointerInput->isChecked());
-        
-#  if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+
         // Qt6 supports switching the tablet API on the fly
         using QWindowsApplication = QNativeInterface::Private::QWindowsApplication;
         if (auto nativeWindowsApp = dynamic_cast<QWindowsApplication *>(QGuiApplicationPrivate::platformIntegration())) {
             nativeWindowsApp->setWinTabEnabled(!cfg.useWin8PointerInput());
         }
-#  endif
 #endif
         cfg.writeEntry<bool>("useTimestampsForBrushSpeed", m_tabletSettings->m_page->chkUseTimestampsForBrushSpeed->isChecked());
-
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN
-        cfg.setUsePageUpDownMouseButtonEmulationWorkaround(
-            m_tabletSettings->m_page->chkUsePageUpDownMouseButtonEmulationWorkaround->isChecked());
-#endif
-
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS
-        cfg.setUseHighFunctionKeyMouseButtonEmulationWorkaround(
-            m_tabletSettings->m_page->chkUseHighFunctionKeyMouseButtonEmulationWorkaround->isChecked());
-#endif
-
-#if KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS
-        cfg.setUseIgnoreHistoricTabletEventsWorkaround(
-            m_tabletSettings->m_page->chkUseIgnoreHistoricTabletEventsWorkaround->isChecked());
-#endif
 
         cfg.writeEntry<int>("maxAllowedSpeedValue", m_tabletSettings->m_page->intMaxAllowedBrushSpeed->value());
         cfg.writeEntry<int>("speedValueSmoothing", m_tabletSettings->m_page->intBrushSpeedSmoothing->value());

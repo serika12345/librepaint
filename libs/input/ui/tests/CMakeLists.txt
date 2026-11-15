@@ -73,6 +73,38 @@ kis_add_test(
         kritainputuiextendedmodifiersmapperobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_test(
+    KisWindowsPointerFilterContractTest.cpp
+    TEST_NAME KisWindowsPointerFilterContractTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
+    KisWintabMappingTest.cpp
+    TEST_NAME KisWintabMappingTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
+    KisWintabPacketPeekerTest.cpp
+    TEST_NAME KisWintabPacketPeekerTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
+    KisWintabTrustTest.cpp
+    TEST_NAME KisWintabTrustTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
 target_compile_definitions(KisExtendedModifiersMapperContractTest
     PRIVATE kritainputui_EXPORTS
 )

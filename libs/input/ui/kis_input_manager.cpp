@@ -7,17 +7,22 @@
  */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include "kis_input_manager.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
 #include "kis_assert.h"
 
+#include "wintab/KisWintabPacketPeeker.h"
+
 #include <KisMpl.h>
 #include <QApplication>
+#include <QCursor>
 #include <QQueue>
 #include <QTouchEvent>
 #include <QWidget>
 #include <algorithm>
+#include <memory>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
@@ -57,7 +62,10 @@
 #include "kis_extended_modifiers_mapper.h"
 #include "kis_input_manager_p.h"
 #include "kis_algebra_2d.h"
-#include "config-qt-patches-present.h"
+
+#ifdef Q_OS_WIN
+#include "KisWindowsPointerEventFilter.h"
+#endif
 
 
 template <typename T>
@@ -205,6 +213,23 @@ void KisInputManager::setupAsEventFilter(QObject *receiver)
     if (d->eventsReceiver) {
         d->eventsReceiver->installEventFilter(this);
     }
+
+#ifdef Q_OS_WIN
+    if (KisWindowsPointerEventFilter *windowsPointerFilter =
+            KisWindowsPointerEventFilter::instance()) {
+        windowsPointerFilter->setCanvas(this, qobject_cast<QWidget *>(receiver));
+    }
+#endif
+}
+
+bool KisInputManager::notifyNonClientPointer(bool insideCanvas)
+{
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(insideCanvas);
+    return false;
+#else
+    return d->handleNonClientPointer(insideCanvas);
+#endif
 }
 
 #if defined (__clang__)
@@ -216,6 +241,25 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
     if (object != d->eventsReceiver) return false;
 
     if (d->filterSuppressedEvent(event)) return false;
+
+    // Q4 stage 4 (fork commit 051139ed72): official Qt scales the Wintab
+    // packet to the virtual desktop. The peeker holds the position the
+    // driver's tablet range produces, keyed by the packet time that Qt keeps
+    // on the event. Only the position changes; pressure, tilt, buttons and
+    // the device stay as Qt delivered them.
+    std::unique_ptr<QTabletEvent> correctedTabletEvent;
+    if (event->type() == QEvent::TabletPress ||
+        event->type() == QEvent::TabletMove ||
+        event->type() == QEvent::TabletRelease) {
+
+        if (KisWintabPacketPeeker *peeker = KisWintabPacketPeeker::instance()) {
+            correctedTabletEvent = peeker->correctedTabletEvent(
+                *static_cast<QTabletEvent *>(event), QCursor::pos());
+            if (correctedTabletEvent) {
+                event = correctedTabletEvent.get();
+            }
+        }
+    }
 
     if (!d->matcher.hasRunningShortcut()) {
 
@@ -279,8 +323,18 @@ bool KisInputManager::compressMoveEventCommon(Event *event)
     if ((event->type() == QEvent::MouseMove ||
          event->type() == QEvent::TabletMove ||
          event->type() == QEvent::TouchUpdate) &&
-            (!d->matcher.supportsHiResInputEvents() ||
-             d->testingCompressBrushEvents)) {
+            (d->matcher.compressesMoveEvents() ||
+             d->testingCompressBrushEvents) &&
+            // H5 (hover event decimation): hover moves are dispatched
+            // immediately by the condition above. The compression stays for
+            // a running action that does not consume hi-res input, because
+            // Krita added it for BUG:327581 (the warp transform on Windows
+            // blocked when every tablet move was processed). Freehand paint
+            // already bypassed it through supportsHiResInputEvents, so the
+            // ink path is unchanged. LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION
+            // is for the L1 measurements only; KisL1Switches.h owns the
+            // removal condition.
+            !KisL1Switches::disableMoveCompression()) {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         KoPointerEvent::copyQtPointerEvent(event, d->compressedMoveEvent);
 #else
@@ -330,6 +384,39 @@ bool shouldResetWheelDelta(QEvent * event)
 bool KisInputManager::eventFilterImpl(QEvent * event)
 {
     bool retval = false;
+
+    // Record the focus and press events that decide whether a pen press can
+    // start a stroke. In 2 of 8 official Qt Windows runs (2026-11-11) the
+    // canvas stopped repainting after the first press, and the probe log could
+    // not tell a lost focus from a press that never reached the tool.
+    // x = event code, y = the active tool mode, extra bit 1 = the pointer is
+    // inside the canvas, bit 2 = mouse events are blocked, bit 4 = the
+    // shortcut matcher has seen the pointer enter, bit 8 = all actions are
+    // suppressed, bit 16 = a popup widget is registered, bit 32 = the press
+    // reached the matcher (recorded again just before the call).
+    {
+        int code = 0;
+        switch (event->type()) {
+        case QEvent::FocusIn: code = 1; break;
+        case QEvent::FocusOut: code = 2; break;
+        case QEvent::TabletPress: code = 3; break;
+        case QEvent::TabletRelease: code = 4; break;
+        case QEvent::MouseButtonPress: code = 5; break;
+        case QEvent::MouseButtonRelease: code = 6; break;
+        case QEvent::Enter: code = 7; break;
+        case QEvent::Leave: code = 8; break;
+        default: break;
+        }
+        if (code) {
+            KisLatencyProbe::mark("qt_event", code,
+                d->toolProxy ? d->toolProxy->activeToolMode() : -1,
+                (d->containsPointer ? 1 : 0) |
+                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0) |
+                    (d->matcher.cursorEntered() ? 4 : 0) |
+                    (d->matcher.suppressAllActions() ? 8 : 0) |
+                    (d->popupWidget ? 16 : 0));
+        }
+    }
 
     // Try closing any open popup widget and
     // consume input if possible.
@@ -607,16 +694,16 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         break;
     case QEvent::Leave:
         d->debugEvent<QEvent, false>(event);
-        d->containsPointer = false;
-        /**
-         * We won't get a TabletProximityLeave event when the tablet
-         * is hovering above some other widget, so restore cursor
-         * events processing right now.
-         */
-        d->allowMouseEvents();
-        d->touchHasBlockedPressEvents = false;
 
-        d->matcher.leaveEvent();
+        // Qt on Windows sends an unbalanced Leave when the stylus enters
+        // (df3a678309), after the last finger of a touch sequence leaves
+        // (c132390390), and when an accepted tablet event does not synthesize
+        // mouse events (41adadd8db). Keep the canvas entered while the stylus
+        // is pressed, a finger is down, or the cursor is still over the
+        // canvas; confirm a real leave otherwise.
+        if (!d->shouldIgnoreCanvasLeave()) {
+            d->confirmCanvasLeave();
+        }
         break;
 #endif
     case QEvent::FocusIn:
@@ -644,6 +731,9 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QTabletEvent, false>(event);
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
 
+        d->setTabletInProximity(true);
+        d->tabletPressed = true;
+
         {
             //Make sure the input actions know we are active.
             KisAbstractInputAction::setInputManager(this);
@@ -664,23 +754,32 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
                 KoInputDevice::convertPointerType(tabletEvent),
                 uniqueId);
             KoToolManager::instance()->switchInputDeviceRequested(inputDevice);
-
-            // A tablet press delivered to this event filter proves that the
-            // pointer is inside the canvas. Qt iOS does not synthesize Enter
-            // for a non-hovering Pencil, while the shortcut matcher requires
-            // it before enabling the Tool Invocation action.
-            if (!d->containsPointer) {
-                d->containsPointer = true;
-                d->touchHasBlockedPressEvents = false;
-                d->matcher.enterEvent();
-            }
 #endif
 
+#ifndef Q_OS_ANDROID
+            // A tablet press delivered to this event filter proves that the
+            // pointer is inside the canvas. Qt sometimes drops the Enter event
+            // (2026-11-11: 2 of 8 official Qt Windows runs stopped repainting
+            // after the first press because the matcher never saw the pointer
+            // enter), while the shortcut matcher requires it before enabling
+            // the Tool Invocation action. Recover before the press; a run
+            // where Enter arrived already has containsPointer set and takes
+            // the same path as before. L1 experiment for the Q4 (official Qt)
+            // preset; remove it once a measurement session of 10 runs shows no
+            // stalled first press.
+            d->synthesizeCanvasEnter();
+#endif
+
+            KisLatencyProbe::mark("qt_event", 3,
+                d->toolProxy ? d->toolProxy->activeToolMode() : -1,
+                (d->containsPointer ? 1 : 0) |
+                    (d->eventSuppressor.isBlockingMouseEvents() ? 2 : 0) |
+                    (d->matcher.cursorEntered() ? 4 : 0) |
+                    (d->matcher.suppressAllActions() ? 8 : 0) |
+                    (d->popupWidget ? 16 : 0) |
+                    32);
+
             retval = d->matcher.buttonPressed(tabletEvent->button(), tabletEvent);
-            if (!d->containsPointer) {
-                d->containsPointer = true;
-                d->touchHasBlockedPressEvents = false;
-            }
         }
 
         event->setAccepted(true);
@@ -691,7 +790,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->resetCompressor();
 
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);
@@ -708,6 +807,12 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
     }
     case QEvent::TabletMove: {
         d->debugEvent<QTabletEvent, false>(event);
+
+        d->setTabletInProximity(true);
+        // A tablet move proves that the pointer is inside the canvas even when
+        // Qt dropped the Enter event. Synthesize the Enter for the hover the
+        // same way as for the press (41adadd8db with public Qt events).
+        d->synthesizeCanvasEnter();
 
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
         KisLatencyProbe::mark("qt_tablet_move", tabletEvent->position().x(), tabletEvent->position().y(), int(tabletEvent->buttons()));
@@ -726,7 +831,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
          */
         d->blockMouseEvents();
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);
@@ -738,6 +843,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
         d->allowMouseEvents();
 #endif
+        d->tabletPressed = false;
         d->stopBlockingTouch();
         d->debugEvent<QTabletEvent, false>(event);
 
@@ -746,7 +852,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         retval = true;
         event->setAccepted(true);
 
-#if defined Q_OS_LINUX && !KRITA_QT_HAS_ENTER_LEAVE_PATCH
+#if defined Q_OS_LINUX
         // remove this hack when this patch is integrated:
         // https://codereview.qt-project.org/#/c/255384/
         event->setAccepted(false);
@@ -758,6 +864,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
     case QEvent::TouchBegin:
     {
         d->debugEvent<QTouchEvent, false>(event);
+        d->touchActive = true;
         // The popup was dismissed in previous TouchBegin->TouchEnd sequence. We now have a new TouchBegin.
         d->popupWasActive = false;
         if (startTouch(retval)) {
@@ -876,6 +983,13 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->allowMouseEvents();
         d->touchStrokeBlocked = false;
 
+        // The last finger is up. When it left the canvas, confirm the Leave
+        // here; when it is still over the canvas, the Leave that Qt sends
+        // after the touch sequence is ignored by shouldIgnoreCanvasLeave().
+        if (!d->tabletInProximity && !d->pointerInsideCanvas()) {
+            d->confirmCanvasLeave();
+        }
+
         // if the event isn't handled, Qt starts to send MouseEvents
         if (!KisInputConfig(true).disableTouchOnCanvas())
             retval = true;
@@ -911,6 +1025,9 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QTouchEvent, false>(event);
         endTouch();
         d->allowMouseEvents();
+        if (!d->tabletInProximity && !d->pointerInsideCanvas()) {
+            d->confirmCanvasLeave();
+        }
         QTouchEvent *touchEvent = static_cast<QTouchEvent*>(event);
         if (ignoreCancel) {
             d->matcher.touchEndEvent(touchEvent);
@@ -980,6 +1097,7 @@ bool KisInputManager::startTouch(bool &retval)
 
 void KisInputManager::endTouch()
 {
+    d->touchActive = false;
     d->touchHasBlockedPressEvents = false;
 }
 

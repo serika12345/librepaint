@@ -49,12 +49,6 @@
 #endif
 #include <QtTest/qtest_widgets.h>
 
-#ifdef QT_KEYPAD_NAVIGATION
-#  define QTEST_DISABLE_KEYPAD_NAVIGATION QApplication::setNavigationMode(Qt::NavigationModeNone);
-#else
-#  define QTEST_DISABLE_KEYPAD_NAVIGATION
-#endif
-
 
 #if defined(TESTRESOURCES) || defined(TESTPIGMENT) || defined (TESTFLAKE) || defined(TESTBRUSH) || defined(TESTIMAGE) || defined(TESTUI)
 #include <QImageReader>

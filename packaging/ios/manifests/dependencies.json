@@ -7,8 +7,8 @@
     "architecture": "arm64"
   },
   "toolchain": {
-    "qt": "6.11.3",
-    "kde_frameworks": "6.28.0",
+    "qt": "6.12.0",
+    "kde_frameworks": "6.31.0",
     "xcode": "26.6",
     "iphoneos_sdk": "26.5",
     "nix_minimum": "2.31"

@@ -7,6 +7,8 @@
 #include "KisOpenGLSync.h"
 #include "opengl/kis_opengl.h"
 
+#include <KisLatencyProbe.h>
+
 #include <kis_debug.h>
 #include <qopenglcontext.h>
 
@@ -28,6 +30,12 @@ namespace Sync {
 #endif
 #ifndef GL_SYNC_STATUS
     #define GL_SYNC_STATUS 0x9114
+#endif
+#ifndef GL_ALREADY_SIGNALED
+    #define GL_ALREADY_SIGNALED 0x911A
+#endif
+#ifndef GL_CONDITION_SATISFIED
+    #define GL_CONDITION_SATISFIED 0x911B
 #endif
 
     //Function pointers for glFenceSync and glGetSynciv
@@ -97,21 +105,36 @@ namespace Sync {
             k_glDeleteSync(syncObject);
         }
     }
+
+    bool waitForCompletion(GLsync syncObject, qint64 timeoutNanoseconds) {
+        if (!syncObject || !k_glClientWaitSync) {
+            return true;
+        }
+        const GLenum status = k_glClientWaitSync(syncObject, 0, static_cast<GLuint64>(timeoutNanoseconds));
+        return status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED;
+    }
 }
 
 KisOpenGLSync::KisOpenGLSync()
 {
+    KisLatencyProbe::mark("gpu_sync_create");
     m_syncObject = Sync::getSync();
 }
 
 KisOpenGLSync::~KisOpenGLSync()
 {
+    KisLatencyProbe::mark("gpu_sync_destroy");
     Sync::deleteSync(m_syncObject);
 }
 
 bool KisOpenGLSync::isSignaled()
 {
     return Sync::syncStatus(m_syncObject) == Sync::Signaled;
+}
+
+bool KisOpenGLSync::waitForCompletion(qint64 timeoutNanoseconds)
+{
+    return Sync::waitForCompletion(m_syncObject, timeoutNanoseconds);
 }
 
 void KisOpenGLSync::init(QOpenGLContext *ctx)

@@ -16,6 +16,7 @@
     }
   },
   "runs": 5,
+  "rest_seconds": 90,
   "spread_limit": 0.05,
   "metrics": {
     "hover.input_to_capture": {"regression_ms": 2.0},

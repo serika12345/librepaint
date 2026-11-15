@@ -26,8 +26,10 @@ if [[ "$(uname -s):$(uname -m)" != "Linux:x86_64" ]]; then
 fi
 
 if [[ "${LIBREPAINT_WINDOWS_INCREMENTAL_SHELL:-}" != "1" ]]; then
+    platform="${LIBREPAINT_WINDOWS_PLATFORM:-windows}"
+    flake_shell="${LIBREPAINT_WINDOWS_FLAKE_SHELL:-librepaint-windows}"
     exec "$repo_root/scripts/platform/enter-incremental-environment" \
-        windows librepaint-windows LIBREPAINT_WINDOWS_INCREMENTAL_SHELL \
+        "$platform" "$flake_shell" LIBREPAINT_WINDOWS_INCREMENTAL_SHELL \
         "$script_path" "$@"
 fi
 

@@ -5,9 +5,16 @@
 
 let
   inherit (pkgs) lib;
-  pythonPackages = pkgs.python3Packages;
+  pyqtPython = import ../pyqt6.nix {
+    inherit lib;
+    python = pkgs.python3;
+  };
+  pythonPackages = pyqtPython.pkgs;
 
-  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
+  # PyQt6 6.12.0 matches Qt 6.12.0 and is built by nix/pyqt6.nix with only the
+  # bindings the Python plugins import; nixpkgs still has 6.11.0. Remove
+  # nix/pyqt6.nix when nixpkgs packages 6.12.0.
+  runtimePyQt = pythonPackages.pyqt6;
 
   # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
   # LibrePaint CMake files find. It is shared with linux-dependencies so that
@@ -155,10 +162,12 @@ in
       pkgs.wrapGAppsHook3
     ];
 
+    # Use the FFmpeg that nixpkgs' MLT is pinned to, so the closure carries one
+    # FFmpeg.
     paths = [
       librepaintUnwrapped
       librepaintGmic
-      (lib.getBin pkgs.ffmpeg)
+      (lib.getBin pkgs.ffmpeg_8)
     ];
 
     # This is intentionally the same runtime wrapper as nixpkgs' Krita
@@ -183,7 +192,7 @@ in
           gappsWrapperArgsHook
           wrapQtApp "$out/bin/LibrePaint" \
             "''${gappsWrapperArgs[@]}" \
-            --prefix PATH : "${lib.makeBinPath [ pkgs.ffmpeg ]}" \
+            --prefix PATH : "${lib.makeBinPath [ pkgs.ffmpeg_8 ]}" \
             --prefix PYTHONPATH : "${runtimePythonPath}" \
             --set FONTCONFIG_FILE "${pkgs.fontconfig.out}/etc/fonts/fonts.conf" \
             --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"

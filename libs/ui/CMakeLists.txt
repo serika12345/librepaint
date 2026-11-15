@@ -1605,6 +1605,31 @@ set_target_properties(kritauiopenglrendererconfigobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiopenglstartupcheckobjects OBJECT
+    opengl/KisOpenGLStartupCheck.cpp
+)
+target_compile_definitions(kritauiopenglstartupcheckobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiopenglstartupcheckobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauiopenglstartupcheckobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::OpenGL
+)
+set_target_properties(kritauiopenglstartupcheckobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauiscreeninformationobjects OBJECT
     opengl/KisScreenInformationAdapter.cpp
 )
@@ -1783,10 +1808,13 @@ if(WIN32)
     )
 endif()
 
-add_subdirectory( tests )
+if(BUILD_TESTING)
+    add_subdirectory( tests )
+endif()
 
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
+    $<TARGET_OBJECTS:kritauiopenglstartupcheckobjects>
     $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
     $<TARGET_OBJECTS:kritauiabstractframecacheswapperobjects>
     $<TARGET_OBJECTS:kritauiinmemoryframecacheswapperobjects>
@@ -2191,12 +2219,6 @@ if(WIN32)
         ${kritaui_LIB_SRCS}
         dialogs/KisDlgCustomTabletResolution.cpp
         )
-elseif(ANDROID)
-    if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
-        list(APPEND kritaui_LIB_SRCS
-            canvas/KisAndroidScaling.cpp
-        )
-    endif()
 endif()
 
     set(kritaui_LIB_SRCS
@@ -2405,7 +2427,8 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
 endif()
 
 if(WIN32)
-    target_link_libraries(kritaapplicationui PRIVATE dxgi)
+    # d3d11 supplies ID3D11Device1 for the L1 H1 (frames queued ahead) switch.
+    target_link_libraries(kritaapplicationui PRIVATE dxgi d3d11)
 
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution
@@ -2417,18 +2440,6 @@ if(WIN32)
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
-elseif(ANDROID)
-    # Private headers are required to access QPlatformScreen::densityAdjustment
-    # and QPlatformScreen::setDensityAdjustment. These are patched into our Qt
-    # to allow us to dynamically change the UI scale on Android.
-    if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
-        set_source_files_properties(
-            canvas/KisAndroidScaling.cpp
-            TARGET_DIRECTORY kritaapplicationui
-            PROPERTIES
-            INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
-        )
-    endif()
 endif()
 
 if (HAVE_X11)

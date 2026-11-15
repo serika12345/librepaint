@@ -38,6 +38,19 @@ pkgs.stdenv.mkDerivation {
     pkgs.python3
   ];
 
+  # Qt 6.12 builds a JAR with Gradle when its directory holds build.gradle,
+  # settings.gradle and gradle/libs.versions.toml, and Gradle then needs
+  # network access to resolve its plugins.  Without the version catalog Qt
+  # falls back to javac, as Qt 6.11 did.  Remove this when the Android build
+  # supplies an offline Gradle cache for Qt.
+  postPatch = ''
+    find . -path '*/android/jar/gradle/libs.versions.toml' -delete
+    # CMake's add_jar passes its own -classpath after Qt's compile flags,
+    # which drops android.jar from the fallback; add it to INCLUDE_JARS.
+    substituteInPlace cmake/QtJavaHelpers.cmake \
+      --replace-fail 'INCLUDE_JARS ''${arg_INCLUDE_JARS}' 'INCLUDE_JARS ''${arg_INCLUDE_JARS} ''${QT_ANDROID_JAR}'
+  '';
+
   configurePhase = ''
     runHook preConfigure
 

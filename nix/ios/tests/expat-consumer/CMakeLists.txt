@@ -4,7 +4,7 @@ project(KritaIOSExpatConsumer LANGUAGES C)
 
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 find_package(
-    expat 2.8.2 EXACT CONFIG REQUIRED
+    expat ${KRITA_IOS_EXPAT_VERSION} EXACT CONFIG REQUIRED
     COMPONENTS char context_bytes dtd ns
 )
 

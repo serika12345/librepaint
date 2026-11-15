@@ -251,8 +251,6 @@ public Q_SLOTS:
      */
     void slotFileSave();
 
-    void slotChangeInterfaceScale();
-
 
     void slotShowSessionManager();
 
@@ -480,6 +478,8 @@ private:
     QByteArray borrowWorkspace(KisMainWindow *borrower);
 
     void customizeTabBar();
+
+    void updateWindowTitleForActiveView();
 
     void setMainWindowLayoutForCurrentMainWidget(int widgetIndex, bool widgetIndexChanged);
     void adjustLayoutForWelcomePage();

@@ -41,6 +41,9 @@ public:
     bool primaryActionSupportsHiResEvents() const;
     bool alternateActionSupportsHiResEvents(KisTool::AlternateAction action) const;
 
+    /// Mode of the active tool (KisTool::ToolMode), or -1 without a tool.
+    int activeToolMode() const;
+
     void setActiveTool(KoToolBase *tool) override;
 
     void activateToolAction(KisTool::ToolAction action);

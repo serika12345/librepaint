@@ -95,8 +95,8 @@ assert lib.assertMsg (
 ) "Qt5Compat source archive name does not match its pinned version";
 assert lib.assertMsg (
   packageSpec.source.archive_sha256
-  == "2e998067417de46355b6750c3709aaa6032fb27e4b16edb5f73fba79fe436516"
-) "Qt5Compat source archive hash differs from the audited Qt 6.11.3 archive";
+  == "78cf1c283795312a7fa31c73eb7f7f556b48374adc484f10ad5a3c0bcb59264e"
+) "Qt5Compat source archive hash differs from the audited Qt 6.12.0 archive";
 assert lib.assertMsg (
   packageSpec.dependencies.target_packages == [ ]
   && packageSpec.dependencies.qt_modules == [ "qtbase" ]

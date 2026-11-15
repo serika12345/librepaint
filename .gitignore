@@ -31,6 +31,7 @@ BROWSE
 *.kate-swp
 build_dir
 .cache
+logs
 .direnv/
 
 cmake-build-debug/
@@ -48,7 +49,7 @@ _build
 _install
 _staging
 _packaging
-build-ios/
+build-ios
 logs/ios/
 /result
 /result-*

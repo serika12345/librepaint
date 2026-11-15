@@ -221,6 +221,19 @@ let
       runHook preInstall
       mkdir -p "$out/include" "$out/lib/cmake/Boost-${boostSpec.version}"
       cp -a boost "$out/include/boost"
+    '' + lib.optionalString (androidAbi == "x86_64") ''
+      # Android x86_64 long double is IEEE binary128, but Boost.Math's x86 fp_traits
+      # branch assumes the 80-bit format. Remove when upstream selects by
+      # LDBL_MANT_DIG before the architecture.
+      substituteInPlace "$out/include/boost/math/special_functions/detail/fp_traits.hpp" \
+        --replace-fail \
+        '#elif defined(__i386) || defined(__i386__) || defined(_M_IX86) \' \
+        '#elif (LDBL_MANT_DIG == 64) && (defined(__i386) || defined(__i386__) || defined(_M_IX86) \' \
+        --replace-fail \
+        '    || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)' \
+        '    || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64))'
+      test "$(grep -c '(LDBL_MANT_DIG == 64) && (defined(__i386)' "$out/include/boost/math/special_functions/detail/fp_traits.hpp")" = 1
+    '' + ''
       cat > "$out/lib/cmake/Boost-${boostSpec.version}/BoostConfig.cmake" <<'EOF'
       get_filename_component(_BOOST_PREFIX "''${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
       set(Boost_FOUND TRUE)

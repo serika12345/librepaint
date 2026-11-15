@@ -129,6 +129,13 @@ kis_add_tests(
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
 
+# testMutatedJobs runs a real two-thread updater context and expects the
+# mutated jobs in the next processQueue() call. On a loaded machine the first
+# job finishes and mutates while processQueue() still fills the second slot,
+# so the mutated jobs run one call early (5 of 24 runs with eight copies at
+# once). Run it alone until the test holds the workers during processQueue().
+set_tests_properties(libs-image-kis_strokes_queue_test PROPERTIES RUN_SERIAL TRUE)
+
 kis_add_test(
     KisTimeSpanContractTest.cpp
     LINK_LIBRARIES

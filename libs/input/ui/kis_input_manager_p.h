@@ -153,6 +153,16 @@ public:
 
     bool containsPointer = false;
 
+    bool tabletInProximity = false;
+    bool tabletPressed = false;
+    bool touchActive = false;
+    bool pointerInsideCanvas() const;
+    bool shouldIgnoreCanvasLeave() const;
+    bool handleNonClientPointer(bool insideCanvas);
+    void confirmCanvasLeave();
+    void synthesizeCanvasEnter();
+    void setTabletInProximity(bool value);
+
     int accumulatedScrollDelta = 0;
 
     class TabletLatencyTracker : public KisLatencyTracker {

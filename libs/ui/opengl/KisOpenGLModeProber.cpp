@@ -11,7 +11,6 @@
 
 #include <boost/none.hpp>
 #include <boost/optional/optional.hpp>
-#include <config-hdr.h>
 #include <QApplication>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -28,11 +27,6 @@
 #include <qstringview.h>
 #include <qsurfaceformat.h>
 #include <utility>
-
-#ifdef HAVE_HDR
-// for fetching the legacy 80-nits PQ space
-#include <KoColorProfileQuery.h>
-#endif
 
 #ifdef HAVE_X11
 #include <qpa/qplatformnativeinterface.h>
@@ -81,16 +75,6 @@ const KoColorProfile *KisOpenGLModeProber::rootSurfaceColorProfile() const
 
     if (surfaceColorSpace == KisSurfaceColorSpaceWrapper::sRGBColorSpace) {
         // use the default one!
-#ifdef HAVE_HDR
-    } else if (surfaceColorSpace == KisSurfaceColorSpaceWrapper::scRGBColorSpace) {
-        profile = KoColorSpaceRegistry::instance()->p709G10Profile();
-    } else if (surfaceColorSpace == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace) {
-        // On Windows we use the legacy PQ profile, explicitly pinned to
-        // 80 nits. It is baked in the Qt's source code
-        KoColorProfileQuery query(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0, TRC_ITU_R_BT_2100_0_PQ);
-        query.hdrReferenceWhite = 80.0;
-        profile = KoColorSpaceRegistry::instance()->profileFor(query);
-#endif
     }
 
     return profile;
@@ -273,34 +257,6 @@ bool KisOpenGLModeProber::fuzzyCompareColorSpaces(const KisSurfaceColorSpaceWrap
 void KisOpenGLModeProber::initSurfaceFormatFromConfig(std::pair<KisSurfaceColorSpaceWrapper, int> rootSurfaceFormat,
                                                       QSurfaceFormat *format)
 {
-#ifdef HAVE_HDR
-    /**
-     * In Windows' HDR we have three fixed modes only.
-     */
-    if (rootSurfaceFormat.first == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace) {
-        KIS_SAFE_ASSERT_RECOVER_NOOP(rootSurfaceFormat.second == 10);
-        format->setRedBufferSize(10);
-        format->setGreenBufferSize(10);
-        format->setBlueBufferSize(10);
-        format->setAlphaBufferSize(2);
-        format->setColorSpace(KisSurfaceColorSpaceWrapper(KisSurfaceColorSpaceWrapper::bt2020PQColorSpace));
-    } else if (rootSurfaceFormat.first == KisSurfaceColorSpaceWrapper::scRGBColorSpace) {
-        KIS_SAFE_ASSERT_RECOVER_NOOP(rootSurfaceFormat.second == 16);
-        format->setRedBufferSize(16);
-        format->setGreenBufferSize(16);
-        format->setBlueBufferSize(16);
-        format->setAlphaBufferSize(16);
-        format->setColorSpace(KisSurfaceColorSpaceWrapper(KisSurfaceColorSpaceWrapper::scRGBColorSpace));
-    } else {
-        KIS_SAFE_ASSERT_RECOVER_NOOP(rootSurfaceFormat.second == 8);
-        format->setRedBufferSize(8);
-        format->setGreenBufferSize(8);
-        format->setBlueBufferSize(8);
-        format->setAlphaBufferSize(8);
-        // TODO: check if we can use real sRGB space here
-        format->setColorSpace(KisSurfaceColorSpaceWrapper());
-    }
-#else
     /**
      * In Wayland's HDR we don't set the mode on the root surface, we should only select
      * bit-width.
@@ -331,32 +287,12 @@ void KisOpenGLModeProber::initSurfaceFormatFromConfig(std::pair<KisSurfaceColorS
             format->setColorSpace(KisSurfaceColorSpaceWrapper());
         }
     }
-#endif
 }
 
 bool KisOpenGLModeProber::isFormatHDR(const QSurfaceFormat &format)
 {
-#ifdef HAVE_HDR
-
-    bool isBt2020PQ =
-        format.colorSpace() == KisSurfaceColorSpaceWrapper::makeBt2020PQColorSpace() &&
-        format.redBufferSize() == 10 &&
-        format.greenBufferSize() == 10 &&
-        format.blueBufferSize() == 10 &&
-        format.alphaBufferSize() == 2;
-
-    bool isBt709G10 =
-        format.colorSpace() == KisSurfaceColorSpaceWrapper::makeSCRGBColorSpace() &&
-        format.redBufferSize() == 16 &&
-        format.greenBufferSize() == 16 &&
-        format.blueBufferSize() == 16 &&
-        format.alphaBufferSize() == 16;
-
-    return isBt2020PQ || isBt709G10;
-#else
     Q_UNUSED(format);
     return false;
-#endif
 }
 
 QString KisOpenGLModeProber::angleRendererToString(KisOpenGL::AngleRenderer renderer)

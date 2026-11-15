@@ -61,6 +61,7 @@ SYSTEM_DLLS = frozenset(
         "mfuuid.dll",
         "mmdevapi.dll",
         "mpr.dll",
+        "mscms.dll",
         "msimg32.dll",
         "msi.dll",
         "msvcrt.dll",

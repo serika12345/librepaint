@@ -50,6 +50,7 @@
 #include <qvariant.h>
 
 // local
+#include "KisClipboardImage.h"
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
@@ -187,7 +188,11 @@ void KisClipboard::setClip(KisPaintDeviceSP dev, const QPoint &topLeft, const Ki
                                   displayConfig.intent,
                                   displayConfig.conversionFlags);
     if (!qimage.isNull() && mimeData) {
-        mimeData->setImageData(qimage);
+#ifdef Q_OS_WIN
+        KisClipboardImage::setImage(mimeData, qimage, true);
+#else
+        KisClipboardImage::setImage(mimeData, qimage, false);
+#endif
     }
 
     if (mimeData) {

@@ -3,20 +3,20 @@
   source,
   frameworks,
   kseexpr,
+  pythonPackages,
   pythonRuntime,
 }:
 
 let
   inherit (pkgs) lib;
   qt = pkgs.qt6Packages;
-  pythonPackages = pkgs.python3Packages;
   runtimePyQt = pythonRuntime.runtimePyQt;
-  ffmpeg = pkgs.ffmpeg;
-  mltOpenCV = pkgs.opencv4.override { ffmpeg-headless = ffmpeg; };
-  frei0r = pkgs.frei0r.override { opencv = mltOpenCV; };
-  mlt = qt.mlt.override {
-    inherit ffmpeg frei0r;
-  };
+  # Stock packages come from the binary cache. nixpkgs pins MLT to ffmpeg_8,
+  # which the bundle also ships as the ffmpeg executables, so the bundle
+  # carries one FFmpeg.
+  ffmpeg = pkgs.ffmpeg_8;
+  frei0r = pkgs.frei0r;
+  mlt = qt.mlt;
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.gettext
@@ -84,115 +84,145 @@ let
     pythonPackages.setuptools
     pythonPackages.sip
   ];
-in
-pkgs.stdenv.mkDerivation {
-  pname = "librepaint-macos";
-  version = "1.0.3";
 
-  src = source;
-  strictDeps = true;
+  librepaintUnwrapped = pkgs.stdenv.mkDerivation {
+    pname = "librepaint-macos-unwrapped";
+    version = "1.0.3";
 
-  inherit nativeBuildInputs buildInputs;
+    src = source;
+    strictDeps = true;
+    # The bundle derivation wraps the launcher and adds the runtime links, so an
+    # edit to the bundle does not recompile the application.
+    dontWrapQtApps = true;
 
-  postPatch = ''
-    substituteInPlace cmake/modules/FindSIP.cmake \
-      --replace-fail 'PYTHONPATH=''${_pyqt5_python_path}' 'PYTHONPATH=${pythonPath}'
-    substituteInPlace cmake/modules/SIPMacros.cmake \
-      --replace-fail 'PYTHONPATH=''${_krita_python_path}' 'PYTHONPATH=${pythonPath}'
+    inherit nativeBuildInputs buildInputs;
 
-    substituteInPlace plugins/impex/jp2/jp2_converter.cc \
-      --replace-fail '<openjpeg.h>' '<${pkgs.openjpeg.incDir}/openjpeg.h>'
-  '';
+    postPatch = ''
+      substituteInPlace cmake/modules/FindSIP.cmake \
+        --replace-fail 'PYTHONPATH=''${_pyqt5_python_path}' 'PYTHONPATH=${pythonPath}'
+      substituteInPlace cmake/modules/SIPMacros.cmake \
+        --replace-fail 'PYTHONPATH=''${_krita_python_path}' 'PYTHONPATH=${pythonPath}'
 
-  cmakeBuildType = "Release";
-  cmakeFlags = [
-    "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
-    "-DBUILD_TESTING=OFF"
-    "-DBUILD_WITH_QT6=ON"
-    "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6WaylandClient=TRUE"
-    "-DCMAKE_OSX_DEPLOYMENT_TARGET=${deploymentTarget}"
-    "-DCMAKE_REQUIRE_FIND_PACKAGE_Mlt7=TRUE"
-    "-DCMAKE_REQUIRE_FIND_PACKAGE_PyQt6=TRUE"
-    "-DCMAKE_REQUIRE_FIND_PACKAGE_PythonLibrary=TRUE"
-    "-DCMAKE_REQUIRE_FIND_PACKAGE_SIP=TRUE"
-    "-DKRITA_MACOS_USE_XCODE_TOOLS=OFF"
-    "-DMACOS_MINIMUM_VERSION=${deploymentTarget}"
-  ];
+      substituteInPlace plugins/impex/jp2/jp2_converter.cc \
+        --replace-fail '<openjpeg.h>' '<${pkgs.openjpeg.incDir}/openjpeg.h>'
+    '';
 
-  qtWrapperArgs = [
-    "--set FONTCONFIG_FILE ${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
-  ];
+    cmakeBuildType = "Release";
+    cmakeFlags = [
+      "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
+      "-DBUILD_TESTING=OFF"
+      "-DBUILD_WITH_QT6=ON"
+      "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6WaylandClient=TRUE"
+      "-DCMAKE_OSX_DEPLOYMENT_TARGET=${deploymentTarget}"
+      "-DCMAKE_REQUIRE_FIND_PACKAGE_Mlt7=TRUE"
+      "-DCMAKE_REQUIRE_FIND_PACKAGE_PyQt6=TRUE"
+      "-DCMAKE_REQUIRE_FIND_PACKAGE_PythonLibrary=TRUE"
+      "-DCMAKE_REQUIRE_FIND_PACKAGE_SIP=TRUE"
+      "-DKRITA_MACOS_USE_XCODE_TOOLS=OFF"
+      "-DMACOS_MINIMUM_VERSION=${deploymentTarget}"
+    ];
 
-  preConfigure = ''
-    if "$CC" --version | grep -q Apple; then
-      echo "The macOS recipe requires the nixpkgs LLVM toolchain." >&2
-      exit 1
-    fi
+    preConfigure = ''
+      if "$CC" --version | grep -q Apple; then
+        echo "The macOS recipe requires the nixpkgs LLVM toolchain." >&2
+        exit 1
+      fi
 
-    buildPrefix=/build/librepaint
-    export NIX_CFLAGS_COMPILE="''${NIX_CFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=$buildPrefix -fmacro-prefix-map=$NIX_BUILD_TOP=$buildPrefix -fdebug-prefix-map=$NIX_BUILD_TOP=$buildPrefix"
-  '';
+      buildPrefix=/build/librepaint
+      export NIX_CFLAGS_COMPILE="''${NIX_CFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=$buildPrefix -fmacro-prefix-map=$NIX_BUILD_TOP=$buildPrefix -fdebug-prefix-map=$NIX_BUILD_TOP=$buildPrefix"
+    '';
 
-  postConfigure = ''
-    grep -Fx "#define KRITA_BUILD_DIR \"$PWD\"" KoConfig.h
-    substituteInPlace KoConfig.h \
-      --replace-fail "#define KRITA_BUILD_DIR \"$PWD\"" \
-      '#define KRITA_BUILD_DIR "/build/librepaint"'
-  '';
+    postConfigure = ''
+      grep -Fx "#define KRITA_BUILD_DIR \"$PWD\"" KoConfig.h
+      substituteInPlace KoConfig.h \
+        --replace-fail "#define KRITA_BUILD_DIR \"$PWD\"" \
+        '#define KRITA_BUILD_DIR "/build/librepaint"'
+    '';
 
-  postInstall = ''
-    app="$out/bin/LibrePaint.app"
-    test -x "$app/Contents/MacOS/LibrePaint"
-    test -f "$app/Contents/Resources/LibrePaint.icns"
-    rm -f "$out/bin/krita_version"
-    rm -rf "$out/share/applications" "$out/share/metainfo"
-    ${pkgs.python3}/bin/python3 - "$app/Contents/Info.plist" <<'PY'
-    import plistlib
-    import sys
+    postInstall = ''
+      app="$out/bin/LibrePaint.app"
+      test -x "$app/Contents/MacOS/LibrePaint"
+      test -f "$app/Contents/Resources/LibrePaint.icns"
+      rm -f "$out/bin/krita_version"
+      rm -rf "$out/share/applications" "$out/share/metainfo"
+      ${pkgs.python3}/bin/python3 - "$app/Contents/Info.plist" <<'PY'
+      import plistlib
+      import sys
 
-    with open(sys.argv[1], "rb") as handle:
-        info = plistlib.load(handle)
+      with open(sys.argv[1], "rb") as handle:
+          info = plistlib.load(handle)
 
-    expected = {
-        "CFBundleDisplayName": "LibrePaint",
-        "CFBundleExecutable": "LibrePaint",
-        "CFBundleIdentifier": "local.librepaint.macos",
-        "CFBundleName": "LibrePaint",
-    }
-    for key, value in expected.items():
-        actual = info.get(key)
-        if actual != value:
-            raise SystemExit(f"{key} is {actual!r}; expected {value!r}")
-    PY
-  '';
+      expected = {
+          "CFBundleDisplayName": "LibrePaint",
+          "CFBundleExecutable": "LibrePaint",
+          "CFBundleIdentifier": "local.librepaint.macos",
+          "CFBundleName": "LibrePaint",
+      }
+      for key, value in expected.items():
+          actual = info.get(key)
+          if actual != value:
+              raise SystemExit(f"{key} is {actual!r}; expected {value!r}")
+      PY
+    '';
 
-  postFixup = ''
-    app="$out/bin/LibrePaint.app"
-    mkdir -p "$out/lib"
-    ln -s ${pythonRuntime} "$out/lib/Python.framework"
-    mkdir -p "$app/Contents/PlugIns"
-    ln -s ${mlt}/lib/mlt "$app/Contents/PlugIns/mlt"
-    ln -s ${frei0r}/lib/frei0r-1 "$app/Contents/PlugIns/frei0r-1"
-    ln -s ${mlt}/share/mlt "$app/Contents/Resources/mlt"
-    ln -s ${lib.getExe ffmpeg} "$app/Contents/MacOS/ffmpeg"
-    ln -s ${lib.getExe' ffmpeg "ffprobe"} "$app/Contents/MacOS/ffprobe"
+    postFixup = ''
+      if grep -r -a -F -q "$NIX_BUILD_TOP" "$out"; then
+        echo "Nix build root embedded in the macOS output:" >&2
+        grep -r -a -F -l "$NIX_BUILD_TOP" "$out" >&2
+        exit 1
+      fi
+    '';
 
-    if grep -r -a -F -q "$NIX_BUILD_TOP" "$out"; then
-      echo "Nix build root embedded in the macOS output:" >&2
-      grep -r -a -F -l "$NIX_BUILD_TOP" "$out" >&2
-      exit 1
-    fi
-  '';
+    enableParallelBuilding = true;
 
-  enableParallelBuilding = true;
+    passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs ++ [ pythonRuntime ];
 
-  passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs ++ [ pythonRuntime ];
-
-  meta = {
-    description = "LibrePaint digital painting application for macOS";
-    homepage = "https://github.com/serika12345/librepaint";
-    license = lib.licenses.gpl3Only;
-    mainProgram = "LibrePaint.app/Contents/MacOS/LibrePaint";
-    platforms = [ "aarch64-darwin" ];
+    meta = {
+      description = "LibrePaint digital painting application for macOS";
+      homepage = "https://github.com/serika12345/librepaint";
+      license = lib.licenses.gpl3Only;
+      mainProgram = "LibrePaint.app/Contents/MacOS/LibrePaint";
+      platforms = [ "aarch64-darwin" ];
+    };
   };
+
+  # The runtime links and the Qt launcher live here, outside the compilation
+  # derivation.  The launcher embeds this output's own path, so the bundle is
+  # a copy of the application and not a link farm.
+  librepaint =
+    pkgs.runCommand "librepaint-macos-${librepaintUnwrapped.version}"
+      {
+        inherit (librepaintUnwrapped) buildInputs meta;
+        strictDeps = true;
+        nativeBuildInputs = [ qt.wrapQtAppsHook ];
+        qtWrapperArgs = [
+          "--set FONTCONFIG_FILE ${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
+        ];
+        passthru = {
+          inherit librepaintUnwrapped;
+          inherit (librepaintUnwrapped) macosDependencyMembers;
+        };
+      }
+      ''
+        cp -a ${librepaintUnwrapped} "$out"
+        chmod -R u+w "$out"
+
+        app="$out/bin/LibrePaint.app"
+        mkdir -p "$out/lib"
+        ln -s ${pythonRuntime} "$out/lib/Python.framework"
+        mkdir -p "$app/Contents/PlugIns"
+        ln -s ${mlt}/lib/mlt "$app/Contents/PlugIns/mlt"
+        ln -s ${frei0r}/lib/frei0r-1 "$app/Contents/PlugIns/frei0r-1"
+        ln -s ${mlt}/share/mlt "$app/Contents/Resources/mlt"
+        ln -s ${lib.getExe ffmpeg} "$app/Contents/MacOS/ffmpeg"
+        ln -s ${lib.getExe' ffmpeg "ffprobe"} "$app/Contents/MacOS/ffprobe"
+
+        # wrapQtAppsHook runs in the fixup phase, which runCommand skips.
+        outputBin=out
+        qtOwnPathsHook
+        wrapQtApp "$app/Contents/MacOS/LibrePaint"
+      '';
+in
+{
+  inherit librepaint librepaintUnwrapped;
 }

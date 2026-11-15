@@ -1,0 +1,48 @@
+{
+  "name": "q4-e2e",
+  "description": "Q4 の自動の確認。Surface で段 3・段 10・フォーク版を 1 つの入口から回し、項目ごとの合格・不合格と根拠のファイルを checks.json に残す。",
+  "baseline_target": "q4-e2e-fork",
+  "checks": {
+    "clipboard": {
+      "pixel_tolerance": 1,
+      "require_png": true,
+      "forbid_dib": true
+    },
+    "tabs": {
+      "documents": 2
+    },
+    "keyboard": {
+      "layout": "00000411"
+    },
+    "flicker": {
+      "blank_white_ratio": 0.98,
+      "blank_dark_pixels": 20,
+      "stale_changed_ratio": 0.002,
+      "allowance": {
+        "blank_frames": 2,
+        "stale_frames": 2
+      }
+    },
+    "pen": {
+      "single_line_runs": 1,
+      "dot_components": 1
+    }
+  },
+  "not_reproducible": [
+    {
+      "id": "pen.proximity",
+      "title": "実物のペンの近接",
+      "reason": "合成ペン入力は近接の状態を作れるが、実物のペンの近接の距離とタイミングは再現できない。"
+    },
+    {
+      "id": "touch.finger",
+      "title": "指のタッチ",
+      "reason": "指のタッチとペンへの持ち替えは合成マウス／ペンでは再現できない。"
+    },
+    {
+      "id": "pen.two_finger",
+      "title": "2 本指のズームとパン",
+      "reason": "2 本指のジェスチャーは合成ポインター API で再現できない。"
+    }
+  ]
+}

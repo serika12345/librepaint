@@ -22,6 +22,8 @@ public:
     ~KisOpenGLSync();
 
     bool isSignaled();
+    /// Waits up to @p timeoutNanoseconds for the GPU commands to complete.
+    bool waitForCompletion(qint64 timeoutNanoseconds);
 
     static void init(QOpenGLContext *ctx);
 

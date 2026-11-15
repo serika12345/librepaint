@@ -190,7 +190,6 @@ public:
 #include <input/ui/KisExtendedModifiersMapperPluginInterface.h>
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
-#include <config-qt-patches-present.h>
 #include <config-use-surface-color-management-api.h>
 
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
@@ -200,10 +199,6 @@ public:
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
-
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-#include <canvas/KisAndroidScaling.h>
-#endif
 
 namespace {
 const QTime appStartTime(QTime::currentTime());
@@ -259,9 +254,6 @@ public:
     QScopedPointer<KisExtendedModifiersMapperPluginInterface> extendedModifiersPluginInterface;
 #ifdef Q_OS_ANDROID
     KisAndroidSplash *androidSplash {nullptr};
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAndroidScaling *androidScaling {nullptr};
-#endif
 #endif
 };
 
@@ -582,10 +574,6 @@ bool KisApplication::start(const KisApplicationArguments &args)
     processEvents();
     initializeGlobals(args);
 
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    d->androidScaling = new KisAndroidScaling(cfg, this);
-#endif
-
     const bool doNewImage = args.doNewImage();
     const bool doTemplate = args.doTemplate();
     const bool exportAs = args.exportAs();
@@ -711,53 +699,6 @@ bool KisApplication::start(const KisApplicationArguments &args)
     KisConfigNotifier *cfgNotifier = KisConfigNotifier::instance();
     connect(cfgNotifier, &KisConfigNotifier::sigLongPressChanged, this, &KisApplication::slotSetLongPress);
     slotSetLongPress(cfg.longPressEnabled());
-
-    // Xiaomi workaround: their stylus inexplicably inputs page up and down keys
-    // when pressing stylus buttons. This flag causes the Android platform
-    // integration to turn those into right and middle clicks instead.
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN
-    auto setPageUpDownMouseButtonEmulationWorkaround = [](bool enabled) {
-        QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_PAGE_UP_DOWN, enabled);
-    };
-    connect(cfgNotifier,
-            &KisConfigNotifier::sigUsePageUpDownMouseButtonEmulationWorkaroundChanged,
-            this,
-            setPageUpDownMouseButtonEmulationWorkaround);
-    setPageUpDownMouseButtonEmulationWorkaround(cfg.usePageUpDownMouseButtonEmulationWorkaround());
-#endif
-
-    // OnePlus workaround: their stylus inexplicably inputs the F21 key when
-    // pressing the stylus button. This flag causes the Android platform
-    // integration to turn it into middle clicks instead. Currently
-    // unconditional because a setting requires translation-relevant text
-    // changes, but later versions of Krita let you toggle it like the Xiaomi
-    // workarounds above.
-#if KRITA_QT_HAS_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS
-    QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS, true);
-    auto setHighFunctionKeyMouseButtonEmulationWorkaround = [](bool enabled) {
-        // QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_EMULATE_MOUSE_BUTTONS_FOR_HIGH_FUNCTION_KEYS, enabled);
-    };
-    connect(cfgNotifier,
-            &KisConfigNotifier::sigUseHighFunctionKeyMouseButtonEmulationWorkaroundChanged,
-            this,
-            setHighFunctionKeyMouseButtonEmulationWorkaround);
-    setHighFunctionKeyMouseButtonEmulationWorkaround(cfg.useHighFunctionKeyMouseButtonEmulationWorkaround());
-#endif
-
-    // Xiaomi workaround: historic tablet motion events are garbage, they just
-    // connect the actual points that the tablet sampled with a straight line
-    // and no pressure emulation, leading to jagged curves that don't get
-    // smoothed out. This flag disables reading those historic events.
-#if KRITA_QT_HAS_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS
-    auto setIgnoreHistoricTabletEventsWorkaround = [](bool enabled) {
-        QCoreApplication::setKritaAttribute(KRITA_QATTRIBUTE_ANDROID_IGNORE_HISTORIC_TABLET_EVENTS, enabled);
-    };
-    connect(cfgNotifier,
-            &KisConfigNotifier::sigUseIgnoreHistoricTabletEventsWorkaroundChanged,
-            this,
-            setIgnoreHistoricTabletEventsWorkaround);
-    setIgnoreHistoricTabletEventsWorkaround(cfg.useIgnoreHistoricTabletEventsWorkaround());
-#endif
 
     // Create a new image, if needed
     if (doNewImage) {
@@ -1403,12 +1344,6 @@ KisAndroidSplash *KisApplication::androidSplash()
 
 KisAndroidScaling *KisApplication::androidScaling()
 {
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    // Should get initialized during startup and not accessed before.
-    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(d->androidScaling, nullptr);
-    return d->androidScaling;
-#else
     return nullptr;
-#endif
 }
 #endif

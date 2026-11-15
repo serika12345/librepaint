@@ -10,6 +10,8 @@
 #include <QSettings>
 #include "kis_debug.h"
 
+#include <KisWintabMapping.h>
+
 #include <QGuiApplication>
 #include <QScreen>
 #include <QStandardPaths>
@@ -145,19 +147,17 @@ KisDlgCustomTabletResolution::Mode KisDlgCustomTabletResolution::getTabletMode(Q
 
 void KisDlgCustomTabletResolution::applyConfiguration(KisDlgCustomTabletResolution::Mode tabletMode, const QRect &customTabletRect)
 {
+    // Q4 stage 4 (fork commit 051139ed72): the mapping is applied by
+    // KisWintabPacketPeeker and KisInputManager instead of the fork's
+    // QT_WINTAB_DESKTOP_RECT / QT_IGNORE_WINTAB_MAPPING environment
+    // variables, so the setting keeps working with official Qt.
+    KisWintabMapping::Mode mode = KisWintabMapping::Mode::Wintab;
+
     if (tabletMode == KisDlgCustomTabletResolution::USE_CUSTOM) {
-        qputenv("QT_WINTAB_DESKTOP_RECT",
-                QString("%1;%2;%3;%4")
-                .arg(customTabletRect.x())
-                .arg(customTabletRect.y())
-                .arg(customTabletRect.width())
-                .arg(customTabletRect.height()).toLatin1());
-        qunsetenv("QT_IGNORE_WINTAB_MAPPING");
+        mode = KisWintabMapping::Mode::Custom;
     } else if (tabletMode == KisDlgCustomTabletResolution::USE_VIRTUAL_SCREEN) {
-        qputenv("QT_IGNORE_WINTAB_MAPPING", "1");
-        qunsetenv("QT_WINTAB_DESKTOP_RECT");
-    } else {
-        qunsetenv("QT_WINTAB_DESKTOP_RECT");
-        qunsetenv("QT_IGNORE_WINTAB_MAPPING");
+        mode = KisWintabMapping::Mode::VirtualScreen;
     }
+
+    KisWintabMapping::setConfiguredMode(mode, customTabletRect);
 }

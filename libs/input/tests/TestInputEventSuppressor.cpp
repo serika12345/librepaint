@@ -15,6 +15,7 @@ private Q_SLOTS:
     void replaysTabletMouseSuppression();
     void suppressesOneDelayedMousePress();
     void appliesSyntheticMousePolicy();
+    void suppressesMouseWhileTabletIsInProximity();
     void preservesSecondaryButtonWorkaround();
     void replaysTouchSuppression();
 };
@@ -61,6 +62,33 @@ void TestInputEventSuppressor::appliesSyntheticMousePolicy()
     KisInputEventSuppressor unsupported(false, false);
     unsupported.setSuppressSyntheticMouseEvents(true);
     QCOMPARE(unsupported.filter({EventType::MouseMove, Button::None, true}), Reason::None);
+}
+
+void TestInputEventSuppressor::suppressesMouseWhileTabletIsInProximity()
+{
+    // WinTab sends OS-level mouse events that are not marked as synthesized,
+    // so the proximity state, not QMouseEvent::source(), decides. A real mouse
+    // outside the tablet's proximity must keep working.
+    KisInputEventSuppressor suppressor(false, true);
+    QCOMPARE(suppressor.filter({EventType::MouseMove}), Reason::None);
+
+    suppressor.setTabletInProximity(true);
+    QVERIFY(suppressor.isTabletInProximity());
+    QCOMPARE(suppressor.filter({EventType::MouseMove}), Reason::MouseEvent);
+    QCOMPARE(suppressor.filter({EventType::MousePress, Button::Left}), Reason::MouseEvent);
+    QCOMPARE(suppressor.filter({EventType::MouseRelease, Button::Left}), Reason::MouseEvent);
+    QCOMPARE(suppressor.filter({EventType::MouseDoubleClick, Button::Left}), Reason::MouseEvent);
+    QCOMPARE(suppressor.filter({EventType::TabletPress, Button::Left}), Reason::None);
+
+    suppressor.setTabletInProximity(false);
+    QVERIFY(!suppressor.isTabletInProximity());
+    QCOMPARE(suppressor.filter({EventType::MouseMove}), Reason::None);
+    QCOMPARE(suppressor.filter({EventType::MousePress, Button::Left}), Reason::None);
+
+    // macOS keeps the platform mouse events that accompany the tablet.
+    KisInputEventSuppressor unsupported(false, false);
+    unsupported.setTabletInProximity(true);
+    QCOMPARE(unsupported.filter({EventType::MouseMove}), Reason::None);
 }
 
 void TestInputEventSuppressor::preservesSecondaryButtonWorkaround()

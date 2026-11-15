@@ -116,6 +116,15 @@ let
     kcolorscheme-ios
   ];
 
+  # The audit reads manifests/static-dependency-resources.json relative to its
+  # own path.  Other files below packaging/ios stay out of this derivation.
+  staticResourceAudit = lib.fileset.toSource {
+    root = ../../packaging/ios;
+    fileset = lib.fileset.unions [
+      ../../packaging/ios/scripts/audit-static-dependency-resources.py
+      ../../packaging/ios/manifests/static-dependency-resources.json
+    ];
+  };
   pluginProfile = builtins.fromJSON (builtins.readFile pluginProfileFile);
 in
 assert lib.assertMsg (
@@ -304,7 +313,7 @@ mkIOSCMakePackage {
         binary="$app/LibrePaint"
 
         ${python3}/bin/python3 \
-          "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
+          "${staticResourceAudit}/scripts/audit-static-dependency-resources.py" \
           --binary "$binary" \
           --nm "${toolchain.nm}"
 

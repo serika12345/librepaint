@@ -183,6 +183,10 @@ if(IOS AND QT_MAJOR_VERSION STREQUAL "6")
         Qt6::QSvgPlugin_init
     )
 endif()
+if(WIN32)
+    # main.cc installs the canvas native filter from this library.
+    target_link_libraries(krita PRIVATE kritainputui)
+endif()
 if(IOS AND KRITA_IOS_BUILD_PLUGINS)
     krita_ios_target_static_plugins(krita)
 endif()

@@ -9,6 +9,10 @@
 }:
 
 let
+  versionParts = lib.splitVersion packageSpec.version;
+  versionMajor = builtins.elemAt versionParts 0;
+  versionMinor = builtins.elemAt versionParts 1;
+  versionPatch = builtins.elemAt versionParts 2;
   expectedCMakeArgs = [
     "-DBUILD_SHARED_LIBS=OFF"
     "-DBUILD_TESTING=OFF"
@@ -138,10 +142,10 @@ mkIOSCMakePackage {
         exit 1
       fi
     done
-    grep -Eq '^#define[[:space:]]+EXV_PACKAGE_VERSION[[:space:]]+"0\.28\.8"([[:space:]]|$)' "$config_header"
-    grep -Eq '^#define[[:space:]]+EXIV2_MAJOR_VERSION[[:space:]]+\(0U\)([[:space:]]|$)' "$config_header"
-    grep -Eq '^#define[[:space:]]+EXIV2_MINOR_VERSION[[:space:]]+\(28U\)([[:space:]]|$)' "$config_header"
-    grep -Eq '^#define[[:space:]]+EXIV2_PATCH_VERSION[[:space:]]+\(8U\)([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+EXV_PACKAGE_VERSION[[:space:]]+"${lib.escapeRegex packageSpec.version}"([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+EXIV2_MAJOR_VERSION[[:space:]]+\(${versionMajor}U\)([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+EXIV2_MINOR_VERSION[[:space:]]+\(${versionMinor}U\)([[:space:]]|$)' "$config_header"
+    grep -Eq '^#define[[:space:]]+EXIV2_PATCH_VERSION[[:space:]]+\(${versionPatch}U\)([[:space:]]|$)' "$config_header"
 
     archive_members="$(${toolchain.ar} -t "$out/lib/libexiv2.a")"
     for member in \
@@ -176,7 +180,7 @@ mkIOSCMakePackage {
 
     pc="$out/lib/pkgconfig/exiv2.pc"
     grep -Fxq 'prefix=''${pcfiledir}/../..' "$pc"
-    grep -Eq '^Version:[[:space:]]+0\.28\.8([[:space:]]|$)' "$pc"
+    grep -Eq '^Version:[[:space:]]+${lib.escapeRegex packageSpec.version}([[:space:]]|$)' "$pc"
     grep -Eq '^Requires\.private:[[:space:]]+zlib([[:space:]]|$)' "$pc"
     grep -Eq '^Libs:[[:space:]]+-L\$\{libdir\}[[:space:]]+-lexiv2([[:space:]]|$)' "$pc"
     grep -Eq '^Libs\.private:[[:space:]]+-liconv([[:space:]]|$)' "$pc"

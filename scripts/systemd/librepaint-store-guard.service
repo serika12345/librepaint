@@ -1,0 +1,9 @@
+[Unit]
+Description=LibrePaint Nix store guard
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/librepaint
+Environment=LIBREPAINT_STATE_ROOT=%h/.local/state/librepaint
+Environment=PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env python3 %h/Documents/librepaint/scripts/store-guard.py

@@ -9,10 +9,16 @@ more than the scenario threshold.
 """
 
 import importlib.util
+import io
+import json
 import os
 import sys
 import tempfile
+import time
 import unittest
+import csv
+from contextlib import redirect_stdout
+from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "scripts", "tests"))
@@ -42,6 +48,39 @@ class TargetAssignmentTest(unittest.TestCase):
         self.assertIsNone(run.target_of("Krita-20261108-120000-1", targets))
 
 
+class SpeedTableTest(unittest.TestCase):
+    def test_speed_groups_are_collected_across_runs(self):
+        runs = [
+            {"speed_groups": [
+                {"speed_px_ms": 0.9, "n": 10, "input_to_capture": {"n": 10, "p50": 50.0, "p95": 55.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 45.0}},
+                {"speed_px_ms": 5.0, "n": 10, "input_to_capture": {"n": 10, "p50": 52.0, "p95": 58.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 260.0}},
+            ]},
+            {"speed_groups": [
+                {"speed_px_ms": 0.9, "n": 10, "input_to_capture": {"n": 10, "p50": 51.0, "p95": 56.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 46.0}},
+                {"speed_px_ms": 5.0, "n": 10, "input_to_capture": {"n": 10, "p50": 53.0, "p95": 59.0},
+                 "pen_tip_to_edge_px": {"n": 10, "p50": 265.0}},
+            ]},
+        ]
+        rows = run.speed_table(runs)
+        self.assertEqual(len(rows), 2)
+        self.assertAlmostEqual(rows[0][0], 0.9)
+        self.assertAlmostEqual(rows[0][2], 50.5)
+        self.assertAlmostEqual(rows[1][0], 5.0)
+        self.assertAlmostEqual(rows[1][2], 52.5)
+
+    def test_speed_change_reports_the_worst_change(self):
+        runs = [{"speed_change": [
+            {"max_latency_ms": 60.0, "steady_latency_ms": 50.0, "settle_ms": 20.0, "after_speed_px_ms": 5.0},
+            {"max_latency_ms": 70.0, "steady_latency_ms": 50.0, "settle_ms": None, "after_speed_px_ms": 0.4},
+        ]}]
+        line = run.speed_change_lines(runs)[0]
+        self.assertIn("70.0 ms", line)
+        self.assertIn("settle none", line)
+
+
 class SummaryTest(unittest.TestCase):
     def test_capture_offset_is_subtracted_from_every_run(self):
         with tempfile.TemporaryDirectory() as root:
@@ -56,6 +95,626 @@ class SummaryTest(unittest.TestCase):
         # The simulated display shows input 50 to 54 ms old; minus 16 ms.
         self.assertTrue(33.0 <= metric["median"] <= 38.5, metric)
         self.assertAlmostEqual(metric["spread"], 0.0, places=6)
+
+
+def fake_run(state, hover, ink, presentmon_status="present", excluded=None):
+    return {
+        "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+        "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
+        "state": {"label": state},
+        "presentmon": {"present": presentmon_status != "none", "status": presentmon_status},
+        "excluded": excluded,
+    }
+
+
+class DeviceShiftTest(unittest.TestCase):
+    """Runs that cannot be compared because the device changed are marked."""
+
+    def stored(self, name, hover, ink, surface=None):
+        return {
+            "name": name,
+            "metrics": {
+                "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+                "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
+            },
+            "surface_state": surface or {},
+        }
+
+    def test_a_large_change_from_the_previous_run_is_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-20261111-023347-1", 12.5, 18.1),
+            self.stored("T-20261111-023605-1", 14.1, 29.4),
+        ])
+        self.assertTrue(any("T-20261111-023605-1" in note and "ink.input_to_capture" in note for note in notes), notes)
+        self.assertTrue(any("+62%" in note for note in notes), notes)
+
+    def test_a_change_below_the_limit_is_not_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-1", 12.5, 18.1),
+            self.stored("T-2", 12.9, 18.7),
+        ])
+        self.assertEqual(notes, [])
+
+    def test_a_hotter_or_throttled_device_is_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-1", 12.5, 18.1, {"during_max_temp_c": "44.0", "during_min_processor_performance_pct": "77"}),
+            self.stored("T-2", 12.5, 18.1, {"during_max_temp_c": "58.0", "during_min_processor_performance_pct": "60"}),
+        ])
+        self.assertTrue(any("during_max_temp_c 44C -> 58C" in note for note in notes), notes)
+        self.assertTrue(any("during_min_processor_performance_pct 77% -> 60%" in note for note in notes), notes)
+
+    def test_surface_state_is_read_from_meta_txt(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("foreground_capture=pid=1 name=LibrePaint visible=True\n")
+                handle.write("surface_state_mode=light\n")
+                handle.write("surface_state_wait_mode=on\n")
+                handle.write("surface_state_wait=ready\n")
+                handle.write("surface_state_wait_seconds=13.4\n")
+                handle.write("surface_state_wait_min_pct=71\n")
+                handle.write("surface_state_during_max_temp_c=58.0\n")
+                handle.write("surface_state_during_min_processor_performance_pct=60\n")
+                handle.write("surface_state_top_process=MsMpEng 40%\n")
+            state = run.surface_state(root)
+        self.assertEqual(state["mode"], "light")
+        self.assertEqual(state["wait_mode"], "on")
+        self.assertEqual(state["wait"], "ready")
+        self.assertEqual(state["wait_seconds"], "13.4")
+        self.assertEqual(state["wait_min_pct"], "71")
+        self.assertEqual(state["during_max_temp_c"], "58.0")
+        self.assertEqual(state["during_min_processor_performance_pct"], "60")
+        self.assertEqual(state["top_process"], "MsMpEng 40%")
+        self.assertNotIn("foreground_capture", state)
+
+    def test_a_throttled_device_is_told_from_a_device_without_a_record(self):
+        self.assertFalse(run.device_performance_low({"surface_state": {}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "70"}}))
+        self.assertTrue(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "69.9"}}))
+        self.assertTrue(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "42"}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "unavailable"}}))
+        self.assertFalse(run.device_performance_low(
+            {"surface_state": {"during_min_processor_performance_pct": "0"}}))
+
+    def write_device_state(self, path, values):
+        with open(os.path.join(path, "surface-state.csv"), "w", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["time", "phase", "max_temp_c", "processor_performance_pct",
+                             "total_cpu_pct", "top_processes"])
+            writer.writerow(["t0", "before", "45.0", "103", "8", ""])
+            for index, value in enumerate(values, start=1):
+                writer.writerow(["t%d" % index, "during", "unavailable", value, "14", ""])
+            writer.writerow(["t9", "after", "45.0", "85", "0", ""])
+
+    def test_a_zero_processor_reading_is_a_failed_read_not_a_throttled_run(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("surface_state_mode=light\n")
+                handle.write("surface_state_during_min_processor_performance_pct=0\n")
+            self.write_device_state(root, ["181", "0", "180"])
+            state = run.surface_state(root)
+        self.assertEqual(state["during_readings"], "3")
+        self.assertEqual(state["during_readings_missing"], "1")
+        self.assertEqual(state["during_min_processor_performance_pct"], "180")
+
+    def test_a_run_with_a_failed_reading_stays_in_the_aggregation(self):
+        with tempfile.TemporaryDirectory() as root:
+            readings = (["70"], ["181", "0", "180"], ["75"])
+            for n, values in enumerate(readings, start=1):
+                path = os.path.join(root, "h", "T-20261111-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_wait=ready\n")
+                    handle.write("surface_state_during_min_processor_performance_pct=0\n")
+                self.write_device_state(path, values)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0,
+                    "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0) for _ in readings]):
+                summary = run.summarize(root, [host], SCENARIO)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["device_low"], 0)
+        self.assertEqual(data["device_readings_missing"], 1)
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 3)
+        names = [state.get("during_min_processor_performance_pct")
+                 for state in (entry["surface_state"] for entry in data["runs"])]
+        self.assertEqual(sorted(names), ["180", "70", "75"])
+        rows = run.judge(summary, SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("1 run(s) with a failed processor performance reading (kept)", notes)
+
+    def test_the_table_notes_carry_the_mark(self):
+        summary = {"hosts": {"h": {"kind": "windows", "targets": {"T": {
+            "runs": [],
+            "metrics": {"hover.input_to_capture": {"median": 40.0, "p95": 45.0, "spread": 0.0, "runs": 2}},
+            "states": {},
+            "excluded": 0,
+            "shifts": ["T-2 ink.input_to_capture +62% (18.1 -> 29.4 ms) from the run before"],
+        }}}}}
+        rows = run.judge(summary, SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("marked: T-2 ink.input_to_capture +62%", notes)
+        self.assertTrue(all(row[7] == "ok" for row in rows))
+
+
+class RunnerCommandTest(unittest.TestCase):
+    def test_windows_target_passes_the_presentmon_setting(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["PRESENTMON"], "on")
+            target["presentmon"] = "off"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["PRESENTMON"], "off")
+
+    def test_device_state_recording_is_light_by_default(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE"], "light")
+            target["surface_state"] = "off"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE"], "off")
+            for mode in ("on", "light"):
+                target["surface_state"] = mode
+                _, env, _ = run.runner_for(host, target, scenario, root)
+                self.assertEqual(env["SURFACE_STATE"], mode)
+
+    def test_invalid_surface_state_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "surface_state": "heavy"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_the_recovery_wait_is_on_unless_the_target_turns_it_off(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE_WAIT"], "on")
+            target["surface_state_wait"] = "off"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE_WAIT"], "off")
+
+    def test_invalid_recovery_wait_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "surface_state_wait": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_recovery_wait_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "surface_state_wait": "off"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_surface_state_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "surface_state": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_thread_cpu_is_off_unless_the_target_asks_for_it(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["THREAD_CPU"], "off")
+            target["thread_cpu"] = "on"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["THREAD_CPU"], "on")
+
+    def test_invalid_thread_cpu_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "thread_cpu": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_thread_cpu_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "thread_cpu": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_power_is_off_unless_the_target_asks_for_it(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["POWER"], "off")
+            target["power"] = "on"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["POWER"], "on")
+
+    def test_invalid_power_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        for value in ("auto", "ON", 1):
+            target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                      "power": value}
+            with tempfile.TemporaryDirectory() as root:
+                with self.assertRaises(SystemExit):
+                    run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_power_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "power": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_windows_target_passes_environment_to_the_runner(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "env": {"LIBREPAINT_L1_SWAP_INTERVAL": "0"}}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+        self.assertEqual(json.loads(env["TARGET_ENV"]), {"LIBREPAINT_L1_SWAP_INTERVAL": "0"})
+
+    def test_invalid_environment_name_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "env": {"1BAD": "x"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_environment_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "env": {"LIBREPAINT_L1_SWAP_INTERVAL": "0"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_windows_target_passes_kritarc_to_the_runner(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "kritarc": {"useMaximumFrameLatencyOne": "false"}}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+        self.assertEqual(json.loads(env["TARGET_KRITARC"]), {"useMaximumFrameLatencyOne": "false"})
+
+    def test_invalid_kritarc_key_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "kritarc": {"BAD KEY": "x"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_kritarc_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "kritarc": {"useMaximumFrameLatencyOne": "false"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+
+    def test_linux_scenario_kritarc_lands_in_the_empty_group(self):
+        scenario = {"kritarc": {"General": {"newOutlineStyle": "2", "fpsLimit": "100"}}}
+        self.assertEqual(run.kritarc_text(scenario), "newOutlineStyle=2\nfpsLimit=100\n")
+        scenario["kritarc"]["Other"] = {"key": "value"}
+        self.assertEqual(run.kritarc_text(scenario),
+                         "newOutlineStyle=2\nfpsLimit=100\n[Other]\nkey=value\n")
+
+
+class PowerAggregateTest(unittest.TestCase):
+    def entry(self, rate, energy, ac=False):
+        return {"power": {"window_s": 30.0, "samples": 30, "ac": ac,
+                          "rate_mw": rate, "energy_mwh": energy},
+                "power_state": {"mode": "on", "ac": "1" if ac else "0"}}
+
+    def test_ac_runs_are_left_out_of_the_power_median(self):
+        runs = [self.entry(4000.0, 33.0), self.entry(6000.0, 50.0),
+                self.entry(9000.0, 75.0, ac=True)]
+        result = run.aggregate_power(runs)
+        self.assertEqual(result["runs"], 2)
+        self.assertEqual(result["ac_runs"], 1)
+        self.assertAlmostEqual(result["rate_mw"], 5000.0)
+        self.assertAlmostEqual(result["energy_mwh"], 41.5)
+
+    def test_a_run_without_a_power_record_stays_out(self):
+        result = run.aggregate_power([{"power": None, "power_state": {}},
+                                      self.entry(4000.0, 33.0)])
+        self.assertEqual(result["runs"], 1)
+        self.assertEqual(result["ac_runs"], 0)
+
+    def test_power_state_is_read_from_meta_txt(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("power_mode=on\n")
+                handle.write("power_ac=1\n")
+            state = run.power_state(root)
+        self.assertEqual(state, {"mode": "on", "ac": "1"})
+
+
+class PresentMonAggregateTest(unittest.TestCase):
+    def run_result(self, status, hover, display):
+        return {
+            "metrics": {
+                "hover.input_to_capture": {"n": 10, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+                "hover.input_to_display": {"n": 10, "p05": display - 5, "p50": display, "p95": display + 10},
+            },
+            "state": {"label": "low"},
+            "presentmon": {"present": status != "none", "status": status},
+        }
+
+    def test_partial_runs_stay_in_capture_metrics_and_leave_display_metrics(self):
+        runs = [
+            self.run_result("present", 50.0, 60.0),
+            self.run_result("present", 51.0, 62.0),
+            self.run_result("partial", 52.0, 90.0),
+        ]
+        aggregated = run.aggregate(runs, {"hover.input_to_capture": {}, "hover.input_to_display": {}})
+        self.assertEqual(aggregated["hover.input_to_capture"]["runs"], 3)
+        self.assertEqual(aggregated["hover.input_to_display"]["runs"], 2)
+        self.assertAlmostEqual(aggregated["hover.input_to_display"]["median"], 61.0)
+
+    def test_old_summaries_without_status_count_as_present(self):
+        self.assertEqual(run.presentmon_status({"presentmon": {"present": True}}), "present")
+        self.assertEqual(run.presentmon_status({"presentmon": {"present": False}}), "none")
+
+
+class StateSummaryTest(unittest.TestCase):
+    SCENARIO = {
+        "name": "test",
+        "runs": 4,
+        "spread_limit": 0.05,
+        "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}, "ink.input_to_capture": {"regression_ms": 2.0}},
+    }
+
+    def summarize(self, results):
+        with tempfile.TemporaryDirectory() as root:
+            for n in range(1, len(results) + 1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+            host = {"name": "h", "kind": "linux", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results):
+                return run.summarize(root, [host], self.SCENARIO)
+
+    def test_hover_is_grouped_by_state_and_ink_is_not(self):
+        summary = self.summarize([
+            fake_run("low", 55.0, 61.0),
+            fake_run("high", 62.0, 61.0),
+            fake_run("low", 56.0, 61.0),
+            fake_run("high", 63.0, 61.0),
+        ])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["states"]["low"]["runs"], 2)
+        self.assertEqual(data["states"]["high"]["runs"], 2)
+        self.assertAlmostEqual(data["states"]["low"]["metrics"]["hover.input_to_capture"]["median"], 55.5)
+        rows = run.judge(summary, self.SCENARIO)
+        hover_states = {row[9] for row in rows if row[2] == "hover.input_to_capture"}
+        self.assertEqual(hover_states, {"low", "high"})
+        self.assertTrue(all(row[9] is None for row in rows if row[2] == "ink.input_to_capture"))
+
+    def test_presentmon_status_counts_are_reported(self):
+        summary = self.summarize([
+            fake_run("low", 55.0, 61.0),
+            fake_run("low", 56.0, 61.0, "partial"),
+            fake_run("high", 62.0, 61.0, "none"),
+            fake_run("high", 63.0, 61.0),
+        ])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["presentmon"], {"present": 2, "partial": 1, "none": 1})
+
+    def test_device_state_recording_modes_are_counted(self):
+        with tempfile.TemporaryDirectory() as root:
+            modes = ("off", "on", "light")
+            for n, mode in enumerate(modes, start=1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_mode=%s\n" % mode)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0) for _ in modes]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        self.assertEqual(summary["hosts"]["h"]["targets"]["T"]["surface_state_modes"],
+                         {"off": 1, "on": 1, "light": 1})
+
+    def test_a_run_below_70_percent_is_left_out_and_marked(self):
+        with tempfile.TemporaryDirectory() as root:
+            values = ("77", "42", "75")
+            for n, value in enumerate(values, start=1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_wait=ready\n")
+                    handle.write("surface_state_during_min_processor_performance_pct=%s\n" % value)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0),
+                                                fake_run("low", 70.0, 61.0),
+                                                fake_run("low", 56.0, 61.0)]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["device_low"], 1)
+        self.assertEqual(data["excluded"], 0)
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 2)
+        self.assertAlmostEqual(data["metrics"]["hover.input_to_capture"]["median"], 55.5)
+        self.assertEqual(data["surface_state_waits"], {"ready": 3})
+        rows = run.judge(summary, self.SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("1 run(s) left out: processor performance below 70%", notes)
+
+    def test_a_run_whose_app_was_not_in_front_is_left_out(self):
+        summary = self.summarize([
+            fake_run("high", 60.0, 61.0),
+            fake_run("high", 62.0, 61.0),
+            fake_run("high", 120.0, 61.0, "partial", excluded="app not foreground and presented at 39% of the display rate"),
+            fake_run("high", 61.0, 61.0),
+        ])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["excluded"], 1)
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 3)
+        self.assertAlmostEqual(data["metrics"]["hover.input_to_capture"]["median"], 61.0)
+        self.assertEqual(data["presentmon"], {"present": 3, "partial": 0, "none": 0})
+        rows = run.judge(summary, self.SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("1 run(s) left out: app not foreground or not presenting", notes)
+        self.assertIn("high state: 3 of 3 runs", notes)
+
+
+class EarlyStopTest(unittest.TestCase):
+    """A target that fails twice in a row for the same reason stops early."""
+
+    SCENARIO = {
+        "name": "test",
+        "runs": 5,
+        "spread_limit": 0.05,
+        "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
+    }
+    HOST = {"name": "w", "kind": "windows", "capture_offset_ms": 0,
+            "targets": [{"name": "LibrePaint", "runner_target": "LibrePaint",
+                         "app": "C:/LibrePaint.exe"}]}
+
+    def measure(self, statuses):
+        """Run measure_runs with a fake runner that returns the given lines."""
+        calls = []
+
+        def fake_runner(host, target, scenario, run_root):
+            return ["true"], {}, None
+
+        def fake_command(argv, env=None, cwd=None):
+            calls.append(list(argv))
+            line = statuses[len(calls) - 1] if len(calls) <= len(statuses) else None
+            host_dir = os.path.join(self._root, "w")
+            os.makedirs(host_dir, exist_ok=True)
+            with open(os.path.join(host_dir, "status-LibrePaint.txt"), "w") as handle:
+                handle.write("starting\n")
+                if line:
+                    handle.write(line + "\n")
+            return 0 if line is None else 1
+
+        with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                mock.patch.object(run, "run_command", side_effect=fake_command):
+            failures = run.measure_runs([self.HOST], self.SCENARIO, self._root, "l1", self.events)
+        with open(self.events, encoding="utf-8") as handle:
+            lines = [line.split("\t") for line in handle.read().splitlines()]
+        return calls, failures, lines
+
+    def setUp(self):
+        self._temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._temp.cleanup)
+        self._root = os.path.join(self._temp.name, "runs")
+        self.events = os.path.join(self._temp.name, "events.log")
+
+    def kinds(self, lines):
+        return [fields[1] for fields in lines]
+
+    def test_the_same_failure_twice_skips_the_remaining_rounds(self):
+        calls, failures, lines = self.measure(
+            ["failed: app exited before showing a window"] * 5)
+        self.assertEqual(len(calls), 2, calls)
+        self.assertEqual(len(failures), 2)
+        self.assertEqual(self.kinds(lines).count("target-failed"), 2)
+        self.assertEqual(self.kinds(lines).count("target-abandoned"), 1)
+        abandoned = next(fields for fields in lines if fields[1] == "target-abandoned")
+        self.assertEqual(abandoned[3], "LibrePaint")
+        self.assertEqual(abandoned[4], "2")
+        self.assertIn("app exited before showing a window", abandoned[5])
+        self.assertEqual(self.kinds(lines)[0], "run-start")
+
+    def test_a_different_reason_does_not_abandon(self):
+        calls, failures, lines = self.measure(
+            ["failed: app exited before showing a window", "failed: capture failed",
+             "failed: no main window", "failed: other", "failed: other again"])
+        # The five failed runs are not usable, so the target gets five more
+        # runs up to the limit of twice the scenario's count; the successes
+        # are usable and the target finishes at the limit.
+        self.assertEqual(len(calls), 10, calls)
+        self.assertEqual(len(failures), 5)
+        self.assertNotIn("target-abandoned", self.kinds(lines))
+
+    def test_a_failed_line_is_recorded_as_written(self):
+        _, _, lines = self.measure(["failed: capture failed", "failed: capture failed"])
+        failed = [fields for fields in lines if fields[1] == "target-failed"]
+        self.assertEqual([fields[5] for fields in failed], ["failed: capture failed"] * 2)
+        self.assertEqual([fields[4] for fields in failed], ["1", "2"])
+
+    def measure_device_runs(self, values, rest_seconds=None, runs=2):
+        """Run measure_runs where each run records a processor performance."""
+        calls = []
+
+        def fake_runner(host, target, scenario, run_root):
+            return ["true"], {}, None
+
+        def fake_command(argv, env=None, cwd=None):
+            calls.append(list(argv))
+            number = len(calls)
+            host_dir = os.path.join(self._root, "w")
+            path = os.path.join(host_dir, "LibrePaint-20261112-120000-%d" % number)
+            os.makedirs(path)
+            # Make the newest directory unambiguous when runs finish together.
+            stamp = time.time() + number
+            os.utime(path, (stamp, stamp))
+            value = values[number - 1] if number <= len(values) else "80"
+            with open(os.path.join(path, "meta.txt"), "w") as handle:
+                handle.write("surface_state_mode=light\n")
+                if value is not None:
+                    handle.write("surface_state_during_min_processor_performance_pct=%s\n" % value)
+            return 0
+
+        scenario = dict(self.SCENARIO)
+        scenario["runs"] = runs
+        if rest_seconds is not None:
+            scenario["rest_seconds"] = rest_seconds
+        with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                mock.patch.object(run, "run_command", side_effect=fake_command), \
+                mock.patch.object(run.time, "sleep") as sleep:
+            failures = run.measure_runs([self.HOST], scenario, self._root, "l1", self.events)
+        with open(self.events, encoding="utf-8") as handle:
+            lines = [line.split("\t") for line in handle.read().splitlines()]
+        return calls, failures, lines, sleep
+
+    def test_a_low_run_is_replaced_by_another_run(self):
+        calls, failures, _, _ = self.measure_device_runs(["42", "80"])
+        self.assertEqual(len(calls), 3, calls)
+        self.assertEqual(failures, [])
+
+    def test_added_runs_stop_at_twice_the_scenario_count(self):
+        calls, failures, _, _ = self.measure_device_runs(["42", "42", "42", "42"])
+        self.assertEqual(len(calls), 4, calls)
+        self.assertEqual(failures, [])
+
+    def test_rest_seconds_waits_between_windows_runs_only(self):
+        calls, _, lines, sleep = self.measure_device_runs(["80", "80"], rest_seconds=90)
+        self.assertEqual(len(calls), 2, calls)
+        sleep.assert_called_once_with(90.0)
+        self.assertEqual(self.kinds(lines).count("rest"), 1)
 
 
 class VerdictTest(unittest.TestCase):
@@ -83,6 +742,63 @@ class VerdictTest(unittest.TestCase):
         row = self.verdict(summary_with(30.0), summary_with(40.0))
         self.assertEqual(row[7], "ok")
         self.assertIn("improvement", row[8])
+
+
+class MainExitTest(unittest.TestCase):
+    """The process status follows the verdict rows, also when speed rows are printed."""
+
+    SPEEDS = [{"speed_px_ms": 0.9, "n": 10,
+               "input_to_capture": {"n": 10, "p50": 50.0, "p95": 55.0},
+               "pen_tip_to_edge_px": {"n": 10, "p50": 45.0}},
+              {"speed_px_ms": 5.0, "n": 10,
+               "input_to_capture": {"n": 10, "p50": 52.0, "p95": 58.0},
+               "pen_tip_to_edge_px": {"n": 10, "p50": 260.0}}]
+
+    def run_main(self, hovers):
+        scenario = {
+            "name": "test",
+            "runs": len(hovers),
+            "spread_limit": 0.05,
+            "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
+        }
+        with tempfile.TemporaryDirectory() as root:
+            run_root = os.path.join(root, "runs")
+            for index, _ in enumerate(hovers, start=1):
+                path = os.path.join(run_root, "h", "T-20261108-120000-%d" % index)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+            scenario_path = os.path.join(root, "scenario.json")
+            hosts_path = os.path.join(root, "hosts.json")
+            with open(scenario_path, "w") as handle:
+                json.dump(scenario, handle)
+            with open(hosts_path, "w") as handle:
+                json.dump({"hosts": [{"name": "h", "kind": "linux", "capture_offset_ms": 0,
+                                      "targets": [{"name": "T"}]}]}, handle)
+            results = []
+            for hover in hovers:
+                result = fake_run("low", hover, 40.0)
+                result["ink.speed_groups"] = self.SPEEDS
+                result["speed_change"] = []
+                results.append(result)
+            output = io.StringIO()
+            with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results), \
+                    mock.patch.object(run.subprocess, "run",
+                                      return_value=mock.Mock(stdout="0123456789\n")), \
+                    redirect_stdout(output):
+                status = run.main(["--scenario", scenario_path, "--hosts", hosts_path,
+                                   "--analyze-only", run_root])
+        return status, output.getvalue()
+
+    def test_speed_rows_do_not_change_a_passing_status(self):
+        status, output = self.run_main([40.0, 40.5])
+        self.assertIn("== ink speed groups", output)
+        self.assertEqual(status, 0)
+
+    def test_a_flagged_metric_still_exits_nonzero_with_speed_rows(self):
+        status, output = self.run_main([40.0, 50.0])
+        self.assertIn("== ink speed groups", output)
+        self.assertIn("| check |", output)
+        self.assertEqual(status, 1)
 
 
 if __name__ == "__main__":

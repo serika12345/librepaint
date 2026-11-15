@@ -55,6 +55,172 @@ verify-quick
 ローカルFlakeの評価は作業ツリーをNix storeへコピーするため、通常の編集・試験には
 評価済み環境を使う。追加ツールは必要な最小のNixシェルへ定義し、一時利用は`nix shell`で用意する。
 
+## Nix ストアの肥大化の防止
+
+`path:`形式のFlake評価は`.gitignore`を無視し、リポジトリー全体をNix storeへ複製する。
+この複製は`build/`、`.cache/`、`.git/`を含み、1件で数十GiBになる。`nix eval --impure --expr`
+の中の`builtins.getFlake`も同じ複製を作る。追跡されない150MBのファイルを持つ一時の
+小さなGitリポジトリーでの実測は次のとおり。
+
+- `builtins.getFlake (toString ./.)`は143MBを複製し、`build/`と`.git/`を含む。
+- `builtins.getFlake "path:<パス>"`も同じ複製を作る。
+- `builtins.getFlake "git+file://<パス>"`の複製は0MBで、追跡されたファイルだけを読む。
+- `nix flake metadata .`などのCLIも、追跡されたファイルだけを読む。
+
+LibrePaintは次の4つで発生を防ぎ、起きた複製を記録して片付ける。
+
+1. `build/`、`.cache/`、`logs/`、`build-ios/`はリポジトリーの外の状態ディレクトリーへの
+   シンボリックリンクにする。`.envrc`が`scripts/ensure-state-links.py`を呼び、
+   置き場は環境変数`LIBREPAINT_STATE_ROOT`（既定`~/.local/state/librepaint`）の下の
+   `<作業ツリー名>-<realpathのハッシュ>/`になる。
+2. `scripts/nix-guard/nix`が`PATH`の先頭で`nix`の呼び出しを記録し、このリポジトリーを
+   指す`path:`参照と、Gitが作業ツリーを認識できない場所でのFlake参照を終了コード2で
+   拒否する。direnvのシェル、`scripts/run-shared-test-env`、`scripts/build-incremental`、
+   `scripts/platform/enter-incremental-environment`がこのディレクトリーを`PATH`へ足す。
+3. `scripts/check-store-hygiene.py`が、実体の状態ディレクトリー、8GiBを超える
+   リポジトリーの見かけの大きさ、`/nix`の空きがボリュームの大きさに応じた下限
+   （全体の15%を30〜100GiBに収めた値。1.3TiBで100GiB、228GiBで34GiB）未満を
+   検査する。`--min-free-gib`で下限を指定できる。`verify`、
+   `verify-quick`、`scripts/build-incremental`、`scripts/run-shared-test-env`が
+   `nix`を呼ぶ前に実行する。
+4. `scripts/store-guard.py`が`/nix/store`の`-source`を調べ、初めて見た1GiB超の複製を
+   ログへ記録し、リポジトリーの複製と確認できたものを削除する。
+
+### store-guardの有効化
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp scripts/systemd/* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now librepaint-store-guard.timer
+loginctl enable-linger $USER
+```
+
+ログは`$LIBREPAINT_STATE_ROOT/nix-calls.log`（`nix`の呼び出し）と
+`$LIBREPAINT_STATE_ROOT/store-guard.log`（初めて見た複製、削除、空きの警告）に置く。
+`.envrc`も、`direnv`の読み込みから1時間ごとに`scripts/store-guard.py --if-due 3600`を
+バックグラウンドで実行する。
+
+### macOSでの有効化
+
+macOSは、バックグラウンドのジョブが`~/Documents`を読めない（TCC）。導入するには、
+`python3`にフルディスクアクセスを許可する必要がある（利用者が行うシステムの設定）。
+許可しない場合は、direnvの読み込みから1時間ごとに動く。
+
+macOSにはsystemdがないため、`scripts/launchd/dev.librepaint.store-guard.plist`を
+`sed`で書き換えて`~/Library/LaunchAgents/`へ置き、`launchctl`で登録する。
+plistの`@REPO@`はリポジトリーの絶対パス、`@HOME@`はホームディレクトリーに置き換える。
+
+```sh
+mkdir -p ~/Library/LaunchAgents "$HOME/.local/state/librepaint"
+sed -e "s|@REPO@|$PWD|g" -e "s|@HOME@|$HOME|g" \
+  scripts/launchd/dev.librepaint.store-guard.plist \
+  > "$HOME/Library/LaunchAgents/dev.librepaint.store-guard.plist"
+launchctl bootstrap gui/$(id -u) "$HOME/Library/LaunchAgents/dev.librepaint.store-guard.plist"
+```
+
+`StartInterval`は600秒なので、10分ごとに`scripts/store-guard.py`を実行する。
+標準出力と標準エラーは`$LIBREPAINT_STATE_ROOT/store-guard.out`へ書く。
+解除するときは次のとおり。
+
+```sh
+launchctl bootout gui/$(id -u)/dev.librepaint.store-guard
+```
+
+### 安全な書き方
+
+`builtins.getFlake`へはリモートの参照だけを渡す。作業ツリーの評価には
+`builtins.getFlake "git+file://$PWD"`を使う。属性だけを読むときは`nix eval .#<属性>`を使う。
+
+### 違反したときの直し方
+
+- 実体の状態ディレクトリーがある: 構築が動いていないときに
+  `scripts/ensure-state-links.py --migrate`を実行する。
+- `path:`参照を拒否された: 作業ツリーで`.#<output>`を使う。Gitの所有者や
+  `safe.directory`の設定を直し、`git rev-parse --show-toplevel`が通るようにする。
+- `/nix`の空きが少ない: `store-guard.log`で漏れた複製を確認し、不要な世代を削除する。
+
+### NixOSの設定
+
+管理者権限で、ストアの自動削除を有効にする。
+
+```nix
+nix.settings.min-free = "100GiB";
+nix.settings.max-free = "300GiB";
+```
+
+### 既存の作業ツリーへの適用
+
+既存の作業ツリーでは、構築が動いていないときに一度だけ次を実行する。
+
+```sh
+scripts/ensure-state-links.py --migrate
+```
+
+## 外部のバイナリキャッシュに載せる前の確認
+
+`flake.nix`と`nix/`は、実験用の構築オプション、一時的な緩和、実験用の切り替えを残さない。
+診断は評価時の上書き（`nix build --impure --expr`の`overrideAttrs`）と`--keep-failed`で行い、
+リポジトリーには入れない。移行のための一時的な処理は、削除条件をコメントに書く。
+外部のバイナリキャッシュには、次の確認を終えたFlakeで構築し直した派生物だけを載せる。
+
+- `python3 scripts/check-flake-hygiene.py`が通る。この検査は、診断用の構築オプション
+  （`ninjaFlags`、`makeFlags`と`buildFlags`の`-k`、`NIX_DEBUG`、`enableDebugging`、
+  `separateDebugInfo`）と、目印のコメント（`EXPERIMENT`、`XXX`、`TEMP`、`DEBUG ONLY`）を
+  `flake.nix`と`nix/**/*.nix`から列挙する。理由のコメント（`nixpkgs`、`Issue #`、
+  `remove when`、`drop when`、`removal`）が同じ行か直前の行にある既存の行は対象にしない。
+- `nix/dependency-policy.json`に、理由を調べていない`provisional`の項目がない。
+  Gradleをキャッシュにある版へ移す作業は[Issue #120](https://github.com/serika12345/librepaint/issues/120)で扱う。
+- `nix/pyqt6-overrides.nix`と、darwinのPyQt6の修正を、nixpkgsがPyQt6 6.12.0と
+  その修正を取り込んだ後に除く。
+- 載せる派生物は、上の確認の後のFlakeで構築し直したものだけにする。
+
+## 作業ツリーの作成と片付け
+
+作業ツリーごとに`.direnv`と`build/nix-profiles`がNixのGCルートを作り、閉包を固定する。
+作成だけして片付けないと、状態ディレクトリーと閉包が残り、ストアが肥大化する。
+リポジトリーの中に作った作業ツリーは、`path:`の複製にも巻き込まれる。
+
+作成には`scripts/new-worktree.py`を使う。置き場は`LIBREPAINT_WORKTREE_ROOT`
+（既定`~/Documents/librepaint-wt`）の下で、リポジトリーの外になる。
+
+```sh
+scripts/new-worktree.py NAME --purpose "作業の目的" --new-branch NAME
+scripts/new-worktree.py NAME --purpose "作業の目的" --branch BRANCH
+scripts/new-worktree.py NAME --purpose "作業の目的" --detach REF
+```
+
+`--owner claude|opencode|user`で作成者を記録する。作成した作業ツリーでは
+`build`、`.cache`、`logs`、`build-ios`が状態ディレクトリーへのシンボリックリンクになり、
+台帳`$LIBREPAINT_STATE_ROOT/worktrees.json`
+（既定`~/.local/state/librepaint/worktrees.json`）に名前、目的、作成者、
+枝または参照、作成時刻が入る。
+
+すでにある作業ツリーは移動せずに登録する。
+
+```sh
+scripts/new-worktree.py --adopt PATH --purpose "作業の目的"
+```
+
+片付けの一覧は`scripts/worktree-gc.py`で出す。既定は一覧だけで、7日より新しい
+最終コミットの作業ツリーは対象にしない。
+
+```sh
+scripts/worktree-gc.py
+scripts/worktree-gc.py --days 14
+scripts/worktree-gc.py --apply
+```
+
+一覧は`prunable`（ディレクトリーがない）、`unregistered`（台帳にない）、
+`inside-repo`（リポジトリーの中）、`eligible`（片付けてよい）、
+`needs-review`（変更、未push、新しいコミット、利用中のプロセスなどがある）に分かれる。
+`--apply`は`prunable`と`eligible`だけを処理し、作業ツリー、台帳の項目、
+状態ディレクトリーを削除する。`unregistered`と`inside-repo`は削除しない。
+
+`scripts/check-store-hygiene.py`は`prunable`、`inside-repo`、`unregistered`を違反にし、
+`eligible`と台帳の4件超を警告にする。`scripts/store-guard.py`は1日1回一覧を取り、
+片付けられる作業ツリーがあれば`oc.sh event`で知らせる。自動では削除しない。
+
 ## 編集と検証
 
 ### 増分構築
@@ -139,7 +305,7 @@ Issueへの反映には、後述の「Issueによる作業管理」の依頼・�
 | 一つの振る舞いの変更 | `run-test <target> [ctest-regex]`、影響範囲CTest、`verify-quick` |
 | 広い共有境界・統合 | `verify` |
 | CMake構成 | 対応する`build-incremental <platform> configure`と対象構築・試験 |
-| Nix出力・環境・依存・ソース絞り込み | `nix flake check --no-build --all-systems`と変更出力の構築 |
+| Nix出力・環境・依存・ソース絞り込み | `nix flake check --no-build --all-systems`、`scripts/check-rebuild-scope.py`、変更出力の構築 |
 | 入力・描画・OS境界 | 対象機器の入力、保存、復帰、必要な画像・性能・同期検査 |
 | 配布定義 | 名前付き`nix build`出力、成果物検査、対象OSでの起動と主要操作 |
 
@@ -163,6 +329,11 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`。隔離した試験は原因・決定性・比較規則を
 確認し、一件ずつ通常検査へ戻す。
 
+構築とテストの並列数は機械に任せる。プリセットは並列数を指定せず、`cmake --build`はninjaの既定
+（論理プロセッサー数＋2）、`verify`と`run-test`のCTestは論理プロセッサー数で動く。メモリーが
+足りない機械では、構築を`CMAKE_BUILD_PARALLEL_LEVEL`、CTestを`CTEST_PARALLEL_LEVEL`で下げる
+（例：`CMAKE_BUILD_PARALLEL_LEVEL=4 CTEST_PARALLEL_LEVEL=4 ./scripts/verify`）。
+
 通常の共有UI変更はmacOSのネイティブ検査とiPadOSの構築・静的監査を優先する。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
@@ -179,12 +350,17 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 | 部品 | 役割 |
 | --- | --- |
-| `trajectory.py` | 全OS共通の軌跡（ホバーの往復、左から右への線）と、キャンバスに対する相対の再生計画 |
+| `trajectory.py` | 全OS共通の軌跡（ホバーの往復、左から右への線）と、キャンバスに対する相対の再生計画。`speed_profiles`で1本の線の中の速さを変えられる |
 | `windows_capture.cpp` | Windows。合成ペン入力（PT_PEN）とDXGI Desktop Duplication。時刻はQueryPerformanceCounter |
 | `mutter_capture.py` | Linux（GNOME）。mutterのRemoteDesktopとScreenCast（PipeWire）。時刻はCLOCK_MONOTONIC |
 | `macos_capture.mm` | macOS。Quartzのマウスイベントと ScreenCaptureKit。時刻はmach_absolute_time |
-| `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す |
-| `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す |
+| `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す。速さごとの値と、速さが変わった直後の値も出す |
+| `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
+| `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
+| `surface_state.ps1` | Windows。対象が`surface_state`を`off`にしない限り（既定`light`）、端末の状態を記録する。`on`は計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを取る。`light`は5秒ごとの`Get-Counter`1回でCPUの2つだけを取り、温度と上位プロセスは計測の前後だけにする。`-WaitForProcessorPerformance`では、各回の起動前に`% Processor Performance`が75以上を2回続けるまで5秒ごとに読み、最大120秒で打ち切る |
+| `thread_cpu.ps1` / `thread_cpu.py` | Windows。対象が`thread_cpu`を`on`にした回だけ、アプリのプロセスと各スレッドのCPU時間を500msごとに`threads.csv`へ書く。`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU秒、GUIスレッドと描画スレッド、待ちの理由を出す |
+| `power.ps1` / `power.py` | Windows。対象が`power`を`on`にした回だけ、`Win32_Battery`（残量%、`BatteryStatus`、`EstimatedRunTime`）と、使えるなら`root\wmi`の`BatteryStatus`（`RemainingCapacity` mWh、`DischargeRate` mW、`PowerOnline`）を1秒ごとに`power.csv`へ書く。`power.py`が合成入力の区間の平均の放電の速さ（mW）と放電量（mWh）を出し、ACにつながっていた回を`power_ac=1`として集計から外す |
+| `run-surface.ps1`の待ち | `surface_state_wait`が`on`（既定）の回は、アプリの起動前に`surface_state.ps1 -WaitForProcessorPerformance`を別の`powershell.exe`で動かす。待ちの中は言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`から`% Processor Performance`を読む。`-Out`は待ちでは不要（省略できる）。親は120秒に15秒を足した実時間で打ち切り、止まらない読み取りを`Stop-Process`で終わらせる。結果は`surface-state-wait.out`と`meta.txt`の`surface_state_wait_*`に残す |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
 | 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
@@ -199,6 +375,236 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 Windowsでは、計測対象を利用者の画面のセッションで動かすため、スケジュールされたタスクを
 一度登録する。PresentMon（2.x）は計測機の`~/pen-latency/PresentMon.exe`に置く。
+PresentMonは、短い固定のセッション名`LibrePaintPenLatency`で、起動中のアプリのプロセスIDを
+対象に記録する。runnerは記録の前後に`logman`でそのセッションを止め、開始の有無、終了コード、
+CSVと標準エラー・標準出力の大きさを`meta.txt`に残す（セッションは同時に約64までで、回ごとに
+名前を変えると強制終了した回のセッションが残るため）。PresentMonが回の途中で止まることがある
+ので、`meta.txt`には終了コードに加えて、runnerが止める前にプロセスが終了していたか
+（`presentmon_exited_before_stop`）と開始・停止の時刻も残す。回ごとの`status.txt`はその回の
+ディレクトリーにも書く。`meta.txt`には、起動時と取り込み前のタイマーの分解能、最前面の窓、
+アプリの優先度と親和性も残す（L1（Windowsの約50msの遅れの原因の特定）で状態を決める要因を
+比べるため）。
+
+L1の仮説は、同じ版のまま環境変数で切り替える。変数がないときは通常の動作のままである。
+`scripts/perf/hosts.json`のWindowsの対象に`env`を書くと、`run.py`が`request.json`に載せ、
+`run-surface.ps1`がアプリの起動前に設定して`meta.txt`に`env.<名前>`として残す。
+
+| 変数 | 仮説 | 値 | 効果 |
+| --- | --- | --- | --- |
+| `LIBREPAINT_L1_MAX_FRAME_LATENCY` | H1（先積みのフレーム数） | 1〜3 | ANGLEのD3D11デバイスに`SetMaximumFrameLatency`を設定する。クライアントの拡張一覧（`eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS)`）とディスプレイの一覧を別々に調べ、EGLのデバイス（`EGL_EXT_device_query`の`EGL_DEVICE_EXT`）からD3D11デバイス（`EGL_ANGLE_device_d3d`の`EGL_D3D11_DEVICE_ANGLE`）を取る。拡張の有無、`eglQueryDisplayAttribEXT`と`eglQueryDeviceAttribEXT`の関数アドレス、拡張の判定にかかわらず呼び出した戻り値、EGLコンテキストとデバイスの取得、`IDXGIDevice1`の成否、設定のHRESULT、読み戻した値を`l1_h1_*`として時刻記録に残す。一覧の文字列は`probe.egl.txt`に1回だけ書く。`analyze.py`が`l1_h1 egl=… client_ext=… display_ext=… device_query=… entry=… display_attrib=… device_attrib=… device=… set=… readback=…`と出す |
+| `LIBREPAINT_L1_WAIT_FOR_GPU` | H2（表示待ちの歯止め） | 1 | 前のフレームのGPU完了を待ってから次を描く。待ちは更新の間引きの早期の戻りより前に置き、間引かれた描画でも待ちに入る。待ったかどうかにかかわらず判定を`l1_h2_state`に残し（extraのbit 1が切り替え、bit 2がフェンスの有無、bit 4が完了済み、bit 8が待った、bit 16が間引かれた描画）、待ったときは`gpu_wait_begin`/`gpu_wait_end`も出す（`gpu_wait_end`のextraは1が時間内の完了）。`analyze.py`が`l1_h2 n=… fence=… complete=… waited=… deferred=… wait_done=…`と出し、待ちの長さを`gpu_wait.duration`に出す |
+| `LIBREPAINT_L1_SWAP_INTERVAL` | H3（垂直同期） | 0または1 | サーフェスの交換間隔を上書きする |
+| `LIBREPAINT_L1_WINDOW_SIZE` | H4（1フレームのGPU負荷） | `幅x高さ` | 起動後の窓の大きさを変える。保存された配置が最大化または全画面なら、その状態を解いてから大きさを設定する |
+| `LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION` | H5（ホバーの間引き） | 1 | 10msの移動イベントの圧縮を通さない（`tabletEventsDelay=0`はkritarcで設定する） |
+| `LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE` | H6（フォークの更新の間引きの歯止め） | 1 | 前のフレームがGPU上でも描く。Qtの`QT_FRAME_COMPRESSION_MODE=2`も設定する。時刻記録に`last_frame_completed_on_gpu`/`qt_update_deferred`を出す |
+| `LIBREPAINT_L1_OPENGL_RENDERER` | H7（フォークなし・ANGLEを使わないOpenGL） | `desktop`/`angle`/`auto` | kritarcの`OpenGLRenderer`を上書きする。正式版Qtの版は別の構築で測る |
+| `LIBREPAINT_L1_TEXTURE_BUFFERS` | L2のCPUの原因（テクスチャーの転送） | `off`/`on` | `off`はPBOを使わず、ANGLEと同じ直接の`glTexSubImage2D`にする。`on`はANGLEでもPBOを使う（`KRITA_UNLOCK_TEXTURE_BUFFERS`と同じ効果を切り替えで行う）。実行した転送の方式を`l1_texture_buffers`（x=1がPBO、extra=切り替えの値+1）に1回残す |
+
+`LIBREPAINT_L1_WIDGETS_RHI`は、Qt 6の`QOpenGLWidget`がRHIの合成を前提にしているため削除した。0にするとコンテキストが初期化されず、キャンバスが描かれない（2026-11-11の`no-rhi`の回で`paintgl_begin`が0回、`frame_swapped`が17回、取り込みに線とホバーが写らなかった）。ウィジェットの合成の経路は、この版では切り替えられない。
+
+`LIBREPAINT_LATENCY_LOG`がある起動では、コンテキストとGPUオブジェクトの回数を`probe.csv`の印で数える。`gl_make_current`と`gl_done_current`はアプリが呼んだ回である。`gl_make_current`のextraは、bit 1が既にcurrent、bit 2がキャンバスのロック、bit 4が元のコンテキストへの復帰を表す。`gl_done_current`のextraは、bit 1が元のコンテキストがない場合の`doneCurrent`を表す。Qtの中の`makeCurrent`は印を置けないため、`paintgl_begin`を描画の1回、`canvas_about_to_compose`を合成の1回として数える。`gpu_texture_create`/`destroy`/`image`、`gpu_buffer_create`/`destroy`/`allocate`、`gpu_fbo_recreate`、`gpu_sync_create`/`destroy`は、GPUメモリーとオブジェクトの作成・破棄である。カラーセレクタは`color_selector_update`と`color_selector_paint`で数える。`analyze.py`は`gpu_objects`の1行に、フレーム数、フレームあたりの`make_current`と`done_current`の回数、内訳、GPUオブジェクトの回数を出す。
+
+`selectSurfaceConfig()`が選んだrendererと、最初のフレームの検査の結果と、印で飛ばしたrendererは、標準エラーに1行ずつ出し、`LIBREPAINT_LATENCY_LOG`の`probe.csv`にも`l1_renderer_selection`（x=選んだrenderer、y=候補の数、extraのbit 1が明示の選択）、`l1_renderer_skipped`（x=飛ばしたrenderer）、`l1_first_frame_check`（x=検査したrenderer、y=1が合格）として残す。`selectSurfaceConfig()`は`KisUsageLogger`の初期化より前に走るため、計測の起動ではsysinfoのログに残らない。WindowsのGUIのアプリはコンソールがないとQtのログをデバッガーに送るため、`LIBREPAINT_LATENCY_LOG`がある起動では`QT_FORCE_STDERR_LOGGING=1`を設定し、標準エラーを`app.err`に残す。`analyze.py`は`renderer_selection`の1行にまとめる。
+
+切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
+L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの
+`meta.txt`の`env.*`は、集計で回ごとの切り替えを確かめるために使う。計測の開始時に
+アプリが最前面でなく（`app_foreground_capture=False`）、合成入力の区間の`frame_swapped`
+が表示の間隔から見た回数の80%未満の回は、覆われた窓が間引かれて入力に追従していない。
+`capture_analyze.py`はこれを`presentation.ratio`と`excluded`に残し、`run.py`がすべての
+指標の集計から外して表に「left out」の数を出す。
+
+`hosts.json`のWindowsの対象には、`env`とは別に`kritarc`を書ける。値はkritarcの
+空のグループ（最初の`[Group]`より前）のキーで、L2（Windowsの遅れを直す）の
+`useMaximumFrameLatencyOne=false`のように隠し設定を回ごとに変えるために使う。
+`run.py`が`TARGET_KRITARC`に載せ、`run-surface.ps1`がアプリの起動前にキーを書き、
+`kritarc-before.txt`に元のファイルを控えて、アプリの終了後に必ず戻す。`meta.txt`には
+`kritarc_original.<キー>`（元の値、なければ`absent`）、`kritarc_override.<キー>`、
+`kritarc_restored`を残す。kritarcはWindowsの対象だけで使える。`meta.txt`には、復元の後に
+アプリがkritarcへ残した値（`kritarc_after.canvasState`、`kritarc_after.OpenGLRenderer`、
+`kritarc_after.useOpenGL`、`kritarc_after.useMaximumFrameLatencyOne`）と、アプリの標準出力・
+標準エラーの大きさ（`app_log_bytes`、`app_err_bytes`）も残す。アプリの標準出力と標準エラーは
+回のディレクトリーの`app.out`と`app.err`に取る。キャンバスが描き直されない回は、
+`canvasState`とアプリのログが、OpenGLの起動に失敗したのか更新の経路が止まったのかを分ける。
+回の前に実際に効いていた`[General]`の`newOutlineStyle`と`fpsLimit`は
+`kritarc_effective.<キー>`に残す（シナリオのkritarcはWindowsのrunnerが書かないため、
+想定ではなく実際の値を残す）。
+
+キャンバスの更新の経路は、時刻記録の次の印で追う。`outline_request`は輪郭の更新の要求、
+`outline_state`はその要求の終わりの状態（extraのbit 1が輪郭を持つ道具、bit 2がPaintOp
+プリセットがある、bit 4が輪郭の矩形が空でない、bit 8が前の輪郭の矩形が残っている、bit 16が
+色のプレビューの矩形がある）、`canvas_outline_doc`はキャンバスのウィジェットに切り取った後の
+矩形（x/yが幅と高さ、extraのbit 1が文書の矩形が空）、`canvas_outline_wdg`はキャンバスの
+ウィジェットの大きさ（x/y）と切り取りの結果（extraのbit 1が空、bit 2が可視）、
+`canvas_update_dispatch`と`canvas_update_issued`は`KisCanvas2`が更新を出した回
+（`canvas_update_issued`のx/yはウィジェットの大きさ、extraのbit 1は更新の矩形が空）、
+`canvas_widget_update_request`は`KisOpenGLCanvas2`が`QWidget::update`を呼んだ回
+（x/yが矩形、extraの1が画像、2が装飾）、`canvas_paint_event`はQtが届けた描画イベント
+（x/yが矩形、extraのbit 1が可視、bit 2が最小化、bit 4が前の`updateRect`が残っている）、
+`canvas_initialize_gl`と`canvas_resize_gl`はOpenGLのキャンバスの初期化と大きさの変更、
+`canvas_about_to_compose`はQtがバッキングストアの合成を始める前の時刻を表す。
+`analyze.py`はこれらを`canvas_path`の1行（回数とextraの内訳）にまとめる。
+`canvas_swap`は`paintgl_end`から`canvas_about_to_compose`まで（Qtの合成の準備）と、
+そこから`frame_swapped`まで（WindowsのdesktopのOpenGLではWGLの`SwapBuffers`、ANGLEでは
+EGLの交換）に分ける。desktopとANGLEのCPUの差が交換の前後どちらにあるかを読む。ストロークが始まらなかった回は、`stroke_begin`のextra
+（bit 1が編集できるノード、bit 2が描けるノード、bit 4がPaintOpプリセットがある）で、
+押下が届いていないのか、層が描けないのかを分ける。
+
+焦点とツールの状態は、次の印で追う。`qt_event`はFocusIn（x=1）、FocusOut（2）、
+TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButtonRelease（6）、
+Enter（7）、Leave（8）を記録し、yが有効なツールのモード（`KisTool::ToolMode`、ツールが
+なければ-1）、extraのbit 1がポインターがキャンバスの中にある、bit 2がマウスのイベントを
+抑止している、bit 4が`KisShortcutMatcher`がポインターの進入を見た（`cursorEntered()`）、
+bit 8がすべてのactionを外から抑止している、bit 16がポップアップが登録されていることを
+表す。TabletPressは、イベントを見た時点の行と、ポップアップの判定を越えて
+`buttonPressed()`を呼ぶ直前の行の2回を記録し、後の行のextraのbit 32が1になる。bit 32の
+行がない押下は、ショートカットの照合に届いていない。
+`outline_gate`は輪郭の要求ごとに、xが表示のズーム、yが実効の物理ズーム、extraのbit 1が
+輪郭を持つ道具、bit 2が`isOutlineEnabled()`、bit 4が`isOutlineVisible()`、bit 8が設定の
+輪郭の様式が見える、bit 16がホバーのモード、bit 32が描画のモード、bit 64が描画中に輪郭を
+出す設定、bit 128がジェスチャーのモードを表す。`tool_action`はツールのactionが有効（extra=1）
+または無効（0）になったことを、xに`KisTool::ToolAction`の値、yに有効なツールがあったかで
+残す。`analyze.py`はこれらを`focus_gate`の1行（`qt_event`の種類・モード・extraの内訳、
+bit 32の行の数、`outline_gate`のextraの内訳とズーム、`tool_action`のactionと有効・無効の数）
+にまとめる。
+
+`KisInputManager`は、キャンバスに届いたTabletPressをポインターが内側にある証明として扱い、
+`containsPointer`がfalseのときは`KisShortcutMatcher::enterEvent()`を呼んでから
+`buttonPressed()`を呼ぶ。Enterが正常に届いた回は`containsPointer`が既にtrueなので動作は
+変わらない。Enterを落とした回でも、押下から1回でツールのactionが戻る。この復帰はQ4（フォークを
+やめ、全プラットフォームで正式版の同じQtにする）の前段の実験で、正式版Qtで止まらないことを
+1セッション（10回）で確かめた後に削除する。
+`run-surface.ps1`は`PenInject.cs`が最初のサンプルの直前に取った最前面の窓
+（アプリでなければ`SetForegroundWindow`を1回やり直す）を`foreground_inject_start`として
+`meta.txt`に残し、`capture_analyze.py`が`foreground_inject`と`inject-foreground`に出す。
+これで、取り込みの開始時に最前面だったこと（`app_foreground_capture`）と、入力の直前にも
+最前面だったことを分けられる。取り込みを使う計測では`windows_capture.exe`が計画を独自に
+再生し`PenInject.cs`を通らないため、`run-surface.ps1`が`Invoke-Capture`の直前に最前面の窓を
+同じ形式で書き、取り込みを使わない計測では`PenInject.cs`の値を使う。
+
+回ごとの端末の状態は`surface_state.ps1`が記録する。記録は対象ごとに切り、既定は`light`とする
+（2026-11-11 05:04 の計測で、`on`の1秒ごとの WMI の採取が `% Processor Performance` を 42〜50% に下げ、
+採取側の WmiPrvSE が上位プロセスに毎秒現れたため）。`hosts.json`のWindowsの対象の
+`surface_state`で切り替え、`off`にすると記録しない。`on`は熱ゾーンの温度（`root/wmi`の
+`MSAcpi_ThermalZoneTemperature`の最大値）、`% Processor Performance`、全体のCPU使用率、
+CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中・計測の後に取る。`light`は
+`Get-Counter`を5秒ごとに1回呼び、CPU使用率と`% Processor Performance`だけを取る
+（温度と上位プロセスは計測の前後だけ）。カウンターのパスは、Perflib の英語（`009`）と
+現在の言語（`CurrentLanguage`）の同じ番号の名前から組み立てる。解決したパスは
+`surface-state.paths.txt`に残す。
+値は回のディレクトリーの`surface-state.csv`と`meta.txt`の`surface_state_*`に残す
+（`surface_state_mode`、`surface_state_during_max_temp_c`、
+`surface_state_during_min_processor_performance_pct`、
+`surface_state_during_max_total_cpu_pct`、`surface_state_during_mean_total_cpu_pct`、
+`surface_state_top_process`、計測の前後の値）。`on`のカウンターは言語に依存しない
+`Win32_PerfFormattedData_*`のクラスから取る。1秒ごとの採取は別の`powershell.exe`で動かす。
+`run.py`は同じ対象の並びで、中央値が前の回から10%以上変わった回、または
+`during_max_temp_c`が5℃以上、`during_min_processor_performance_pct`が10ポイント以上、
+`during_max_total_cpu_pct`が10ポイント以上変わった回に`marked:`の印を付け、
+`== environment changes`に並べる（判定は変えない）。
+
+CPUの比較では、`hosts.json`のWindowsの対象に`thread_cpu`を`on`と書くと、
+`thread_cpu.ps1`がアプリのプロセスとスレッドのCPU時間（`Process.TotalProcessorTime`と
+`ProcessThread.TotalProcessorTime`。WindowsのProcessとThreadの性能カウンターと同じ値）を
+500msごとに`threads.csv`へ書く。時刻はQueryPerformanceCounterで、`inject.csv`と同じ時計である。
+`thread_cpu.py`が合成入力の区間の前後で補間し、スレッドごとのCPU時間、プロセスの合計、
+GUIスレッド（`main_thread`）と描画スレッド（`paintgl_thread`）の時間、待ちの理由の回数を出す。
+`analyze.py`は`thread_cpu`の1行を出し、`run.py`は`== thread CPU (input interval)`に
+対象ごとの中央値を出す。既定は`off`で、CPUの比較の両方の対象だけ`on`にする。
+
+電力の比較では、`hosts.json`のWindowsの対象に`power`を`on`と書くと、`power.ps1`が
+アプリの起動前から終了後まで、`Win32_Battery`の`EstimatedChargeRemaining`、
+`BatteryStatus`、`EstimatedRunTime`と、`root\wmi`の`BatteryStatus`が使える場合は
+`RemainingCapacity`（mWh）、`DischargeRate`（mW）、`PowerOnline`、`Charging`、
+`Discharging`を1秒ごとに`power.csv`へ書く。時刻はQueryPerformanceCounterで、
+`inject.csv`と同じ時計である。`power.py`が合成入力の区間の
+平均の放電の速さ（`rate_mw`）と放電量（`energy_mwh` = `rate_mw` × 区間の秒 ÷ 3600）を出し、
+残量の差（`remaining_mwh_delta`）と残量%の差（`charge_pct_delta`）も併記する。
+`root\wmi`が使えない回は残量%と`BatteryStatus`だけで、`rate_mw`と`energy_mwh`は出さない。
+`meta.txt`の`power_ac`は、`PowerOnline`が真、`Charging`が真、または`BatteryStatus`が
+2（AC）か6〜9（充電中）のサンプルが1つでもあったとき1になる。`run.py`は`power_ac=1`の回を
+電力の中央値から外し、`== battery power (input interval)`に外した回数を出す。既定は`off`で、
+電力の比較の両方の対象だけ`on`にする。
+
+電池だけで測るときの手順は次のとおり。
+
+1. SurfaceのACを外し、電池だけで動かす。`power_ac=1`の回は集計から外れるため、ACの回と
+   混ぜない。開始は充電100%前後とし、80%を切ったら止めて、その旨を記録する。
+2. 画面の明るさ、表示（2736×1824@59）、起動するアプリ、`kritarc`を回の間で変えない。
+   ほかのアプリを閉じ、`surface_state_wait`（既定`on`）で`% Processor Performance`が
+   75%以上を2回続けるまで待ってから始める。
+3. 比べる2つの対象の`hosts.json`に`power: "on"`を書き、同じセッションの中で交互に
+   各5回測る。回ごとの放電量のばらつきが5%以上なら、各10回まで増やす。
+4. `analyze.py`の`power`の1行（`rate` mW、`discharged` mWh）と、`run.py`の
+   `== battery power (input interval)`の中央値で比べる。ACの回、`power.csv`のない回、
+   `rate_mw`のない回は比べない。
+
+SRUM（`powercfg /srumutil`）は、アプリごとのエネルギー推定を一定の長い区間（分〜時の粒度）で
+記録するため、1回の入力区間（約33秒）の前後差として切り出せず、実行中の変化も追えない。
+この計測では使わず、`power.csv`の1秒ごとの放電の速さを主にする。`EstimatedRunTime`は
+分単位で粗く、`EstimatedChargeRemaining`は1%刻みなので、どちらも補助にだけ使う。
+
+各回の起動前には、`surface_state.ps1`の待ち（`-WaitForProcessorPerformance`）で
+`% Processor Performance`が75以上を2回続けて示すまで待つ（5秒ごとに1回、最大120秒。
+既定で有効）。読み取りは言語に依存しない`Win32_PerfFormattedData_Counters_ProcessorInformation`
+から行う。待ちは`run-surface.ps1`が別の`powershell.exe`で動かし、120秒に15秒を足した
+実時間で止まらなければそのプロセスを終了する。2026-11-11の最初の待ちでは、呼び出しが
+必須だった`-Out`を渡していなかったため、隠れたコンソールがパラメーターの入力待ちで止まり、
+120秒の打ち切りまで届かなかった（runnerは36分進まなかった）。`-Out`は待ちでは不要にし、
+呼び出しでも渡す。1回の読み取りが返らない場合にも備え、待ちをrunnerと同じプロセスで
+動かさない。2026-11-11の`q4-cpu`では、
+回によって`% Processor Performance`が42〜50%に落ち、同じ設定の回でも遅れが比較できなかった。
+待ちの有無は`hosts.json`のWindowsの対象の`surface_state_wait`で切り、`off`のときは待たない
+（待ちの効果を測る比較用）。待った結果は`meta.txt`の`surface_state_wait`（`ready`/`timeout`/`unavailable`/`off`）、
+`surface_state_wait_seconds`、`surface_state_wait_min_pct`、`surface_state_wait_source`
+（`wmi`）、`surface_state_wait_timed_out`（親が打ち切ったとき`process`）に残し、`run.py`は
+`== device recovery waits`に回数を出す。計測中の最小が70%未満だった回は、`run.py`が
+`== device state below 70% (left out)`に回の名前と値で並べ、集計から外して表に
+`N run(s) left out: processor performance below 70% during the run`と出す
+（`surface_state`が`off`の回は値がないため、この判定をしない）。`surface-state.csv`の
+`processor_performance_pct`が0以下の値は読み取りの失敗として扱い、最小値から除く
+（2026-11-11 08:54:44の回は55回中1回が0で、181と180の間、全体のCPU使用率は14%だった）。
+失敗した読み取りがあった回は集計に残し、`run.py`は`== device state readings missing (kept)`に
+回の名前と失敗した回数、表に`N run(s) with a failed processor performance reading (kept)`と出す。
+
+描画の周期は`paint_cycle`の1行で追う。`paint_interval`は`paintgl_begin`の間隔（4ms未満、
+8ms未満、12ms未満、16ms未満、16ms以上の内訳付き）、`present_interval`はPresentMonの
+`TimeInQPC`の間隔、`display_period_ms`は表示の変化の間隔の中央値である。`paint/display`と
+`present/display`は、表示の変化1回あたりに描画と受け渡しが何回あったかを表す。
+`phase`は、直前の表示の変化から`paintgl_begin`までの時間を表示の周期で割った値で、
+`concentration`（0が一様、1が同じ位相）と10個の区間のヒストグラムを添える。
+`present_modes`はPresentMonの表示方式の回数、`until_displayed`は`MsUntilDisplayed`の分布である。
+`gpu_time`はPresentMonの`MsGPUTime`、`gpu_busy`は`MsGPUBusy`の分布で、どちらも入力の種類
+（hover/contact）ごとに出す。L2の「CPUと電力を悪化させない」条件では、CPUは`counters.csv`の
+プロセスの`% Processor Time`、GPUは`gpu_time`と`gpu_busy`、受け渡しの間隔は`present_interval`を
+回ごとの中央値で比べる。
+
+表示の正しさ（L2（Windowsの遅れを直す）の前段）は、試験画像
+`build/perf/l2-display-check.png`をLibrePaintで開き、100%と400%の画面を
+`windows_capture.exe --snapshot-frame`で取り込んで、元の画像と比べる。
+
+```sh
+# Surfaceへ送るのは run-remote.sh が行う。DISPLAY_CHECK_IMAGEはSurface上のパス
+CAPTURE_TOOL=/path/windows_capture.exe \
+TARGET_DISPLAY_CHECK='{"image":"C:\\Users\\masato\\pen-latency\\l2-display-check.png"}' \
+  scripts/perf/pen-latency/run-remote.sh <host> LibrePaint 1 '<LibrePaint.exeのパス>' <出力先>
+# 取り込んだ display-100.bmp / display-400.bmp を比べる（開発機）
+scripts/perf/pen-latency/display_check.py <出力先>/<回> --image build/perf/l2-display-check.png
+```
+
+`run-surface.ps1`は窓を最大化し、Ctrl+0で100%にし、Ctrl+=を4回送って400%にする
+（`krita_default.shortcuts`の`zoom_to_100pct`と`view_zoom_in`）。ズームは画像の中央を
+保つので、100%と400%のどちらも画像の中央が画面の中央に来る。`meta.txt`に
+`display_check_foreground_100/400`、`display_check_window=maximized`、
+`display_check_anchor=image-center`を残す。
+
+`display_check.py`は、画面全体の取り込みから、元の画像の色（色の帯、グレーの段、
+線の格子）が続く矩形をキャンバスとして見つけ、その中だけを比べる。見つからない場合は
+画面全体を比べる。倍率は線の幅から求め、線が見えない場合はグレーの段か色の帯の幅から
+求める。色の帯とグレーの段の差が8bitで8階調以下、1pxの線が残る（線の幅が元の画素の
+0.5〜2.5倍、コントラストが128以上、遷移が8回以上）、隣り合う色の遷移の幅が
+`max(2, 倍率×1.5)`px以下であることを合格とする。100%と400%の両方が合格したときだけ
+終了コードは0になる。
 
 ```sh
 # 計測機で一度だけ（管理者のPowerShell）
@@ -213,6 +619,7 @@ scripts/perf/pen-latency/analyze.py <出力先>/LibrePaint-*
 LinuxとmacOSでは、計測対象を毎回新しいホームと設定で起動し、終了させる。
 macOSでは`CFFIXED_USER_HOME`で利用者の設定を変えずに起動し、開発シェルの変数は渡さない。
 macOSの取り込みと入力には、実行する端末アプリへ画面収録とアクセシビリティの許可が必要。
+取り込みは計測対象アプリのウィンドウだけを対象にし（`macos_capture --window-pid`）、画面全体は取り込まない。
 
 ```sh
 # Linux（デスクトップにログインしたセッションで）
@@ -222,18 +629,44 @@ MACOS_CAPTURE=/path/macos_capture \
   scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
 ```
 
+`run-linux.sh`と`run-macos.sh`は、既定のkritarcを空のグループ（最初の`[Group]`より前）に
+書く。LibrePaintの`KisConfig`と`KisImageConfig`は`KConfigGroup::group(QString())`を読むため、
+`[General]`に書いた`newOutlineStyle`、`fpsLimit`、`newCursorStyle`は効かない（2026-11-09以前の
+Linuxの計測はこの状態で、設定は既定のままだった）。`run.py`はシナリオの`General`のキーを
+空のグループのキーとして書き出す。
+
 複数の機器と対象をまとめて計測するときは、`scripts/perf/run.py`を使う。シナリオ
 （`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、ばらつきの上限、悪化と判定する差を定め、
 手元の機器の設定（`scripts/perf/hosts.example.json`を写した`build/perf/hosts.json`。Git の管理外）が
 各機器への入り方、対象の起動方法、取り込みの補正値を定める。各回で対象を交互に1回ずつ測り、
 集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
 すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
+シナリオの`rest_seconds`（既定0）は、Windowsの対象の回と回の間の休みの秒数である。各回の後
+（失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、失敗せず、
+計測中の`% Processor Performance`が70%を下回らなかった回（比較に使える回）がシナリオの
+`runs`に達するまで、対象ごとに回を足す。足せる回は対象ごとに`runs`回まで（合計は最大2倍）で、
+値のない回は使える回と数える。
 
 ```sh
 scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
   --label <名前> [--only windows,linux] [--baseline <前回の集計.json>] [--summary docs/perf/results/<名前>.json]
 scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果のディレクトリー>
 ```
+
+計測と自動の確認は、実行のたびに`build/perf/events.log`へ出来事を1行ずつ追記する
+（`run.py`と`check.py`の`--events`で変える）。行は「時刻（ISO 8601、秒まで）<TAB>種類<TAB>ラベル<TAB>対象<TAB>回<TAB>詳細」で、
+1行を書くたびにファイルを閉じる（`tail -F`で追える）。種類は`run-start`（計測の組の開始）、
+`target-start`、`target-done`（成功。詳細に状態とホバー・インクの中央値）、`target-failed`
+（詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`rest`（回と回の間の
+休みの開始。詳細に秒数）、`step`（自動の確認の
+手順の開始と終了。詳細に手順の名前）、`step-timeout`、`run-done`（終了コード）である。
+同じ対象で、同じ理由（`status.txt`の最後の行の`failed: `から後ろ）の失敗が2回続いたら、
+`run.py`はその対象の残りの回を回さずに`target-abandoned`を書き、ほかの対象は続ける。
+すべての対象を打ち切ったら計測の組を終える。自動の確認の各手順は、`run-surface.ps1`が
+600秒の見張りとは別に上限を持つ（クリップボード60秒、タブ60秒、日本語配列60秒、ちらつき180秒、
+ペンの各項目120秒）。上限を超えた手順は`status.txt`に`step <名前> end timeout`と記録し、
+アプリを止めずに次の手順へ進む（設定の画面が開いたままなら閉じる）。`run-remote.sh`は実行中に
+`status.txt`の新しい行を`status: <行>`として返し、`check.py`が`step`の行を`events.log`に写す。
 
 判定の規則：
 
@@ -243,6 +676,112 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 - OSをまたぐ比較は、絶対値よりも同じ回の参照アプリとの差で行う。
 - 合成入力はOSの入力の入口から始まるため、ペンのハードウェアからOSまでの遅れは含まない。
   この区間は、`PenProbe.cs`で報告レートを数値として記録する。
+- Windowsのホバーは、起動ごとに約56msと約63msの2つの状態に分かれる（L1（Windowsの約50msの
+  遅れの原因の特定））。`capture_analyze.py`が各回を`hover.frame_to_arrival`の中央値と
+  `rate.qt_tablet_move_interval`のp05で`low`/`high`/`unknown`に分け、`run.py`はホバーの
+  比較を状態ごとに行う。インクは全回でまとめる。状態の境目は2026-11-09の20回の値
+  （低い状態 11.2msと3.0〜3.3ms、高い状態 9.6〜9.8msと0.5〜2.0ms）で決めた。
+- Windowsの対象は`presentmon`を`"off"`にするとPresentMonなしで測れる（既定は`on`）。
+  PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。CSVはあるが
+  `TimeInQPC`の範囲が合成入力の期間の95%未満しか覆っていない回は`PresentMon=partial`と出し、
+  同じく内訳の比較から外す（`run.py`の表には`present`/`partial`/`none`の回数を出す）。
+- 速さの比較には`pen-light-speed-0p5.json`、`pen-light-speed-1p5.json`、
+  `pen-light-speed-3p0.json`を使う。軌跡と設定は`pen-light.json`と同じで、`speed`だけが違う。
+  `pen-light-speed-varied.json`は1本の線の中で速さを変える（前半を遅くして後半を一気に速くする線と、
+  速いまま急に止める線を交互に置く）。`trajectory.py`の`speed_profiles`が、線の距離の割合
+  （`until`）ごとに速さと`label`を指定する。`capture_analyze.py`は`label`を`move`で始まる
+  フェーズとして1本の線にまとめ、位置から入力の時刻を求める。
+- `capture_analyze.py`はインクのフレームを、その位置を通ったときのポインターの速さ
+  （px/ms）で`ink.speed_groups`に分ける。各群に入力から表示までの時間と、ペン先と線の端の
+  距離（`ink.pen_tip_to_edge_px`。取り込みの画素で、速さ×遅れ）を出す。速さが2倍以上または
+  半分以下に変わり、それが続く箇所を`ink.speed_change`とし、変わった直後の80msの最大の遅れ、
+  その後の安定した遅れ、安定した値に戻るまでの時間（`settle_ms`、3サンプル連続で
+  安定値+max(3ms, 10%)以下）を出す。`run.py`は回をまたいで速さごとの中央値とばらつきを
+  「ink speed groups」に出す。80msと250msの窓は、半本を3.0で描く時間（約167ms）に収まる
+  解析上の値である。
+- `capture_analyze.py`と`analyze.py`は、ペン先と表示された線の端の距離を`l2p`の指標として出す。
+  フレームの時刻のペン先の位置は`inject.csv`の注入の位置と時刻から補間し、線の端は
+  `capture.csv`の`dense_xmax`から校正のオフセットを引いて求める。`l2p.signed_gap_px`は
+  正が線の端がペン先より後ろ（遅れが残る）、負が前（予測の行き過ぎ）を表す。
+  `l2p.signed_gap_ms`はフレームの時刻を挟む注入の2点から求めた速さで割り、0.2px/ms未満の
+  フレームはpxだけを出す。`l2p.residual_px`と`l2p.overshoot_px`は符号を分けた距離である。
+  `l2p.speed_groups`はフレームの時刻の速さごとの中央値とP95、`l2p.speed_change`は速さが
+  変わった直後の80msの窓の距離を出す。
+- 注入の2点の間隔が、その線の通常の間隔の半分未満に縮むことがある（送信が遅れた後に
+  取り戻すとき）。位置は1サンプル分進むため、その対だけの速さは軌跡の何倍にもなる
+  （0.9px/msの回で18.14px/ms、2026-11-11 08:47）。`capture_analyze.py`は、間隔が縮んだ対の
+  速さを、通常の間隔に最も近い近くの対から取る。通過の時刻は実際の対から求める。
+- ストロークの待ち行列の遅れは、`stroke_paint`（点を待ち行列に入れた時刻）と`stroke_dab`
+  （ストロークの処理がペイントデバイスに dab を描いた時刻）の組で測る。`analyze.py`は
+  先入れ先出しで組にし、`contact.stroke_paint_to_dab`と、待ち行列に入れた時点の
+  ポインターの速さごとの`contact.stroke_paint_to_dab_speed`を出す。`stroke_queue`に
+  記録と組の数を出す。`stroke_dab`は`libs/painting/strokes/freehand_stroke.cpp`が
+  `maskedPainter`の描画の後に記録する。
+
+Wintabの対応範囲の差し替えは、正式版Qtがパケットを常に仮想デスクトップ全体に当てはめる
+ため、`KisWintabPacketPeeker`が`WTPacketsPeek`で読んだ位置を`lcSysOrg`/`lcSysExt`（設定が
+仮想画面全体なら仮想デスクトップ、任意の矩形ならその矩形）で計算し直し、
+`KisInputManager`が同じ時刻の`QTabletEvent`の位置だけを差し替える。Wintabの時刻は
+1msの分解能なので、同じ時刻のパケットは届いた順に1つずつ使う。近接の最初の押下では、
+計算した位置と`QCursor::pos()`の差を`KisWintabTrust`が求め、2pxを超えるときはその近接の
+間は差し替えない（`docs/perf/q4-wintab-prior-art.md`）。Qtを更新したときは、実物のペンで
+次を確かめる。
+
+1. `LIBREPAINT_LATENCY_LOG`を出力先に設定し、タブレットの設定でWintabを選んで起動する
+   （`kritadisplayrc`の`useWin8PointerInput=false`）。Windows Inkのままでは`WT_PACKET`が
+   届かず、差し替えの経路を通らない。
+2. `probe.csv`に`wintab_peek`（x=補正の有無、y=読んだパケット数）が出ることを確かめる。
+3. ペンを近づけて動かし、`probe.csv`に`wintab_fix`（x=差し替えた、y=一致するパケットが
+   なかった）が出ることを確かめる。出ないときはQtのパケットの並び（`lcPktData`）か
+   イベントの時刻が変わっている。
+4. 押下のたびに`wintab_trust`（x=1が信頼する、0が信頼しない、y=差の画素×10）が出ることを
+   確かめる。0の近接では位置がQtのままになる。
+5. 対応範囲を「任意の矩形」にして画面の左半分を指定し、タブレットの全面を使って線を引いた
+   ときに、線が画面の左半分に収まることを確かめる。線が画面の全面に広がるときは、差し替えが
+   効いていない。
+6. 確かめた後に、起動の設定と`kritadisplayrc`を元に戻す。
+
+### 自動の確認（Q4の段ごとのE2E）
+
+Q4（フォークをやめ、全プラットフォームで正式版の同じQtにする）の段ごとの確認は、Surfaceで
+1つの入口から回す自動の確認で行う。`scripts/perf/check.py`が`run.py`と同じ`hosts.json`の
+Windowsの対象を使い、`run-remote.sh`と`run-surface.ps1`で次の項目を順に実行する。判定は
+Linux開発機で証拠のファイルから行い、`checks.json`に項目ごとの`pass`／`fail`と根拠の
+パスを残す。
+
+```sh
+# Mac（計測機）。Windowsの対象はq4-e2e-stage3、q4-e2e-stage10、q4-e2e-fork。
+./scripts/run-shared-test-env python3 scripts/perf/check.py \
+  --scenario scripts/perf/scenarios/q4-e2e.json \
+  --hosts build/perf/hosts.json --label q4-e2e --only windows
+# 集め終わった結果を読み直す
+python3 scripts/perf/check.py --scenario scripts/perf/scenarios/q4-e2e.json \
+  --hosts build/perf/hosts.json --analyze-only build/perf/q4-e2e-<日時>
+```
+
+`windows_capture.exe`は`--monitor`を持つ版を使う（枠の変更中のフレームを`flicker.csv`へ
+書く）。ビルドはファイル先頭の手順のとおりで、`--snapshot`と`--plan`の動作は変えない。
+Surfaceへは`run-remote.sh`が`run-surface.ps1`、`Q4Check.cs`、`PenInject.cs`、
+`windows_capture.exe`を写す。
+
+| 項目 | すること | 合格の条件 | 根拠 |
+| --- | --- | --- | --- |
+| クリップボード | 透明を含む96×64の画像を開き、Ctrl+A、Ctrl+Cの後に`EnumClipboardFormats`で形式を数える | `PNG`（`image/png`を含む）があり、`CF_DIB`、`CF_DIBV5`、`CF_BITMAP`がない。クリップボードのPNGを復号した画素が元と8bitで1階調以内（透明の画素はアルファも1階調以内） | `clipboard-formats.txt`、`clipboard-png.png`、`clipboard-source.png` |
+| タブの題名 | 名前の違う画像を2つ開き、Ctrl+Tabで往復する | 最初と戻した後の`GetWindowText`に文書Aの名前、切り替えた後に文書Bの名前があり、前後で題名が変わる | `tabs.txt` |
+| 日本語配列 | `LoadKeyboardLayout("00000411")`を読み、窓へ`WM_INPUTLANGCHANGEREQUEST`を送り、`SendInput`でCtrl+Tabを送る | 配列を読み込め、題名が切り替わり、キーを離した後の`GetKeyState`でCtrl、Alt、Shift、Winが押下のまま残らない | `keyboard.txt` |
+| ちらつき | `windows_capture --monitor`の間に対象の窓を数回`SetWindowPos`で変え、設定のダイアログを開いて閉じる | 真っ白なフレームと、大きさが変わったのに画面が更新されていないフレームの数が、同じ実行のフォーク版より`allowance`（真っ白2、更新なし2）を超えて多くない | `flicker.csv`、`flicker-log.txt`、`dialog.txt` |
+| ペン（段2・段3） | 合成ペンで、キャンバスの出入り、縁をまたぐ線、1本の線、長押し、点、タイトルバーと枠からの戻り、起動直後の線を行う | 出入りで輪郭が出て消える。縁をまたぐ線が1回のストロークで右端まで写る。1本の線が1本に写る。長押しで`#32768`などのメニューの窓が出ず、押下が線になる。点が1つ。戻りでカーソルと輪郭が戻る。起動直後の線が描かれる | `pen/`の`probe.csv`、`pen-events.txt`、`actions.txt`、`*.bmp`、`popups.txt`、`cursors.txt`、`first/` |
+
+`flicker.csv`の列は、フレームの時刻、窓のクライアント矩形、矩形が前のフレームから変わったか、
+最初のキャンバス矩形の中の白い画素の割合、暗い画素の数、クライアント矩形の中で前のフレームから
+変わった画素の割合、古い矩形のうち新しい矩形の外側で変わらなかった画素の割合である。真っ白は
+`canvas_white_ratio`が0.98以上で暗い画素が20以下、更新なしは矩形が変わったフレームで
+`changed_ratio`が0.002以下とする。数値はフォーク版との相対で決め、絶対の上限は置かない。
+
+合成入力で再現できない項目（実物のペンの近接、指のタッチ、2本指のズームとパン）は
+`checks.json`の`not_reproducible`に残し、Q4の最後に実機で確かめる。`run-surface.ps1`の
+確認の分岐は`request.json`の`check`があるときだけ通り、通常の計測の動作を変えない。
+`Q4Check.cs`は証拠を集めるだけで判定をせず、`check.py`がWindowsなしで判定を試験できる。
 
 ## デスクトップ
 
@@ -379,6 +918,42 @@ nix build .#librepaint-windows-archive
 アプリ出力は`result/bin/LibrePaint.exe`を含む可搬ディレクトリー。
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
+
+増分構築では、依存は`windows-dependencies`の構築結果を再利用し、`krita`ターゲットで
+`krita.dll`と`libkrita*.dll`だけを作り直す。
+
+```sh
+nix build .#windows-dependencies --no-link
+systemd-run --user --unit=librepaint-win-configure --collect --wait \
+  --working-directory "$PWD" \
+  bash -lc './scripts/build-incremental windows configure'
+systemd-run --user --unit=librepaint-win-build --collect --wait \
+  --working-directory "$PWD" \
+  bash -lc 'CMAKE_BUILD_PARALLEL_LEVEL=5 ./scripts/build-incremental windows build krita'
+./scripts/build-incremental windows path
+```
+
+構築の前に、ほかの構築や`verify`が動いていないことを確かめる。
+
+```sh
+systemctl --user list-units "q*" "librepaint-*" "l1-*" "l2-*" "win-*" --no-legend
+```
+
+構築は1本のsystemdのuser unitで動かし、終了を待ってから次を始める。
+
+構成指紋はQtの定義、CMakeフラグ、ソース準備から作られ、ソース配置とNinja木は
+`build/windows/x86_64/<構成指紋>/`に置く。コンパイラーキャッシュは
+`.cache/librepaint/ccache/windows`を共有する。初回だけ`configure`が
+ソース配置とCMake構成を作り、以後は`build krita`が変更された翻訳単位とDLLだけを更新する。
+`nix/windows`を変えたときは新しい木が作られる。
+
+Windowsは正式版Qtだけを使う。Qtの定義は`nix/windows/krita.nix`の`qt`
+（nixpkgsの`qt6Packages`のMinGW交差構築）を使う。依存だけの出力
+`windows-dependencies`は、Qt・KDE Frameworks・コーデックをアプリの束ねから分けて
+構築する。中断しても、完了した依存はストアに残り、`librepaint-windows-archive`の
+再実行はその続きから進む。正式版QtにはANGLEがないため、desktopのOpenGLだけを使う。
+HDR（`setTextureColorSpace`）は正式版にないAPIなので、`HAVE_HDR`を強制せず、
+CMakeの検出結果に任せる。
 
 パッケージ構築は`scripts/platform/audit-windows-package.py`を実行し、全PEファイルが
 x86_64であること、DLLのベース名が一意であること、各インポートが同梱DLLまたは
@@ -872,6 +1447,151 @@ Xcode／SDK／Clangの版ごとに分離する。署名の認証情報はロー�
 `packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete`は、
 旧GCルートを解放し、**Nixストア全体のごみ収集**後に集約依存物を再構築する。
 全レシピが固定・コミット済みで、削除範囲への承認を得た保守時に使う。
+
+### 再構築の範囲
+
+Nixは派生物の入力のハッシュで再構築を決める。入力にファイルを含む派生物は、そのファイルを使わなくても、
+編集のたびに変わる。Krita本体のコンパイルはLinuxで約100分、Windowsで約85分かかるため、編集の種類ごとに
+再構築される派生物を定め、次の3種類の検査で守る。
+
+派生物は、プラットフォーム（Linux、Windows、Android、macOS、iOS）ごとに4区分に分ける。
+
+| 区分 | 内容 | 入力 |
+| --- | --- | --- |
+| コンパイル | Krita本体をコンパイルして導入する。Linuxは`librepaint-linux-unwrapped`、Windowsは`librepaint-windows-unwrapped`、Androidは`librepaint-android-native`（ABIごと）、macOSは`librepaint-macos-unwrapped`、iOSは`krita-ios-app` | プラットフォーム別の構築用ソースと依存 |
+| パッケージ化 | コンパイルの出力を配布物にする。Linuxのラッパーと AppImage、WindowsのZIP、AndroidのAPKとAAB、macOSのバンドル、iOSのIPA | コンパイルの出力と、各プラットフォームの組み立て定義 |
+| 依存 | Qt、KDE Frameworks、サードパーティーライブラリー | 依存の定義と`flake.lock`。構築用ソースを含まない |
+| 開発シェル | `nix develop`の環境 | 依存の定義。構築用ソースを含まない |
+
+構築用のソース（`flake.nix`の`mkLibrepaintBuildSource`）は許可リスト方式で作る。全プラットフォーム共通で
+`3rdparty_vendor`、`CMakeLists.txt`、`COPYING*`、`LICENSES`、`cmake`、`krita`、`libs`、`pch`、`pics`、
+`plugins`、`po`、`qmlmodules`、`sdk`を含め、プラットフォーム別に次を足す。リストにないファイルは、新規に追加しても
+どのコンパイルの入力にもならない。コンパイルが読むファイルを増やすときは、`flake.nix`の
+`*BuildSourceEntries`へ足し、`scripts/rebuild-scope.json`に代表の編集を足す。
+
+| プラットフォーム | 追加する入力 |
+| --- | --- |
+| Linux、Android | なし |
+| Windows | `winquirks` |
+| macOS | `packaging/macos/LibrePaint.icns` |
+| iOS | `packaging/ios/manifests`と`packaging/ios/notices`のうちCMakeが導入する7ファイル |
+
+名前が`tests`、`autotests`、`benchmarks`のディレクトリーは、全プラットフォームの構築用ソースから除く。製品の構築は
+`BUILD_TESTING=OFF`で動くため、CMakeは`if(BUILD_TESTING)`の中でだけこれらのディレクトリーを読む。
+`add_subdirectory`、製品ライブラリーのソース一覧、試験用マクロの呼び出しが、この条件の外でテストのパスを
+読むことはない。Androidの配布物の検査（`scripts/platform/audit-android-package`）とiOSの静的資源の検査
+（`packaging/ios/scripts/audit-static-dependency-resources.py`）は、構築用ソースと別の`lib.fileset`から読む。
+
+編集の種類ごとの再構築範囲を次に示す。表の外の派生物は変わらない。検査用の`governance`派生物は`scripts/`と`docs/`を含む
+方針用のソースを使うため、すべての編集で変わる。表は`scripts/rebuild-scope.json`から生成する
+（`python3 scripts/check-rebuild-scope.py --render-table`）。
+
+<!-- rebuild-scope:begin -->
+| 編集の種類 | 代表の編集 | 再構築される派生物 |
+| --- | --- | --- |
+| Krita 本体のソース | `libs/image/kis_image.cc` | 全プラットフォームのコンパイル、全プラットフォームのパッケージ化 |
+| テストのヘッダー | `sdk/tests/simpletest.h` | なし |
+| テストのコード | `libs/resources/ui/tests/TestResourceUiContract.cpp` | なし |
+| テストの CMake 定義 | `libs/image/tests/CMakeLists.txt` | なし |
+| ベンチマーク | `benchmarks/kis_stroke_benchmark.cpp` | なし |
+| 文書 | `docs/architecture/DEVELOPMENT.md` | なし |
+| README | `README.md` | なし |
+| リポジトリー管理の道具 | `scripts/verify-quick` | なし |
+| scripts/ の新しいファイル | `scripts/rebuild-scope-probe.sh` | なし |
+| リポジトリー直下の新しいファイル | `rebuild-scope-probe.txt` | なし |
+| CMake のプリセット | `CMakePresets.json` | なし |
+| 整形の設定 | `.clang-format` | なし |
+| flake.nix のコメント | `flake.nix` | なし |
+| AppImage の組み立ての道具 | `packaging/linux/appimage/build-image.sh` | なし |
+| macOS の配備の道具 | `packaging/macos/macos-deploy.py` | なし |
+| Android の試験実行器 | `packaging/android/testrunner/CMakeLists.txt` | なし |
+| iOS の構築と配備の道具 | `packaging/ios/scripts/build-smoke.sh` | なし |
+| Android の APK の定義 | `packaging/android/apk/build.gradle` | Androidのパッケージ化 |
+| Windows のインストーラーの定義 | `packaging/windows/installer/installer_krita.nsi` | なし |
+| iOS が同梱する権利表示 | `packaging/ios/manifests/non-code-licenses.md` | iOSのコンパイル、iOSのパッケージ化 |
+| iOS の静的資源の検査 | `packaging/ios/scripts/audit-static-dependency-resources.py` | iOSのコンパイル、iOSのパッケージ化 |
+| AppImage の検査 | `scripts/platform/audit-linux-appimage.py` | Linuxのパッケージ化 |
+| AppImage の RPATH 整理 | `scripts/platform/clean-appimage-rpaths.py` | Linuxのパッケージ化 |
+| Windows の配布物の検査 | `scripts/platform/audit-windows-package.py` | Windowsのパッケージ化 |
+| Android の配布物の検査 | `scripts/platform/audit-android-package` | Androidのパッケージ化 |
+| AppImage の組み立ての定義 | `nix/linux/appimage.nix` | Linuxのパッケージ化 |
+| Windows の ZIP の組み立ての定義 | `nix/windows/default.nix` | Windowsのパッケージ化 |
+| Android の APK の組み立ての定義 | `nix/android/default.nix` | Androidのパッケージ化 |
+| iOS の IPA の組み立ての定義 | `nix/ios/ipa.nix` | iOSのパッケージ化 |
+| macOS のバンドルの組み立ての定義 | `nix/macos/krita.nix` | macOSのパッケージ化 |
+| Linux のコンパイルの定義 | `nix/linux/krita.nix` | Linuxのコンパイル、Linuxのパッケージ化 |
+| macOS のコンパイルの定義 | `nix/macos/krita.nix` | macOSのコンパイル、macOSのパッケージ化 |
+| Linux の開発シェルの定義 | `nix/linux/default.nix` | Linuxの開発シェル |
+| テストのディレクトリーの新しいファイル | `libs/image/tests/rebuild_scope_probe.cpp` | なし |
+| リポジトリー直下の新しいディレクトリー | `rebuild-scope-probe/probe.txt` | なし |
+| 内容の変わらないコミット（コミットの識別子と日時だけが違う） | なし | なし |
+<!-- rebuild-scope:end -->
+
+表のうち、次の結合は現在の構造から生じる。Windowsのインストーラー定義（`packaging/windows/installer`）は、CMakeのオプション`KRITA_INSTALL_NSIS_INSTALLER`を切ったWindowsの構築が読まないため、コンパイルの入力にならない。
+
+- `packaging/ios/scripts/audit-static-dependency-resources.py`は、iOSのアプリ派生物の`postInstallCheck`が実行する。IPAの派生物へ移すには、Xcodeのツールチェーンを`__impureHostDeps`で渡す必要がある。
+- Krita本体のソースの中にある、プラットフォーム専用のディレクトリー（`libs/macosutils`など）と、`krita/data`・`po`・`pics`のデータは、コンパイルと同じ派生物に導入されるため、編集すると全プラットフォームのコンパイルが変わる。これらの残余は[#119](https://github.com/serika12345/librepaint/issues/119)で扱う。
+
+検査は次の3種類で、編集の対象に応じて実行する。
+
+```sh
+python3 scripts/check-test-gating.py              # テストを読むCMake定義の静的検査（verify-quick）
+python3 scripts/check-test-gating.py --configure  # 構築用のLinuxソースをBUILD_TESTING=OFFで構成（verify）
+python3 scripts/check-rebuild-scope.py            # 代表の編集ごとにdrvPathを比べる（verify）
+```
+
+`check-rebuild-scope.py`は、HEADの上に一時インデックスで編集を適用した使い捨てのコミットを作り、`git+file://…?rev=<コミット>`の
+Flakeを評価する。参照、ブランチ、作業ツリーは変わらない。未コミットの作業ツリーは評価しない。作業ツリーの評価では
+`.gitattributes`の改行変換（`*.bat`はCRLF）で`packaging/android/apk/gradlew.bat`の内容が変わり、結果が正しくならない。
+評価1回ごとにリポジトリー全体の複製（約0.5GiB）がNixストアにできる。`--probe <名前>`で探針を絞り、`--jobs`で並列数を変える。
+構築は行わず、`nix build`の前に評価だけで再構築範囲を確かめられる。
+
+### 依存の検査
+
+構築の前に、依存の版の整合とキャッシュの利用を派生物のグラフだけで検査する。
+検査は構築を行わない。規則と許可一覧は `nix/dependency-policy.json` が正本。
+
+```sh
+python3 scripts/platform/check-nix-deps.py --platform all
+python3 scripts/platform/check-nix-deps.py --platform windows --json build/nix-deps.json
+```
+
+`--platform` は `linux`、`macos`、`windows`、`android`、`ios`、`all`（既定）。
+`--save-graph` は取得したグラフを `<platform>-<n>.json` として保存し、
+`--graph-dir` はそのディレクトリを読んで取得を省く。
+`--cache-snapshot` は `{"<ハッシュ32文字>": true/false}` の JSON をキャッシュの代わりに使い、
+`--save-cache-snapshot` は照会の結果を保存する。
+`--json` は表示と同じ内容を JSON に書く。
+
+出力はプラットフォームごとに、手元構築の件数（own、small、target、host）、
+キャッシュの件数、host の違反、件数の超過、許可の警告、未使用の許可、判定不能、
+版の違反と警告を並べ、最後に`結果: 合格`または
+`結果: 不合格（host の違反 N 件、版の違反 M 件、件数の超過 K 件）`を出す。
+終了コードは合格 0、違反 1、取得・設定・ネットワーク・グラフの誤り 2。
+`--platform all` は 1 つのプラットフォームが失敗しても残りを検査し、最後に 2 で終わる。
+
+許可一覧に項目を足すのは、キャッシュに無い構築機側の派生物を、許可した理由と
+除去条件を説明できる場合に限る。`match` はハッシュと`.drv`を除いた名前を小文字にした
+文字列への`re.search`の正規表現とし、`^`と`$`は項目側に書く。
+原因をまだ特定していないものは`provisional: true`を付け、暫定の許可だけに当たる
+派生物は警告として表示され、失敗にはならない。原因を特定したら`provisional`を外すか
+項目を削除する。対象側の派生物は`target_patterns`で数え、許可一覧には入れない。
+未使用の許可は出力に現れるため、不要になった項目は削除する。
+
+`local_build_limits`は、プラットフォームごとに、手元で構築する`target`（対象側）と
+`host`（構築機側）の派生物の件数の上限を持つ。無駄な手元構築が増えたことを検出するための
+値であり、`own`と`small`には上限を付けない。件数が上限を超えると`件数の超過`として
+表示し、終了コード1で失敗する。上限が書かれていないプラットフォームや種別は検査しない。
+上限を超えたときは、原則として依存を減らす。必要な増加なら、
+`docs/architecture/DEPENDENCIES.md`に根拠を書き、`docs/perf/DECISIONS.md`に理由を1行
+書いてから、`nix/dependency-policy.json`の上限を上げる。依存を減らして件数が下がった
+ときは、上限を新しい値に下げる。
+
+検査の単体試験は次のコマンドで動かす。
+
+```sh
+python3 -m unittest discover -s scripts/tests -p "test_check_nix_deps.py"
+```
 
 ### Ninjaの依存記録の修復
 

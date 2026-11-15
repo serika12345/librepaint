@@ -106,6 +106,8 @@ class TestInputShortcutMatcher : public QObject
 private Q_SLOTS:
     void replaysMouseStroke();
     void cancelsIncompleteMouseStrokeOnFocusLoss();
+    void recoversPressWhenEnterWasMissed();
+    void restoresHoverAfterConfirmedLeave();
     void restoresInputActionMask();
     void dispatchesAtomicKeyAndWheelActionsWithSuppressions();
     void synchronizesAndReinitializesModifierState();
@@ -214,6 +216,115 @@ void TestInputShortcutMatcher::cancelsIncompleteMouseStrokeOnFocusLoss()
     QVERIFY(!matcher.hasRunningShortcut());
     QCOMPARE(action.events.count(QStringLiteral("end")), 1);
     QCOMPARE(action.events.count(QStringLiteral("deactivate:7")), 1);
+}
+
+void TestInputShortcutMatcher::recoversPressWhenEnterWasMissed()
+{
+    // A tablet press that reaches the canvas proves the pointer is inside it.
+    // Qt can drop the Enter event, then the matcher suppresses the Tool
+    // Invocation action and the canvas stops accepting strokes (2026-11-11:
+    // 2 of 8 official Qt Windows runs). KisInputManager now calls
+    // enterEvent() before the press when it never saw the pointer enter.
+    RecordingInputAction action;
+    KisShortcutMatcher matcher;
+    matcher.addShortcut(createStrokeShortcut(&action));
+
+    QVERIFY(!matcher.cursorEntered());
+    QVERIFY(!matcher.suppressAllActions());
+
+    QMouseEvent press(QEvent::MouseButtonPress,
+                      QPointF(10.0, 20.0),
+                      QPointF(10.0, 20.0),
+                      QPointF(10.0, 20.0),
+                      Qt::LeftButton,
+                      Qt::LeftButton,
+                      Qt::ShiftModifier);
+    QMouseEvent release(QEvent::MouseButtonRelease,
+                        QPointF(10.0, 20.0),
+                        QPointF(10.0, 20.0),
+                        QPointF(10.0, 20.0),
+                        Qt::LeftButton,
+                        Qt::NoButton,
+                        Qt::ShiftModifier);
+
+    QVERIFY(!matcher.keyPressed(Qt::Key_Shift));
+    QVERIFY(!matcher.buttonPressed(Qt::LeftButton, &press));
+    QVERIFY(!matcher.hasRunningShortcut());
+    QCOMPARE(action.events.count(QStringLiteral("begin:7")), 0);
+    QVERIFY(!matcher.buttonReleased(Qt::LeftButton, &release));
+
+    // The recovery KisInputManager performs when containsPointer is false.
+    matcher.enterEvent();
+    QVERIFY(matcher.cursorEntered());
+
+    QMouseEvent hover(QEvent::MouseMove,
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      Qt::NoButton,
+                      Qt::NoButton,
+                      Qt::ShiftModifier);
+    QVERIFY(!matcher.pointerMoved(&hover));
+    QVERIFY(matcher.cursorEntered());
+
+    QVERIFY(matcher.buttonPressed(Qt::LeftButton, &press));
+    QVERIFY(matcher.hasRunningShortcut());
+    QCOMPARE(action.events.count(QStringLiteral("begin:7")), 1);
+    QVERIFY(matcher.buttonReleased(Qt::LeftButton, &release));
+    QVERIFY(!matcher.hasRunningShortcut());
+
+    // A real leave ends the synthesized hover; the recovery does not pin the
+    // canvas entered until focus loss.
+    matcher.leaveEvent();
+    QVERIFY(!matcher.cursorEntered());
+    QVERIFY(!matcher.buttonPressed(Qt::LeftButton, &press));
+
+    matcher.suppressAllActions(true);
+    QVERIFY(matcher.suppressAllActions());
+    matcher.suppressAllActions(false);
+    QVERIFY(!matcher.suppressAllActions());
+    QVERIFY(!matcher.keyReleased(Qt::Key_Shift));
+}
+
+void TestInputShortcutMatcher::restoresHoverAfterConfirmedLeave()
+{
+    // Q4 stage 1 (2026-11-11 12:13, runs 121350 and 121939): Qt sent a Leave
+    // just after the Enter, the tool action stayed deactivated, and the hover
+    // outline was never drawn for the rest of the pass. The canvas guard
+    // ignores that Leave while the pointer is still inside; if a Leave is
+    // confirmed anyway, the next tablet move synthesizes Enter. The hover
+    // action must come back without waiting for a press.
+    RecordingInputAction action;
+    KisShortcutMatcher matcher;
+    matcher.addShortcut(createStrokeShortcut(&action));
+
+    matcher.enterEvent();
+    QVERIFY(!matcher.keyPressed(Qt::Key_Shift));
+    matcher.toolHasBeenActivated();
+    QCOMPARE(action.events, QStringList({QStringLiteral("activate:7")}));
+
+    matcher.leaveEvent();
+    QVERIFY(!matcher.cursorEntered());
+    QCOMPARE(action.events,
+             QStringList({QStringLiteral("activate:7"), QStringLiteral("deactivate:7")}));
+
+    // KisInputManager::synthesizeCanvasEnter() from the next TabletMove.
+    matcher.enterEvent();
+    QVERIFY(matcher.cursorEntered());
+    matcher.toolHasBeenActivated();
+    QCOMPARE(action.events,
+             QStringList({QStringLiteral("activate:7"), QStringLiteral("deactivate:7"),
+                          QStringLiteral("activate:7")}));
+
+    QMouseEvent hover(QEvent::MouseMove,
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      QPointF(11.0, 22.0),
+                      Qt::NoButton,
+                      Qt::NoButton,
+                      Qt::ShiftModifier);
+    QVERIFY(!matcher.pointerMoved(&hover));
+    QVERIFY(matcher.cursorEntered());
 }
 
 void TestInputShortcutMatcher::restoresInputActionMask()

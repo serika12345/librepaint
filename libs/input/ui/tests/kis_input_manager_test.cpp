@@ -427,6 +427,49 @@ void KisInputManagerTest::testMouseMoves()
     m.leaveEvent();
 }
 
+void KisInputManagerTest::testMoveEventCompressionDecision()
+{
+    KisShortcutMatcher m;
+    m.enterEvent();
+
+    TestingAction *a = new TestingAction();
+
+    m.addShortcut(
+        createStrokeShortcut(a, 13,
+                             QSet<Qt::Key>(),
+                             Qt::LeftButton));
+
+    QMouseEvent moveEvent(QEvent::MouseMove, QPoint(),
+                          Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent pressEvent(QEvent::MouseButtonPress, QPoint(),
+                           Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+
+    // Hover: no action is running, so every move must reach the canvas
+    // immediately. This is H5 (hover event decimation) removed by default.
+    QVERIFY(!m.hasRunningShortcut());
+    QVERIFY(!m.supportsHiResInputEvents());
+    QVERIFY(!m.compressesMoveEvents());
+
+    // A running action that does not consume hi-res input keeps the
+    // compression that Krita added for BUG:327581.
+    QVERIFY(m.buttonPressed(Qt::LeftButton, &pressEvent));
+    QVERIFY(m.hasRunningShortcut());
+    QVERIFY(!m.supportsHiResInputEvents());
+    QVERIFY(m.compressesMoveEvents());
+    QVERIFY(m.buttonReleased(Qt::LeftButton, &moveEvent));
+    QVERIFY(!m.compressesMoveEvents());
+
+    // Freehand painting consumes hi-res input, so its moves are already
+    // dispatched directly; the ink path is unchanged.
+    a->setHighResInputEvents(true);
+    QVERIFY(m.buttonPressed(Qt::LeftButton, &pressEvent));
+    QVERIFY(m.supportsHiResInputEvents());
+    QVERIFY(!m.compressesMoveEvents());
+    QVERIFY(m.buttonReleased(Qt::LeftButton, &moveEvent));
+
+    m.leaveEvent();
+}
+
 void KisInputManagerTest::testSuppressionEventNormalization()
 {
     using Event = KisInputEventSuppressor::Event;
@@ -539,6 +582,228 @@ void KisInputManagerTest::testSuppressionEventNormalization()
 }
 
 #include <input/ui/wintab/kis_incremental_average.h>
+#include <input/ui/kis_canvas_enter_leave_guard.h>
+#include <input/ui/wintab/KisWintabMapping.h>
+#include <input/ui/wintab/KisWintabPacketPeeker.h>
+
+#include <QTabletEvent>
+
+namespace
+{
+
+class FakeWintabApi : public KisWintabApi
+{
+public:
+    KisWintabApi::Context context;
+    QVector<KisWintabApi::Packet> packets;
+    int peekCalls = 0;
+
+    bool getContext(quintptr contextHandle,
+                    KisWintabApi::Context *data) override
+    {
+        Q_UNUSED(contextHandle);
+        *data = context;
+        return true;
+    }
+
+    int packetsPeek(quintptr contextHandle,
+                    KisWintabApi::Packet *out,
+                    int maxPackets) override
+    {
+        Q_UNUSED(contextHandle);
+        ++peekCalls;
+        const int count = qMin(maxPackets, packets.size());
+        for (int i = 0; i < count; ++i) {
+            out[i] = packets.at(i);
+        }
+        return count;
+    }
+};
+
+} // namespace
+
+void KisInputManagerTest::testWintabPacketCorrection()
+{
+    using Mode = KisWintabMapping::Mode;
+
+    const Mode savedMode = KisWintabMapping::configuredMode();
+    const QRect savedRect = KisWintabMapping::configuredCustomRect();
+
+    // The settings page maps the tablet to the left half of a 1000x500
+    // native desktop. The packet position (250, 125) is the centre of it.
+    KisWintabMapping::setConfiguredMode(Mode::Custom, QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context.packetData = KisWintabPacketPeeker::PacketData;
+    api.context.inExtX = 1000;
+    api.context.inExtY = 500;
+    api.context.sysExtX = 1000;
+    api.context.sysExtY = 500;
+    api.packets = {KisWintabApi::Packet{250, 125, 777}};
+
+    KisWintabPacketPeeker peeker(&api);
+
+    KisWintabMapping::Screen screen;
+    screen.nativeRect = QRect(0, 0, 1000, 500);
+    screen.logicalRect = QRect(0, 0, 1000, 500);
+    screen.devicePixelRatio = 1.0;
+    peeker.setScreensForTesting({screen});
+
+    QVERIFY(peeker.handleNativeMessage(
+        KisWintabPacketPeeker::PacketMessage, 0, 1));
+    QCOMPARE(api.peekCalls, 1);
+
+    QTabletEvent event(QEvent::TabletMove,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::ShiftModifier, Qt::NoButton, Qt::NoButton);
+    event.setTimestamp(777);
+
+    const std::unique_ptr<QTabletEvent> corrected =
+        peeker.correctedTabletEvent(event, QPointF());
+    QVERIFY(corrected);
+
+    // The packet maps to (125, 62.5) in logical pixels. Only the position
+    // and the global position change.
+    QCOMPARE(corrected->globalPosition(), QPointF(125, 62.5));
+    QCOMPARE(corrected->position(), QPointF(25, -37.5));
+    QCOMPARE(corrected->pressure(), 0.5);
+    QCOMPARE(corrected->xTilt(), 1.0);
+    QCOMPARE(corrected->yTilt(), -2.0);
+    QCOMPARE(corrected->tangentialPressure(), 0.25);
+    QCOMPARE(corrected->rotation(), 10.0);
+    QCOMPARE(corrected->modifiers(), Qt::ShiftModifier);
+    QCOMPARE(corrected->timestamp(), quint64(777));
+
+    // No packet with this time: the event stays as it is.
+    event.setTimestamp(778);
+    QVERIFY(!peeker.correctedTabletEvent(event, QPointF()));
+    QCOMPARE(event.position(), QPointF(40, 60));
+    QCOMPARE(event.globalPosition(), QPointF(140, 160));
+
+    KisWintabMapping::setConfiguredMode(savedMode, savedRect);
+}
+
+void KisInputManagerTest::testWintabTrustRejectsCorrection()
+{
+    using Mode = KisWintabMapping::Mode;
+
+    const Mode savedMode = KisWintabMapping::configuredMode();
+    const QRect savedRect = KisWintabMapping::configuredCustomRect();
+
+    // The settings page maps the tablet to the left half of a 1000x500
+    // native desktop. Every packet maps to (125, 62.5).
+    KisWintabMapping::setConfiguredMode(Mode::Custom, QRect(0, 0, 500, 250));
+
+    FakeWintabApi api;
+    api.context.packetData = KisWintabPacketPeeker::PacketData;
+    api.context.inExtX = 1000;
+    api.context.inExtY = 500;
+    api.context.sysExtX = 1000;
+    api.context.sysExtY = 500;
+    api.packets = {
+        KisWintabApi::Packet{250, 125, 900},
+        KisWintabApi::Packet{250, 125, 901},
+        KisWintabApi::Packet{250, 125, 902},
+        KisWintabApi::Packet{250, 125, 903}
+    };
+
+    KisWintabPacketPeeker peeker(&api);
+
+    KisWintabMapping::Screen screen;
+    screen.nativeRect = QRect(0, 0, 1000, 500);
+    screen.logicalRect = QRect(0, 0, 1000, 500);
+    screen.devicePixelRatio = 1.0;
+    peeker.setScreensForTesting({screen});
+
+    QVERIFY(peeker.handleNativeMessage(
+        KisWintabPacketPeeker::PacketMessage, 0, 1));
+
+    // The hover before the first press is still undecided and is corrected.
+    QTabletEvent hover(QEvent::TabletMove,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    hover.setTimestamp(900);
+    const std::unique_ptr<QTabletEvent> correctedHover =
+        peeker.correctedTabletEvent(hover, QPointF(125, 65.0));
+    QVERIFY(correctedHover);
+    QCOMPARE(correctedHover->globalPosition(), QPointF(125, 62.5));
+
+    // The first press maps 2.5 px away from the cursor: the driver's range
+    // is not trusted and the Qt position stays.
+    QTabletEvent press(QEvent::TabletPress,
+                       QPointingDevice::primaryPointingDevice(),
+                       QPointF(40, 60), QPointF(140, 160),
+                       0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                       Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    press.setTimestamp(901);
+    QVERIFY(!peeker.correctedTabletEvent(press, QPointF(125, 65.0)));
+
+    // The rest of the proximity keeps the Qt position.
+    QTabletEvent move(QEvent::TabletMove,
+                      QPointingDevice::primaryPointingDevice(),
+                      QPointF(40, 60), QPointF(140, 160),
+                      0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                      Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    move.setTimestamp(902);
+    QVERIFY(!peeker.correctedTabletEvent(move, QPointF(125, 62.5)));
+
+    // A new proximity is undecided and corrects again.
+    peeker.beginProximity();
+    QTabletEvent nextProximityMove(QEvent::TabletMove,
+                                   QPointingDevice::primaryPointingDevice(),
+                                   QPointF(40, 60), QPointF(140, 160),
+                                   0.5, 1.0f, -2.0f, 0.25f, 10.0, 0.0f,
+                                   Qt::NoModifier, Qt::NoButton, Qt::NoButton);
+    nextProximityMove.setTimestamp(902);
+    const std::unique_ptr<QTabletEvent> correctedNext =
+        peeker.correctedTabletEvent(nextProximityMove, QPointF(125, 62.5));
+    QVERIFY(correctedNext);
+    QCOMPARE(correctedNext->globalPosition(), QPointF(125, 62.5));
+
+    KisWintabMapping::setConfiguredMode(savedMode, savedRect);
+}
+
+
+void KisInputManagerTest::testCanvasLeaveGuard()
+{
+    using KisInputManagerDetail::CanvasLeaveAction;
+    using KisInputManagerDetail::CanvasPointerState;
+    using KisInputManagerDetail::canvasLeaveAction;
+    using KisInputManagerDetail::confirmLeaveAfterProximity;
+
+    // A spurious Leave while the cursor is still over the canvas must not end
+    // the hover (Qt sends one when the stylus enters, df3a678309, and after a
+    // touch sequence, c132390390).
+    QVERIFY(canvasLeaveAction(CanvasPointerState{}, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(CanvasPointerState{}, false) == CanvasLeaveAction::Confirm);
+
+    CanvasPointerState tabletNear;
+    tabletNear.tabletInProximity = true;
+    QVERIFY(canvasLeaveAction(tabletNear, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(tabletNear, false) == CanvasLeaveAction::Confirm);
+
+    // A pressed stylus keeps the canvas entered even if the cursor position
+    // is not inside it yet.
+    CanvasPointerState pressed;
+    pressed.tabletInProximity = true;
+    pressed.tabletPressed = true;
+    QVERIFY(canvasLeaveAction(pressed, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(pressed, false) == CanvasLeaveAction::Ignore);
+
+    // Fingers still on the screen keep the canvas entered.
+    CanvasPointerState touching;
+    touching.touchActive = true;
+    QVERIFY(canvasLeaveAction(touching, true) == CanvasLeaveAction::Ignore);
+    QVERIFY(canvasLeaveAction(touching, false) == CanvasLeaveAction::Ignore);
+
+    // When the tablet leaves proximity, confirm only if the cursor is outside.
+    QVERIFY(!confirmLeaveAfterProximity(true));
+    QVERIFY(confirmLeaveAfterProximity(false));
+}
 
 void KisInputManagerTest::testIncrementalAverage()
 {

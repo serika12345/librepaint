@@ -63,6 +63,15 @@ public:
     void suppressNextLeftMousePress();
     void setSuppressSyntheticMouseEvents(bool value);
 
+    /**
+     * Keep mouse events out while the tablet is in proximity. Wintab sends
+     * OS-level mouse events that are not marked as synthesized, so the state,
+     * not QMouseEvent::source(), decides. Q4 stage 2 experiment; the stage 11
+     * removal of the L1 switches drops it together with this state.
+     */
+    void setTabletInProximity(bool value);
+    bool isTabletInProximity() const;
+
     void startBlockingTouchEvents();
     void stopBlockingTouchEvents();
 
@@ -70,6 +79,7 @@ private:
     bool m_blockMouseEvents {false};
     bool m_suppressNextLeftMousePress {false};
     bool m_suppressSyntheticMouseEvents {false};
+    bool m_tabletInProximity {false};
     bool m_blockTouchEvents {false};
     const bool m_useSecondaryButtonsWorkaround;
     const bool m_supportsSyntheticMouseSuppression;

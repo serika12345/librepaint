@@ -44,6 +44,8 @@
 
 #include <klocalizedstring.h>
 
+#include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include <KisRepaintDebugger.h>
 #include <KisUsageLogger.h>
 #include <kis_assert.h>
@@ -52,11 +54,11 @@
 
 #include <color/KisSurfaceColorSpaceWrapper.h>
 #include "KisOpenGLModeProber.h"
+#include "KisOpenGLStartupCheck.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
 #include "opengl/kis_opengl.h"
 
-#include <config-hdr.h>
 #include <config-use-surface-color-management-api.h>
 #include <utility>
 #include <vector>
@@ -313,6 +315,22 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
 
     const bool isDebugEnabled = ctx->format().testOption(QSurfaceFormat::DebugContext);
 
+    // One line per process: renderer, swap interval and the L2 CPU switch
+    // that can change the upload path. It lets a run state which path it
+    // measured without reading the environment again.
+    {
+        const int textureSwitch = KisL1Switches::textureBuffers();
+        qint64 flags = 0;
+        if (hasOpenGLES()) flags |= 1;
+        if (forceDisableTextureBuffers()) flags |= 2;
+        if (textureSwitch == 0) flags |= 4;
+        if (textureSwitch == 1) flags |= 8;
+        KisLatencyProbe::mark("l1_render_path",
+                              static_cast<qint64>(getCurrentOpenGLRenderer()),
+                              static_cast<qint64>(ctx->format().swapInterval()),
+                              flags);
+    }
+
     dbgUI << "OpenGL: Opening new context";
     if (isDebugEnabled) {
         // Passing ctx for ownership management only, not specifying context.
@@ -353,6 +371,39 @@ void KisOpenGL::initializeContext(QOpenGLContext *ctx)
     } else {
         qWarning() << "Could not open" << log.fileName() << "for writing:" << log.errorString();
     }
+
+#ifdef Q_OS_WIN
+    // L2 condition 2: after the context is up, confirm that this renderer can
+    // compile a shader, draw offscreen and read the pixels back. A failure is
+    // written to kritadisplayrc and the next launch skips this renderer.
+    // See KisOpenGLStartupCheck.h and docs/perf/l2-renderer-choice.md.
+    static bool firstFrameChecked = false;
+    if (!firstFrameChecked) {
+        firstFrameChecked = true;
+
+        const QString rendererName =
+            KisOpenGL::convertOpenGLRendererToConfig(KisOpenGL::getCurrentOpenGLRenderer());
+        QString failureReason;
+        const bool passed =
+            KisOpenGLStartupCheck::verifyFirstFrameOnCurrentContext(rendererName, &failureReason);
+        const QString line =
+            KisOpenGLStartupCheck::firstFrameCheckLogLine(rendererName, passed, failureReason);
+        if (passed) {
+            qInfo().noquote() << line;
+        } else {
+            qWarning().noquote() << line;
+        }
+        KisLatencyProbe::mark("l1_first_frame_check",
+                              static_cast<double>(KisOpenGL::getCurrentOpenGLRenderer()),
+                              passed ? 1.0 : 0.0,
+                              0);
+        if (!passed) {
+            const QString message = line;
+            warnUI << message;
+            KisUsageLogger::writeSysInfo(message + QStringLiteral("\n"));
+        }
+    }
+#endif
 }
 
 const QString &KisOpenGL::getDebugText()
@@ -425,7 +476,24 @@ bool KisOpenGL::forceDisableTextureBuffers()
 bool KisOpenGL::shouldUseTextureBuffers(bool userPreference)
 {
     initialize();
-    return !g_forceDisableTextureBuffers && userPreference;
+
+    // L2 CPU cause: LIBREPAINT_L1_TEXTURE_BUFFERS=off compares the desktop
+    // path with the unbuffered uploads that ANGLE uses; =on lifts the ANGLE
+    // default and enables the PBO path there. -1 keeps the renderer default.
+    // The switch is for the measurement only; KisL1Switches.h owns the
+    // removal condition.
+    const int switched = KisL1Switches::textureBuffers();
+    const bool effective = switched == 0 ? false :
+                           switched == 1 ? true :
+                           (!g_forceDisableTextureBuffers && userPreference);
+
+    static bool marked = false;
+    if (!marked) {
+        marked = true;
+        KisLatencyProbe::mark("l1_texture_buffers", effective ? 1 : 0, 0,
+                              switched + 1);
+    }
+    return effective;
 }
 
 bool KisOpenGL::useTextureBufferInvalidation()
@@ -810,13 +878,8 @@ public:
 
 private:
     bool isHDRFormat(const QSurfaceFormat &f) const {
-#ifdef HAVE_HDR
-        return f.colorSpace() == KisSurfaceColorSpaceWrapper::makeBt2020PQColorSpace() ||
-            f.colorSpace() == KisSurfaceColorSpaceWrapper::makeSCRGBColorSpace();
-#else
         Q_UNUSED(f);
         return false;
-#endif
     }
 
     bool isFallbackOnly(KisOpenGL::OpenGLRenderer r) const {
@@ -836,12 +899,7 @@ private:
     }
 
     bool doPreferHDR() const {
-#ifdef HAVE_HDR
-        return m_preferredColorSpace == KisSurfaceColorSpaceWrapper::bt2020PQColorSpace ||
-            m_preferredColorSpace == KisSurfaceColorSpaceWrapper::scRGBColorSpace;
-#else
         return false;
-#endif
     }
 
     bool isPreferredColorSpace(const QSurfaceFormat & surfaceFormat) const {
@@ -879,9 +937,13 @@ struct DetectionDebug : public QDebug
 KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRenderer preferredRenderer,
                                                          KisConfig::RootSurfaceFormat preferredRootSurfaceFormat,
                                                          KisConfig::CanvasSurfaceBitDepthMode preferredCanvasSurfaceBitMode,
-                                                         bool enableDebug)
+                                                         bool enableDebug,
+                                                         bool userForcedRenderer)
 {
     QVector<KLocalizedString> warningMessages;
+
+    QStringList candidateRendererNames;
+    QStringList skippedRendererNames;
 
     using Info = boost::optional<KisOpenGLModeProber::Result>;
 
@@ -917,15 +979,7 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
                                  false);
 #endif
 
-#if defined HAVE_HDR
-    std::vector<std::pair<KisSurfaceColorSpaceWrapper, int>> formatSymbolPairs(
-        {
-            // TODO: check if we can use real sRGB space here
-            {KisSurfaceColorSpaceWrapper::DefaultColorSpace, 8},
-            {KisSurfaceColorSpaceWrapper::scRGBColorSpace, 16},
-            {KisSurfaceColorSpaceWrapper::bt2020PQColorSpace, 10}
-        });
-#elif KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
+#if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
     std::vector<std::pair<KisSurfaceColorSpaceWrapper, int>> formatSymbolPairs(
         {
             {KisSurfaceColorSpaceWrapper::DefaultColorSpace, 8},
@@ -1022,15 +1076,8 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
     FormatPositionLess compareOp;
     compareOp.setPreferredRendererByQt(preferredAutoRenderer);
 
-#ifdef HAVE_HDR
-    compareOp.setPreferredColorSpace(
-        preferredRootSurfaceFormat == KisConfig::BT709_G22 ? KisSurfaceColorSpaceWrapper::sRGBColorSpace :
-        preferredRootSurfaceFormat == KisConfig::BT709_G10 ? KisSurfaceColorSpaceWrapper::scRGBColorSpace :
-        KisSurfaceColorSpaceWrapper::bt2020PQColorSpace);
-#else
     Q_UNUSED(preferredRootSurfaceFormat);
     compareOp.setPreferredColorSpace(KisSurfaceColorSpaceWrapper::sRGBColorSpace);
-#endif
 
 #ifdef Q_OS_WIN
     compareOp.setPreferredRendererByHDR(KisOpenGL::RendererOpenGLES);
@@ -1081,6 +1128,45 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
             supportedRenderers |= it.key();
         }
     }
+
+#ifdef Q_OS_WIN
+    // L2 condition 2: a renderer whose first frame check failed in an earlier
+    // launch is left out here, so the next candidate is chosen instead. An
+    // explicit choice in kritadisplayrc ignores the marks: that is the way
+    // back when the mark is stale. See KisOpenGLStartupCheck.h.
+    {
+        for (auto it = renderersToTest.constBegin(); it != renderersToTest.constEnd(); ++it) {
+            candidateRendererNames << convertOpenGLRendererToConfig(it.key());
+        }
+        candidateRendererNames.sort();
+
+        const QStringList keptNames =
+            KisOpenGLStartupCheck::renderersToTry(candidateRendererNames, !userForcedRenderer);
+
+        for (auto it = renderersToTest.begin(); it != renderersToTest.end();) {
+            const QString name = convertOpenGLRendererToConfig(it.key());
+            if (!keptNames.contains(name)) {
+                dbgOpenGL << "Skipping" << name
+                          << "because its first frame check failed in an earlier launch";
+                skippedRendererNames << name;
+                it = renderersToTest.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        skippedRendererNames.sort();
+
+        // The fallback config must not point at a skipped renderer either.
+        if (!renderersToTest.contains(defaultRenderer)) {
+            defaultConfig = generateSurfaceConfig(renderersToTest.constBegin().key(),
+                                                  makeDefaultSurfaceFormatPair(),
+                                                  false,
+                                                  shouldInhibitCompatibilityProfile);
+        }
+    }
+#else
+    Q_UNUSED(userForcedRenderer);
+#endif
 
     OpenGLRenderer preferredByQt = preferredAutoRenderer;
 
@@ -1171,6 +1257,33 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
 
     overrideSupportedRenderers(supportedRenderers, preferredByQt);
     overrideOpenGLWarningString(warningMessages);
+
+    // The usage logger is initialized after the renderer choice, so on a
+    // measurement launch its lines never reach app.err. Write the choice as
+    // one line on stderr and as a latency log marker instead; the contract
+    // test covers the text.
+    {
+        const QString chosenName =
+            preferredRenderer == RendererNone
+                ? QStringLiteral("none")
+                : convertOpenGLRendererToConfig(resultConfig.rendererId());
+        qInfo().noquote()
+            << KisOpenGLStartupCheck::rendererSelectionLogLine(chosenName,
+                                                               candidateRendererNames,
+                                                               skippedRendererNames);
+        if (preferredRenderer != RendererNone) {
+            KisLatencyProbe::mark("l1_renderer_selection",
+                                  static_cast<double>(resultConfig.rendererId()),
+                                  static_cast<double>(candidateRendererNames.size()),
+                                  userForcedRenderer ? 1 : 0);
+            Q_FOREACH (const QString &name, skippedRendererNames) {
+                KisLatencyProbe::mark("l1_renderer_skipped",
+                                      static_cast<double>(convertConfigToOpenGLRenderer(name)),
+                                      0.0,
+                                      0);
+            }
+        }
+    }
 
     return resultConfig;
 }

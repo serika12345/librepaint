@@ -445,6 +445,14 @@ kis_add_test(
 target_compile_definitions(KisLatencyProbeContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisL1SwitchesContractTest.cpp
+    LINK_LIBRARIES
+        kritagloballatencyl1switches
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisL1SwitchesContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisSignalCompressorContractTest.cpp
     LINK_LIBRARIES
         kritaglobalsignalcompressorobjects

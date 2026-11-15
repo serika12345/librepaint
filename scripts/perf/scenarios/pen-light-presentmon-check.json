@@ -1,0 +1,24 @@
+{
+  "name": "pen-light-presentmon-check",
+  "description": "Two runs of the same light-load trajectory to check that PresentMon records a CSV for every run on Windows (L1 tool check). Not a state or version comparison.",
+  "trajectory": {
+    "hover_passes": 8,
+    "strokes": 6,
+    "speed": 0.5,
+    "dwell": 0.3,
+    "rate": 240.0,
+    "margin": 0.1
+  },
+  "kritarc": {
+    "General": {
+      "newOutlineStyle": "2",
+      "fpsLimit": "100"
+    }
+  },
+  "runs": 2,
+  "spread_limit": 0.05,
+  "metrics": {
+    "hover.input_to_capture": {"regression_ms": 2.0},
+    "ink.input_to_capture": {"regression_ms": 2.0}
+  }
+}

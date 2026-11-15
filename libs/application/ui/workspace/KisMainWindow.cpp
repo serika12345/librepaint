@@ -28,8 +28,10 @@
 #include <QMutexLocker>
 #include <QPointer>
 #include <KoUpdater.h>
+#include <KisL1Switches.h>
 #include <KisSignalMapper.h>
 #include <QTabBar>
+#include <QTimer>
 #include <QMoveEvent>
 #include <QUrl>
 #include <QMessageBox>
@@ -188,14 +190,9 @@
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"
 #include "KisWidgetConnectionUtils.h"
-#include <config-qmdiarea-always-show-subwindow-title.h>
-#include <config-qt-patches-present.h>
 
 #include <mutex>
 
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-#include <canvas/KisAndroidScaling.h>
-#endif
 
 class ToolDockerFactory : public KoDockFactoryBase
 {
@@ -247,9 +244,6 @@ public:
         mdiArea->setActivationOrder(QMdiArea::ActivationHistoryOrder);
         mdiArea->setDocumentMode(true);
         mdiArea->setOption(QMdiArea::DontMaximizeSubWindowOnActivation);
-#ifdef HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE
-        mdiArea->setOption(QMdiArea::AlwaysShowSubwindowNameInTitleBar);
-#endif /* HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE */
 
         commandBar = new KateCommandBar(parent);
     }
@@ -295,11 +289,7 @@ public:
     KisAction *toggleDockers {nullptr};
     KisAction *resetConfigurations {nullptr};
     KisAction *toggleDockerTitleBars {nullptr};
-#ifdef Q_OS_ANDROID
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAction *changeInterfaceScale {nullptr};
-#endif
-#else
+#ifndef Q_OS_ANDROID
     KisAction *toggleDetachCanvas {nullptr};
     KisAction *newWindow {nullptr};
 #endif
@@ -634,7 +624,15 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     d->viewManager->updateGUI();
     d->viewManager->updateIcons();
 
-    QTimer::singleShot(1000, Qt::CoarseTimer, this, SLOT(checkSanity()));
+    // Keep the timer as a child QTimer with a name so tests can stop the
+    // delayed sanity check before it opens modal warning dialogs.
+    QTimer *sanityCheckTimer = new QTimer(this);
+    sanityCheckTimer->setObjectName(QStringLiteral("sanityCheckTimer"));
+    sanityCheckTimer->setSingleShot(true);
+    sanityCheckTimer->setTimerType(Qt::CoarseTimer);
+    sanityCheckTimer->setInterval(1000);
+    connect(sanityCheckTimer, &QTimer::timeout, this, &KisMainWindow::checkSanity);
+    sanityCheckTimer->start();
 
     {
         using namespace std::placeholders; // For _1 placeholder
@@ -670,19 +668,6 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     s->setOrientationUpdateMask(Qt::LandscapeOrientation|Qt::InvertedLandscapeOrientation|Qt::PortraitOrientation|Qt::InvertedPortraitOrientation);
 #endif
     connect(s, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(orientationChanged()));
-
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    // When the screen's UI scale changes, we have to hide and show it to get
-    // its contents to update, otherwise it fails to re-render altogether.
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling) {
-        connect(androidScaling,
-                &KisAndroidScaling::sigInterfaceScaleChanged,
-                this,
-                &KisMainWindow::slotFlashWindowHack,
-                Qt::QueuedConnection);
-    }
-#endif
 
     // When Krita starts, Java side sends an event to set applicationState() to active. But, before
     // the event could reach KisApplication's platform integration, it is cleared by KisOpenGLModeProber::probeFormat.
@@ -1763,6 +1748,9 @@ void KisMainWindow::setActiveView(KisView* view)
     d->viewManager->setCurrentView(view);
 
     d->activeViewConnections.clear();
+    d->activeViewConnections.addConnection(view, &QWidget::windowTitleChanged,
+                                           this, &KisMainWindow::updateWindowTitleForActiveView);
+    updateWindowTitleForActiveView();
     d->activeViewConnections.addConnection(view->document(),
                                            SIGNAL(sigPathChanged(QString)),
                                            this, SLOT(slotUpdateSaveActionTitle(QString)));
@@ -1780,8 +1768,19 @@ void KisMainWindow::setActiveView(KisView* view)
 void KisMainWindow::unsetActiveView()
 {
     d->activeViewConnections.clear();
+    setWindowTitle(QString());
     slotUpdateSaveActionTitle(QString());
     slotUpdateReadWriteMode(false);
+}
+
+void KisMainWindow::updateWindowTitleForActiveView()
+{
+    if (d->activeView) {
+        // QMdiSubWindow updates the window title only for a maximized or
+        // floating child. The tab view needs the active document name in the
+        // title bar as well, so follow the view's own title here.
+        setWindowTitle(d->activeView->windowTitle());
+    }
 }
 
 void KisMainWindow::dragMove(QDragMoveEvent * event)
@@ -1883,16 +1882,6 @@ void KisMainWindow::slotFileSave()
     if (saveDocument(d->activeView->document(), false, false,false)) {
         Q_EMIT documentSaved();
     }
-}
-
-void KisMainWindow::slotChangeInterfaceScale()
-{
-#if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling) {
-        androidScaling->showDialog();
-    }
-#endif
 }
 
 void KisMainWindow::slotFileSaveAs()
@@ -3190,15 +3179,7 @@ void KisMainWindow::createActions()
     d->mdiPreviousWindow = actionManager->createAction("windows_previous");
     connect(d->mdiPreviousWindow, SIGNAL(triggered()), d->mdiArea, SLOT(activatePreviousSubWindow()));
 
-#ifdef Q_OS_ANDROID
-#if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-    KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
-    if (androidScaling && androidScaling->isSupported()) {
-        d->changeInterfaceScale = actionManager->createAction("change_interface_scale");
-        connect(d->changeInterfaceScale, &QAction::triggered, this, &KisMainWindow::slotChangeInterfaceScale);
-    }
-#endif
-#else
+#ifndef Q_OS_ANDROID
     d->newWindow = actionManager->createAction("view_newwindow");
     connect(d->newWindow, SIGNAL(triggered(bool)), this, SLOT(newWindow()));
 #endif
@@ -3277,6 +3258,22 @@ void KisMainWindow::initializeGeometry()
 
         move(x,y);
         setGeometry(geometry().x(), geometry().y(), w, h);
+    }
+
+    // H4 (GPU load of one frame): measure the same build with other window
+    // sizes. LIBREPAINT_L1_WINDOW_SIZE is for the L1 measurements only;
+    // KisL1Switches.h owns the removal condition.
+    const QSize l1WindowSize = KisL1Switches::windowSize();
+    if (l1WindowSize.isValid()) {
+        // The restored geometry can carry a maximized or full-screen state,
+        // and resize() on such a window only changes the normal geometry that
+        // is restored when the window is unmaximized. Clear the state first so
+        // the requested size reaches the window and its canvas.
+        const Qt::WindowStates state = windowState();
+        if (state & (Qt::WindowMaximized | Qt::WindowFullScreen)) {
+            setWindowState(state & ~(Qt::WindowMaximized | Qt::WindowFullScreen));
+        }
+        resize(l1WindowSize);
     }
 #ifdef Q_OS_ANDROID
     // We handle full-screening differently on Android, see viewFullScreen.

@@ -63,6 +63,23 @@ Processes that do not inherit that shell use
 expressions keep inputs small and separate dependency builds from
 application bundling so local changes reuse the binary cache.
 
+`build/`, `.cache/`, `logs/` and `build-ios/` in the repository root are
+symlinks to
+`$LIBREPAINT_STATE_ROOT/<worktree>-<hash>/…`; direnv creates them
+(`scripts/ensure-state-links.py`), and `--migrate` moves existing directories.
+A `path:` flake or any copy of the repository root copies the whole tree,
+including `.git`, into the Nix store; never use `path:` references to this
+repository. `scripts/nix-guard/nix` (first on PATH in direnv shells) rejects
+them and `builtins.getFlake` calls that do not take a remote flake reference,
+and logs every nix call; `scripts/check-store-hygiene.py` runs in
+`verify`, `verify-quick` and the incremental builds; `scripts/store-guard.py`
+(systemd timer) logs and removes leaked source copies.
+
+Create worktrees only with `scripts/new-worktree.py` (never `git worktree add`
+directly, never inside the repository), and remove them at the end of the task
+with `scripts/worktree-gc.py --apply`; specs and agent instructions must not
+contain `git worktree add`.
+
 ## Implementation
 
 1. Read the relevant code, tests, CMake target, and the CHARTER clause.

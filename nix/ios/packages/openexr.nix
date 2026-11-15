@@ -30,10 +30,10 @@ mkIOSCMakePackage {
 
   requiredPaths = [
     "include/OpenEXR/ImfRgbaFile.h"
-    "lib/libOpenEXR-3_4.a"
+    "lib/libOpenEXR-3_5.a"
     "lib/cmake/OpenEXR/OpenEXRConfig.cmake"
   ];
-  staticArchives = [ "lib/libOpenEXR-3_4.a" ];
+  staticArchives = [ "lib/libOpenEXR-3_5.a" ];
 
   meta = {
     description = "Static OpenEXR cross-compiled for the Krita iPadOS target";

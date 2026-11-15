@@ -4,6 +4,7 @@
  */
 
 #include "opengl/kis_opengl_update_info.h"
+#include "opengl/kis_texture_tile.h"
 
 #include <QTest>
 

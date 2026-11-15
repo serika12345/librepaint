@@ -28,4 +28,6 @@ target_include_directories(kritamultiarch
 
 install(TARGETS kritamultiarch ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

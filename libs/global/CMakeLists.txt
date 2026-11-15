@@ -1,4 +1,6 @@
-add_subdirectory( tests )
+if(BUILD_TESTING)
+    add_subdirectory( tests )
+endif()
 
 include(CheckFunctionExists)
 check_function_exists(backtrace HAVE_BACKTRACE)
@@ -299,6 +301,27 @@ target_link_libraries(kritagloballatencyprobeobjects
         Qt${QT_MAJOR_VERSION}::Core
 )
 set_target_properties(kritagloballatencyprobeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+# Switches for the L1 experiments (Issue #108). Unset variables keep the
+# normal behaviour (KisL1Switches.h owns the removal condition).
+add_library(kritagloballatencyl1switches OBJECT
+    KisL1Switches.cpp
+)
+target_compile_definitions(kritagloballatencyl1switches PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritagloballatencyl1switches
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritagloballatencyl1switches
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritagloballatencyl1switches PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -857,6 +880,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalrandomsourceobjects>
     $<TARGET_OBJECTS:kritagloballatencytrackerobjects>
     $<TARGET_OBJECTS:kritagloballatencyprobeobjects>
+    $<TARGET_OBJECTS:kritagloballatencyl1switches>
     $<TARGET_OBJECTS:kritaglobalsignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>

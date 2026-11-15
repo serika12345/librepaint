@@ -554,7 +554,8 @@ void TestResourceUiContract::createsATagFromTheTagOptionsMenu()
     actionTimer.start();
     QTest::mouseClick(tagOptionsButton, Qt::LeftButton);
 
-    QVERIFY(actionTriggered);
+    // Qt 6.12 shows the tool button menu without blocking the mouse click.
+    QTRY_VERIFY(actionTriggered);
     QVERIFY(tagModel.tagForUrl(tagName));
 }
 

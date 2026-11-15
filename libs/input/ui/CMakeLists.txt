@@ -58,6 +58,7 @@ set_target_properties(kritainputuiextendedmodifiersmapperobjects
 set(kritainputui_LIB_SRCS
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
+    KisWindowsPointerEventFilter.cpp
     kis_abstract_input_action.cpp
     kis_alternate_invocation_action.cpp
     kis_change_primary_setting_action.cpp
@@ -85,6 +86,9 @@ set(kritainputui_LIB_SRCS
     config/kis_wheel_input_editor.cpp
     wintab/drawpile_tablettester/tablettest.cpp
     wintab/drawpile_tablettester/tablettester.cpp
+    wintab/KisWintabMapping.cpp
+    wintab/KisWintabPacketPeeker.cpp
+    wintab/KisWintabTrust.cpp
 )
 
 ki18n_wrap_ui(kritainputui_LIB_SRCS
@@ -140,6 +144,17 @@ set_target_properties(kritainputui
     PROPERTIES VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
 )
 
+if (QT_MAJOR_VERSION STREQUAL "6")
+    # The Wintab peeker reads QScreen::handle()->geometry() to get the native
+    # pixel rectangle of each screen.
+    set_source_files_properties(
+        wintab/KisWintabPacketPeeker.cpp
+        TARGET_DIRECTORY kritainputui
+        PROPERTIES
+        INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
+    )
+endif()
+
 install(TARGETS kritainputui ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 if (QT_MAJOR_VERSION STREQUAL "6")
@@ -155,4 +170,6 @@ if(APPLE AND NOT IOS)
     )
 endif()
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

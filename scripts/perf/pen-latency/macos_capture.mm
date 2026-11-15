@@ -2,14 +2,18 @@
 //
 // Capture-based pointer latency measurement for macOS.
 //
-//   macos_capture --display N --out DIR --snapshot
+//   macos_capture --window-pid PID --out DIR --snapshot
 //       Saves first-frame.png and canvas.json (the white canvas rectangle in
-//       captured pixels) for the display with index N in the active list.
-//   macos_capture --display N --out DIR --plan plan.csv
+//       captured pixels) for the largest on-screen window of process PID.
+//   macos_capture --window-pid PID --out DIR --plan plan.csv
 //       Takes the snapshot, applies plan.csv (trajectory.py, relative to the
 //       canvas) to the detected canvas, replays it with Quartz mouse events
-//       while ScreenCaptureKit captures the display, and writes inject.csv
+//       while ScreenCaptureKit captures that one window, and writes inject.csv
 //       and capture.csv in the format of mutter_capture.py.
+//
+// The tool captures one application window only; it has no display capture
+// mode, so nothing else on the screen is recorded. Captured pixels, canvas
+// rectangles and injected positions are relative to the window's content.
 //
 // Times are mach_absolute_time converted to nanoseconds. frame_ns is the
 // frame's SCStreamFrameInfoDisplayTime. Posting events needs the
@@ -17,6 +21,7 @@
 // for the process that starts this tool.
 
 #import <AppKit/AppKit.h>
+#import <ApplicationServices/ApplicationServices.h>
 #import <CoreImage/CoreImage.h>
 #import <CoreMedia/CoreMedia.h>
 #import <ImageIO/ImageIO.h>
@@ -104,6 +109,62 @@ static void savePng(CVPixelBufferRef pixels, NSString *path) {
     CGImageRelease(cg);
 }
 
+// Brings the application to the front with the Accessibility API, so that the
+// mouse events posted below reach its window.
+static void raiseApplication(pid_t pid) {
+    AXUIElementRef application = AXUIElementCreateApplication(pid);
+    if (!application) return;
+    AXError frontmostError = AXUIElementSetAttributeValue(application, kAXFrontmostAttribute, kCFBooleanTrue);
+    if (frontmostError != kAXErrorSuccess)
+        fprintf(stderr, "raise: setting the frontmost attribute failed with AXError %d (Accessibility trusted: %d)\n", (int)frontmostError, (int)AXIsProcessTrusted());
+    CFTypeRef windows = NULL;
+    if (AXUIElementCopyAttributeValue(application, kAXWindowsAttribute, &windows) == kAXErrorSuccess && windows) {
+        if (CFArrayGetCount((CFArrayRef)windows) > 0)
+            AXUIElementPerformAction((AXUIElementRef)CFArrayGetValueAtIndex((CFArrayRef)windows, 0), kAXRaiseAction);
+        CFRelease(windows);
+    }
+    CFRelease(application);
+}
+
+// True when the frontmost visible window at the global point belongs to pid.
+// The tool posts mouse presses and drags, so it posts nothing while another
+// application's window covers the target point.
+// Describes the frontmost visible window at the point for error messages: the
+// owner's process name and id, the window layer, and its bounds. Titles are not read.
+static NSString *frontWindowDescriptionAtPoint(CGPoint point) {
+    CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+    if (!list) return @"no window list";
+    NSString *description = @"no window at the point";
+    for (NSDictionary *info in (__bridge NSArray *)list) {
+        CGRect frame;
+        if (!CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)info[(id)kCGWindowBounds], &frame)) continue;
+        if (!CGRectContainsPoint(frame, point)) continue;
+        if ([info[(id)kCGWindowAlpha] doubleValue] <= 0.01) continue;
+        description = [NSString stringWithFormat:@"front window: owner %@ (pid %d), layer %d, bounds [%g, %g, %g, %g]",
+                       info[(id)kCGWindowOwnerName], [info[(id)kCGWindowOwnerPID] intValue], [info[(id)kCGWindowLayer] intValue],
+                       frame.origin.x, frame.origin.y, frame.size.width, frame.size.height];
+        break;
+    }
+    CFRelease(list);
+    return description;
+}
+
+static bool frontWindowAtPointBelongsTo(pid_t pid, CGPoint point) {
+    CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+    if (!list) return false;
+    bool belongs = false;
+    for (NSDictionary *info in (__bridge NSArray *)list) {
+        CGRect frame;
+        if (!CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)info[(id)kCGWindowBounds], &frame)) continue;
+        if (!CGRectContainsPoint(frame, point)) continue;
+        if ([info[(id)kCGWindowAlpha] doubleValue] <= 0.01) continue;
+        belongs = [info[(id)kCGWindowOwnerPID] intValue] == pid;
+        break;
+    }
+    CFRelease(list);
+    return belongs;
+}
+
 // Same rule as mutter_capture.find_canvas: the white rectangle around the
 // white pixel nearest the frame center, inset by 8 pixels.
 static bool findCanvas(CVPixelBufferRef pixels, int rect[4]) {
@@ -158,44 +219,65 @@ static std::vector<Sample> readPlan(NSString *path, std::vector<Band> &bands, co
 int main(int argc, const char **argv) {
     @autoreleasepool {
         mach_timebase_info(&timebase);
-        int displayIndex = 0; BOOL snapshot = NO; NSString *out = nil, *planPath = nil;
+        [NSApplication sharedApplication]; // connects to the window server for the CoreGraphics calls
+        int windowPid = 0; BOOL snapshot = NO; NSString *out = nil, *planPath = nil;
         int dark = 128, dense = 6;
         for (int i = 1; i < argc; ++i) {
             NSString *a = @(argv[i]);
-            if ([a isEqualToString:@"--display"] && i + 1 < argc) displayIndex = atoi(argv[++i]);
+            if ([a isEqualToString:@"--window-pid"] && i + 1 < argc) windowPid = atoi(argv[++i]);
             else if ([a isEqualToString:@"--out"] && i + 1 < argc) out = @(argv[++i]);
             else if ([a isEqualToString:@"--plan"] && i + 1 < argc) planPath = @(argv[++i]);
             else if ([a isEqualToString:@"--dark"] && i + 1 < argc) dark = atoi(argv[++i]);
             else if ([a isEqualToString:@"--dense"] && i + 1 < argc) dense = atoi(argv[++i]);
             else if ([a isEqualToString:@"--snapshot"]) snapshot = YES;
         }
-        if (!out || (!snapshot && !planPath)) {
-            fprintf(stderr, "usage: macos_capture --display N --out DIR (--snapshot | --plan plan.csv)\n");
+        if (windowPid <= 0 || !out || (!snapshot && !planPath)) {
+            fprintf(stderr, "usage: macos_capture --window-pid PID --out DIR (--snapshot | --plan plan.csv)\n");
             return 2;
         }
         [[NSFileManager defaultManager] createDirectoryAtPath:out withIntermediateDirectories:YES attributes:nil error:nil];
-
-        __block SCShareableContent *content = nil;
-        dispatch_semaphore_t got = dispatch_semaphore_create(0);
-        [SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent *c, NSError *e) {
-            if (e) fprintf(stderr, "shareable content: %s\n", e.localizedDescription.UTF8String);
-            content = c;
-            dispatch_semaphore_signal(got);
-        }];
-        dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
-        if (!content || displayIndex >= (int)content.displays.count) {
-            fprintf(stderr, "display %d not available (Screen Recording permission?)\n", displayIndex);
+        // Posted mouse events are dropped without the Accessibility permission, so a run
+        // without it would capture a canvas that never receives input.
+        if (!snapshot && !AXIsProcessTrusted()) {
+            fprintf(stderr, "Accessibility is not granted to the process that runs this tool; posted mouse events would be dropped\n");
             return 1;
         }
-        SCDisplay *display = content.displays[displayIndex];
-        CGRect bounds = CGDisplayBounds(display.displayID); // points, global coordinates
-        CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display.displayID);
-        size_t pixelWidth = CGDisplayModeGetPixelWidth(mode), pixelHeight = CGDisplayModeGetPixelHeight(mode);
+
+        // Find the largest on-screen window of the process. The application may
+        // still be starting, so look again for up to 30 seconds.
+        __block SCShareableContent *content = nil;
+        dispatch_semaphore_t got = dispatch_semaphore_create(0);
+        SCWindow *window = nil;
+        for (int attempt = 0; attempt < 60 && !window; ++attempt) {
+            [SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent *c, NSError *e) {
+                if (e && attempt == 0) fprintf(stderr, "shareable content: %s\n", e.localizedDescription.UTF8String);
+                content = c;
+                dispatch_semaphore_signal(got);
+            }];
+            dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
+            if (!content) { fprintf(stderr, "no shareable content (Screen Recording permission?)\n"); return 1; }
+            double bestArea = 0;
+            for (SCWindow *candidate in content.windows) {
+                if (candidate.owningApplication.processID != windowPid || !candidate.isOnScreen || candidate.windowLayer != 0) continue;
+                double area = candidate.frame.size.width * candidate.frame.size.height;
+                if (candidate.frame.size.width >= 100 && candidate.frame.size.height >= 100 && area > bestArea) { window = candidate; bestArea = area; }
+            }
+            if (!window) usleep(500000);
+        }
+        if (!window) {
+            fprintf(stderr, "no on-screen window of process %d\n", windowPid);
+            return 1;
+        }
+        CGRect bounds = window.frame; // points, global coordinates (top-left origin)
+        SCContentFilter *filter = [[SCContentFilter alloc] initWithDesktopIndependentWindow:window];
+        SCShareableContentInfo *info = [SCShareableContent infoForFilter:filter];
+        double scale = info.pointPixelScale;
+        size_t pixelWidth = (size_t)(info.contentRect.size.width * scale + 0.5);
+        size_t pixelHeight = (size_t)(info.contentRect.size.height * scale + 0.5);
+        CGDisplayModeRef mode = CGDisplayCopyDisplayMode(CGMainDisplayID());
         double refresh = CGDisplayModeGetRefreshRate(mode);
         CGDisplayModeRelease(mode);
-        double scale = (double)pixelWidth / bounds.size.width;
 
-        SCContentFilter *filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
         SCStreamConfiguration *config = [[SCStreamConfiguration alloc] init];
         config.width = pixelWidth;
         config.height = pixelHeight;
@@ -217,8 +299,12 @@ int main(int argc, const char **argv) {
         dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
         if (startError) { fprintf(stderr, "start capture: %s\n", startError.localizedDescription.UTF8String); return 1; }
 
-        // Park the pointer at the display corner so that the first frame shows the canvas.
-        CGPoint corner = CGPointMake(bounds.origin.x + 1, bounds.origin.y + bounds.size.height - 2);
+        raiseApplication(windowPid);
+        usleep(1000000);
+        // Park the pointer on the title bar of the target window so that the application's
+        // hover outline does not cover the canvas in the first frame. A display corner is
+        // avoided: a hot corner there opens Mission Control and covers the window.
+        CGPoint corner = CGPointMake(bounds.origin.x + bounds.size.width / 2, bounds.origin.y + 10);
         CGEventRef park = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, corner, kCGMouseButtonLeft);
         CGEventPost(kCGHIDEventTap, park);
         CFRelease(park);
@@ -228,8 +314,8 @@ int main(int argc, const char **argv) {
         }
 
         NSString *meta = [NSString stringWithFormat:
-            @"{\"display\": %d, \"frame\": [%zu, %zu], \"points\": [%g, %g, %g, %g], \"scale\": %g, \"refresh\": %g",
-            displayIndex, pixelWidth, pixelHeight, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, scale, refresh];
+            @"{\"window_pid\": %d, \"frame\": [%zu, %zu], \"points\": [%g, %g, %g, %g], \"scale\": %g, \"refresh\": %g",
+            windowPid, pixelWidth, pixelHeight, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, scale, refresh];
         // Wait until the application shows a canvas of a usable size.
         const int minCanvas = 300;
         int rect[4] = {0, 0, 0, 0};
@@ -249,6 +335,14 @@ int main(int argc, const char **argv) {
             return 0;
         }
 
+        CGPoint canvasCenter = CGPointMake(bounds.origin.x + (rect[0] + rect[2] / 2) / scale, bounds.origin.y + (rect[1] + rect[3] / 2) / scale);
+        if (!frontWindowAtPointBelongsTo(windowPid, canvasCenter)) {
+            fprintf(stderr, "the window of process %d is not in front at the canvas; no input was posted (%s)\n", windowPid, frontWindowDescriptionAtPoint(canvasCenter).UTF8String);
+            [stream stopCaptureWithCompletionHandler:^(NSError *e) { dispatch_semaphore_signal(got); }];
+            dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
+            return 1;
+        }
+
         std::vector<Band> bands;
         std::vector<Sample> samples = readPlan(planPath, bands, rect);
         @synchronized(output) { output.bands = bands; output.detecting = YES; }
@@ -263,6 +357,15 @@ int main(int argc, const char **argv) {
                 if (remaining > 2000000) usleep((useconds_t)((remaining - 1500000) / 1000));
             }
             CGPoint point = CGPointMake(bounds.origin.x + s.x / scale, bounds.origin.y + s.y / scale);
+            if ((&s - &samples[0]) % 100 == 0 && !frontWindowAtPointBelongsTo(windowPid, point)) {
+                if (pressed) {
+                    CGEventRef release = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, point, kCGMouseButtonLeft);
+                    CGEventPost(kCGHIDEventTap, release);
+                    CFRelease(release);
+                }
+                fprintf(stderr, "the window of process %d lost the front; input stopped (%s)\n", windowPid, frontWindowDescriptionAtPoint(point).UTF8String);
+                return 1;
+            }
             CGEventType type;
             if (s.pressed && !pressed) type = kCGEventLeftMouseDown;
             else if (!s.pressed && pressed) type = kCGEventLeftMouseUp;

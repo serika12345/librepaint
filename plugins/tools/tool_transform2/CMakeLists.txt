@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 set(kritatooltransform_static_SRCS
     tool_transform_args.cc

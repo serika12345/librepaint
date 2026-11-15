@@ -19,7 +19,11 @@ private Q_SLOTS:
     void testKeyEvents();
     void testReleaseUnnecessaryModifiers();
     void testMouseMoves();
+    void testMoveEventCompressionDecision();
     void testSuppressionEventNormalization();
+    void testCanvasLeaveGuard();
+    void testWintabPacketCorrection();
+    void testWintabTrustRejectsCorrection();
 
     void testIncrementalAverage();
 };

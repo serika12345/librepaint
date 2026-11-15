@@ -1,39 +1,17 @@
 {
   pkgs,
+  hostPkgs,
   source,
 }:
 
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
-  # Qt's host tools do not need systemd/journald.  Leaving it enabled brings
-  # a hardware TPM integration suite into the native tool dependency graph.
-  hostQtBase = buildPkgs.qt6Packages.qtbase.override {
-    systemdSupport = false;
-    qttranslations = null;
-  };
-  hostQtPackageSet = buildPkgs // {
-    qt6 = buildPkgs.qt6 // {
-      qtbase = hostQtBase;
-    };
-  };
-  # KDE Frameworks invokes lrelease while building translations.  Expose just
-  # that Linux executable: adding the complete qttools package to a target
-  # build would run its host Qt setup hook beside the target Qt hook.
-  hostQtToolsPackage = (buildPkgs.qt6Packages.qttools.override {
-    qtbase = hostQtBase;
-    qtdeclarative = null;
-  }).overrideAttrs (_: {
-    propagatedBuildInputs = [ hostQtBase ];
-    # KDE only runs lrelease.  Avoid compiling Qt Assistant and Designer,
-    # which are unrelated desktop applications and dominate this host build.
-    cmakeFlags = [
-      "-DFEATURE_assistant=OFF"
-      "-DFEATURE_designer=OFF"
-      "-DFEATURE_distancefieldgenerator=OFF"
-      "-DFEATURE_pixeltool=OFF"
-    ];
-  });
+  # The Windows cross build runs Qt's Linux tools (lrelease, moc, uic).  Use
+  # the stock nixpkgs packages so they come from the binary cache.
+  hostQtBase = buildPkgs.qt6Packages.qtbase;
+  hostQtPackageSet = buildPkgs;
+  hostQtToolsPackage = buildPkgs.qt6Packages.qttools;
   hostQtTools = buildPkgs.runCommand "qttools-host-lrelease" { } ''
     mkdir -p "$out/bin"
     ln -s ${hostQtToolsPackage}/bin/lrelease "$out/bin/lrelease"
@@ -49,35 +27,24 @@ let
   # Qt translation catalogs are platform-independent.  Generate them with
   # the native Linguist tools, then expose only the data directory to the
   # Windows closure so no host Qt setup hook enters a target build.
-  hostQtTranslationsPackage = buildPkgs.qt6Packages.qttranslations.override {
-    qttools = hostQtToolsPackage;
-  };
+  hostQtTranslationsPackage = buildPkgs.qt6Packages.qttranslations;
   qtTranslationsData = buildPkgs.runCommand "qttranslations-windows-data" { } ''
     mkdir -p "$out/share/qt-6"
     cp -a ${hostQtTranslationsPackage}/translations \
       "$out/share/qt-6/translations"
   '';
-  hostPythonPackages = buildPkgs.python3Packages;
-  hostPyQt6 = (hostPythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  }).overrideAttrs (old: {
-    # FindPyQt6 only imports QtCore to obtain version and SIP metadata.  D-Bus
-    # integration pulls target introspection machinery into a native Python
-    # environment during cross evaluation and is unrelated to binding source
-    # generation.
-    dependencies = lib.filter (
-      input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
-    ) (old.dependencies or [ ]);
-    propagatedBuildInputs = lib.filter (
-      input: !(lib.hasInfix "dbus-python" (lib.toLower (lib.getName input)))
-    ) (old.propagatedBuildInputs or [ ]);
-  });
-  hostPython = buildPkgs.python3.withPackages (pythonPackages: [
+  # The cross set's buildPackages.python3Packages.pyqt6 is a different
+  # derivation from the native one and misses the binary cache; take the build
+  # machine's Python tools from the native package set.
+  # PyQt6 6.12.0 matches Qt 6.12.0; nixpkgs still has 6.11.0, so the host
+  # bindings come from nix/pyqt6.nix as on Linux and macOS.
+  hostPyqtPython = import ../pyqt6.nix {
+    lib = hostPkgs.lib;
+    python = hostPkgs.python3;
+  };
+  hostPythonPackages = hostPyqtPython.pkgs;
+  hostPyQt6 = hostPythonPackages.pyqt6;
+  hostPython = hostPyqtPython.withPackages (pythonPackages: [
     hostPyQt6
     pythonPackages.setuptools
     pythonPackages.sip
@@ -94,7 +61,6 @@ let
   # Python for generators; Krita only requires Python 3.8 or newer.
   targetPython = pkgs.python311;
   targetPythonPackages = pkgs.python311Packages;
-  angle = import ./google-angle.nix { inherit pkgs; };
 
   # Python extension builders execute with the native interpreter, so
   # setuptools otherwise adds that interpreter's Unix headers even when the
@@ -123,7 +89,7 @@ let
   qt = pkgs.qt6Packages.overrideScope (final: previous: {
     # qtbase runs host tools while cross compiling.  Supply the lean host
     # variant above instead of the default Linux desktop Qt build.
-    qtbase = (previous.qtbase.override {
+    qtbase = previous.qtbase.override {
       pkgsBuildBuild = hostQtPackageSet;
       # MinGW links OpenGL through the Windows SDK's opengl32.dll.  nixpkgs'
       # generic Qt expression otherwise pulls in libglvnd, which in turn
@@ -131,30 +97,7 @@ let
       # this target.
       libGL = null;
       vulkan-loader = null;
-    }).overrideAttrs (old: {
-      # Krita's official Windows builds use its Qt fork.  In addition to the
-      # HDR texture colour-space API consumed by the small colour selector,
-      # this carries the ANGLE, tablet, shortcut and backing-store fixes that
-      # are part of Krita's Windows feature set.  The fork branch
-      # for-krita/6.11.3 matches the Qt release of the other platforms
-      # (nix/qt/overlay.nix).
-      version = "6.11.3";
-      src = pkgs.fetchFromGitHub {
-        owner = "dimula73";
-        repo = "qtbase";
-        rev = "d918f368da8df4c682874ed6d018c59aa79210c2";
-        hash = "sha256-adfqI0r0/1ppK0I+TpoBCe8SF20RNl/DzHJalRYj/rI=";
-      };
-      postPatch = (old.postPatch or "") + ''
-        substituteInPlace src/plugins/platforms/windows/qwindowseglcontext.cpp \
-          --replace-fail '<VersionHelpers.h>' '<versionhelpers.h>'
-      '';
-      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ angle ];
-      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-        "-DQT_FEATURE_opengl=ON"
-        "-DQT_FEATURE_egl=ON"
-      ];
-    });
+    };
 
     qmake = previous.qmake.override {
       qtbase = final.qtbase;
@@ -367,29 +310,23 @@ let
     kitemviews = tuneFramework { package = previous.kitemviews; };
     kwidgetsaddons = tuneFramework { package = previous.kwidgetsaddons; removePythonBindings = true; };
     libkdcraw = tuneFramework { package = previous.libkdcraw; };
+    # LibrePaint's animation playback uses MLT's core, its FFmpeg producer and
+    # the SDL2 audio module only.  The Qt modules and every other optional
+    # module are separate programs or effects, so leave them out of the
+    # Windows build and pass no Qt packages to the framework.
     mlt = (previous.mlt.override {
-      qtbase = qt.qtbase;
-      qtsvg = qt.qtsvg;
-      qt5compat = qt.qt5compat;
-      wrapQtAppsHook = qt.wrapQtAppsHook;
+      qtbase = null;
+      qtsvg = null;
+      qt5compat = null;
+      wrapQtAppsHook = null;
     }).overrideAttrs (old: {
-      # MLT's generic nixpkgs expression adds Unix display dependencies and
-      # the optional OpenCV effects module even for a MinGW target.  Krita's
-      # animation renderer uses the framework, Qt and FFmpeg modules.  Its
-      # command wrapper is also a Unix shell artifact; the portable
-      # application supplies MLT's paths directly at startup.
-      buildInputs = lib.filter (
-        input:
-        let name = lib.toLower (inputName input);
-        in !lib.hasPrefix "libx11" name
-      && !(lib.hasInfix "opencv" name)
-      && !(lib.hasInfix "frei0r" name)
-      && !lib.hasPrefix "movit" name
-      && !lib.hasPrefix "pango" name
-      && !lib.hasPrefix "sox" name
-      ) (old.buildInputs or [ ]) ++ [
+      buildInputs = [
+        pkgs.ffmpeg
+        pkgs.SDL2
         pkgs.windows.dlfcn
         pkgs.windows.pthreads
+        # MLT core converts metadata text with iconv on Windows.
+        pkgs.libiconv
       ];
       nativeBuildInputs = [
         buildPkgs.cmake
@@ -403,14 +340,36 @@ let
         substituteInPlace CMakeLists.txt \
           --replace-fail 'string(REPLACE "iconv" "pthread" MLT_PTHREAD_LIBS "''${Iconv_LIBRARY}")' \
                          'set(MLT_PTHREAD_LIBS "${pkgs.windows.pthreads}/lib/libpthread.dll.a")'
-        substituteInPlace src/modules/gdk/producer_pixbuf.c \
-          --replace-fail '#include <BaseTsd.h>' '#include <basetsd.h>'
       '';
-      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-        "-DMOD_OPENCV=OFF"
+      cmakeFlags = lib.filter (flag: !(lib.hasInfix "MOD_" flag)) (old.cmakeFlags or [ ]) ++ [
+        "-DMOD_AVFORMAT=ON"
+        "-DMOD_SDL2=ON"
+        "-DMOD_DECKLINK=OFF"
         "-DMOD_FREI0R=OFF"
+        "-DMOD_GDK=OFF"
+        "-DMOD_GLAXNIMATE_QT6=OFF"
+        "-DMOD_JACKRACK=OFF"
+        "-DMOD_KDENLIVE=OFF"
         "-DMOD_MOVIT=OFF"
+        "-DMOD_NDI=OFF"
+        "-DMOD_NORMALIZE=OFF"
+        "-DMOD_OLDFILM=OFF"
+        "-DMOD_OPENCV=OFF"
+        "-DMOD_OPENFX=OFF"
+        "-DMOD_PLUS=OFF"
+        "-DMOD_PLUSGPL=OFF"
+        "-DMOD_QT6=OFF"
+        "-DMOD_RESAMPLE=OFF"
+        "-DMOD_RNNOISE=OFF"
+        "-DMOD_RTAUDIO=OFF"
+        "-DMOD_RUBBERBAND=OFF"
+        "-DMOD_SDL1=OFF"
         "-DMOD_SOX=OFF"
+        "-DMOD_SPATIALAUDIO=OFF"
+        "-DMOD_VIDSTAB=OFF"
+        "-DMOD_VORBIS=OFF"
+        "-DMOD_XINE=OFF"
+        "-DMOD_XML=OFF"
       ];
       dontWrapQtApps = true;
       preFixup = "";
@@ -419,16 +378,24 @@ let
       # The portable bundle installs Poppler's CMap data beside its DLLs.
       # Resolve that data relative to the loaded module instead of retaining
       # the Nix store prefix used during the cross build.
-      # Krita consumes Poppler through its Qt 6 frontend.  The Cairo and GLib
-      # frontends are separate Unix-oriented APIs and pull X11 into a Windows
-      # build without providing any Krita functionality.
+      # Krita consumes Poppler through its Qt 6 frontend to render PDF pages
+      # as images.  The Cairo and GLib frontends are separate Unix-oriented
+      # APIs, and the signature verification and URL loading backends are not
+      # part of that path.
       cmakeFlags = (old.cmakeFlags or [ ]) ++ [
         "-DENABLE_RELOCATABLE=ON"
         "-DENABLE_CAIRO=OFF"
         "-DENABLE_GLIB=OFF"
+        "-DENABLE_NSS3=OFF"
+        "-DENABLE_LIBCURL=OFF"
+        "-DENABLE_GPGME=OFF"
       ];
       propagatedBuildInputs = lib.filter
-        (input: !(lib.hasPrefix "cairo" (lib.toLower (inputName input))))
+        (input:
+          let name = lib.toLower (inputName input);
+          in !(lib.hasPrefix "cairo" name)
+          && !(lib.hasPrefix "nss" name)
+          && !(lib.hasPrefix "curl" name))
         (old.propagatedBuildInputs or [ ]);
     });
 
@@ -461,6 +428,8 @@ let
     # run immediately.  A Linux builder cannot execute those PE binaries, so
     # feed their results from the exact Qt configuration selected above.  The
     # remaining probes are compile/link checks and continue to run normally.
+    # PyQt6 6.12.0's QtGui config test also reports PyQt_Metal and PyQt_Vulkan;
+    # neither exists for the Windows target.
     postPatch = (old.postPatch or "") + ''
       substituteInPlace project.py \
         --replace-fail \
@@ -470,7 +439,7 @@ let
 class PyQtBindings(_PyQtBindings):
     _target_test_output = {
         "QtCore": ["shared"],
-        "QtGui": ["PyQt_OpenGL_ES2", "PyQt_XCB", "PyQt_Wayland"],
+        "QtGui": ["PyQt_OpenGL_ES2", "PyQt_Metal", "PyQt_XCB", "PyQt_Wayland", "PyQt_Vulkan"],
         "QtNetwork": [],
         "QtPrintSupport": [],
     }
@@ -588,7 +557,6 @@ class PyQtBindings(_PyQtBindings):
     pkgs.fontconfig
     pkgs.freetype
     pkgs.fribidi
-    pkgs.glib
     pkgs.gsl
     pkgs.giflib
     pkgs.harfbuzz
@@ -641,7 +609,6 @@ class PyQtBindings(_PyQtBindings):
   # The portable stage uses this set as explicit roots before collecting every
   # target DLL.  Include the MinGW runtime, which is not a CMake dependency.
   windowsRuntimeDependencies = buildInputs ++ [
-    angle
     drmingw
     pkgs.poppler_data
     pkgs.stdenv.cc.cc
@@ -752,6 +719,9 @@ pkgs.stdenv.mkDerivation {
     "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON"
     "-DBUILD_TESTING=OFF"
     "-DBUILD_WITH_QT6=ON"
+    # The ZIP omits the installer definition, so the build neither reads nor
+    # installs packaging/windows/installer.
+    "-DKRITA_INSTALL_NSIS_INSTALLER=OFF"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_FFTW3=TRUE"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_GIF=TRUE"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_GSL=TRUE"
@@ -780,7 +750,6 @@ pkgs.stdenv.mkDerivation {
     "-DFOUNDATION_BUILD=ON"
     "-DKDE_INSTALL_ICONDIR=share/icons"
     "-DGETTEXT_MSGFMT_EXECUTABLE=${buildPkgs.gettext}/bin/msgfmt"
-    "-DHAVE_HDR=ON"
     "-DQt6LinguistTools_DIR=${hostQtToolsPackage}/lib/cmake/Qt6LinguistTools"
     "-DQt6QmlTools_DIR=${buildPkgs.qt6Packages.qtdeclarative}/lib/cmake/Qt6QmlTools"
     "-DQt6QuickTools_DIR=${buildPkgs.qt6Packages.qtdeclarative}/lib/cmake/Qt6QuickTools"

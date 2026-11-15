@@ -16,6 +16,7 @@
 */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include <KLocalizedTranslator>
 #include <klocalizedstring.h>
 #include <QByteArray>
@@ -46,6 +47,7 @@
 #include <kis_image_config.h>
 #include <kritaversion.h>
 #include <opengl/kis_opengl.h>
+#include <opengl/KisOpenGLStartupCheck.h>
 
 #include "application/ui/orchestration/KisApplicationArguments.h"
 #include "document/KisDocument.h"
@@ -53,7 +55,12 @@
 #include "theme/KisUiFont.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/kis_splash_screen.h"
-#include "config-qt-patches-present.h"
+
+#ifdef Q_OS_WIN
+#include "KisWindowsPointerEventFilter.h"
+#include "wintab/KisWintabPacketPeeker.h"
+#include <dialogs/KisDlgCustomTabletResolution.h>
+#endif
 
 #ifdef Q_OS_IOS
 #include <QAction>
@@ -78,16 +85,10 @@
 #endif
 
 #if defined Q_OS_WIN
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-// this include is Qt5-only, the switch to WinTab is embedded in Qt
-#  include "config_qt5_has_wintab_switch.h"
-#else
-#  include <QtGui/private/qguiapplication_p.h>
-#  include <QtGui/qpa/qplatformintegration.h>
-#endif
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 #include <windows.h>
 #include <winuser.h>
-#include <dialogs/KisDlgCustomTabletResolution.h>
 #include "config-high-dpi-scale-factor-rounding-policy.h"
 #include "config-set-has-border-in-full-screen-default.h"
 #ifdef HAVE_SET_HAS_BORDER_IN_FULL_SCREEN_DEFAULT
@@ -457,6 +458,17 @@ extern "C" MAIN_EXPORT int MAIN_FN(int argc, char **argv)
 #endif
 
 #ifdef Q_OS_WIN
+    // A measurement launch redirects stderr to app.err. Without a console,
+    // Qt's default handler sends every message to the debugger instead, so
+    // the renderer choice and the first frame check would not reach app.err.
+    // Only measurement runs change the destination.
+    if (qEnvironmentVariableIsSet("LIBREPAINT_LATENCY_LOG") &&
+        !qEnvironmentVariableIsSet("QT_FORCE_STDERR_LOGGING")) {
+        qputenv("QT_FORCE_STDERR_LOGGING", "1");
+    }
+#endif
+
+#ifdef Q_OS_WIN
     // Fix QCommandLineParser help output with UTF-8 codepage:
     if (GetACP() == CP_UTF8) {
         SetConsoleOutputCP(CP_UTF8);
@@ -659,11 +671,43 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 #endif
         preferredRenderer = KisOpenGL::convertConfigToOpenGLRenderer(preferredRendererString);
 
+        // H7 (no ANGLE): run the same build with the desktop OpenGL path.
+        // LIBREPAINT_L1_OPENGL_RENDERER is for the L1 measurements only;
+        // KisL1Switches.h owns the removal condition.
+        const QString l1Renderer = KisL1Switches::openGLRenderer();
+        if (l1Renderer == QStringLiteral("desktop")) {
+            preferredRenderer = KisOpenGL::RendererDesktopGL;
+        } else if (l1Renderer == QStringLiteral("angle")) {
+            preferredRenderer = KisOpenGL::RendererOpenGLES;
+        } else if (l1Renderer == QStringLiteral("auto")) {
+            preferredRenderer = KisOpenGL::RendererAuto;
+        }
+
+        // An explicit renderer (desktop, angle, software or none, from
+        // kritadisplayrc or the L1 switch) ignores the failure marks of the
+        // first frame check, so the user can always return to a renderer that
+        // was skipped automatically. "auto" and an absent setting follow the
+        // marks, so the automatic return also works where kritadisplayrc
+        // stores "auto" (as the Surface does).
+        const bool userForcedRenderer =
+            KisOpenGLStartupCheck::isUserForcedRenderer(preferredRendererString,
+                                                        kritarc.contains(QStringLiteral("OpenGLRenderer")),
+                                                        l1Renderer);
+
         const KisConfig::CanvasSurfaceBitDepthMode bitDepthMode =
             KisConfig::canvasSurfaceBitDepthMode(&kritarc);
 
-        const KisOpenGL::RendererConfig config =
-            KisOpenGL::selectSurfaceConfig(preferredRenderer, rootSurfaceFormat, bitDepthMode, enableOpenGLDebug);
+        KisOpenGL::RendererConfig config =
+            KisOpenGL::selectSurfaceConfig(preferredRenderer, rootSurfaceFormat, bitDepthMode, enableOpenGLDebug, userForcedRenderer);
+
+        // H3 (vertical sync): LIBREPAINT_L1_SWAP_INTERVAL=0 or 1 overrides the
+        // surface setting. -1 (unset) keeps the normal value. This switch is
+        // for the L1 measurements only; KisL1Switches.h owns the removal
+        // condition.
+        const int l1SwapInterval = KisL1Switches::swapInterval();
+        if (l1SwapInterval >= 0) {
+            config.format.setSwapInterval(l1SwapInterval);
+        }
 
         KisOpenGL::setDefaultSurfaceConfig(config);
         KisOpenGL::setDebugSynchronous(openGLDebugSynchronous);
@@ -674,31 +718,13 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     qputenv("QSG_RHI_BACKEND", "opengl");
 #endif
 
-#if defined Q_OS_WIN && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    if (config.rendererId() == KisOpenGL::RendererOpenGLES) {
-        /**
-         * Activate anti-flickering workarounds in Qt for ANGLE backend.
-         * They should **not** be activated for openGL backend, because
-         * it may cause flickering :)
-         */
-        if (!qEnvironmentVariableIsSet("QT_USE_PREMATURE_RESIZE_EVENTS")) {
-            qInfo() << "INFO: activating QT_USE_PREMATURE_RESIZE_EVENTS...";
-            qputenv("QT_USE_PREMATURE_RESIZE_EVENTS", "1");
-        }
-        if (!qEnvironmentVariableIsSet("QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE")) {
-            qInfo() << "INFO: activating QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE...";
-            qputenv("QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE", "1");
-        }
-        if (!qEnvironmentVariableIsSet("QT_PREFILL_RHI_SURFACE")) {
-            qInfo() << "INFO: activating QT_PREFILL_RHI_SURFACE...";
-            qputenv("QT_PREFILL_RHI_SURFACE", "1");
-        }
-    }
-#endif
-
 #if defined Q_OS_WIN
     /**
-     * Disabling accessibility at the runtime is currently available on Windows only
+     * Official Qt 6.11.3 does not read QT_DISABLE_ACCESSIBILITY (the switch
+     * came from the fork patch 9dc7c77358). Keep the setting at startup only:
+     * it still applies to fork builds, and the environment value is left for
+     * the user. Do not add a runtime toggle, because changing accessibility
+     * after QApplication exists has no public Qt API.
      */
     if (!qEnvironmentVariableIsSet("QT_DISABLE_ACCESSIBILITY")) {
         if (kritarc.value("DisableAccessibilityInQt", false).toBool()) {
@@ -708,19 +734,6 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     } else {
         if (qEnvironmentVariableIntValue("QT_DISABLE_ACCESSIBILITY")) {
             qInfo() << "INFO: QT_DISABLE_ACCESSIBILITY is activated via environment...";
-        }
-    }
-#endif
-
-#if KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
-    if (!qEnvironmentVariableIsSet("QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER")) {
-        qputenv("QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER", "1");
-    }
-
-    if (!qEnvironmentVariableIsSet("QT_FRAME_RATE_OVERRIDE")) {
-        KisImageConfig cfg(true);
-        if (!cfg.detectFpsLimit()) {
-            qputenv("QT_FRAME_RATE_OVERRIDE", QString::number(cfg.fpsLimit()).toLatin1());
         }
     }
 #endif
@@ -862,22 +875,28 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 
     KisUsageLogger::writeLocaleSysInfo();
 
-#if defined Q_OS_WIN && QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined QT5_HAS_WINTAB_SWITCH
-    const bool forceWinTab = !KisConfig::useWin8PointerInputNoApp(&kritarc);
-    QCoreApplication::setAttribute(Qt::AA_MSWindowsUseWinTabAPI, forceWinTab);
-
-    if (qEnvironmentVariableIsEmpty("QT_WINTAB_DESKTOP_RECT") &&
-        qEnvironmentVariableIsEmpty("QT_IGNORE_WINTAB_MAPPING")) {
-
+#ifdef Q_OS_WIN
+    // Q4 stage 4 (fork commit 051139ed72): the Qt 6 startup path has to read
+    // wintabResolutionMode from kritadisplayrc before the first tablet event.
+    // The settings page calls the same function when the user accepts it.
+    {
         QRect customTabletRect;
-        KisDlgCustomTabletResolution::Mode tabletMode =
+        const KisDlgCustomTabletResolution::Mode tabletMode =
             KisDlgCustomTabletResolution::getTabletMode(&customTabletRect);
-        KisDlgCustomTabletResolution::applyConfiguration(tabletMode, customTabletRect);
+        KisDlgCustomTabletResolution::applyConfiguration(tabletMode,
+                                                        customTabletRect);
     }
 #endif
 
     // first create the application so we can create a pixmap
     KisApplication app(key, argc, argv);
+
+#ifdef Q_OS_WIN
+    // Identify the GUI thread in the latency log so thread_cpu.csv can name
+    // the thread that spends the application's CPU. The value is the Win32
+    // thread ID that ProcessThread.Id reports.
+    KisLatencyProbe::mark("main_thread", static_cast<qint64>(GetCurrentThreadId()));
+#endif
 
 #ifdef Q_OS_IOS
     // Keep user documents outside Library/Application Support so they survive
@@ -1109,19 +1128,8 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
             }
         }
     }
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined QT5_HAS_WINTAB_SWITCH
-    // Check if WinTab/WinInk has actually activated
-    const bool useWinInkAPI = !KisApplication::testAttribute(Qt::AA_MSWindowsUseWinTabAPI);
-
-    if (useWinInkAPI != cfg.useWin8PointerInput()) {
-        KisUsageLogger::log("WARNING: WinTab tablet protocol is not supported on this device. Switching to WinInk...");
-
-        cfg.setUseWin8PointerInput(useWinInkAPI);
-        cfg.setUseRightMiddleTabletButtonWorkaround(true);
-    }
 #endif
-#endif
+
     KisApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents, false);
 
     // Set up remote arguments.
@@ -1162,6 +1170,18 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 #endif
 
     KisLatencyProbe::installNativeFilter(&app);
+
+#ifdef Q_OS_WIN
+    // The window frame and the Windows Ink press-and-hold gesture never reach
+    // Qt as events. Q4 stage 3 (c41d66281e and 33a49f25d1) keeps the canvas
+    // Enter/Leave, the cursor and the long press working with official Qt.
+    app.installNativeEventFilter(new KisWindowsPointerEventFilter);
+
+    // Q4 stage 4 (051139ed72) reads the Wintab packet queue before Qt does
+    // and keeps the corrected position for the tablet events.
+    app.installNativeEventFilter(new KisWintabPacketPeeker);
+#endif
+
     int state = KisApplication::exec();
 
     {
