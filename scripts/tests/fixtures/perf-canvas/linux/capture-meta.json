@@ -1,0 +1,10 @@
+{
+  "connector": "eDP-1",
+  "frame": [1920, 1080],
+  "canvas": [305, 230, 1004, 806],
+  "bands": [],
+  "options": {},
+  "input_scale": 1.0,
+  "dark": 40,
+  "dense": 3
+}

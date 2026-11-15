@@ -12,6 +12,7 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -799,6 +800,477 @@ class MainExitTest(unittest.TestCase):
         self.assertIn("== ink speed groups", output)
         self.assertIn("| check |", output)
         self.assertEqual(status, 1)
+
+
+FIXTURES = os.path.join(ROOT, "scripts", "tests", "fixtures", "perf-canvas")
+
+
+def capture_dirs(root, count, host="h", target="T"):
+    """Create count run directories with a capture.csv and return their paths."""
+    paths = []
+    for number in range(1, count + 1):
+        path = os.path.join(root, host, "%s-20261108-120000-%d" % (target, number))
+        os.makedirs(path)
+        open(os.path.join(path, "capture.csv"), "w").close()
+        paths.append(path)
+    return paths
+
+
+class ConditionsTest(unittest.TestCase):
+    """The capture conditions that every writer records for one run."""
+
+    def conditions(self, platform):
+        with tempfile.TemporaryDirectory() as root:
+            path = os.path.join(root, "T-20261108-120000-1")
+            os.makedirs(path)
+            source = os.path.join(FIXTURES, platform)
+            for name in os.listdir(source):
+                shutil.copy(os.path.join(source, name), os.path.join(path, name))
+            return run.canvas_conditions(path)
+
+    def test_macos_canvas_is_recorded_in_captured_pixels(self):
+        conditions = self.conditions("macos")
+        self.assertEqual(conditions["canvas"], [1100, 900])
+        self.assertEqual(conditions["frame"], [3360, 2100])
+        self.assertEqual(conditions["scale"], 2.0)
+        self.assertEqual(conditions["refresh"], 60.0)
+
+    def test_windows_canvas_is_recorded_in_captured_pixels(self):
+        conditions = self.conditions("windows")
+        self.assertEqual(conditions["canvas"], [1000, 800])
+        self.assertEqual(conditions["frame"], [1920, 1080])
+        self.assertIsNone(conditions["scale"])
+        self.assertEqual(conditions["refresh"], 60.0)
+
+    def test_linux_capture_meta_is_normalized(self):
+        conditions = self.conditions("linux")
+        self.assertEqual(conditions["canvas"], [1004, 806])
+        self.assertEqual(conditions["frame"], [1920, 1080])
+        self.assertIsNone(conditions["scale"])
+        self.assertIsNone(conditions["refresh"])
+
+    def test_a_run_without_a_canvas_file_has_no_conditions(self):
+        with tempfile.TemporaryDirectory() as root:
+            self.assertIsNone(run.canvas_conditions(root))
+
+    def test_an_unreadable_canvas_file_has_no_conditions(self):
+        for content in ("{", '{"canvas": [1, 2]}', '{"canvas": [0, 0, 0, 0]}'):
+            with tempfile.TemporaryDirectory() as root:
+                with open(os.path.join(root, "canvas.json"), "w") as handle:
+                    handle.write(content)
+                self.assertIsNone(run.canvas_conditions(root), content)
+
+
+class TargetConditionsTest(unittest.TestCase):
+    def conditions(self, canvas=(1000, 800), scale=2, refresh=60):
+        return {"canvas": list(canvas), "frame": [1920, 1080], "scale": scale, "refresh": refresh}
+
+    def test_the_window_is_stable_when_every_run_recorded_the_same_conditions(self):
+        window = [{"conditions": self.conditions()}, {"conditions": self.conditions()}]
+        self.assertTrue(run.target_conditions(window)["stable"])
+
+    def test_another_canvas_scale_or_refresh_makes_the_window_unstable(self):
+        first = {"conditions": self.conditions()}
+        for other in (self.conditions(canvas=(1100, 800)), self.conditions(scale=1),
+                      self.conditions(refresh=50)):
+            self.assertFalse(run.target_conditions([first, {"conditions": other}])["stable"], other)
+
+    def test_a_window_without_a_recorded_condition_has_none(self):
+        self.assertIsNone(run.target_conditions([{"conditions": None}]))
+        self.assertFalse(run.target_conditions([{"conditions": None},
+                                                {"conditions": self.conditions()}])["stable"])
+
+
+class WindowTest(unittest.TestCase):
+    """The warm-ups and the window of the counted runs of one target."""
+
+    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4, "spread_limit": 0.05,
+                "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+
+    def summarize(self, results, scenario=None):
+        scenario = scenario or self.SCENARIO
+        with tempfile.TemporaryDirectory() as root:
+            capture_dirs(root, len(results))
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results):
+                return run.summarize(root, [host], scenario)
+
+    def test_the_warm_up_run_is_marked_and_left_out(self):
+        summary = self.summarize([fake_run("low", 100.0, 40.0),
+                                  fake_run("low", 40.0, 40.0),
+                                  fake_run("low", 41.0, 40.0)])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual([entry["warmup"] for entry in data["runs"]], [True, False, False])
+        self.assertEqual(data["metrics"]["hover.input_to_capture"]["runs"], 2)
+        self.assertAlmostEqual(data["metrics"]["hover.input_to_capture"]["median"], 40.5)
+        self.assertEqual(data["settle"], {"warmup_runs": 1, "counted_runs": 2,
+                                          "window_runs": 2, "unsettled": []})
+
+    def test_a_warm_up_run_stays_out_of_the_run_counts(self):
+        warm = fake_run("low", 40.0, 40.0, excluded="app not foreground and presented at 39%")
+        summary = self.summarize([warm, fake_run("low", 40.0, 40.0), fake_run("low", 40.0, 40.0)])
+        self.assertEqual(summary["hosts"]["h"]["targets"]["T"]["excluded"], 0)
+
+    def test_the_window_is_the_last_runs_of_the_counted_runs(self):
+        scenario = dict(self.SCENARIO, warmup_runs=0)
+        summary = self.summarize([fake_run("low", 100.0, 40.0), fake_run("low", 90.0, 40.0),
+                                  fake_run("low", 40.0, 40.0), fake_run("low", 41.0, 40.0)], scenario)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual([entry["in_window"] for entry in data["runs"]], [False, False, True, True])
+        self.assertAlmostEqual(data["metrics"]["hover.input_to_capture"]["median"], 40.5)
+        self.assertEqual(data["settle"]["counted_runs"], 4)
+        self.assertEqual(data["settle"]["window_runs"], 2)
+
+    def test_judge_counts_the_window_and_not_the_runs_before_it(self):
+        scenario = dict(self.SCENARIO, warmup_runs=0)
+        summary = self.summarize([fake_run("low", 100.0, 40.0), fake_run("low", 40.0, 40.0),
+                                  fake_run("low", 40.5, 40.0)], scenario)
+        hover = [row for row in run.judge(summary, scenario)
+                 if row[2] == "hover.input_to_capture"][0]
+        self.assertEqual(hover[7], "ok")
+        self.assertNotIn("3 of 2 runs", hover[8])
+
+    def test_settle_names_the_unsettled_state_group(self):
+        scenario = dict(self.SCENARIO, runs=4, warmup_runs=0)
+        summary = self.summarize([fake_run("low", 40.0, 40.0), fake_run("low", 50.0, 40.0),
+                                  fake_run("high", 60.0, 40.0), fake_run("high", 60.5, 40.0)], scenario)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["settle"]["unsettled"], ["hover.input_to_capture[low]"])
+
+
+class SettleMeasureTest(unittest.TestCase):
+    """measure_runs adds runs until the window settles or a cap ends the target."""
+
+    HOST = {"name": "w", "kind": "windows", "capture_offset_ms": 0,
+            "targets": [{"name": "LibrePaint", "runner_target": "LibrePaint",
+                         "app": "C:/LibrePaint.exe"}]}
+
+    def measure(self, values, runs=2, warmup_runs=0, max_runs=2, failed=()):
+        calls = []
+        hovers = {}
+
+        def fake_runner(host, target, scenario, run_root):
+            return ["true"], {}, None
+
+        def fake_command(argv, env=None, cwd=None):
+            calls.append(list(argv))
+            number = len(calls)
+            if number in failed:
+                return 1
+            path = os.path.join(self._root, "w", "LibrePaint-20261112-120000-%d" % number)
+            os.makedirs(path)
+            stamp = time.time() + number
+            os.utime(path, (stamp, stamp))
+            open(os.path.join(path, "capture.csv"), "w").close()
+            hovers[number] = values[min(len(hovers), len(values) - 1)]
+            return 0
+
+        def analyze(path):
+            return fake_run("low", hovers[int(path.rsplit("-", 1)[1])], 40.0)
+
+        scenario = {"name": "test", "runs": runs, "warmup_runs": warmup_runs, "max_runs": max_runs,
+                    "spread_limit": 0.05,
+                    "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+        with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                mock.patch.object(run, "run_command", side_effect=fake_command), \
+                mock.patch.object(run.capture_analyze, "analyze_run", side_effect=analyze):
+            failures = run.measure_runs([self.HOST], scenario, self._root, "l1", self.events)
+        with open(self.events, encoding="utf-8") as handle:
+            lines = [line.split("\t") for line in handle.read().splitlines()]
+        return calls, failures, lines
+
+    def setUp(self):
+        self._temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._temp.cleanup)
+        self._root = os.path.join(self._temp.name, "runs")
+        self.events = os.path.join(self._temp.name, "events.log")
+
+    def settle_lines(self, lines):
+        return [fields for fields in lines if fields[1] == "settle"]
+
+    def test_runs_are_added_until_the_window_settles(self):
+        calls, failures, lines = self.measure([40.0, 61.0, 50.0, 50.4], max_runs=4)
+        self.assertEqual(len(calls), 4, calls)
+        self.assertEqual(failures, [])
+        settle = self.settle_lines(lines)
+        self.assertEqual(len(settle), 3, settle)
+        self.assertIn("settled=no", settle[0][5])
+        self.assertIn("counted=2", settle[0][5])
+        self.assertIn("window=1..2", settle[0][5])
+        self.assertIn("settled=yes", settle[-1][5])
+        self.assertNotIn("capped", settle[-1][5])
+
+    def test_runs_stop_at_max_runs_when_the_window_does_not_settle(self):
+        calls, _, lines = self.measure([40.0, 60.0, 50.0, 45.0], max_runs=4)
+        self.assertEqual(len(calls), 4, calls)
+        settle = self.settle_lines(lines)[-1]
+        self.assertIn("settled=no", settle[5])
+        self.assertIn("capped=runs", settle[5])
+
+    def test_a_stable_window_at_runs_adds_no_run(self):
+        calls, _, lines = self.measure([40.0, 40.4])
+        self.assertEqual(len(calls), 2, calls)
+        self.assertIn("settled=yes", self.settle_lines(lines)[-1][5])
+
+    def test_a_warm_up_run_is_not_counted_and_has_no_settle_event(self):
+        calls, _, lines = self.measure([40.0, 40.0, 40.4], warmup_runs=1)
+        self.assertEqual(len(calls), 3, calls)
+        settle = self.settle_lines(lines)
+        self.assertEqual(len(settle), 1, settle)
+        self.assertIn("window=2..3", settle[0][5])
+        self.assertIn("counted=2", settle[0][5])
+
+    def test_the_start_limit_ends_an_unsettled_target(self):
+        calls, failures, lines = self.measure([40.0, 60.0], max_runs=4,
+                                              failed=(1, 2, 3, 4, 5, 6))
+        self.assertEqual(len(calls), 8, calls)
+        self.assertEqual(len(failures), 6)
+        settle = self.settle_lines(lines)[-1]
+        self.assertIn("capped=starts", settle[5])
+        self.assertNotIn("capped=runs", settle[5])
+
+
+class JudgeSettleTest(unittest.TestCase):
+    """The problem text, the baseline notes and the conditions of the judge."""
+
+    SCENARIO = {"name": "test", "runs": 5, "spread_limit": 0.05,
+                "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+    METRICS = {"hover.input_to_capture": {"median": 40.0, "p95": 45.0, "spread": 0.075, "runs": 5}}
+    CONDITIONS = {"canvas": [402, 370], "frame": [402, 370], "scale": 1, "refresh": 60, "stable": True}
+
+    def summary(self, counted=10, conditions=None, metrics=None):
+        return {"hosts": {"h": {"kind": "linux", "targets": {"T": {
+            "runs": [],
+            "metrics": metrics or self.METRICS,
+            "states": {},
+            "conditions": conditions,
+            "settle": {"warmup_runs": 1, "counted_runs": counted, "window_runs": 5,
+                       "unsettled": ["hover.input_to_capture"]},
+        }}}}}
+
+    def baseline(self, conditions=None, metrics=None, unsettled=None):
+        data = {"metrics": metrics or {"hover.input_to_capture": {
+            "median": 10.0, "p95": 15.0, "spread": 0.0, "runs": 5}}}
+        if conditions is not None:
+            data["conditions"] = conditions
+        if unsettled is not None:
+            data["settle"] = {"warmup_runs": 0, "counted_runs": 5, "window_runs": 5,
+                              "unsettled": unsettled}
+        return {"hosts": {"h": {"targets": {"T": data}}}}
+
+    def test_spread_names_the_added_runs(self):
+        row = run.judge(self.summary(counted=10), self.SCENARIO)[0]
+        self.assertIn("spread 7.5% >= 5% after 10 runs", row[8])
+
+    def test_spread_keeps_the_short_text_without_added_runs(self):
+        row = run.judge(self.summary(counted=5), self.SCENARIO)[0]
+        self.assertIn("spread 7.5% >= 5%", row[8])
+        self.assertNotIn("after", row[8])
+
+    def test_an_unsettled_baseline_is_noted(self):
+        row = run.judge(self.summary(), self.SCENARIO,
+                        self.baseline(unsettled=["hover.input_to_capture"]))[0]
+        self.assertIn("baseline unsettled", row[8])
+
+    def test_conditions_that_differ_reject_the_delta(self):
+        baseline = self.baseline(conditions=dict(self.CONDITIONS, canvas=[791, 589]))
+        row = run.judge(self.summary(conditions=self.CONDITIONS), self.SCENARIO, baseline)[0]
+        self.assertEqual(row[7], "check")
+        self.assertIn("conditions differ from baseline: canvas 402x370 vs baseline 791x589", row[8])
+        self.assertIsNone(row[6])
+
+    def test_conditions_that_match_keep_the_delta(self):
+        row = run.judge(self.summary(conditions=self.CONDITIONS), self.SCENARIO,
+                        self.baseline(conditions=self.CONDITIONS))[0]
+        self.assertAlmostEqual(row[6], 30.0)
+
+    def test_a_missing_condition_is_only_noted(self):
+        row = run.judge(self.summary(), self.SCENARIO, self.baseline())[0]
+        self.assertIn("conditions unknown", row[8])
+        self.assertAlmostEqual(row[6], 30.0)
+
+    def test_a_window_with_changing_conditions_is_noted(self):
+        conditions = dict(self.CONDITIONS, stable=False)
+        row = run.judge(self.summary(conditions=conditions), self.SCENARIO)[0]
+        self.assertIn("conditions vary inside the window", row[8])
+
+    def test_no_conditions_are_noted_without_a_baseline(self):
+        row = run.judge(self.summary(), self.SCENARIO)[0]
+        self.assertNotIn("conditions", row[8])
+
+
+class ReferenceColumnTest(unittest.TestCase):
+    """The target-minus-reference column of the verdict table."""
+
+    SCENARIO = {"name": "test", "runs": 5, "spread_limit": 0.05,
+                "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+    HOSTS = [{"name": "h", "kind": "linux", "targets": [
+        {"name": "LibrePaint"}, {"name": "Reference", "reference": True}]}]
+
+    def summary(self, target_median=40.0, reference_median=36.9):
+        return {"hosts": {"h": {"kind": "linux", "targets": {
+            "LibrePaint": {"runs": [], "states": {}, "metrics": {"hover.input_to_capture": {
+                "median": target_median, "p95": 45.0, "spread": 0.0, "runs": 5}}},
+            "Reference": {"runs": [], "states": {}, "metrics": {"hover.input_to_capture": {
+                "median": reference_median, "p95": 40.0, "spread": 0.0, "runs": 5}}},
+        }}}}
+
+    def test_the_cell_is_the_target_median_minus_the_reference_median(self):
+        summary = self.summary()
+        cells = run.reference_columns(summary, None, self.HOSTS)
+        self.assertEqual(cells[("h", "LibrePaint", "hover.input_to_capture", None)], "+3.1")
+        self.assertNotIn(("h", "Reference", "hover.input_to_capture", None), cells)
+        table = run.table(run.judge(summary, self.SCENARIO), cells)
+        self.assertIn("minus reference", table)
+        self.assertIn("| +3.1 |", table)
+
+    def test_the_baseline_difference_follows_in_parentheses(self):
+        baseline = self.summary(target_median=37.2, reference_median=34.4)
+        cells = run.reference_columns(self.summary(), baseline, self.HOSTS)
+        self.assertEqual(cells[("h", "LibrePaint", "hover.input_to_capture", None)],
+                         "+3.1 (base +2.8)")
+
+    def test_a_host_without_a_reference_target_has_no_cell(self):
+        hosts = [{"name": "h", "kind": "linux", "targets": [{"name": "LibrePaint"}]}]
+        self.assertEqual(run.reference_columns(self.summary(), None, hosts), {})
+        table = run.table(run.judge(self.summary(), self.SCENARIO), {})
+        self.assertIn("| - |", table)
+
+    def test_the_table_without_extra_has_no_reference_column(self):
+        table = run.table(run.judge(self.summary(), self.SCENARIO))
+        self.assertNotIn("minus reference", table)
+
+
+class NonWindowsStateTest(unittest.TestCase):
+    """Only a Windows target is split by state."""
+
+    SCENARIO = {"name": "test", "runs": 2, "spread_limit": 0.05,
+                "metrics": {"hover.input_to_capture": {"regression_ms": 2.0},
+                            "ink.input_to_capture": {"regression_ms": 2.0}}}
+
+    def test_a_linux_target_has_no_state_groups_and_one_hover_row(self):
+        with tempfile.TemporaryDirectory() as root:
+            capture_dirs(root, 2)
+            host = {"name": "h", "kind": "linux", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0),
+                                                fake_run("high", 62.0, 61.0)]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["states"], {})
+        rows = run.judge(summary, self.SCENARIO)
+        self.assertEqual({row[9] for row in rows if row[2] == "hover.input_to_capture"}, {None})
+        self.assertEqual(run.speed_table(data["runs"]), [])
+
+    def test_a_windows_target_keeps_the_state_groups(self):
+        with tempfile.TemporaryDirectory() as root:
+            capture_dirs(root, 2)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0),
+                                                fake_run("high", 62.0, 61.0)]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        self.assertEqual(sorted(summary["hosts"]["h"]["targets"]["T"]["states"]), ["high", "low"])
+
+
+class BaselineDocumentTest(unittest.TestCase):
+    """The allowlisted baseline document and its use as a baseline."""
+
+    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4, "spread_limit": 0.05,
+                "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+    HOSTS = [{"name": "windows", "kind": "windows", "ssh": "/tmp/secret-host",
+              "system": "tablet", "capture_offset_ms": 0,
+              "targets": [{"name": "T", "runner_target": "LibrePaint", "reference": True},
+                          {"name": "U", "runner_target": "Krita"}]}]
+
+    def summary(self):
+        stat = {"median": 40.0, "p95": 45.0, "spread": 0.01, "runs": 2}
+        return {
+            "label": "l1", "date": "2026-11-15", "commit": "abc1234567", "scenario": "test",
+            "hosts": {"windows": {
+                "kind": "windows", "system": "tablet", "capture_offset_ms": 0,
+                "targets": {
+                    "T": {"runs": [
+                        {"name": "/tmp/secret-run/T-1", "in_window": False,
+                         "metrics": {"hover.input_to_capture": {"n": 1, "p50": 99.0}}},
+                        {"name": "/tmp/secret-run/T-2", "in_window": True,
+                         "metrics": {"hover.input_to_capture": {"n": 1, "p50": 40.0}}},
+                    ], "metrics": {"hover.input_to_capture": dict(stat)},
+                        "states": {"low": {"runs": 2, "metrics": {"hover.input_to_capture": dict(stat)}}},
+                        "conditions": {"canvas": [402, 370], "frame": [402, 370],
+                                       "scale": 1, "refresh": 60, "stable": True},
+                        "settle": {"warmup_runs": 1, "counted_runs": 2, "window_runs": 1,
+                                   "unsettled": []}},
+                    "U": {"runs": [], "metrics": {"hover.input_to_capture": dict(stat, median=30.0)},
+                          "states": {}, "conditions": None,
+                          "settle": {"warmup_runs": 0, "counted_runs": 2, "window_runs": 1,
+                                     "unsettled": []}},
+                },
+            }},
+        }
+
+    def test_only_the_allowlisted_keys_are_written(self):
+        document = run.baseline_document(self.summary(), self.HOSTS, self.SCENARIO)
+        self.assertEqual(set(document), {"format", "label", "date", "commit", "scenario",
+                                         "settings", "hosts"})
+        self.assertEqual(document["format"], 1)
+        self.assertEqual(document["settings"], {"runs": 2, "warmup_runs": 1, "max_runs": 4,
+                                                "spread_limit": 0.05})
+        target = document["hosts"]["windows"]["targets"]["T"]
+        self.assertEqual(set(target), {"reference", "metrics", "states", "run_medians",
+                                       "conditions", "settle"})
+        self.assertEqual(set(target["metrics"]["hover.input_to_capture"]),
+                         {"median", "p95", "spread", "runs"})
+        self.assertTrue(target["reference"])
+        self.assertFalse(document["hosts"]["windows"]["targets"]["U"]["reference"])
+        self.assertEqual(target["run_medians"]["hover.input_to_capture"], [40.0])
+
+    def test_no_run_name_path_or_ssh_value_appears(self):
+        text = json.dumps(run.baseline_document(self.summary(), self.HOSTS, self.SCENARIO))
+        for secret in ("/tmp/secret", "secret-host", "runner_target", "LibrePaint"):
+            self.assertNotIn(secret, text)
+
+    def test_the_document_is_readable_as_a_baseline(self):
+        document = run.baseline_document(self.summary(), self.HOSTS, self.SCENARIO)
+        self.assertEqual(run.baseline_metric(document, "windows", "T",
+                                             "hover.input_to_capture", None)["median"], 40.0)
+        self.assertEqual(run.baseline_metric(document, "windows", "T",
+                                             "hover.input_to_capture", "low")["median"], 40.0)
+        rows = run.judge(self.summary(), self.SCENARIO, document)
+        self.assertEqual({row[9] for row in rows
+                          if row[1] == "T" and row[2] == "hover.input_to_capture"}, {"low"})
+
+
+class BaselineOutTest(unittest.TestCase):
+    """--baseline-out writes the document after the summary."""
+
+    def test_main_writes_the_allowlisted_baseline(self):
+        scenario = {"name": "test", "runs": 2, "warmup_runs": 0, "max_runs": 2, "spread_limit": 0.05,
+                    "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
+        with tempfile.TemporaryDirectory() as root:
+            run_root = os.path.join(root, "runs")
+            capture_dirs(run_root, 2)
+            scenario_path = os.path.join(root, "scenario.json")
+            hosts_path = os.path.join(root, "hosts.json")
+            baseline_path = os.path.join(root, "baseline.json")
+            with open(scenario_path, "w") as handle:
+                json.dump(scenario, handle)
+            with open(hosts_path, "w") as handle:
+                json.dump({"hosts": [{"name": "h", "kind": "linux", "capture_offset_ms": 0,
+                                      "targets": [{"name": "T"}]}]}, handle)
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 40.0, 40.0), fake_run("low", 40.5, 40.0)]), \
+                    mock.patch.object(run.subprocess, "run",
+                                      return_value=mock.Mock(stdout="0123456789\n")), \
+                    redirect_stdout(io.StringIO()):
+                status = run.main(["--scenario", scenario_path, "--hosts", hosts_path,
+                                   "--analyze-only", run_root, "--baseline-out", baseline_path])
+            with open(baseline_path) as handle:
+                document = json.load(handle)
+            self.assertEqual(status, 0)
+        self.assertEqual(document["commit"], "0123456789")
+        self.assertEqual(document["settings"]["runs"], 2)
+        self.assertNotIn(root, json.dumps(document))
 
 
 if __name__ == "__main__":
