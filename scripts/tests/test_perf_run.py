@@ -214,9 +214,10 @@ class DeviceShiftTest(unittest.TestCase):
                 self.write_device_state(path, values)
             host = {"name": "h", "kind": "windows", "capture_offset_ms": 0,
                     "targets": [{"name": "T"}]}
+            scenario = dict(SCENARIO, runs=len(readings))
             with mock.patch.object(run.capture_analyze, "analyze_run",
                                    side_effect=[fake_run("low", 55.0, 61.0) for _ in readings]):
-                summary = run.summarize(root, [host], SCENARIO)
+                summary = run.summarize(root, [host], scenario)
         data = summary["hosts"]["h"]["targets"]["T"]
         self.assertEqual(data["device_low"], 0)
         self.assertEqual(data["device_readings_missing"], 1)
@@ -224,7 +225,7 @@ class DeviceShiftTest(unittest.TestCase):
         names = [state.get("during_min_processor_performance_pct")
                  for state in (entry["surface_state"] for entry in data["runs"])]
         self.assertEqual(sorted(names), ["180", "70", "75"])
-        rows = run.judge(summary, SCENARIO)
+        rows = run.judge(summary, scenario)
         notes = "; ".join(row[8] for row in rows)
         self.assertIn("1 run(s) with a failed processor performance reading (kept)", notes)
 
@@ -499,7 +500,7 @@ class StateSummaryTest(unittest.TestCase):
                 path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
                 os.makedirs(path)
                 open(os.path.join(path, "capture.csv"), "w").close()
-            host = {"name": "h", "kind": "linux", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
             with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results):
                 return run.summarize(root, [host], self.SCENARIO)
 
