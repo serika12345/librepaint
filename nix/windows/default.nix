@@ -308,11 +308,14 @@ let
         cp "$out/bin/libogg.dll" "$out/bin/ogg.dll"
       fi
 
+      # krita/CMakeLists.txt installs the shell extension icons into installer/
+      # on Windows whatever KRITA_INSTALL_NSIS_INSTALLER says.
       rm -rf \
         "$out/bin/plugins/qmltooling" \
         "$out/bin/qml/Qt/test" \
         "$out/bin/qml/QtTest" \
-        "$out/include"
+        "$out/include" \
+        "$out/installer"
       rm -f \
         "$out/bin/Qt6QuickTest.dll" \
         "$out/bin/Qt6Test.dll" \
