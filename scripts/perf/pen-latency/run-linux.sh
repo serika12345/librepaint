@@ -35,10 +35,26 @@ kritarc=${KRITARC:-$'newCursorStyle=0\nnewOutlineStyle=2\nfpsLimit=100\n'}
 mkdir -p "$work" "$out"
 python3 -I "$here/canvas.py" "$work/canvas.png"
 
+# GNOME refuses to create a screen capture session ("Session creation
+# inhibited") while the screen is blanked after the idle delay or locked.
+# Wake a blanked screen before every run; a locked screen cannot be woken
+# here and stops the run with a message.
+wake_screen() {
+  command -v gdbus > /dev/null || return 0
+  local saver=(gdbus call --session --dest org.gnome.ScreenSaver --object-path /org/gnome/ScreenSaver)
+  "${saver[@]}" --method org.gnome.ScreenSaver.SetActive false > /dev/null 2>&1 || true
+  sleep 1
+  if [ "$("${saver[@]}" --method org.gnome.ScreenSaver.GetActive 2> /dev/null)" = "(true,)" ]; then
+    echo "the screen is locked or blanked and cannot be woken; unlock it at the machine" >&2
+    return 1
+  fi
+}
+
 stamp=$(date +%Y%m%d-%H%M%S)
 for n in $(seq 1 "$runs"); do
   run="$out/$name-$stamp-$n"
   home="$work/home"
+  wake_screen || exit 1
   rm -rf "$home"
   mkdir -p "$home/config" "$work/data" "$run"
   printf '%s' "$kritarc" > "$home/config/kritarc"

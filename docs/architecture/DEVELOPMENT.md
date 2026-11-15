@@ -629,6 +629,12 @@ MACOS_CAPTURE=/path/macos_capture \
   scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
 ```
 
+`run-linux.sh`は各回の前に`org.gnome.ScreenSaver.SetActive false`で消えた画面を起こす。
+GNOMEは、アイドル時間（既定300秒）の後に画面が消えている間と、画面がロックされている間、
+画面収録の作成を`Session creation inhibited`で拒否する。起こしても画面が有効なまま（ロック）の
+ときは、`the screen is locked or blanked and cannot be woken; unlock it at the machine`を
+出して止まる。
+
 `run-linux.sh`と`run-macos.sh`は、既定のkritarcを空のグループ（最初の`[Group]`より前）に
 書く。LibrePaintの`KisConfig`と`KisImageConfig`は`KConfigGroup::group(QString())`を読むため、
 `[General]`に書いた`newOutlineStyle`、`fpsLimit`、`newCursorStyle`は効かない（2026-11-09以前の
