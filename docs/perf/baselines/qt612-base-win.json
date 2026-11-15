@@ -1,0 +1,167 @@
+{
+  "commit": "ba1431f729",
+  "date": "2026-11-16",
+  "format": 1,
+  "hosts": {
+    "windows": {
+      "capture_offset_ms": 0.0,
+      "kind": "windows",
+      "system": "Surface Pro 7, Intel Iris Plus, 60 Hz",
+      "targets": {
+        "LibrePaint": {
+          "conditions": {
+            "canvas": [
+              1936,
+              1447
+            ],
+            "frame": [
+              2736,
+              1824
+            ],
+            "refresh": 59.0,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 15.24267171875,
+              "p95": 21.8780765,
+              "runs": 5,
+              "spread": 0.06190601284742368
+            },
+            "ink.input_to_capture": {
+              "median": 21.998809843750003,
+              "p95": 28.0013436875,
+              "runs": 5,
+              "spread": 0.32343117027857965
+            }
+          },
+          "reference": false,
+          "run_medians": {
+            "hover.input_to_capture": [
+              15.22252409375,
+              15.3152731875,
+              14.9135903125,
+              15.24267171875,
+              15.85720334375
+            ],
+            "ink.input_to_capture": [
+              22.449747375,
+              22.472959875,
+              15.3578590625,
+              21.082415375,
+              21.998809843750003
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture[high]",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {
+            "high": {
+              "metrics": {
+                "hover.input_to_capture": {
+                  "median": 15.24267171875,
+                  "p95": 21.8780765,
+                  "runs": 5,
+                  "spread": 0.06190601284742368
+                },
+                "ink.input_to_capture": {
+                  "median": 21.998809843750003,
+                  "p95": 28.0013436875,
+                  "runs": 5,
+                  "spread": 0.32343117027857965
+                }
+              },
+              "runs": 5
+            }
+          }
+        },
+        "PenProbe": {
+          "conditions": {
+            "canvas": [
+              2720,
+              1808
+            ],
+            "frame": [
+              2736,
+              1824
+            ],
+            "refresh": 59.0,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 4.95120290625,
+              "p95": 6.5663,
+              "runs": 5,
+              "spread": 0.0253123525985569
+            },
+            "ink.input_to_capture": {
+              "median": 4.2859760937499995,
+              "p95": 7.8094058125,
+              "runs": 5,
+              "spread": 0.020047314922100448
+            }
+          },
+          "reference": true,
+          "run_medians": {
+            "hover.input_to_capture": [
+              4.83469646875,
+              4.95120290625,
+              4.8692185625,
+              4.953975625,
+              4.9600230624999995
+            ],
+            "ink.input_to_capture": [
+              4.2859760937499995,
+              4.2193610625,
+              4.305283375,
+              4.3025809375,
+              4.224185875
+            ]
+          },
+          "settle": {
+            "counted_runs": 5,
+            "unsettled": [],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {
+            "high": {
+              "metrics": {
+                "hover.input_to_capture": {
+                  "median": 4.95120290625,
+                  "p95": 6.5663,
+                  "runs": 5,
+                  "spread": 0.0253123525985569
+                },
+                "ink.input_to_capture": {
+                  "median": 4.2859760937499995,
+                  "p95": 7.8094058125,
+                  "runs": 5,
+                  "spread": 0.020047314922100448
+                }
+              },
+              "runs": 5
+            }
+          }
+        }
+      }
+    }
+  },
+  "label": "qt612-base-win",
+  "scenario": "pen-light",
+  "settings": {
+    "max_runs": 10,
+    "runs": 5,
+    "spread_limit": 0.05,
+    "warmup_runs": 1
+  }
+}
