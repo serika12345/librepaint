@@ -683,6 +683,7 @@
       packages.${system} = {
         default = macosPackages.librepaint;
         librepaint-macos = macosPackages.librepaint;
+        librepaint-macos-unwrapped = macosPackages.librepaintUnwrapped;
         macos-dependencies = macosPackages.macosDependencies;
 
         source-zlib = pkgs.zlib.src;
@@ -999,8 +1000,8 @@
         default = macosPackages.devShell;
         docs = mkDocsShell pkgs;
         librepaint-macos = macosPackages.devShell;
-        librepaint-test = mkTestShell pkgs macosPackages.librepaint;
-        test = mkTestShell pkgs macosPackages.librepaint;
+        librepaint-test = mkTestShell pkgs macosPackages.librepaintUnwrapped;
+        test = mkTestShell pkgs macosPackages.librepaintUnwrapped;
 
         librepaint-ios = pkgs.mkShellNoCC {
           packages = with pkgs; [
