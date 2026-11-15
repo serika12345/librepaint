@@ -3,21 +3,17 @@
   hostPkgs,
   source,
   auditWindowsPackage,
-  useQtFork ? false,
-  pnameSuffix ? "",
 }:
 
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
-  incrementalPlatform = if pnameSuffix == "" then "windows" else "windows-upstream-qt";
+  incrementalPlatform = "windows";
   librepaintUnwrapped = import ./krita.nix {
     inherit
       pkgs
       hostPkgs
       source
-      useQtFork
-      pnameSuffix
       ;
   };
   incrementalDiscardedHooks = [
@@ -108,7 +104,7 @@ let
     rootPaths = [ librepaintUnwrapped ] ++ portableRuntimeDependencies;
   };
 
-  librepaint = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-${librepaintUnwrapped.version}"
+  librepaint = buildPkgs.runCommand "librepaint-windows-${librepaintUnwrapped.version}"
     {
       nativeBuildInputs = [
         buildPkgs.coreutils
@@ -350,7 +346,7 @@ let
         --objdump ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}objdump
     '';
 
-  librepaintArchive = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-archive-${librepaintUnwrapped.version}"
+  librepaintArchive = buildPkgs.runCommand "librepaint-windows-archive-${librepaintUnwrapped.version}"
     {
       nativeBuildInputs = [
         buildPkgs.coreutils
@@ -366,22 +362,15 @@ let
 
   # Dependency-only output: forces the Qt, KDE and codec builds without the
   # application, so a failed or interrupted bundle build can resume after the
-  # dependencies are in the store.
-  dependencyInputs = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-dependency-inputs"
+  # dependencies are in the store.  The G'MIC plugin compiles against the Krita
+  # build, so it belongs to the package and not to this source-independent
+  # aggregate.
+  dependencyInputs = buildPkgs.runCommand "librepaint-windows-dependency-inputs"
     { }
     ''
       mkdir -p "$out/nix-support"
       printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
         > "$out/nix-support/dependency-members"
-    '';
-  # The G'MIC plugin compiles against the Krita build, so it belongs to the
-  # package and not to this source-independent aggregate.
-  windowsDependencies = buildPkgs.runCommand "librepaint-windows${pnameSuffix}-dependencies"
-    { }
-    ''
-      mkdir -p "$out/nix-support"
-      printf '%s\n' ${lib.escapeShellArgs (map toString librepaintUnwrapped.windowsRuntimeDependencies)} \
-        > "$out/nix-support/windows-dependency-members"
     '';
   devShell = pkgs.mkShell {
     inputsFrom = [ incrementalEnv ];
@@ -411,6 +400,5 @@ in
     librepaintArchive
     librepaintGmic
     librepaintUnwrapped
-    windowsDependencies
     ;
 }

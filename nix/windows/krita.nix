@@ -2,8 +2,6 @@
   pkgs,
   hostPkgs,
   source,
-  useQtFork ? false,
-  pnameSuffix ? "",
 }:
 
 let
@@ -63,7 +61,6 @@ let
   # Python for generators; Krita only requires Python 3.8 or newer.
   targetPython = pkgs.python311;
   targetPythonPackages = pkgs.python311Packages;
-  angle = if useQtFork then import ./google-angle.nix { inherit pkgs; } else null;
 
   # Python extension builders execute with the native interpreter, so
   # setuptools otherwise adds that interpreter's Unix headers even when the
@@ -92,7 +89,7 @@ let
   qt = pkgs.qt6Packages.overrideScope (final: previous: {
     # qtbase runs host tools while cross compiling.  Supply the lean host
     # variant above instead of the default Linux desktop Qt build.
-    qtbase = (previous.qtbase.override {
+    qtbase = previous.qtbase.override {
       pkgsBuildBuild = hostQtPackageSet;
       # MinGW links OpenGL through the Windows SDK's opengl32.dll.  nixpkgs'
       # generic Qt expression otherwise pulls in libglvnd, which in turn
@@ -100,32 +97,7 @@ let
       # this target.
       libGL = null;
       vulkan-loader = null;
-    }).overrideAttrs (old: {
-      # Krita's official Windows builds use its Qt fork.  In addition to the
-      # HDR texture colour-space API consumed by the small colour selector,
-      # this carries the ANGLE, tablet, shortcut and backing-store fixes that
-      # are part of Krita's Windows feature set.  The fork branch
-      # for-krita/6.11.3 is the Qt release this Windows build carries.  The
-      # upstream variant keeps nixpkgs' official Qt sources and has no ANGLE
-      # path, so it also has no qwindowseglcontext.cpp.
-    } // lib.optionalAttrs useQtFork {
-      version = "6.11.3";
-      src = pkgs.fetchFromGitHub {
-        owner = "dimula73";
-        repo = "qtbase";
-        rev = "d918f368da8df4c682874ed6d018c59aa79210c2";
-        hash = "sha256-adfqI0r0/1ppK0I+TpoBCe8SF20RNl/DzHJalRYj/rI=";
-      };
-      postPatch = (old.postPatch or "") + ''
-        substituteInPlace src/plugins/platforms/windows/qwindowseglcontext.cpp \
-          --replace-fail '<VersionHelpers.h>' '<versionhelpers.h>'
-      '';
-      propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ angle ];
-      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-        "-DQT_FEATURE_opengl=ON"
-        "-DQT_FEATURE_egl=ON"
-      ];
-    });
+    };
 
     qmake = previous.qmake.override {
       qtbase = final.qtbase;
@@ -641,7 +613,7 @@ class PyQtBindings(_PyQtBindings):
     pkgs.poppler_data
     pkgs.stdenv.cc.cc
     qtTranslationsData
-  ] ++ lib.optional useQtFork angle;
+  ];
   sourcePreparer = buildPkgs.writeShellScript "librepaint-windows-prepare-source" ''
     source ${buildPkgs.stdenv}/setup
 
@@ -727,7 +699,7 @@ set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
   '';
 in
 pkgs.stdenv.mkDerivation {
-  pname = "librepaint-windows${pnameSuffix}-unwrapped";
+  pname = "librepaint-windows-unwrapped";
   version = "1.0.3";
   src = source;
 

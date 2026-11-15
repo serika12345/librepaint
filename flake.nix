@@ -594,25 +594,12 @@
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
       };
+      # Windows uses the official Qt from nixpkgs.
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         hostPkgs = linuxPkgs;
         source = windowsBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
-        # Keep the fork build available until Q4 stage 7 passes; the default
-        # of nix/windows is the official Qt.
-        useQtFork = true;
-      };
-      # Q4 (removing the Qt fork) uses the official Qt 6.12.0 from nixpkgs.
-      # Keep it a separate package set so the fork build and its cached
-      # dependencies stay untouched.
-      windowsUpstreamQtPackages = import ./nix/windows {
-        pkgs = windowsPkgs;
-        hostPkgs = linuxPkgs;
-        source = windowsBuildSource;
-        auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
-        useQtFork = false;
-        pnameSuffix = "-upstream-qt";
       };
       policyTools =
         packageSet: with packageSet; [
@@ -864,11 +851,7 @@
         librepaint-windows = windowsPackages.librepaint;
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
-        windows-dependencies = windowsPackages.windowsDependencies;
-        librepaint-windows-upstream-qt = windowsUpstreamQtPackages.librepaint;
-        librepaint-windows-upstream-qt-archive = windowsUpstreamQtPackages.librepaintArchive;
-        librepaint-windows-upstream-qt-unwrapped = windowsUpstreamQtPackages.librepaintUnwrapped;
-        windows-upstream-qt-dependencies = windowsUpstreamQtPackages.dependencyInputs;
+        windows-dependencies = windowsPackages.dependencyInputs;
         pyqt6-612-check =
           let
             py = (import ./nix/pyqt6.nix {
@@ -1048,7 +1031,6 @@
         librepaint-android = linuxAndroidPackages.devShell;
         librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
-        librepaint-windows-upstream-qt = windowsUpstreamQtPackages.devShell;
       };
 
       # The filtered sources that the compilation derivations read.  The test
