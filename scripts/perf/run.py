@@ -1449,7 +1449,7 @@ def main(argv):
                                        capture_output=True, text=True).stdout.strip()
     baseline = json.load(open(args.baseline)) if args.baseline else None
     verdict_rows = judge(summary, scenario, baseline)
-    print(table(verdict_rows, reference_columns(summary, baseline, hosts)))
+    print(table(verdict_rows, reference_columns(summary, baseline, hosts) or None))
     present_lines = []
     for host, entry in summary["hosts"].items():
         if entry.get("kind") != "windows":
