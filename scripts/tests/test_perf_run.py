@@ -1141,6 +1141,60 @@ class ReferenceColumnTest(unittest.TestCase):
         table = run.table(run.judge(self.summary(), self.SCENARIO))
         self.assertNotIn("minus reference", table)
 
+    METRIC = "hover.input_to_capture"
+
+    def two_reference_summary(self):
+        def target(median):
+            return {"runs": [], "states": {}, "metrics": {self.METRIC: {
+                "median": median, "p95": 45.0, "spread": 0.0, "runs": 5}}}
+        return {"hosts": {"h": {"kind": "linux", "targets": {
+            "LP-x11": target(30.1), "Ref-x11": target(29.4),
+            "LP-wayland": target(13.0), "Ref-wayland": target(13.9)}}}}
+
+    def test_each_target_is_paired_with_the_reference_it_names(self):
+        hosts = [{"name": "h", "kind": "linux", "targets": [
+            {"name": "LP-x11", "against": "Ref-x11"}, {"name": "Ref-x11", "reference": True},
+            {"name": "LP-wayland", "against": "Ref-wayland"},
+            {"name": "Ref-wayland", "reference": True}]}]
+        cells = run.reference_columns(self.two_reference_summary(), None, hosts)
+        self.assertEqual(cells[("h", "LP-x11", self.METRIC, None)], "+0.7")
+        self.assertEqual(cells[("h", "LP-wayland", self.METRIC, None)], "-0.9")
+        self.assertEqual(len(cells), 2)
+
+    def test_a_target_that_does_not_name_one_of_several_references_has_no_cell(self):
+        hosts = [{"name": "h", "kind": "linux", "targets": [
+            {"name": "LP-x11"}, {"name": "Ref-x11", "reference": True},
+            {"name": "LP-wayland", "against": "LP-x11"},
+            {"name": "Ref-wayland", "reference": True}]}]
+        self.assertEqual(run.reference_columns(self.two_reference_summary(), None, hosts), {})
+
+    def test_a_single_reference_serves_every_other_target(self):
+        hosts = [{"name": "h", "kind": "linux", "targets": [
+            {"name": "LP-x11"}, {"name": "LP-wayland"}, {"name": "Ref-x11", "reference": True}]}]
+        cells = run.reference_columns(self.two_reference_summary(), None, hosts)
+        self.assertEqual(set(cells), {("h", "LP-x11", self.METRIC, None),
+                                      ("h", "LP-wayland", self.METRIC, None)})
+
+
+class RunDetailStateTest(unittest.TestCase):
+    """The event detail carries the state label of Windows hosts only."""
+
+    def detail(self, kind):
+        host = {"name": "h", "kind": kind, "capture_offset_ms": 0}
+        result = {"state": {"label": "high"}, "hover.input_to_capture": {"p50": 30.0},
+                  "ink.input_to_capture": {"p50": 31.0}}
+        with mock.patch.object(run, "latest_run_dir", return_value="/run"), \
+                mock.patch.object(run.os.path, "exists", return_value=True), \
+                mock.patch.object(run.capture_analyze, "analyze_run", return_value=result):
+            return run.run_detail("/root", host, {"name": "T"}, 0.0)
+
+    def test_a_windows_run_reports_its_state_label(self):
+        self.assertEqual(self.detail("windows"), "state=high hover=30.0 ink=31.0")
+
+    def test_a_linux_or_macos_run_reports_no_state(self):
+        self.assertEqual(self.detail("linux"), "state=- hover=30.0 ink=31.0")
+        self.assertEqual(self.detail("macos"), "state=- hover=30.0 ink=31.0")
+
 
 class NonWindowsStateTest(unittest.TestCase):
     """Only a Windows target is split by state."""

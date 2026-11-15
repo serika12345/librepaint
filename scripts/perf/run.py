@@ -204,6 +204,7 @@ def latest_run_dir(run_root, host, target, started):
 def run_detail(run_root, host, target, started):
     """Return the state and medians of the run that just finished.
 
+    The state label is classified for Windows hosts only and is "-" elsewhere.
     A run without a capture (the application did not start) has no medians.
     """
     newest = latest_run_dir(run_root, host, target, started)
@@ -216,7 +217,9 @@ def run_detail(run_root, host, target, started):
         value = (result.get(metric) or {}).get("p50")
         return "-" if value is None else "%.1f" % (value - offset)
 
-    state = (result.get("state") or {}).get("label", "unknown")
+    state = "-"
+    if host.get("kind") == "windows":
+        state = (result.get("state") or {}).get("label", "unknown")
     return "state=%s hover=%s ink=%s" % (
         state, median("hover.input_to_capture"), median("ink.input_to_capture"))
 
@@ -1263,31 +1266,48 @@ def table(rows, extra=None):
     return "\n".join(lines)
 
 
+def reference_pairs(host_config):
+    """Return {target name: reference target name} of one host.
+
+    A target names its reference with "against". Without it, the host's only
+    reference target ("reference": true) is the target's reference; a host
+    with several reference targets leaves a target that does not say which
+    one without a reference. Reference targets have no reference.
+    """
+    targets = host_config.get("targets", [])
+    references = [target["name"] for target in targets if target.get("reference") is True]
+    pairs = {}
+    for target in targets:
+        if target.get("reference") is True:
+            continue
+        against = target.get("against")
+        if against is not None:
+            if against in references:
+                pairs[target["name"]] = against
+        elif len(references) == 1:
+            pairs[target["name"]] = references[0]
+    return pairs
+
+
 def reference_columns(summary, baseline, hosts):
     """Return the target-minus-reference cell of every judged row.
 
-    The reference target is the host's target with "reference": true in the
-    hosts file; the baseline side uses the target of the same name. The value
-    is the target's median minus the reference's median of the same metric
-    (the metrics aggregate), in milliseconds, with a sign. When the baseline
-    has both medians, the baseline difference follows in parentheses. The
-    reference target's own rows and the rows of a host without a reference
-    target have no cell.
+    The reference of a target is given by reference_pairs; the baseline side
+    uses the targets of the same names. The value is the target's median
+    minus the reference's median of the same metric (the metrics aggregate),
+    in milliseconds, with a sign. When the baseline has both medians, the
+    baseline difference follows in parentheses. Reference targets and
+    targets without a reference have no cell.
     """
-    config = {host["name"]: host for host in hosts or []}
-    reference_of = {}
-    for host, host_config in config.items():
-        reference_of[host] = next((target["name"] for target in host_config.get("targets", [])
-                                   if target.get("reference") is True), None)
+    pairs_of = {host["name"]: reference_pairs(host) for host in hosts or []}
     cells = {}
     for host, entry in summary.get("hosts", {}).items():
-        reference = reference_of.get(host)
-        if reference is None:
-            continue
-        reference_data = (entry.get("targets") or {}).get(reference) or {}
+        pairs = pairs_of.get(host, {})
         for target, data in (entry.get("targets") or {}).items():
-            if target == reference:
+            reference = pairs.get(target)
+            if reference is None:
                 continue
+            reference_data = (entry.get("targets") or {}).get(reference) or {}
             for metric, stat in (data.get("metrics") or {}).items():
                 reference_stat = (reference_data.get("metrics") or {}).get(metric)
                 if not reference_stat:

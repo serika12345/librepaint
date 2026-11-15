@@ -710,7 +710,16 @@ scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json \
 - `hosts.json`の対象に`"reference": true`を書くと、その機器の参照アプリになる。表の
   `minus reference`の列は、各対象の中央値から同じ機器の参照アプリの中央値を引いた値
   （ms、符号つき）である。基準に両方の値があれば、基準での差を`(base +2.8)`の形で添える。
-  判定はこれまでどおり対象の値と基準の差で行う。
+  判定はこれまでどおり対象の値と基準の差で行う。参照アプリが機器に1つなら、参照アプリでない
+  全対象がそれと比べられる。参照アプリが2つ以上ある機器（Linuxの X11 と Wayland など）では、
+  参照アプリでない対象に`"against": "<参照アプリの対象名>"`を書き、書かない対象の列は空にする。
+  参照アプリの行には列の値がない。
+- 対象の起動コマンドが指すNixのストアパスは、GCの根（`nix-build -o`や`nix build --out-link`
+  の出力リンク）の下のパスを使う。根のないストアパスは次のGCで消え、対象は
+  `application exited before the measurement`で止まる。X11の参照アプリのPythonは
+  `scripts/perf/pen-latency/reference-env.nix`で作る
+  （`nix-build scripts/perf/pen-latency/reference-env.nix -o <出力リンク>`、起動コマンドは
+  `<出力リンク>/bin/python3`）。
 - macOSの計測では、`run-macos.sh`を実行する端末アプリに画面収録とアクセシビリティの許可を
   与える。`macos_capture`は入力を送る前にアクセシビリティの許可を調べ、ないときは
   `Accessibility is not granted to the process that runs this tool; posted mouse events would be dropped`
