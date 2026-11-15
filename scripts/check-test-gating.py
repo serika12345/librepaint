@@ -60,6 +60,10 @@ def strip_comments(text: str) -> str:
                 in_quote = False
             index += 1
             continue
+        if char == "\\" and index + 1 < length:
+            result.append(text[index : index + 2])
+            index += 2
+            continue
         if text.startswith("#[[", index):
             end = text.find("]]", index + 3)
             end = length if end < 0 else end + 2
@@ -98,6 +102,8 @@ def commands(text: str) -> Iterator[Command]:
                     index += 1
                 elif char == '"':
                     in_quote = False
+            elif char == "\\":
+                index += 1
             elif char == '"':
                 in_quote = True
             elif char == "(":
@@ -105,8 +111,10 @@ def commands(text: str) -> Iterator[Command]:
             elif char == ")":
                 depth -= 1
             index += 1
-        arguments = text[match.end() : index - 1]
         line = text.count("\n", 0, match.start()) + 1
+        if depth > 0:
+            raise ValueError(f"line {line}: {match.group(1)}( is not closed")
+        arguments = text[match.end() : index - 1]
         yield line, match.group(1).lower(), arguments
         position = index
 
@@ -138,7 +146,11 @@ def check_file(relative_path: str, text: str) -> List[Tuple[int, str, str]]:
     violations: List[Tuple[int, str, str]] = []
     # One frame per open if(): whether the current branch requires BUILD_TESTING.
     frames: List[bool] = []
-    for line, name, arguments in commands(text):
+    try:
+        parsed = list(commands(text))
+    except ValueError as error:
+        return [(1, "parse", str(error))]
+    for line, name, arguments in parsed:
         if name == "if":
             frames.append(requires_build_testing(arguments))
             continue

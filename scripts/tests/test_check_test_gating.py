@@ -80,6 +80,19 @@ class CheckFileTests(unittest.TestCase):
         self.assertEqual(rules("if(BUILD_TESTING)\nkis_add_test(Foo.cpp)\nendif()\n"), [])
 
 
+class ParserTests(unittest.TestCase):
+    def test_escaped_quotes_outside_a_string_do_not_open_a_string(self):
+        text = 'add_definitions(-DDOMAIN=\\"krita\\")\nadd_subdirectory(tests)\n'
+        self.assertEqual(rules(text), [(2, "gate")])
+
+    def test_quoted_parenthesis_and_hash_do_not_end_the_command(self):
+        text = 'set(X "a) # b")\nadd_subdirectory(tests)\n'
+        self.assertEqual(rules(text), [(2, "gate")])
+
+    def test_unclosed_command_is_reported_instead_of_hiding_the_rest(self):
+        self.assertEqual(rules("set(X\nadd_subdirectory(tests)\n"), [(1, "parse")])
+
+
 class TreeTests(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="test-gating-")
