@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 from typing import Iterator, List, Optional, Tuple
@@ -237,7 +238,9 @@ def configure(root: str, build_directory: Optional[str]) -> int:
     build_directory = build_directory or os.path.join(
         os.environ.get("LIBREPAINT_BUILD_ROOT", os.path.join(root, "build")), "test-gating-configure"
     )
-    os.makedirs(build_directory, exist_ok=True)
+    # A cache generated for another source path is rejected, so start clean.
+    shutil.rmtree(build_directory, ignore_errors=True)
+    os.makedirs(build_directory)
     flags = [
         "-DALLOW_UNSTABLE=QT6",
         "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF",
