@@ -670,6 +670,13 @@
         librepaint-macos-unwrapped = macosPackages.librepaintUnwrapped;
         macos-dependencies = macosPackages.macosDependencies;
 
+        # One root for the binary cache upload: the dependencies of the
+        # products that are built on this system.
+        dependencies = pkgs.linkFarm "librepaint-dependencies" [
+          { name = "macos"; path = macosPackages.macosDependencies; }
+          { name = "ios"; path = iosPackages.ios-dependencies; }
+        ];
+
         source-zlib = pkgs.zlib.src;
         source-libdeflate = pkgs.libdeflate.src;
         source-libpng = pkgs.libpng.src;
@@ -852,6 +859,20 @@
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
         windows-dependencies = windowsPackages.dependencyInputs;
+        # One root for the binary cache upload: the dependencies of the
+        # products that are built on this system.
+        dependencies = linuxPkgs.linkFarm "librepaint-dependencies" [
+          { name = "linux"; path = linuxPackages.linuxDependencies; }
+          { name = "windows"; path = windowsPackages.dependencyInputs; }
+          { name = "android-arm64-application"; path = linuxAndroidPackages.androidApplicationDependencies; }
+          { name = "android-arm64"; path = linuxAndroidPackages.androidDependencies; }
+          { name = "android-arm64-kf6"; path = linuxAndroidPackages.androidKf6; }
+          { name = "android-arm64-source"; path = linuxAndroidPackages.androidSourceDependencies; }
+          { name = "android-x86_64-application"; path = linuxAndroidX86_64Packages.androidApplicationDependencies; }
+          { name = "android-x86_64"; path = linuxAndroidX86_64Packages.androidDependencies; }
+          { name = "android-x86_64-kf6"; path = linuxAndroidX86_64Packages.androidKf6; }
+          { name = "android-x86_64-source"; path = linuxAndroidX86_64Packages.androidSourceDependencies; }
+        ];
         pyqt6-612-check =
           let
             py = (import ./nix/pyqt6.nix {
