@@ -624,6 +624,7 @@ scripts/perf/pen-latency/analyze.py <出力先>/LibrePaint-*
 LinuxとmacOSでは、計測対象を毎回新しいホームと設定で起動し、終了させる。
 macOSでは`CFFIXED_USER_HOME`で利用者の設定を変えずに起動し、開発シェルの変数は渡さない。
 macOSの取り込みと入力には、実行する端末アプリへ画面収録とアクセシビリティの許可が必要。
+取り込みは計測対象アプリのウィンドウだけを対象にし（`macos_capture --window-pid`）、画面全体は取り込まない。
 
 ```sh
 # Linux（デスクトップにログインしたセッションで）
