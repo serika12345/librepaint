@@ -112,6 +112,15 @@ class EnsureStateLinksTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 1)
         self.assertFalse(os.path.islink(build))
 
+    def test_parse_lsof_cwd_reads_pid_and_path_lines(self):
+        self.assertEqual(
+            ensure_links.parse_lsof_cwd("p12\nfcwd\nn/a/b\np34\nfcwd\nn/c\n"),
+            [(12, "/a/b"), (34, "/c")],
+        )
+
+    def test_parse_lsof_cwd_skips_entries_without_a_numeric_pid(self):
+        self.assertEqual(ensure_links.parse_lsof_cwd("n/x\nPabc\npabc\nn/y\n"), [])
+
     def test_relative_state_root_is_rejected(self):
         with self.assertRaises(ensure_links.ConfigurationError):
             ensure_links.state_root({"LIBREPAINT_STATE_ROOT": "relative/path"})
@@ -441,6 +450,20 @@ class MacOSCompatibilityTests(unittest.TestCase):
 
     def test_missing_proc_directory_yields_no_processes(self):
         self.assertEqual(ensure_links.proc_cwd_entries("/nonexistent-proc"), [])
+
+    def test_process_cwd_entries_without_a_proc_directory_uses_lsof(self):
+        with mock.patch.object(
+            ensure_links, "lsof_cwd_entries", return_value=[(1, "/x")]
+        ):
+            self.assertEqual(
+                ensure_links.process_cwd_entries("/nonexistent-proc"), [(1, "/x")]
+            )
+
+    def test_process_cwd_entries_with_a_proc_directory_does_not_use_lsof(self):
+        with tempfile.TemporaryDirectory() as proc_root, mock.patch.object(
+            ensure_links, "lsof_cwd_entries", side_effect=AssertionError
+        ):
+            self.assertEqual(ensure_links.process_cwd_entries(proc_root), [])
 
 
 class LaunchdTemplateTests(unittest.TestCase):

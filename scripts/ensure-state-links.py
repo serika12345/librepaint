@@ -109,6 +109,21 @@ def check_roots(root):
     return violations
 
 
+def parse_lsof_cwd(text):
+    # lsof -F emits "p<pid>" per process followed by "n<path>" lines.
+    entries = []
+    pid = None
+    for line in text.splitlines():
+        if line.startswith("p"):
+            try:
+                pid = int(line[1:])
+            except ValueError:
+                pid = None
+        elif line.startswith("n") and pid is not None:
+            entries.append((pid, line[1:]))
+    return entries
+
+
 def proc_cwd_entries(proc_root="/proc"):
     entries = []
     try:
@@ -125,6 +140,30 @@ def proc_cwd_entries(proc_root="/proc"):
             continue
         entries.append((int(name), cwd))
     return entries
+
+
+def lsof_cwd_entries():
+    try:
+        result = subprocess.run(
+            ["lsof", "-a", "-d", "cwd", "-F", "pn"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        print(
+            "warning: cannot list working directories: %s" % error,
+            file=sys.stderr,
+        )
+        return []
+    return parse_lsof_cwd(result.stdout)
+
+
+def process_cwd_entries(proc_root="/proc"):
+    # /proc exists on Linux; macOS has no /proc and uses lsof.
+    if os.path.isdir(proc_root):
+        return proc_cwd_entries(proc_root)
+    return lsof_cwd_entries()
 
 
 @contextlib.contextmanager
@@ -165,12 +204,12 @@ def migrate_name(root, name, proc_entries, quiet=False, environ=None):
     target = state_path(root, name, environ)
     root_state = state_root(environ)
     with exclusive_lock(os.path.join(root_state, ".lock")):
-        if sys.platform.startswith("linux"):
-            blockers = [(pid, cwd) for pid, cwd in proc_entries() if _is_within(cwd, link)]
-            if blockers:
-                lines = ["processes have a working directory under %s:" % link]
-                lines.extend("  %d %s" % (pid, cwd) for pid, cwd in blockers)
-                _fail("\n".join(lines))
+        # A process working below the link would keep using the moved directory.
+        blockers = [(pid, cwd) for pid, cwd in proc_entries() if _is_within(cwd, link)]
+        if blockers:
+            lines = ["processes have a working directory under %s:" % link]
+            lines.extend("  %d %s" % (pid, cwd) for pid, cwd in blockers)
+            _fail("\n".join(lines))
         if os.path.isdir(target) and os.listdir(target):
             _fail("state directory already exists and is not empty: %s" % target)
         source_device = os.stat(link).st_dev
@@ -192,7 +231,7 @@ def migrate_name(root, name, proc_entries, quiet=False, environ=None):
         print("migrated %s -> %s" % (link, target))
 
 
-def ensure_name(root, name, migrate=False, proc_entries=proc_cwd_entries, quiet=False, environ=None):
+def ensure_name(root, name, migrate=False, proc_entries=process_cwd_entries, quiet=False, environ=None):
     link = os.path.join(root, name)
     target = state_path(root, name, environ)
 
@@ -225,7 +264,7 @@ def ensure_name(root, name, migrate=False, proc_entries=proc_cwd_entries, quiet=
         print("linked %s -> %s" % (link, target))
 
 
-def ensure_repository(root=None, migrate=False, quiet=False, proc_entries=proc_cwd_entries, environ=None):
+def ensure_repository(root=None, migrate=False, quiet=False, proc_entries=process_cwd_entries, environ=None):
     root = repository_root() if root is None else root
     for name in STATE_NAMES:
         ensure_name(
