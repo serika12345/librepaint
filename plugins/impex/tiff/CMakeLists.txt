@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 if (TIFF_HAS_PSD_TAGS)
     set(libkritatiffpsd_SRCS

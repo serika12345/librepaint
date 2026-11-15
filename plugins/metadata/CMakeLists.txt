@@ -9,4 +9,6 @@ add_subdirectory(exif)
 add_subdirectory(iptc)
 add_subdirectory(xmp)
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

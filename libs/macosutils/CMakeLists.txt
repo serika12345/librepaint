@@ -31,12 +31,5 @@ set_target_properties(kritamacosutils PROPERTIES
 install(TARGETS kritamacosutils ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 if(BUILD_TESTING)
-    kis_add_test(
-        KisMacosValuesContractTest.cpp
-        TEST_NAME KisMacosValuesContractTest
-        LINK_LIBRARIES
-            Qt${QT_MAJOR_VERSION}::Core
-            Qt${QT_MAJOR_VERSION}::Test
-    )
-    target_include_directories(KisMacosValuesContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    add_subdirectory(tests)
 endif()

@@ -1650,8 +1650,10 @@ set_target_properties(kritaflakesvgtextpropertydataobjects PROPERTIES
 )
 
 add_subdirectory(styles)
-add_subdirectory(tests)
-add_subdirectory(resources/tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+    add_subdirectory(resources/tests)
+endif()
 
 set(DISABLE_CLIP_MASK_PAINTER_ON_MACOS FALSE)
 if (APPLE AND NOT IOS)
@@ -1847,8 +1849,6 @@ set(kritaflake_SRCS
     resources/KoFontStorage.cpp
     resources/KoCssStylePreset.cpp
 
-    tests/MockShapes.cpp
-
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
@@ -1926,6 +1926,13 @@ if (KSeExpr_FOUND)
     set(kritaflake_SRCS ${kritaflake_SRCS}
         resources/KisSeExprScript.cpp
     )
+endif()
+
+if(BUILD_TESTING)
+    # MockShape and MockContainer are exported from kritaflake so that the test
+    # executables of other modules can link them.  Product builds omit them,
+    # which keeps the tests directory unread when BUILD_TESTING is off.
+    list(APPEND kritaflake_SRCS tests/MockShapes.cpp)
 endif()
 
 ki18n_wrap_ui(kritaflake_SRCS
