@@ -1021,6 +1021,29 @@ class SettleMeasureTest(unittest.TestCase):
         self.assertIn("window=2..3", settle[0][5])
         self.assertIn("counted=2", settle[0][5])
 
+    def test_directories_of_an_interrupted_earlier_invocation_are_set_aside(self):
+        stale = os.path.join(self._root, "w", "LibrePaint-20261111-090000-1")
+        os.makedirs(stale)
+        os.utime(stale, (1000.0, 1000.0))
+        other = os.path.join(self._root, "w", "notes")
+        os.makedirs(other)
+        self.measure([40.0, 40.4])
+        left = sorted(os.listdir(os.path.join(self._root, "w")))
+        self.assertEqual(left, ["LibrePaint-20261112-120000-1", "LibrePaint-20261112-120000-2", "notes"])
+        self.assertEqual(os.listdir(os.path.join(self._root, "_unmeasured", "w")),
+                         ["LibrePaint-20261111-090000-1"])
+
+    def test_the_summary_does_not_count_a_set_aside_directory(self):
+        stale = os.path.join(self._root, "w", "LibrePaint-20261111-090000-1")
+        os.makedirs(stale)
+        os.utime(stale, (1000.0, 1000.0))
+        self.measure([40.0, 40.4])
+        with mock.patch.object(run.capture_analyze, "analyze_run", return_value=fake_run("low", 40.0, 40.0)):
+            summary = run.summarize(self._root, [self.HOST], {
+                "name": "test", "runs": 2, "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}})
+        names = [r["name"] for r in summary["hosts"]["w"]["targets"]["LibrePaint"]["runs"]]
+        self.assertEqual(names, ["LibrePaint-20261112-120000-1", "LibrePaint-20261112-120000-2"])
+
     def test_the_start_limit_ends_an_unsettled_target(self):
         calls, failures, lines = self.measure([40.0, 60.0], max_runs=4,
                                               failed=(1, 2, 3, 4, 5, 6))

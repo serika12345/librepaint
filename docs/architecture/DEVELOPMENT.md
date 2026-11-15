@@ -651,7 +651,9 @@ Linuxの計測はこの状態で、設定は既定のままだった）。`run.p
 （失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、シナリオの
 `warmup_runs`回（既定0）を集計せずに測り、使える回が`runs`に達するまでと、窓が安定しない
 あいだ`max_runs`（既定は`runs`）に達するまで、対象ごとに回を足す。開始の上限は
-`warmup_runs + 2 × max_runs`回で、値のない回は使える回と数える。
+`warmup_runs + 2 × max_runs`回で、値のない回は使える回と数える。計測機の出力ディレクトリーは
+丸ごと取り込むため、中断した前回の計測が取り込まれずに残した回が混ざる。`run.py`は、この計測で
+測っていない回のディレクトリーを、終了時に`<計測結果>/_unmeasured/<機器>/`へ移す（消さない）。
 
 ```sh
 scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \

@@ -245,6 +245,35 @@ def settle_settings(scenario):
     return runs, warmup_runs, max_runs, float(scenario.get("spread_limit", 0.05))
 
 
+def set_aside_unmeasured(run_root, hosts, measured):
+    """Move the run directories this invocation did not measure out of the host directories.
+
+    The collection copies the whole output directory of a host, so the
+    directories left by an interrupted earlier invocation arrive with the
+    first collected run. They would be counted as runs of this invocation.
+    They move to <run_root>/_unmeasured/<host>/, where summarize does not
+    look, and stay available for inspection. "measured" maps a host name to
+    the set of directory names this invocation measured. Returns the moved
+    directory names.
+    """
+    moved = []
+    for host in hosts:
+        out = os.path.join(run_root, host["name"])
+        if not os.path.isdir(out):
+            continue
+        prefixes = tuple(target["name"] + "-" for target in host["targets"])
+        for name in sorted(os.listdir(out)):
+            path = os.path.join(out, name)
+            if not os.path.isdir(path) or not name.startswith(prefixes) \
+                    or name in measured.get(host["name"], ()):
+                continue
+            aside = os.path.join(run_root, "_unmeasured", host["name"])
+            os.makedirs(aside, exist_ok=True)
+            os.rename(path, os.path.join(aside, name))
+            moved.append(name)
+    return moved
+
+
 def measure_runs(hosts, scenario, run_root, label, events=None):
     """Run every target and keep measuring until its window settles.
 
@@ -263,9 +292,13 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
     "rest_seconds" after every run except the last one. Every start, result,
     early stop, settle and rest is written to the event log when one is given.
 
+    Run directories that this invocation did not measure (left by an
+    interrupted earlier one) are set aside before the function returns.
+
     Returns the names of the failed runs.
     """
     failures = []
+    measured = {host["name"]: set() for host in hosts}
     abandoned = set()
     previous_reason = {}
     rest_seconds = scenario.get("rest_seconds", 0)
@@ -332,6 +365,8 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                     previous_reason.pop(key, None)
                     successes[key] += 1
                     path = latest_run_dir(run_root, host, target, started)
+                    if path:
+                        measured[host["name"]].add(os.path.basename(path))
                     if successes[key] > warmup_runs and path:
                         record = run_record(path, host, scenario)
                         record["start"] = number
@@ -373,6 +408,10 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                         events_log.write(events, "rest", label, target["name"], number,
                                          "rest_seconds=%s" % rest_seconds)
                     time.sleep(float(rest_seconds))
+    moved = set_aside_unmeasured(run_root, hosts, measured)
+    if moved:
+        print("set aside %d run directories that this invocation did not measure: %s"
+              % (len(moved), ", ".join(moved)), file=sys.stderr)
     return failures
 
 
