@@ -282,8 +282,10 @@ let
     ignoreCollisions = true;
   };
 
-  gradle = androidHost.gradle_8.override { java = androidHost.jdk17_headless; };
-  gradleUnwrapped = gradle.unwrapped;
+  # The stock gradle_8 comes from the binary cache. Overriding its java would
+  # rebuild the distribution locally. Every Gradle step below exports JAVA_HOME
+  # for JDK 17, which replaces the default java of the wrapper.
+  gradle = androidHost.gradle_8;
   gradleLockProject = androidHost.stdenvNoCC.mkDerivation {
     pname = "librepaint-android-gradle-lock";
     version = "1";
