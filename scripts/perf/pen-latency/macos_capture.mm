@@ -129,6 +129,26 @@ static void raiseApplication(pid_t pid) {
 // True when the frontmost visible window at the global point belongs to pid.
 // The tool posts mouse presses and drags, so it posts nothing while another
 // application's window covers the target point.
+// Describes the frontmost visible window at the point for error messages: the
+// owner's process name and id, the window layer, and its bounds. Titles are not read.
+static NSString *frontWindowDescriptionAtPoint(CGPoint point) {
+    CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+    if (!list) return @"no window list";
+    NSString *description = @"no window at the point";
+    for (NSDictionary *info in (__bridge NSArray *)list) {
+        CGRect frame;
+        if (!CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)info[(id)kCGWindowBounds], &frame)) continue;
+        if (!CGRectContainsPoint(frame, point)) continue;
+        if ([info[(id)kCGWindowAlpha] doubleValue] <= 0.01) continue;
+        description = [NSString stringWithFormat:@"front window: owner %@ (pid %d), layer %d, bounds [%g, %g, %g, %g]",
+                       info[(id)kCGWindowOwnerName], [info[(id)kCGWindowOwnerPID] intValue], [info[(id)kCGWindowLayer] intValue],
+                       frame.origin.x, frame.origin.y, frame.size.width, frame.size.height];
+        break;
+    }
+    CFRelease(list);
+    return description;
+}
+
 static bool frontWindowAtPointBelongsTo(pid_t pid, CGPoint point) {
     CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
     if (!list) return false;
@@ -281,10 +301,10 @@ int main(int argc, const char **argv) {
 
         raiseApplication(windowPid);
         usleep(1000000);
-        // Park the pointer at the main display corner so that the application's
-        // hover outline does not cover the canvas in the first frame.
-        CGRect mainBounds = CGDisplayBounds(CGMainDisplayID());
-        CGPoint corner = CGPointMake(mainBounds.origin.x + 1, mainBounds.origin.y + mainBounds.size.height - 2);
+        // Park the pointer on the title bar of the target window so that the application's
+        // hover outline does not cover the canvas in the first frame. A display corner is
+        // avoided: a hot corner there opens Mission Control and covers the window.
+        CGPoint corner = CGPointMake(bounds.origin.x + bounds.size.width / 2, bounds.origin.y + 10);
         CGEventRef park = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, corner, kCGMouseButtonLeft);
         CGEventPost(kCGHIDEventTap, park);
         CFRelease(park);
@@ -317,7 +337,7 @@ int main(int argc, const char **argv) {
 
         CGPoint canvasCenter = CGPointMake(bounds.origin.x + (rect[0] + rect[2] / 2) / scale, bounds.origin.y + (rect[1] + rect[3] / 2) / scale);
         if (!frontWindowAtPointBelongsTo(windowPid, canvasCenter)) {
-            fprintf(stderr, "the window of process %d is not in front at the canvas; no input was posted\n", windowPid);
+            fprintf(stderr, "the window of process %d is not in front at the canvas; no input was posted (%s)\n", windowPid, frontWindowDescriptionAtPoint(canvasCenter).UTF8String);
             [stream stopCaptureWithCompletionHandler:^(NSError *e) { dispatch_semaphore_signal(got); }];
             dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
             return 1;
@@ -343,7 +363,7 @@ int main(int argc, const char **argv) {
                     CGEventPost(kCGHIDEventTap, release);
                     CFRelease(release);
                 }
-                fprintf(stderr, "the window of process %d lost the front; input stopped\n", windowPid);
+                fprintf(stderr, "the window of process %d lost the front; input stopped (%s)\n", windowPid, frontWindowDescriptionAtPoint(point).UTF8String);
                 return 1;
             }
             CGEventType type;
