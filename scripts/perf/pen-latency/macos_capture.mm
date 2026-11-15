@@ -216,6 +216,12 @@ int main(int argc, const char **argv) {
             return 2;
         }
         [[NSFileManager defaultManager] createDirectoryAtPath:out withIntermediateDirectories:YES attributes:nil error:nil];
+        // Posted mouse events are dropped without the Accessibility permission, so a run
+        // without it would capture a canvas that never receives input.
+        if (!snapshot && !AXIsProcessTrusted()) {
+            fprintf(stderr, "Accessibility is not granted to the process that runs this tool; posted mouse events would be dropped\n");
+            return 1;
+        }
 
         // Find the largest on-screen window of the process. The application may
         // still be starting, so look again for up to 30 seconds.
