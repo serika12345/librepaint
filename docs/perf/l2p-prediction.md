@@ -93,7 +93,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 ### 予測器
 
-予測器は、フリーハンドの入力の最後の 5〜8 点を、位置と時刻の組で持つ。最初の実装は 1 次線形にする。最後の 2 点の速度を求め、予測の時刻までの位置を `p = p_last + v * (t_pred - t_last)` で出す。2 次線形と Kalman は、速さが変わった直後の誤差を計測してから検討する。LibrePaint の入力はタブレットのサンプルが 2〜4ms 間隔で届くため、1 次線形でも安定した速度を得やすい。
+予測器は、フリーハンドの入力の最後の 5〜8 点を、位置と時刻の組で持つ。最初の実装は 1 次線形にする。最後の 2 点の速度を求め、予測の時刻までの位置を `p = p_last + v * (t_pred - t_last)` で出す。2 次線形、Kalman、有限時間微分推定（Nancel らの 2018 年の方式で、速さに応じた平滑化を持つ）は、速さが変わった直後の誤差を計測してから検討する。LibrePaint の入力はタブレットのサンプルが 2〜4ms 間隔で届くため、1 次線形でも安定した速度を得やすい。
 
 予測器をリセットする条件を次にそろえる。
 
@@ -113,7 +113,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 ### 置き換えと外れたときの見え方
 
-予測の線は、最後の実点から予測の点までを結ぶ 1 本の折れ線として描く。次の実点が届いたら、前の予測の線を消し、新しい実点から新しい予測の線を描く。押下の終了、ポインターの離脱、20ms 以上の空白では、予測の線をすぐに消す。確定の線は消さない。
+予測の線は、確定の線に重なる始点の実点から、最新の実点を通り、予測の点までを結ぶ 1 本の折れ線として描く（始点は次の節）。次の実点が届いたら、前の予測の線を消し、新しい折れ線を描く。押下の終了、ポインターの離脱、20ms 以上の空白では、予測の線をすぐに消す。確定の線は消さない。
 
 外れたときの見え方は、次の 3 つに分けて扱う。
 
@@ -122,6 +122,24 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 3. 速さが急に落ちたときや止まったときは、前の速度の予測が残ると、ペン先より先へ大きく出る。停止の直前の速度が 5.4px/ms なら、16.7ms の予測は 90px 先へ出る。このため、速さが 0.2px/ms 未満になったとき、筆圧が 0.05 未満になったとき、最後の点から 20ms 以上空いたときは予測を出さない。予測の長さに、速さと揺れから作る信頼度（0〜1）を掛ける。Chrome と Android の confidence factor と同じ考えである。
 
 予測の線の色と太さは、確定の線と同じにする。最初の実装は、現在のブラシの色と大きさで、丸い端と丸い結合の折れ線を描く。模様のあるブラシでは、確定の線と見た目が変わる。模様の差が許容できないと計測で分かったときだけ、予測の区間だけの小さなオフスクリーンの `KisPaintDevice` に同じ paint op で描き、装飾として重ねる。その場合も正本の `KisPaintDevice` には書かない。
+
+### 予測の線の始点と平滑化
+
+確定の線の端は、最新の実点より後ろにある。確定の線は `KisToolFreehandHelper::paint` が点を `FreehandStrokeStrategy` のジョブとして渡し、ブラシの計算と画面への受け渡しを経て表示される。ブラシの計算だけで約 7ms かかる（2026-11-06 の実測、Issue #108 の背景）。最新の実点から予測の点までだけを結ぶ折れ線は、確定の線の端と折れ線の始点の間に、この遅れの分の隙間を残す。速さが 0.9、2.7、5.4px/ms のとき、7ms の遅れの隙間は約 6、19、38px になる（見込み。実測は `l2p.hole_px` で確かめる）。
+
+そこで折れ線の始点を、最新の実点から `anchor_ms` だけさかのぼった実点にする。始点から最新の実点までは確定の線と重なる区間で、同じ色と太さの不透明な線なら重なりは見えない。`anchor_ms` の初期値は 24ms（ブラシの計算 7ms と表示 1 周期 16.7ms の和を切り上げた値）とし、`l2p.hole_px` が 1px 以下になる最小の値を計測で探して決め直す。
+
+平滑化との関係は、`KisSmoothingOptions` の種類で分ける。`libs/tools/kis_smoothing_options.cpp` は `LineSmoothingType` の既定値を 1（`SIMPLE_SMOOTHING`）にしている。
+
+| 種類 | 確定の線の端 | 段階 1 の予測の線 | 理由 |
+| --- | --- | --- | --- |
+| `NO_SMOOTHING` | 最新の実点（`paintLine(previousPaintInformation, info)`） | 有効 | 折れ線が確定の線の経路と一致する |
+| `SIMPLE_SMOOTHING`（既定） | 1 点前の実点。入力の点を通るベジェ曲線で、次の点が届いてから描く | 有効。縁のずれを `l2p.edge_shift_px` で測る | 曲線は入力の点を通り、遅れは 1 サンプル分（タブレットの間隔 2〜4ms）で、折れ線との差が小さい見込み |
+| `WEIGHTED_SMOOTHING` | 距離で重みづけた平均の位置で、ペン先より後ろ | 無効 | 遅れは利用者が選んだ補正の効果で、折れ線を実点へ伸ばすと補正が見えなくなる |
+| `STABILIZER` | 遅延した点（`KisStabilizerDelayedPaintHelper` の最後に描いた点） | 無効 | 同上 |
+| `PIXEL_PERFECT` | 画素の階段を直した線 | 無効 | 折れ線が補正後の形と一致しない |
+
+無効の種類の利用者は、段階 1 では予測の線を受けない。予測を平滑化の内側に入れる段階 2（「設計の判断」の 1 行目）は、これらの利用者の遅れが計測で問題と示されたときに設計する。
 
 ### 筆圧と傾き
 
@@ -141,7 +159,7 @@ OpenGL キャンバスでは、装飾の `QPainter` は `KisOpenGLCanvas2::paint
 
 ### 無効化と削除の条件
 
-予測の線は、CHARTER に条文が入るまで実装しない。実装するときは、隠し設定 `useStrokePrediction`（既定 `false`）と `strokePredictionHorizonMs`（既定 16.7、8〜25 に切る）を kritarc に置く。`useStrokePrediction=false` のときは、予測器も装飾も作らない。予測の線が主指標を悪化させた場合、または表示の正しさの確認で確定の線と区別できない差が出た場合は、既定を `false` のままにする。
+予測の線は、CHARTER に条文が入るまで実装しない。実装するときは、隠し設定 `useStrokePrediction`（既定 `false`）と `strokePredictionHorizonMs`（既定 16.7、8〜25 に切る）、`strokePredictionAnchorMs`（既定 24）を kritarc に置く。`useStrokePrediction=false` のときは、予測器も装飾も作らない。予測の線が主指標を悪化させた場合、または表示の正しさの確認で確定の線と区別できない差が出た場合は、既定を `false` のままにする。
 
 ## 計測の方法
 
@@ -164,6 +182,9 @@ OpenGL キャンバスでは、装飾の `QPainter` は `KisOpenGLCanvas2::paint
 - `l2p.hit_rate` = `|l2p.signed_gap_px|` がブラシの半径以下のフレームの割合。
 - `l2p.settle_ms` = 線の終わりから、`prediction_clear` の印、または `l2p.overshoot_px` が 0 になった最初のフレームまでの時間。
 - `l2p.speed_change_overshoot_px` と `l2p.speed_change_residual_px` = 既存の `ink.speed_change` の 80ms の窓での最大値。一定の区間は 250ms 以降の窓で別に出す。
+- `l2p.retract_px` = 連続する 2 フレームで、線の端が進行方向と逆へ戻った量の最大値（`max(0, -direction * (dense_xmax[k+1] - dense_xmax[k]))`）。予測の破棄と信頼度の打ち切りが生む跳びを測る。
+- `l2p.hole_px` = バンドの密な列（`dense` 以上の暗い画素を持つ列）の並びの中で、途切れた区間の最大の幅の中央値と P95。折れ線の始点が足りないと、確定の線の端と折れ線の間に途切れができて増える。`xmax` と `dense_xmax` は途切れがあっても折れ線の端まで延びるため、この 2 つの差では測れない。取り込みの道具が、バンドごとの途切れの最大幅 `dense_gap` を `capture.csv` に出す必要がある（`macos_capture.mm`、`windows_capture.cpp`、`mutter_capture.py` の 3 つの変更。実装の前の準備に入れる）。
+- `l2p.edge_shift_px` = 予測を重ねた回と重ねない回で、同じ位置の線の縁（バンドごとの `xmin`、`xmax`）の差の最大値。折れ線と確定の線の食い違いを測る。
 
 `capture_analyze.py` では、`frame_samples` がフレームごとのペン先の位置と速さも返すようにし、`analyze_run` が上の指標を `stats` に足す。`ink_speed_groups` と `speed_change_entries` は、`l2p.*` の値を速さの群と変化の窓へ足す。`Pass.locate` は、予測で線の端が入力の範囲の外へ出たときに `None` を返すため、符号付きの距離は `locate` を通さずに計算する。既存の `ink.input_to_capture` は確定の線の比較に残し、予測の回では符号付きの距離を主にする。
 
@@ -198,8 +219,31 @@ H1（先積みのフレーム数）=1 と H5（ホバーの間引き）の組（
 2. 軌跡は `pen-light-speed-0p5.json`、`pen-light-speed-1p5.json`、`pen-light-speed-3p0.json`、`pen-light-speed-varied.json` の 4 つを使う。速さの違う線を同じ回で測るため、`speed-varied` を主にし、一定の速さは確認に使う。
 3. 各回で `ink.input_to_capture`、`ink.pen_tip_to_edge_px`、`l2p.signed_gap_px`、`l2p.signed_gap_ms`、`l2p.residual_px`、`l2p.overshoot_px`、`l2p.hit_rate`、`l2p.settle_ms`、`l2p.speed_change_*` を出す。中央値と P95 を、回ごとの中央値の中央値でまとめる。
 4. 予測の効果は、同じ回の予測なしとの差で見る。主指標は `l2p.residual_px` の中央値と P95、副指標は `ink.input_to_capture` の中央値と P95 とする。
-5. 合格の目安は、一定の速さで `l2p.residual_px` の中央値が予測なしの 20% 以下になり、`l2p.overshoot_px` の P95 がブラシの直径以下で、`l2p.settle_ms` の P95 が 1 表示周期（16.7ms）以下になることである。速さが変わった直後と停止の直前は、この目安から分けて報告する。
+5. 合格の目安は、一定の速さで `l2p.residual_px` の中央値が予測なしの 20% 以下になり、`l2p.overshoot_px` の P95 がブラシの直径以下で、`l2p.settle_ms` の P95 が 1 表示周期（16.7ms）以下になり、`l2p.hole_px` の P95 と `l2p.edge_shift_px` の P95 が 1px 以下になることである（1px は初期値で、最初の計測の後に決め直す）。速さが変わった直後と停止の直前は、この目安から分けて報告する。
 6. 予測の線が確定の線と見分けられないことは、`l2p.hit_rate` と表示の取り込みの目視で確かめる。予測の線が確定の線より太い、細い、または色が違う場合は、模様のあるブラシの扱いを見直す。
+
+## 設計の判断
+
+| 論点 | 判断 | 理由 |
+| --- | --- | --- |
+| 予測点を平滑化の内側に入れ、境界をまたいで処理するか | 段階 2 に回す。段階 1 は平滑化なしと `SIMPLE_SMOOTHING` だけで、折れ線を外側に置く | 内側に入れると、`KisToolFreehandHelper` の平滑化 3 種とストロークのジョブに境界の処理が要り、コード量が大きい。段階 2 に進む条件は、`WEIGHTED_SMOOTHING` と `STABILIZER` の利用者の遅れが計測で問題と示されたとき |
+| 予測の置き場 | キャンバスの装飾の層に描き、毎回消し、`KisPaintDevice` へ書かない | 画素の正本、履歴、保存結果に影響しない（「LibrePaint で予測の線を描く場所」） |
+| 予測を確定と同じ描画系で描くか | 条件つきで採用 | 段階 1 は折れ線で描く。模様のあるブラシで差が許容できないと計測で示されたときに、小さなオフスクリーンの `KisPaintDevice` に同じ paint op で描く |
+| 点列が長いときの差分の再計算とキャッシュ | 不要 | 折れ線の計算は、始点から最新の実点までと予測の点（24ms 分の数点）だけで、点列の長さに依存しない |
+| 機種ごとの可否と精度 | 可否は隠し設定 `useStrokePrediction`、精度は対象外 | 環境ごとの既定は計測の後に決める。予測は GPU のバッファを使わないため、FP16 と FP32 の選択は生じない |
+| 外れたときの予測の距離 | 連続的にゼロへ近づける | 速さ、筆圧、最後の点からの時間が決める信頼度を、閾値の手前から連続的に下げる。既存の閾値（0.2px/ms、筆圧 0.05、20ms）を「信頼度が 0 になる点」とし、傾斜の幅は計測で決める。急な打ち切りは `l2p.retract_px` で測る |
+| 予測器の次数 | 1 次線形から始める。加速度は過渡の計測で判断する | 一定の速さでは 1 次線形で足りる見込みで（「variable-speed の見込み」）、コード量が少ない。速さが変わった直後の残りが合格の目安を超えたときに、2 次線形、Kalman、有限時間微分推定を同じ指標で比べる |
+| OS の予測入力 | 使わない（Qt が予測点を公開するかは未確認） | 自前の予測器は OS の予測に依存せず、全環境で同じ仕組みになる。Qt が予測点を公開しても、設計は変わらない |
+| 推定プロパティによる筆圧と傾きの後追い補正 | 対象外 | 予測の線は位置だけを予測し、筆圧と傾きは最後の実値で固定する。後追い補正は確定の線の経路の話で、予測の線の範囲外 |
+| 確定の単位 | 変更しない | 確定は既存の `FreehandStrokeStrategy` のジョブの単位で、L2P は確定の経路に触れない |
+| 評価の指標 | 位置の跳び、終端の誤差、描画の費用を追加する | 位置の跳びは `l2p.retract_px`、終端の誤差は `l2p.settle_ms` と終了後の `l2p.overshoot_px`、描画の費用は `prediction_paint` と `paintgl_end` の差で測る。知覚される空間誤差の指標（Nancel らの 2016 年の論文）は、段階 2 の予測器の比較で検討する |
+| 予測末尾と確定の線の連続 | 折れ線の始点を確定の線に重ねる | 最新の実点から予測の点までだけを結ぶと、確定の線の端との間に隙間が残る（「予測の線の始点と平滑化」） |
+
+### CHARTER に入れる条文の案（利用者が決める）
+
+CHARTER は利用者だけが変更する。L2P の実装を始めるには、予測の線の扱いを書く条文が要る。案は次のとおりである。
+
+> 予測の線は、ペン先と表示された線の端の距離を縮めるために許す。表示だけの層に描き、画素の正本、履歴、保存結果に影響させない。環境ごとの既定は、主指標と、距離と外れの指標を測り、悪化がないと示した環境だけで有効にする。
 
 ## 残りの危険
 
@@ -207,6 +251,8 @@ H1（先積みのフレーム数）=1 と H5（ホバーの間引き）の組（
 - Windows Ink の予測部分の筆圧と傾きの扱いは公開されていない。LibrePaint が最後の値を使う設計は、Windows Ink の見た目と一致しない可能性がある。
 - 模様のあるブラシでは、色と太さだけの折れ線が確定の線と一致しない。オフスクリーンの `KisPaintDevice` に同じ paint op で描く案は、画素の正本を汚さないが、1 回の描画の費用が増える。
 - 予測の線は、確定の線がまだ届いていない位置を先に描く。確定の線が予測の線に追いつくまでの間、同じ画素を 2 回描くことになる。不透明な線では見えないが、半透明のブラシでは濃くなる可能性がある。半透明のブラシは、予測の線を確定の線と別の合成にし、確定の線が届いた時点で予測の線を消す。
+- 折れ線の始点をさかのぼらせるため、確定の線と重なる区間が増える。段階 1 は、不透明な線（ブラシの不透明度と流量が 100%、通常の合成）だけで有効にする。条件の判定場所は実装の前に決める。
+- `WEIGHTED_SMOOTHING`、`STABILIZER`、`PIXEL_PERFECT` の利用者には、段階 1 の予測の線が効かない。
 - 予測の長さを 25ms まで伸ばすと、停止の直前の外れが大きくなる。停止の判定と信頼度の下限を、計測の `l2p.overshoot_px` と `l2p.settle_ms` で確かめる。
 
 ## 出典
@@ -226,6 +272,8 @@ H1（先積みのフレーム数）=1 と H5（ホバーの間引き）の組（
 - Chromium, `ui/base/prediction/input_predictor.h`: https://chromium.googlesource.com/chromium/src/+/main/ui/base/prediction/input_predictor.h
 - Chromium, `third_party/blink/renderer/platform/widget/input/input_event_prediction.h`: https://chromium.googlesource.com/chromium/src/+/main/third_party/blink/renderer/platform/widget/input/input_event_prediction.h
 - Chromium, `ui/base/prediction/kalman_predictor.cc`: https://chromium.googlesource.com/chromium/src/+/main/ui/base/prediction/kalman_predictor.cc
+- Nancel, Aranovskiy, Ushirobira, Efimov, Poulmane, Roussel, Casiez, Next-Point Prediction for Direct Touch Using Finite-Time Derivative Estimation（UIST 2018、DOI 10.1145/3242587.3242646）: https://hal.archives-ouvertes.fr/hal-01893310
+- Nancel ほか, Next-Point Prediction Metrics for Perceived Spatial Errors（UIST 2016）: https://hal.archives-ouvertes.fr/hal-01420670
 - Krita, Freehand Brush Tool（Smoothing）: https://docs.krita.org/en/reference_manual/tools/freehand_brush.html
 - Clip Studio Paint, Correction: https://help.clip-studio.com/en-us/manual_en/810_subtools/C.htm
 - Clip Studio Paint, Preferences: https://help.clip-studio.com/en-us/manual_en/720_preferences/Preferences.htm
