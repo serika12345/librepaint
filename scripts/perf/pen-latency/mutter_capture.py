@@ -9,7 +9,12 @@ every captured frame the extent of dark pixels in each trajectory band.
 
 Outputs in --out:
 - inject.csv: time_ns,phase,band,x,y,pressed (x, y in captured pixels)
-- capture.csv: frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax
+- capture.csv: frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap
+
+dense_gap is the widest run of columns with fewer than --dense dark pixels
+between the first and the last dense column of the band, in captured pixels.
+It is empty when the band has no dense column and 0 when the dense columns
+have no break.
 - capture-meta.json: canvas rectangle, bands, trajectory options, frame size
 
 All times are CLOCK_MONOTONIC nanoseconds. frame_ns is the PipeWire buffer
@@ -193,16 +198,26 @@ class Capture:
             columns = dark.sum(axis=0)
             any_columns = np.nonzero(columns)[0]
             if len(any_columns) == 0:
-                self.rows.append((frame_ns, arrival, name, "", "", "", "", "", ""))
+                self.rows.append((frame_ns, arrival, name, "", "", "", "", "", "", ""))
                 continue
             dense_columns = np.nonzero(columns >= self.dense)[0]
             any_rows = np.nonzero(dark.any(axis=1))[0]
+            gap = ""
+            if len(dense_columns):
+                run = widest = 0
+                for sparse in columns[dense_columns[0]:dense_columns[-1] + 1] < self.dense:
+                    if sparse:
+                        run += 1
+                        widest = max(widest, run)
+                    else:
+                        run = 0
+                gap = widest
             self.rows.append((
                 frame_ns, arrival, name,
                 x0 + int(any_columns[0]), x0 + int(any_columns[-1]),
                 x0 + int(dense_columns[0]) if len(dense_columns) else "",
                 x0 + int(dense_columns[-1]) if len(dense_columns) else "",
-                y0 + int(any_rows[0]), y0 + int(any_rows[-1]),
+                y0 + int(any_rows[0]), y0 + int(any_rows[-1]), gap,
             ))
 
     def stop(self):
@@ -302,7 +317,8 @@ def main(argv):
         writer.writerows(injected)
     with open(os.path.join(args.out, "capture.csv"), "w", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["frame_ns", "arrival_ns", "band", "xmin", "xmax", "dense_xmin", "dense_xmax", "ymin", "ymax"])
+        writer.writerow(["frame_ns", "arrival_ns", "band", "xmin", "xmax", "dense_xmin", "dense_xmax", "ymin", "ymax",
+                         "dense_gap"])
         writer.writerows(capture.rows)
     print("frames=%d injected=%d canvas=%s" % (len({r[0] for r in capture.rows}), len(injected), (left, top, width, height)))
     return 0

@@ -20,6 +20,12 @@
 // frame_ns is DXGI_OUTDUPL_FRAME_INFO::LastPresentTime. Run inside the
 // interactive desktop session (run-surface.ps1).
 //
+// capture.csv rows are
+// frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap.
+// dense_gap is the widest run of columns with fewer than --dense dark pixels
+// between the first and the last dense column of the band. It is empty when
+// the band has no dense column and 0 when the dense columns have no break.
+//
 // Build: x86_64-w64-mingw32-g++ -std=c++17 -O2 -static windows_capture.cpp
 //        -ld3d11 -ldxgi -lwinmm -o windows_capture.exe
 // A cross wrapper that links iconv/intl statically may also need their -L
@@ -434,7 +440,7 @@ int main(int argc, char **argv)
     }
 
     std::atomic<bool> stop{false};
-    std::string rows = "frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax\n";
+    std::string rows = "frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap\n";
     std::thread capture([&] {
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
         char line[256];
@@ -457,9 +463,16 @@ int main(int argc, char **argv)
                     if (columns[i] > 0) { if (xmin < 0) xmin = b.x0 + i; xmax = b.x0 + i; }
                     if (columns[i] >= dense) { if (dxmin < 0) dxmin = b.x0 + i; dxmax = b.x0 + i; }
                 }
-                if (xmin < 0) snprintf(line, sizeof(line), "%lld,%lld,%s,,,,,,\n", frameNs, arrival, b.name.c_str());
-                else if (dxmin < 0) snprintf(line, sizeof(line), "%lld,%lld,%s,%d,%d,,,%d,%d\n", frameNs, arrival, b.name.c_str(), xmin, xmax, ymin, ymax);
-                else snprintf(line, sizeof(line), "%lld,%lld,%s,%d,%d,%d,%d,%d,%d\n", frameNs, arrival, b.name.c_str(), xmin, xmax, dxmin, dxmax, ymin, ymax);
+                int gap = 0;
+                if (dxmin >= 0) {
+                    int run = 0;
+                    for (int i = dxmin - b.x0; i <= dxmax - b.x0; ++i) {
+                        if (columns[i] < dense) { if (++run > gap) gap = run; } else { run = 0; }
+                    }
+                }
+                if (xmin < 0) snprintf(line, sizeof(line), "%lld,%lld,%s,,,,,,,\n", frameNs, arrival, b.name.c_str());
+                else if (dxmin < 0) snprintf(line, sizeof(line), "%lld,%lld,%s,%d,%d,,,%d,%d,\n", frameNs, arrival, b.name.c_str(), xmin, xmax, ymin, ymax);
+                else snprintf(line, sizeof(line), "%lld,%lld,%s,%d,%d,%d,%d,%d,%d,%d\n", frameNs, arrival, b.name.c_str(), xmin, xmax, dxmin, dxmax, ymin, ymax, gap);
                 rows += line;
             }
             dup.unmap();
