@@ -39,6 +39,8 @@
 // Krita/ui
 #include "KisPerStrokeRandomSource.h"
 #include "canvas/kis_abstract_perspective_grid.h"
+#include <QTimer>
+
 #include "canvas/KisPredictionDecoration.h"
 #include "canvas/kis_display_color_converter.h"
 #include "application/kis_config.h"
@@ -386,11 +388,41 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
     if (!rect.isEmpty()) {
         canvas2->updateCanvasDecorations(rect);
     }
+
+    if (!m_predictionExpiry) {
+        m_predictionExpiry = new QTimer(this);
+        m_predictionExpiry->setSingleShot(true);
+        m_predictionExpiry->setTimerType(Qt::PreciseTimer);
+        connect(m_predictionExpiry, &QTimer::timeout, this, [this]() { expirePrediction(); });
+    }
+    m_predictionExpiry->start(qRound(m_prediction.settings().gapResetMs));
+}
+
+void KisToolFreehand::expirePrediction()
+{
+    if (!m_predictionActive) return;
+
+    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
+    if (!canvas2) return;
+
+    KisPredictionDecoration *decoration =
+        dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
+    if (!decoration || !decoration->hasPrediction()) return;
+
+    const QRectF rect = decoration->clearPrediction();
+    KisLatencyProbe::mark("prediction_clear", 0, 0, 4);
+    if (!rect.isEmpty()) {
+        canvas2->updateCanvasDecorations(rect);
+    }
 }
 
 void KisToolFreehand::clearPrediction(int reason)
 {
     const bool wasActive = m_predictionActive;
+
+    if (m_predictionExpiry) {
+        m_predictionExpiry->stop();
+    }
 
     m_predictionActive = false;
     m_prediction.reset();

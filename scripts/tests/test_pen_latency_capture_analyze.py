@@ -130,6 +130,31 @@ def write_settle_run(directory, settle_densities):
     write_csv(os.path.join(directory, "capture.csv"), CAPTURE_FIELDS, rows)
 
 
+def write_ahead_run(directory):
+    """One ink pass whose displayed line end is ahead of the pen tip.
+
+    The dwell positions are 0.5 and 200.5 with displayed line ends 20 and 220
+    (calibration offset 19.5 px). In the move frames the line end is 50 px
+    ahead of the injected position, as a prediction line would draw it; no
+    Pass.locate crossing exists for these frames at the start and the end.
+    """
+    inject = [
+        (1_000_000_000, "dwell", "stroke0", 0.5, 300.0, 1),
+        (1_010_000_000, "dwell", "stroke0", 0.5, 300.0, 1),
+    ]
+    inject += [(1_100_000_000 + i * 4_000_000, "move", "stroke0", x, 300.0, 1)
+               for i, x in enumerate((0.0, 50.0, 100.0, 150.0, 200.0))]
+    inject.append((1_300_000_000, "dwell", "stroke0", 200.5, 300.0, 1))
+    write_csv(os.path.join(directory, "inject.csv"),
+              ["time_ns", "phase", "band", "x", "y", "pressed"], inject)
+    rows = [(1_000_000_000, 1_000_000_000, "stroke0", 0, 220, 0, 20, 310, 320, "")]
+    rows += [(1_100_000_000 + i * 4_000_000, 1_100_000_000, "stroke0", 0, dense,
+              max(0, dense - 40), dense, 310, 320, "")
+             for i, dense in enumerate((70, 120, 170, 220, 270))]
+    rows.append((1_300_000_000, 1_300_000_000, "stroke0", 0, 220, 180, 220, 310, 320, ""))
+    write_csv(os.path.join(directory, "capture.csv"), CAPTURE_FIELDS, rows)
+
+
 def write_probe(directory, intervals_ns):
     """Write Qt tablet moves with the given gaps; frequency is 10 MHz."""
     with open(os.path.join(directory, "probe.csv"), "w") as handle:
@@ -464,6 +489,15 @@ class PredictionMetricTest(unittest.TestCase):
         self.assertEqual(result["l2p.retract_px"]["n"], 3)
         self.assertEqual(result["l2p.retract_px"]["p50"], 0)
         self.assertEqual(result["l2p.retract_px"]["p95"], 5)
+
+    def test_overshoot_is_measured_for_frames_ahead_of_the_pen_tip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_ahead_run(directory)
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.overshoot_px"]["n"], 5)
+        self.assertAlmostEqual(result["l2p.overshoot_px"]["p50"], 50.5, delta=0.6)
+        self.assertEqual(result["l2p.residual_px"]["p50"], 0.0)
+        self.assertLess(result["l2p.signed_gap_px"]["p50"], -50.0)
 
     def test_settle_ms_waits_for_the_line_end_to_be_within_one_pixel(self):
         with tempfile.TemporaryDirectory() as directory:

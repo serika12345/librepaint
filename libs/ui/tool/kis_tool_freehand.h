@@ -27,6 +27,7 @@ class KUndo2MagicString;
 class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;
 class KisPredictionDecoration;
+class QTimer;
 
 
 class KRITAUI_EXPORT KisToolFreehand : public KisToolPaint
@@ -116,6 +117,10 @@ private:
     void startPrediction();
     void updatePrediction(KoPointerEvent *event);
     void clearPrediction(int reason);
+    /// Called when no pointer event arrived for the prediction's gap time: a
+    /// pressed pointer that stops sends no events, so the last prediction would
+    /// stay on the screen until the release.
+    void expirePrediction();
 
 private Q_SLOTS:
     void updateMaskSyntheticEventsFromTouch();
@@ -143,6 +148,7 @@ private:
 
     KisStrokePrediction m_prediction;
     bool m_predictionActive {false};
+    QTimer *m_predictionExpiry {nullptr};
 
     std::optional<KoPointerEventWrapper> m_beginAlternateActionEvent;
 };

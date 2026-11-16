@@ -495,7 +495,7 @@ def analyze_run(directory):
 
     intervals = [(b - a) / 1e6 for a, b in zip(frame_times, frame_times[1:]) if b - a < 100_000_000]
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
-    result.update(l2p_summary(samples))
+    result.update(l2p_summary(l2p_tip_samples(directory)))
     result.update(l2p_settle(directory))
     result["frames"] = {"n": len(frame_times), "interval": analyze.describe(intervals)}
     result["calibration"] = {
@@ -631,6 +631,54 @@ def l2p_settle(directory):
     if not values:
         return {}
     return {"l2p.settle_ms": analyze.describe(values)}
+
+
+def l2p_tip_samples(directory):
+    """Ink frames during each pass, kept without Pass.locate.
+
+    Pass.locate drops a frame whose displayed line end lies beyond the
+    positions the pointer has crossed. A prediction line ahead of the pen tip
+    is such a frame, so the located samples never show the overshoot and bias
+    the residual. These samples keep every ink frame between the first and
+    the last injection of a pass. The line end is the calibrated displayed
+    position, the pen tip is the interpolated injected position at the frame
+    time, and the tuple has the layout of frame_samples() (crossed time and
+    line speed are None) so that l2p_summary() reads it unchanged.
+    """
+    injected = read_inject(os.path.join(directory, "inject.csv"))
+    frames = read_capture(os.path.join(directory, "capture.csv"))
+    frame_times = list(frames)
+    all_passes = passes(injected)
+    inject_times = [sample[0] for sample in injected]
+    inject_xs = [sample[3] for sample in injected]
+    inject_interval_ms = median_interval_ms(inject_times)
+    offsets = []
+    for pass_ in all_passes:
+        if pass_.kind == "ink":
+            offsets.extend(dwell_offsets(pass_, frames, frame_times))
+    if not offsets:
+        return []
+    ink_offset = statistics.median(offsets)
+    samples = []
+    for pass_id, pass_ in enumerate(all_passes):
+        if pass_.kind != "ink":
+            continue
+        begin, end = pass_.times[0], pass_.times[-1]
+        for t in frame_times[bisect.bisect_left(frame_times, begin): bisect.bisect_right(frame_times, end)]:
+            detection = frames[t].get(pass_.band)
+            if detection is None:
+                continue
+            value = position("ink", detection)
+            if value is None:
+                continue
+            line_end = value - ink_offset
+            pen_x, pen_speed = pen_tip_at(inject_times, inject_xs, t, inject_interval_ms)
+            if pen_x is None:
+                continue
+            samples.append(("ink", t, None, detection["arrival"], None, pen_x, pen_speed,
+                            pass_.direction * (pen_x - line_end), detection.get("dense_gap"),
+                            pass_id, pass_.direction, line_end))
+    return samples
 
 
 def ink_speed_groups(samples):
