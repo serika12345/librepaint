@@ -39,7 +39,11 @@
 // Krita/ui
 #include "KisPerStrokeRandomSource.h"
 #include "canvas/kis_abstract_perspective_grid.h"
+#include "canvas/KisPredictionDecoration.h"
+#include "canvas/kis_display_color_converter.h"
 #include "application/kis_config.h"
+#include <KisStrokePredictionPolicy.h>
+#include <KoCompositeOpIds.h>
 #include "kis_assert.h"
 #include "kis_config_notifier.h"
 #include "kis_global.h"
@@ -185,6 +189,7 @@ void KisToolFreehand::activate(const QSet<KoShape*> &shapes)
 void KisToolFreehand::deactivate()
 {
     if (mode() == PAINT_MODE) {
+        clearPrediction(3);
         endStroke();
         setMode(KisTool::HOVER_MODE);
     }
@@ -210,6 +215,8 @@ void KisToolFreehand::endStroke()
     m_helper->endPaint();
     bool paintOpIgnoredEvent = currentPaintOpPreset()->settings()->mouseReleaseEvent();
     Q_UNUSED(paintOpIgnoredEvent);
+
+    clearPrediction(1);
 }
 
 bool KisToolFreehand::primaryActionSupportsHiResEvents() const
@@ -260,6 +267,7 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
     }
 
     initStroke(event);
+    startPrediction();
 }
 
 void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
@@ -272,6 +280,10 @@ void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
      * Actual painting
      */
     doStroke(event);
+
+    if (m_predictionActive) {
+        updatePrediction(event);
+    }
 }
 
 void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
@@ -291,6 +303,114 @@ void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
     }
 
     setMode(KisTool::HOVER_MODE);
+}
+
+void KisToolFreehand::startPrediction()
+{
+    m_predictionActive = false;
+
+    KisConfig cfg(true);
+
+    KisStrokePredictionPolicyInput input;
+    input.settingEnabled = cfg.useStrokePrediction();
+    input.smoothingType = int(smoothingOptions()->smoothingType());
+    input.paintOpId = currentPaintOpPreset()->paintOp().id();
+    input.opacity = currentPaintOpPreset()->settings()->paintOpOpacity();
+    input.flow = currentPaintOpPreset()->settings()->paintOpFlow();
+    input.eraser = isEraser();
+    input.compositeNormal = currentPaintOpPreset()->settings()->paintOpCompositeOp() == COMPOSITE_OVER;
+    input.assistantActive = m_assistant;
+
+    const KisStrokePredictionPolicyReason reason = KisStrokePredictionPolicy::evaluate(input);
+
+    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
+    if (!canvas2 || reason != KisStrokePredictionPolicyReason::Enabled) {
+        KisLatencyProbe::mark("prediction_policy", 0, 0, int(reason));
+        return;
+    }
+
+    KisStrokePredictionSettings settings;
+    settings.horizonMs = cfg.strokePredictionHorizonMs();
+    settings.anchorMs = cfg.strokePredictionAnchorMs();
+    m_prediction.setSettings(settings);
+    m_prediction.reset();
+
+    if (!canvas2->decoration(KisPredictionDecoration::idTag)) {
+        canvas2->addDecoration(new KisPredictionDecoration(canvas2->imageView()));
+    }
+
+    m_predictionActive = true;
+    KisLatencyProbe::mark("prediction_policy", 0, 0, 0);
+}
+
+void KisToolFreehand::updatePrediction(KoPointerEvent *event)
+{
+    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
+    if (!canvas2) return;
+
+    KisPredictionDecoration *decoration =
+        dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
+    if (!decoration) return;
+
+    m_prediction.addSample(event->point, qreal(event->time()), event->pressure());
+
+    KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y());
+
+    const KisStrokePredictionResult result = m_prediction.predict();
+
+    QRectF rect;
+
+    if (result.valid) {
+        const qreal diameter = currentPaintOpPreset()->settings()->paintOpSize();
+
+        QColor color;
+        if (canvas2->displayColorConverter()) {
+            color = canvas2->displayColorConverter()->toQColor(currentFgColor());
+        } else {
+            color = currentFgColor().toQColor();
+        }
+
+        rect = decoration->setPrediction(result.polyline, result.latestIndex, diameter, color);
+
+        const QPointF tip = result.polyline.constLast();
+        KisLatencyProbe::mark("prediction_point", tip.x(), tip.y(), qRound(result.confidence * 1000));
+    } else {
+        const bool hadPrediction = decoration->hasPrediction();
+        rect = decoration->clearPrediction();
+        if (hadPrediction) {
+            KisLatencyProbe::mark("prediction_clear", 0, 0, 2);
+        }
+    }
+
+    if (!rect.isEmpty()) {
+        canvas2->updateCanvasDecorations(rect);
+    }
+}
+
+void KisToolFreehand::clearPrediction(int reason)
+{
+    const bool wasActive = m_predictionActive;
+
+    m_predictionActive = false;
+    m_prediction.reset();
+
+    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
+    if (canvas2) {
+        KisPredictionDecoration *decoration =
+            dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
+        if (decoration) {
+            const QRectF rect = decoration->clearPrediction();
+            if (!rect.isEmpty()) {
+                canvas2->updateCanvasDecorations(rect);
+            }
+        }
+    }
+
+    // One clear row per stroke: the prediction was either showing or it was
+    // not, and only the first carries the reason the stroke ended.
+    if (wasActive) {
+        KisLatencyProbe::mark("prediction_clear", 0, 0, reason);
+    }
 }
 
 bool KisToolFreehand::trySampleByPaintOp(KoPointerEvent *event, AlternateAction action)

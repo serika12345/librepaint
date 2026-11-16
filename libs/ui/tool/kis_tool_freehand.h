@@ -16,6 +16,7 @@
 #include "kis_smoothing_options.h"
 #include "kis_signal_compressor_with_param.h"
 #include "KoPointerEvent.h"
+#include <KisStrokePrediction.h>
 
 #include "kritaui_export.h"
 
@@ -25,6 +26,7 @@ class KUndo2MagicString;
 
 class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;
+class KisPredictionDecoration;
 
 
 class KRITAUI_EXPORT KisToolFreehand : public KisToolPaint
@@ -102,6 +104,14 @@ private:
      */
     qreal calculatePerspective(const QPointF &documentPoint);
 
+    /**
+     * Display-only prediction line (Issue #129). The prediction never reaches
+     * the paint device, the history or the saved file.
+     */
+    void startPrediction();
+    void updatePrediction(KoPointerEvent *event);
+    void clearPrediction(int reason);
+
 private Q_SLOTS:
     void updateMaskSyntheticEventsFromTouch();
 
@@ -125,6 +135,9 @@ private:
 
     bool m_paintopBasedSamplingInAction {false};
     KisSignalCompressorWithParam<qreal> m_brushResizeCompressor;
+
+    KisStrokePrediction m_prediction;
+    bool m_predictionActive {false};
 
     std::optional<KoPointerEventWrapper> m_beginAlternateActionEvent;
 };
