@@ -17,7 +17,7 @@ Wintab はペンタブレットのドライバー（主にワコム）が座標�
 | Blender | lcSys | 押下のときにカーソルと 1px 以内で一致しなければ、その間はカーソルの位置と Wintab の筆圧を使う | 第三者の調査の記録による（Blender のソースは取得できなかった） |
 | Drawpile | lcSys | 不明 | 第三者の調査の記録による |
 | GTK（GIMP 3、Inkscape、MyPaint） | 既定は Windows Ink。Wintab では仮想デスクトップ全体 | 不明 | 第三者の調査の記録による |
-| CLIP STUDIO PAINT | 不明 | 利用者に画面の拡大率をそろえるか、マウスモードを使うよう案内している | 第三者の調査の記録による |
+| 商用のペイントソフト 1 本 | 不明 | 利用者に画面の拡大率をそろえるか、マウスモードを使うよう案内している | 第三者の調査の記録による |
 
 Qt 本家には、1 つの画面への対応の不具合の記録がある（QTBUG-39579 は Closed Incomplete、QTBUG-69595 は Closed Out of scope、第三者の調査の記録による）。Krita が本家に出した変更（codereview.qt-project.org の 259161）は、Qt の dev のソースに lcSys の利用がないことから、取り込まれていないと見られる（変更の頁は取得できなかった）。
 

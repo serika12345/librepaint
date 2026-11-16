@@ -154,9 +154,8 @@ LibrePaint の現在のコードにも ANGLE の既知の問題がある。ANGLE
 
 ### 2.4 他の Windows のペイントソフトの描画方式
 
-Clip Studio Paint は Windows の動作要件に OpenGL 3.3 対応の GPU を挙げている。ANGLE や
-Direct3D への変換を要件にしていない
-（https://www.clipstudio.net/en/dl/system/）。
+主要な商用のペイントソフト 1 本は、Windows の動作要件に OpenGL 3.3 対応の GPU を挙げている。ANGLE や
+Direct3D への変換を要件にしていない（公式のシステム要件の文書で確認した。個別の名称と出典は記載しない）。
 
 Paint.NET 5.1 は Direct2D と DXGI Flip Model、Async Present を使い、入力の遅れを
 大きく減らしたと公式ブログに書いている。GPU の効果と調整は Direct2D の効果グラフで
@@ -363,7 +362,6 @@ Qt のソフトウェア OpenGL と QPainter に置き換える。Q4 でフォ�
 - Qt 6「Changes to Qt OpenGL」: https://doc.qt.io/qt-6/opengl-changes-qt6.html
 - Qt Wiki「Qt 5 on Windows ANGLE and OpenGL」: https://wiki.qt.io/Qt_5_on_Windows_ANGLE_and_OpenGL
 - Krita の `libs/ui/opengl/kis_opengl.cpp`: https://invent.kde.org/graphics/krita/-/blob/master/libs/ui/opengl/kis_opengl.cpp
-- Clip Studio Paint「System Requirements」: https://www.clipstudio.net/en/dl/system/
 - Paint.NET Blog「Paint.NET 5.1 is now available!」: https://blog.paint.net/2024/11/12/paint-net-5-1-is-now-available/
 - GIMP「GIMP 3.0 Released」: https://www.gimp.org/news/2025/03/16/gimp-3-0-released/
 - GIMP Documentation「6.6. Experimental Playground」: https://docs.gimp.org/3.0/en/gimp-prefs-playground.html

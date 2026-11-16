@@ -311,16 +311,16 @@ Android、iOS は「今」も正式版なので、この表の「後」と同じ
 ## 4. 他の編集ソフトの扱いと出典
 
 Krita は LibrePaint の upstream であり、独立した編集ソフトの例としては弱い。ここでは、
-Krita の公式マニュアルが利用者に約束している機能と、独立した編集ソフトである Adobe Photoshop の
+Krita の公式マニュアルが利用者に約束している機能と、独立した商用の編集ソフトの
 公式ヘルプの記述を、比較の基準として引用する。GIMP などの扱いを足す場合は、この節に追記する。
 
 | 項目 | 他の編集ソフトの扱い | 出典 |
 | --- | --- | --- |
 | ANGLE | Krita は Windows で Direct3D を使う ANGLE を選べる。ANGLE は OpenGL の呼び出しを Direct3D に変換し、Windows の一般的なドライバーとの互換性が高い | Krita Manual「Display Settings」の Canvas Graphics Acceleration（https://docs.krita.org/en/reference_manual/preferences/display_settings.html） |
 | HDR | Krita は 4.2 から Windows と Linux（Wayland）で HDR の画像を画面に HDR として表示できる。Windows では Display の設定で優先するサーフェスを選ぶ | Krita Manual「HDR Display」（https://docs.krita.org/en/reference_manual/hdr_display.html） |
-| 10bit（30-bit）の表示（独立した例） | Adobe Photoshop は、性能の設定に「30-bit display support」（10bit/色）の項目を持つ。GPU と画面が対応するときに 30bit の表示を使う | Adobe Photoshop Help「Configure Photoshop performance preferences」（https://helpx.adobe.com/photoshop/desktop/get-started/settings-and-preferences/configure-photoshop-performance-preferences.html） |
+| 10bit（30-bit）の表示（独立した例） | 独立した商用の編集ソフトは、性能の設定に「30-bit display support」（10bit/色）の項目を持つ。GPU と画面が対応するときに 30bit の表示を使う | 同ソフトの公式ヘルプ（名称と出典は記載しない） |
 | Wintab と Windows Ink | Krita は Windows 8 以上で WinTab と Windows 8+ Pointer Input を選べる。WinTab は Wacom に推奨、Windows 8+ Pointer Input は N-Trig（Surface）などに推奨 | Krita Manual「Tablet Settings」の Tablet Input API（https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html） |
-| Wintab と Windows Ink（独立した例） | Adobe Photoshop は、Windows 10 では Windows Ink を既定の入力とし、WinTab を従来のドライバーの経路として扱う。ペンの入力方式を利用者が選ぶ必要がある | Adobe Photoshop Help「Tablet support FAQ」（https://helpx.adobe.com/photoshop/kb/tablet-support-faq-photoshop.html） |
+| Wintab と Windows Ink（独立した例） | 独立した商用の編集ソフトは、Windows 10 では Windows Ink を既定の入力とし、WinTab を従来のドライバーの経路として扱う。ペンの入力方式を利用者が選ぶ必要がある | 同ソフトの公式ヘルプ（名称と出典は記載しない） |
 | Wintab の対応範囲 | Krita は複数画面や画面付きタブレットで、タブレットが提供する情報、仮想画面全体、任意の矩形を選べる。ずれの調整に使う | Krita Manual「Tablet Settings」の Advanced Tablet Settings for WinTab（同上） |
 | Android のインターフェースの倍率 | Krita は Android で起動時にインターフェースの倍率を選べる。Settings ▸ Change Interface Scale で戻せる | Krita Manual「Interface Scaling」の Android Interface Scale（https://docs.krita.org/en/reference_manual/interface_scaling.html） |
 | Android のスタイラスの回避 | Krita は Xiaomi のスタイラスの Page Up / Page Down と履歴の誤りを回避する設定を Android で提供する | Krita Manual「Tablet Settings」の Xiaomi の記述（同上） |
@@ -366,8 +366,6 @@ Krita の公式マニュアルが利用者に約束している機能と、独�
 - Krita Manual「Tablet Settings」：https://docs.krita.org/en/reference_manual/preferences/tablet_settings.html
 - Krita Manual「Interface Scaling」：https://docs.krita.org/en/reference_manual/interface_scaling.html
 - Krita Manual「Shortcut Settings」：https://docs.krita.org/en/reference_manual/preferences/shortcut_settings.html
-- Adobe Photoshop Help「Configure Photoshop performance preferences」：https://helpx.adobe.com/photoshop/desktop/get-started/settings-and-preferences/configure-photoshop-performance-preferences.html
-- Adobe Photoshop Help「Tablet support FAQ」：https://helpx.adobe.com/photoshop/kb/tablet-support-faq-photoshop.html
 - Krita の Qt フォーク `dimula73/qtbase` の `for-krita/6.11.3`：https://github.com/dimula73/qtbase/tree/for-krita/6.11.3
 - フォークの各コミット：`051139ed72`、`7bb46828ae`、`a60ed01a25`、`d850335b2d`、`e121cb08e5`、
   `fb923e4a97`、`f1cf04e958`、`1a543f2832`、`02216d26ba`、`77d2b02daf`、`7ad4a8bc17`、

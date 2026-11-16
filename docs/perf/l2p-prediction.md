@@ -27,8 +27,6 @@ Issue #108 の L2P（予測の線）の設計資料。L2P は、L2（Windows の
 | iPadOS の `UIEvent.predictedTouches(for:)` と PencilKit | 文書は「次に起こるとシステムが予測するタッチ」とだけ説明する。ms の記載はない（不明）。PencilKit の内部の予測の長さも不明 | 予測タッチを一時的に描画へ追加し、新しいイベントが届いたら捨てる。PencilKit の内部の置き換えは不明 | 予測タッチの筆圧と傾きの作り方は不明 | 次のイベントで捨てる。外れた予測の見え方は文書に記載がない（不明） | `UIEvent.predictedTouches(for:)`（https://developer.apple.com/documentation/uikit/uievent/predictedtouches(for:)）、`PKCanvasView`（https://developer.apple.com/documentation/pencilkit/pkcanvasview） |
 | Chrome の `PointerEvent.getPredictedEvents()` | 最大 3 点。点の間隔は実測したイベント間隔（既定 8ms、最小 2.5ms）で、最大 25ms 先まで。予測器は Kalman が既定で、1 次線形、2 次線形、最小二乗も選べる。リサンプリングは最大 20ms | 仕様の例は、前回の予測点を消し、coalesced の実点を描いてから新しい予測点を描く。予測は次の pointer event が届くまで有効である | 予測イベントは実イベントの複製で、位置と時刻だけを更新する。筆圧、傾き、twist は最後の実値のまま | 次の実イベントで予測点が消える。外れた分は一時的に前へ出てから戻る | Pointer Events の Predicted events（https://w3c.github.io/pointerevents/#predicted-events）、Chrome の機能ページ（https://chromestatus.com/feature/5765569655603200）、`input_predictor.h`（https://chromium.googlesource.com/chromium/src/+/main/ui/base/prediction/input_predictor.h）、`input_event_prediction.h`（https://chromium.googlesource.com/chromium/src/+/main/third_party/blink/renderer/platform/widget/input/input_event_prediction.h） |
 | Krita | 予測しない（0ms）。`Smoothing` と `Stabilizer` は入力を平均し、線がカーソルの後ろに残る | 予測の線がないため置き換えはない。確定の線だけを描く | ブラシエンジンが筆圧と傾きを扱う。`Stabilize sensors` は筆圧、速度、傾きを平滑化する | 予測の外れはない。遅れは線がカーソルの後ろに残る形で見える | Freehand Brush Tool の Smoothing（https://docs.krita.org/en/reference_manual/tools/freehand_brush.html） |
-| Clip Studio Paint | 公式マニュアルに予測の記述がない（0ms）。`Stabilization`、`Post correction`、`stroke preview` を持つ | 予測の線がないため置き換えはない。補正後の線を描く | ブラシ設定と `Stabilization` が筆圧と傾きを扱う。予測部分はない | 予測の外れはない。補正の強さによって線が遅れる | Correction の設定（https://help.clip-studio.com/en-us/manual_en/810_subtools/C.htm）、Preferences の表示設定（https://help.clip-studio.com/en-us/manual_en/720_preferences/Preferences.htm） |
-| Procreate | 公式ハンドブックに予測の記述がない（0ms）。`Stabilization` は移動平均、`Motion Filtering` と `StreamLine` は線の揺れを抑える | 予測の線がないため置き換えはない。平滑化した線を描く | `Pressure and Smoothing` と `StreamLine` の `Pressure` が筆圧を扱う。予測部分はない | 予測の外れはない。平滑化の強さによって線が遅れる | Brush Studio Settings の Stabilization、StreamLine、Motion Filtering（https://help.procreate.com/procreate/handbook/brushes/brush-studio-settings）、Apple Pencil, Pressure and Smoothing（https://help.procreate.com/articles/tIdR13-apple-pencil-pressure-and-smoothing） |
 
 ### 表から読み取れること
 
@@ -38,7 +36,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 1. 予測点を実際の点で上書きする（Windows の wet ink、DelegatedInkTrail、Chrome、Android、iPadOS）。
 2. 予測点を次の入力のたびに全部消してから描き直す（Chrome、DelegatedInkTrail、Android の「新しい予測点を追加するときに古い予測点を消す」）。
-3. 予測を使わず、平滑化だけで遅れを受け入れる（Krita、Clip Studio Paint、Procreate）。
+3. 予測を使わず、平滑化だけで遅れを受け入れる（Krita。公式の文書に予測の記述がない商用のペイントソフトも同じ）。
 
 筆圧と傾きは、位置の予測ほど共通した扱いがない。Android は筆圧を Kalman filter で外挿し、傾きと orientation は最後の値を使う。Chrome は位置と時刻だけを更新し、筆圧と傾きは最後の実値のままにする。Windows Ink は予測部分の筆圧と傾きの作り方を公開していない。LibrePaint は Chrome と Android に合わせ、位置だけを予測し、筆圧と傾きは最後の実値を使うのが安全である。
 
@@ -281,7 +279,3 @@ H1（先積みのフレーム数）=1 と H5（ホバーの間引き）の組（
 - Nancel, Aranovskiy, Ushirobira, Efimov, Poulmane, Roussel, Casiez, Next-Point Prediction for Direct Touch Using Finite-Time Derivative Estimation（UIST 2018、DOI 10.1145/3242587.3242646）: https://hal.archives-ouvertes.fr/hal-01893310
 - Nancel ほか, Next-Point Prediction Metrics for Perceived Spatial Errors（UIST 2016）: https://hal.archives-ouvertes.fr/hal-01420670
 - Krita, Freehand Brush Tool（Smoothing）: https://docs.krita.org/en/reference_manual/tools/freehand_brush.html
-- Clip Studio Paint, Correction: https://help.clip-studio.com/en-us/manual_en/810_subtools/C.htm
-- Clip Studio Paint, Preferences: https://help.clip-studio.com/en-us/manual_en/720_preferences/Preferences.htm
-- Procreate, Brush Studio Settings（Stabilization、StreamLine、Motion Filtering）: https://help.procreate.com/procreate/handbook/brushes/brush-studio-settings
-- Procreate, Apple Pencil, Pressure and Smoothing: https://help.procreate.com/articles/tIdR13-apple-pencil-pressure-and-smoothing

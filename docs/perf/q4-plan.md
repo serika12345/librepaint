@@ -181,6 +181,4 @@ QPA のネイティブインターフェースか Win32/Wintab の直接呼び�
   `IDXGISwapChain2::SetMaximumFrameLatency`、`IDXGISwapChain3::SetColorSpace1`、
   `IDXGIOutput6::GetDesc1`、HDR の色空間の定数
 - Krita Manual「Display Settings」「HDR Display」「Tablet Settings」
-- Adobe Photoshop Help「Configure Photoshop performance preferences」
-  「Tablet support FAQ」
 - Chrome、mpv、Firefox、Blender、OBS の提示の実装（`l2-flip-presentation.md` の出典）
