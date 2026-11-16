@@ -86,11 +86,22 @@ struct Sample { double t; std::string phase, band; double x, y; int pressed; };
                 if (columns[i] > 0) { if (xmin < 0) xmin = b.x0 + i; xmax = b.x0 + i; }
                 if (columns[i] >= self.dense) { if (dxmin < 0) dxmin = b.x0 + i; dxmax = b.x0 + i; }
             }
+            // dense_gap: the widest run of non-dense columns between the first and
+            // the last dense column. A hole between a displayed line and a
+            // predicted line shows up here; dense_xmax alone extends over it.
+            int gap = 0;
+            if (dxmin >= 0) {
+                int run = 0;
+                for (int i = dxmin - b.x0; i <= dxmax - b.x0; ++i) {
+                    if (columns[i] < self.dense) { if (++run > gap) gap = run; } else { run = 0; }
+                }
+            }
             if (xmin < 0) {
-                [self.rows appendFormat:@"%llu,%llu,%s,,,,,,\n", frameNs, arrival, b.name.c_str()];
+                [self.rows appendFormat:@"%llu,%llu,%s,,,,,,,\n", frameNs, arrival, b.name.c_str()];
             } else {
                 NSString *dense = dxmin < 0 ? @"," : [NSString stringWithFormat:@"%d,%d", dxmin, dxmax];
-                [self.rows appendFormat:@"%llu,%llu,%s,%d,%d,%@,%d,%d\n", frameNs, arrival, b.name.c_str(), xmin, xmax, dense, ymin, ymax];
+                NSString *gapText = dxmin < 0 ? @"" : [NSString stringWithFormat:@"%d", gap];
+                [self.rows appendFormat:@"%llu,%llu,%s,%d,%d,%@,%d,%d,%@\n", frameNs, arrival, b.name.c_str(), xmin, xmax, dense, ymin, ymax, gapText];
             }
         }
         CVPixelBufferUnlockBaseAddress(pixels, kCVPixelBufferLock_ReadOnly);
@@ -288,7 +299,7 @@ int main(int argc, const char **argv) {
 
         Output *output = [[Output alloc] init];
         output.firstFrame = dispatch_semaphore_create(0);
-        output.rows = [NSMutableString stringWithString:@"frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax\n"];
+        output.rows = [NSMutableString stringWithString:@"frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap\n"];
         output.dark = dark; output.dense = dense;
         SCStream *stream = [[SCStream alloc] initWithFilter:filter configuration:config delegate:nil];
         dispatch_queue_t queue = dispatch_queue_create("capture", DISPATCH_QUEUE_SERIAL);
