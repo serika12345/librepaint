@@ -42,8 +42,8 @@ struct KisStrokePrediction::Private
         if (samples.isEmpty()) return;
 
         const qreal latestTime = samples.constLast().time;
-        const qreal keepMs =
-            std::max({settings.anchorMs, settings.velocityWindowMs, settings.gapResetMs});
+        const qreal keepMs = std::max({settings.anchorMs, settings.velocityWindowMs, settings.gapResetMs,
+                                       settings.decelLongWindowMs});
         const qreal oldestKept = latestTime - keepMs;
 
         while (samples.size() > 1 && samples.constFirst().time < oldestKept) {
@@ -52,6 +52,32 @@ struct KisStrokePrediction::Private
         while (samples.size() > MaximumSampleCount) {
             samples.removeFirst();
         }
+    }
+
+    /// Speed in px/ms from the oldest sample inside windowMs to the latest
+    /// sample. With only the latest sample inside the window the previous one
+    /// is used. Returns -1 when the speed cannot be computed.
+    qreal windowSpeed(qreal windowMs) const
+    {
+        if (samples.size() < 2) return -1.0;
+
+        const qreal latestTime = samples.constLast().time;
+        int start = samples.size() - 1;
+        for (int i = 0; i < samples.size(); ++i) {
+            if (latestTime - samples[i].time <= windowMs) {
+                start = i;
+                break;
+            }
+        }
+        if (start == samples.size() - 1) {
+            start = samples.size() - 2;
+        }
+
+        const qreal duration = latestTime - samples[start].time;
+        if (duration <= 0.0) return -1.0;
+
+        const QPointF delta = samples.constLast().position - samples[start].position;
+        return std::hypot(delta.x(), delta.y()) / duration;
     }
 
     KisStrokePredictionSettings settings;
@@ -79,6 +105,12 @@ void KisStrokePrediction::setSettings(const KisStrokePredictionSettings &setting
     clamped.pressureFull = settings.pressureFull <= settings.pressureZero
         ? settings.pressureZero + 0.01
         : settings.pressureFull;
+    clamped.decelShortWindowMs = clampValue(settings.decelShortWindowMs, 2.0, 20.0);
+    clamped.decelLongWindowMs = clampValue(settings.decelLongWindowMs, clamped.decelShortWindowMs + 2.0, 50.0);
+    clamped.decelRatioZero = clampValue(settings.decelRatioZero, 0.0, 1.5);
+    clamped.decelRatioFull = settings.decelRatioFull <= clamped.decelRatioZero
+        ? clamped.decelRatioZero + 0.01
+        : settings.decelRatioFull;
 
     m_d->settings = clamped;
 }
@@ -155,7 +187,22 @@ KisStrokePredictionResult KisStrokePrediction::predict() const
     const qreal pressureFactor = smoothStep(
         (m_d->samples.constLast().pressure - m_d->settings.pressureZero) /
         (m_d->settings.pressureFull - m_d->settings.pressureZero));
-    result.confidence = speedFactor * pressureFactor;
+
+    // A stroke that slows down is about to stop: the speed over the last few
+    // milliseconds against the speed over a longer window gives the factor.
+    // Steady motion keeps the ratio near 1 and the factor at 1.
+    qreal decelFactor = 1.0;
+    {
+        const qreal shortSpeed = m_d->windowSpeed(m_d->settings.decelShortWindowMs);
+        const qreal longSpeed = m_d->windowSpeed(m_d->settings.decelLongWindowMs);
+        if (shortSpeed >= 0.0 && longSpeed > 0.0) {
+            decelFactor = smoothStep(
+                (shortSpeed / longSpeed - m_d->settings.decelRatioZero) /
+                (m_d->settings.decelRatioFull - m_d->settings.decelRatioZero));
+        }
+    }
+
+    result.confidence = speedFactor * pressureFactor * decelFactor;
 
     const QPointF moveVector =
         result.velocity * result.confidence * m_d->settings.horizonMs;

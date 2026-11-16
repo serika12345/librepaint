@@ -395,7 +395,33 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         m_predictionExpiry->setTimerType(Qt::PreciseTimer);
         connect(m_predictionExpiry, &QTimer::timeout, this, [this]() { expirePrediction(); });
     }
-    m_predictionExpiry->start(qRound(m_prediction.settings().gapResetMs));
+
+    // The prediction expires when no event arrives for a little longer than the
+    // gaps between recent arrivals: events of one frame can arrive together, so
+    // the longest recent gap sets the time. A stopped pointer then loses its
+    // stale tip sooner than the full gap time when events come steadily.
+    const qint64 nowNs = m_predictionClock.isValid() ? m_predictionClock.nsecsElapsed() : 0;
+    if (!m_predictionClock.isValid()) {
+        m_predictionClock.start();
+    }
+    if (m_predictionLastArrivalNs >= 0) {
+        m_predictionArrivalGapsMs.append(qreal(nowNs - m_predictionLastArrivalNs) / 1e6);
+        while (m_predictionArrivalGapsMs.size() > 6) {
+            m_predictionArrivalGapsMs.removeFirst();
+        }
+    }
+    m_predictionLastArrivalNs = nowNs;
+
+    const qreal gapResetMs = m_prediction.settings().gapResetMs;
+    qreal expiryMs = gapResetMs;
+    if (m_predictionArrivalGapsMs.size() >= 3) {
+        qreal longest = 0.0;
+        for (const qreal gap : m_predictionArrivalGapsMs) {
+            longest = qMax(longest, gap);
+        }
+        expiryMs = qBound(8.0, 1.25 * longest + 2.0, gapResetMs);
+    }
+    m_predictionExpiry->start(qRound(expiryMs));
 }
 
 void KisToolFreehand::expirePrediction()
@@ -423,6 +449,8 @@ void KisToolFreehand::clearPrediction(int reason)
     if (m_predictionExpiry) {
         m_predictionExpiry->stop();
     }
+    m_predictionLastArrivalNs = -1;
+    m_predictionArrivalGapsMs.clear();
 
     m_predictionActive = false;
     m_prediction.reset();

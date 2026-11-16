@@ -49,6 +49,10 @@ private Q_SLOTS:
     void resetDropsTheHistory();
     void smallMoveIsNotValidButReportsLength();
     void historyIsBounded();
+    void strongDecelerationRemovesThePrediction();
+    void stoppedEventsRemoveThePrediction();
+    void mildDecelerationLowersTheConfidence();
+    void decelerationSettingsAreClamped();
 };
 
 void KisStrokePredictionContractTest::constantSpeedReachesTheHorizon()
@@ -246,6 +250,75 @@ void KisStrokePredictionContractTest::smallMoveIsNotValidButReportsLength()
     QVERIFY(!result.valid);
     VERIFY_CLOSE(result.confidence, 1.0, 1e-9);
     QVERIFY(qAbs(result.moveLength - 0.4) <= 0.01);
+}
+
+// 4 ms apart; positions advance by the given step per sample (px).
+void addSteps(KisStrokePrediction &predictor, const QVector<qreal> &steps)
+{
+    qreal x = 0.0;
+    qreal time = 0.0;
+    predictor.addSample(QPointF(x, 0.0), time, 1.0);
+    for (const qreal step : steps) {
+        x += step;
+        time += 4.0;
+        predictor.addSample(QPointF(x, 0.0), time, 1.0);
+    }
+}
+
+void KisStrokePredictionContractTest::strongDecelerationRemovesThePrediction()
+{
+    // 3 px/ms for 28 ms, then 0.3 px/ms for 12 ms: the speed over 8 ms is
+    // 0.3 and over 20 ms 1.38, a ratio of 0.22 (below the 0.4 of confidence 0).
+    KisStrokePrediction predictor;
+    addSteps(predictor, {12, 12, 12, 12, 12, 12, 12, 1.2, 1.2, 1.2});
+
+    const KisStrokePredictionResult result = predictor.predict();
+    QVERIFY(!result.valid);
+    VERIFY_CLOSE(result.confidence, 0.0, 1e-9);
+}
+
+void KisStrokePredictionContractTest::stoppedEventsRemoveThePrediction()
+{
+    // The pointer stops while events keep coming at the same position.
+    KisStrokePrediction predictor;
+    addSteps(predictor, {12, 12, 12, 12, 12, 12, 0, 0, 0});
+
+    const KisStrokePredictionResult result = predictor.predict();
+    QVERIFY(!result.valid);
+    VERIFY_CLOSE(result.confidence, 0.0, 1e-9);
+}
+
+void KisStrokePredictionContractTest::mildDecelerationLowersTheConfidence()
+{
+    // 3 px/ms for 28 ms, then 1 px/ms for 12 ms: ratio 0.71 between the windows.
+    KisStrokePrediction predictor;
+    addSteps(predictor, {12, 12, 12, 12, 12, 12, 12, 4, 4, 4});
+
+    const KisStrokePredictionResult result = predictor.predict();
+    QVERIFY(result.valid);
+    QVERIFY(result.confidence > 0.0);
+    QVERIFY(result.confidence < 1.0);
+
+    KisStrokePrediction steady;
+    addSteps(steady, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4});
+    VERIFY_CLOSE(steady.predict().confidence, 1.0, 1e-9);
+}
+
+void KisStrokePredictionContractTest::decelerationSettingsAreClamped()
+{
+    KisStrokePrediction predictor;
+    KisStrokePredictionSettings settings;
+    settings.decelShortWindowMs = 1.0;
+    settings.decelLongWindowMs = 1.0;
+    settings.decelRatioZero = 0.9;
+    settings.decelRatioFull = 0.5;
+    predictor.setSettings(settings);
+
+    const KisStrokePredictionSettings kept = predictor.settings();
+    VERIFY_CLOSE(kept.decelShortWindowMs, 2.0, 1e-9);
+    VERIFY_CLOSE(kept.decelLongWindowMs, 4.0, 1e-9);
+    VERIFY_CLOSE(kept.decelRatioZero, 0.9, 1e-9);
+    VERIFY_CLOSE(kept.decelRatioFull, 0.91, 1e-9);
 }
 
 void KisStrokePredictionContractTest::historyIsBounded()

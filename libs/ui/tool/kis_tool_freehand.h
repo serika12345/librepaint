@@ -28,6 +28,8 @@ class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;
 class KisPredictionDecoration;
 class QTimer;
+#include <QElapsedTimer>
+#include <QVector>
 
 
 class KRITAUI_EXPORT KisToolFreehand : public KisToolPaint
@@ -149,6 +151,9 @@ private:
     KisStrokePrediction m_prediction;
     bool m_predictionActive {false};
     QTimer *m_predictionExpiry {nullptr};
+    QElapsedTimer m_predictionClock;
+    qint64 m_predictionLastArrivalNs {-1};
+    QVector<qreal> m_predictionArrivalGapsMs;
 
     std::optional<KoPointerEventWrapper> m_beginAlternateActionEvent;
 };
