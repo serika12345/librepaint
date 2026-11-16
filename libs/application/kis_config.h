@@ -659,6 +659,16 @@ public:
     void setEnableBrushSpeedLogging(bool value) const;
     bool enableBrushSpeedLogging(bool defaultValue = false) const;
 
+    void setUseStrokePrediction(bool value) const;
+    bool useStrokePrediction(bool defaultValue = false) const;
+
+    /// Hidden setting: prediction horizon in milliseconds. No setter; the
+    /// range is clamped by KisStrokePrediction::setSettings().
+    qreal strokePredictionHorizonMs(bool defaultValue = false) const;
+    /// Hidden setting: anchor window in milliseconds. No setter; the range
+    /// is clamped by KisStrokePrediction::setSettings().
+    qreal strokePredictionAnchorMs(bool defaultValue = false) const;
+
     void setDisableVectorOptimizations(bool value);
     bool disableVectorOptimizations(bool defaultValue = false) const;
 

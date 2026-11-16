@@ -66,6 +66,7 @@ private Q_SLOTS:
     void persistedIntegerModesRemainCompatible();
     void canvasSurfaceModeNamesRoundTrip();
     void displayFormatNamesRoundTrip();
+    void strokePredictionDefaultsAndRoundTrip();
 };
 
 void KisConfigCompatibilityTest::persistedIntegerModesRemainCompatible()
@@ -217,6 +218,43 @@ void KisConfigCompatibilityTest::displayFormatNamesRoundTrip()
         QCOMPARE(displayConfig.value(QStringLiteral("rootSurfaceFormat")).toString(), format.second);
         QCOMPARE(int(KisConfig::rootSurfaceFormat(&displayConfig)), int(format.first));
     }
+}
+
+void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
+{
+    /*
+     * Consumer: The freehand tool and the settings dialog reading the prediction line settings.
+     * Operation: Reads the built-in defaults and saves and reloads each prediction setting.
+     * Observable result: The defaults stay on, 16.7 ms and 24.0 ms, and stored values survive a restart.
+     * Failure impact: The prediction line can switch itself off, or draw with an unintended horizon or anchor.
+     */
+    KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
+    ScopedConfigEntry restoreEnabled(configGroup, QStringLiteral("useStrokePrediction"));
+    ScopedConfigEntry restoreHorizon(configGroup, QStringLiteral("strokePredictionHorizonMs"));
+    ScopedConfigEntry restoreAnchor(configGroup, QStringLiteral("strokePredictionAnchorMs"));
+
+    {
+        KisConfig config(true);
+        QVERIFY(config.useStrokePrediction(true));
+        QCOMPARE(config.strokePredictionHorizonMs(true), 16.7);
+        QCOMPARE(config.strokePredictionAnchorMs(true), 24.0);
+    }
+
+    {
+        KisConfig config(false);
+        config.setUseStrokePrediction(false);
+    }
+    QCOMPARE(configGroup.readEntry(QStringLiteral("useStrokePrediction"), true), false);
+
+    configGroup.writeEntry(QStringLiteral("useStrokePrediction"), true);
+    configGroup.writeEntry(QStringLiteral("strokePredictionHorizonMs"), 12.5);
+    configGroup.writeEntry(QStringLiteral("strokePredictionAnchorMs"), 30.0);
+    configGroup.sync();
+
+    KisConfig config(true);
+    QCOMPARE(config.useStrokePrediction(), true);
+    QCOMPARE(config.strokePredictionHorizonMs(), 12.5);
+    QCOMPARE(config.strokePredictionAnchorMs(), 30.0);
 }
 
 QTEST_GUILESS_MAIN(KisConfigCompatibilityTest)

@@ -2382,6 +2382,26 @@ void KisConfig::setEnableBrushSpeedLogging(bool value) const
     m_cfg.writeEntry("enableBrushSpeedLogging", value);
 }
 
+bool KisConfig::useStrokePrediction(bool defaultValue) const
+{
+    return (defaultValue ? true : m_cfg.readEntry("useStrokePrediction", true));
+}
+
+void KisConfig::setUseStrokePrediction(bool value) const
+{
+    m_cfg.writeEntry("useStrokePrediction", value);
+}
+
+qreal KisConfig::strokePredictionHorizonMs(bool defaultValue) const
+{
+    return (defaultValue ? 16.7 : m_cfg.readEntry("strokePredictionHorizonMs", 16.7));
+}
+
+qreal KisConfig::strokePredictionAnchorMs(bool defaultValue) const
+{
+    return (defaultValue ? 24.0 : m_cfg.readEntry("strokePredictionAnchorMs", 24.0));
+}
+
 void KisConfig::setDisableVectorOptimizations(bool value)
 {
     // use the old key name for compatibility
