@@ -253,6 +253,17 @@ iOS、Android、Windowsは依存定義ごとの環境を`build-ios/nix-profiles/
 `build/nix-profiles/`へ固定する。製品ソースの編集では同じ環境・Ninja木・キャッシュを再利用し、
 依存定義の変更では新しい構成指紋の木を使う。
 
+#### 増分構築の木の起動
+
+`build/tdd-linux/bin/krita`は、構築場所からの起動を拒否する（`krita/main.cc`が、実行ファイルの場所に`KRITA_BUILD_DIR`を含むときに`qFatal`を出す）。増分構築の後に木をインストール先へ展開し、そこから起動する。展開は数秒で終わる。
+
+```sh
+direnv exec . cmake --install build/tdd-linux --prefix <展開先>
+direnv exec . env LD_LIBRARY_PATH=<展開先>/lib <展開先>/bin/krita
+```
+
+展開した実行ファイルはRPATHを持たないため、`LD_LIBRARY_PATH`で展開先の`lib`を指す。Qtなどの依存は開発シェルの環境から得る。性能計測（`scripts/perf/run.py`）の対象にするときは、開発シェルの環境変数を読み込み、`HOME`、`XDG_*`、`DISPLAY`を計測の値へ戻してから起動する小さな起動スクリプトを、対象の起動コマンドにする。製品のnix構築（`packages.<system>.librepaint-linux`）はKrita本体を全部コンパイルし直す（約1.5時間）ため、依存や配布物を変えるときだけ使う。
+
 ### 実装前の構築範囲監査
 
 対象の実装、利用側、試験、CMake定義、対応Issueを読み、変更で守る結果を決める。
