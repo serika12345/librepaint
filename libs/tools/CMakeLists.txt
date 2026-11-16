@@ -40,6 +40,26 @@ set_target_properties(kritatoolsstrokepredictionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolspredictiondrawobjects OBJECT
+    KisPredictionLinePainter.cpp
+    KisStrokePredictionPolicy.cpp
+)
+target_compile_definitions(kritatoolspredictiondrawobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolspredictiondrawobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritatoolspredictiondrawobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritatoolspredictiondrawobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritatoolsrectangleinteractionobjects OBJECT
     kis_rectangle_interaction.cpp
 )
@@ -202,6 +222,7 @@ kis_add_library(kritatools SHARED
     ${kritatools_LIB_SRCS}
     $<TARGET_OBJECTS:kritatoolsspeedsmootherobjects>
     $<TARGET_OBJECTS:kritatoolsstrokepredictionobjects>
+    $<TARGET_OBJECTS:kritatoolspredictiondrawobjects>
     $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
     $<TARGET_OBJECTS:kritatoolactionmappingobjects>
     $<TARGET_OBJECTS:kritatoolsdelegatedtoolpolicyobjects>
