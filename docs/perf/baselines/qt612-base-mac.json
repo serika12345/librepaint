@@ -1,0 +1,134 @@
+{
+  "commit": "1a06d6dc58",
+  "date": "2026-11-16",
+  "format": 1,
+  "hosts": {
+    "macos": {
+      "capture_offset_ms": 0.0,
+      "kind": "macos",
+      "system": "Apple silicon, 60 Hz",
+      "targets": {
+        "LP612-mac": {
+          "conditions": {
+            "canvas": [
+              1231,
+              919
+            ],
+            "frame": [
+              1956,
+              1518
+            ],
+            "refresh": 60.0,
+            "scale": 2.0,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 6.196262875,
+              "p95": 9.781558375,
+              "runs": 5,
+              "spread": 0.6195243532175031
+            },
+            "ink.input_to_capture": {
+              "median": 6.81677475,
+              "p95": 13.48151675,
+              "runs": 5,
+              "spread": 0.47106314830191515
+            }
+          },
+          "reference": false,
+          "run_medians": {
+            "hover.input_to_capture": [
+              6.196262875,
+              5.5431393125,
+              5.113393875,
+              7.689029,
+              8.952129625000001
+            ],
+            "ink.input_to_capture": [
+              6.52591575,
+              6.81677475,
+              6.4248575,
+              8.296834125,
+              9.635988875
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        },
+        "Reference-mac": {
+          "conditions": {
+            "canvas": [
+              2336,
+              1462
+            ],
+            "frame": [
+              2352,
+              1542
+            ],
+            "refresh": 60.0,
+            "scale": 2.0,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 8.889488499999999,
+              "p95": 23.8202055,
+              "runs": 5,
+              "spread": 0.3476219554139702
+            },
+            "ink.input_to_capture": {
+              "median": 9.492493,
+              "p95": 24.32372075,
+              "runs": 5,
+              "spread": 0.30069845060723255
+            }
+          },
+          "reference": true,
+          "run_medians": {
+            "hover.input_to_capture": [
+              8.889488499999999,
+              10.094890375,
+              7.004709,
+              8.40266975,
+              9.33576125
+            ],
+            "ink.input_to_capture": [
+              9.492493,
+              10.749856062500001,
+              7.895478125,
+              9.33780725,
+              10.037242875
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        }
+      }
+    }
+  },
+  "label": "qt612-base-mac",
+  "scenario": "pen-light",
+  "settings": {
+    "max_runs": 10,
+    "runs": 5,
+    "spread_limit": 0.05,
+    "warmup_runs": 1
+  }
+}
