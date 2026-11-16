@@ -11,7 +11,7 @@
 | --- | --- | --- | --- |
 | `qt612-base-win.json` | Surface Pro 7（Windows、60Hz）。LibrePaint と参照アプリ PenProbe | 最終版の Windows 版（Qt 6.12.0） | LibrePaint は未安定（ホバー 6.2%、インク 32.3%）。PenProbe は安定（ホバー 2.5%、インク 2.0%） |
 | `qt612-base-linux.json` | GNOME、1920×1080、60Hz。X11 と Wayland それぞれの LibrePaint と参照アプリ | develop 2ae2650d56 の内容の Linux 版（Qt 6.12.0） | 4 対象とも未安定（ホバー 6.6〜16.0%、インク 11.8〜17.9%） |
-| `qt612-base-mac.json` | Mac（M2）、外部の 60Hz 表示、拡大率 2.0。LibrePaint と参照アプリ | 最終版の macOS 版（Qt 6.12.0） | 4 指標とも未安定（LibrePaint はホバー 62.0%、インク 47.1%。参照アプリは 34.8%、30.1%） |
+| `qt612-base-mac.json` | Mac（M2）、内蔵の Liquid Retina 表示（60Hz）、拡大率 2.0。LibrePaint と参照アプリ | 最終版の macOS 版（Qt 6.12.0） | 4 指標とも未安定（LibrePaint はホバー 62.0%、インク 47.1%。参照アプリは 34.8%、30.1%） |
 
 3 つとも 2026-11-16 に、ウォームアップ 1 回と集計 10 回（`max_runs`）で測った。`commit` は計測に使った
 道具のコミットで、測った LibrePaint のコミットではない。iPad の基準は未測定である。
