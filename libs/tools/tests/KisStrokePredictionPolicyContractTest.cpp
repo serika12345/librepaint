@@ -34,7 +34,9 @@ QVector<KisStrokePredictionPolicyReason> allReasons()
         KisStrokePredictionPolicyReason::Flow,
         KisStrokePredictionPolicyReason::Eraser,
         KisStrokePredictionPolicyReason::Composite,
-        KisStrokePredictionPolicyReason::Assistant};
+        KisStrokePredictionPolicyReason::Assistant,
+        KisStrokePredictionPolicyReason::Tool,
+        KisStrokePredictionPolicyReason::Delay};
 }
 
 } // namespace
@@ -54,6 +56,8 @@ private Q_SLOTS:
     void eraserDisables();
     void nonNormalCompositeDisables();
     void activeAssistantDisables();
+    void unsupportedToolDisables();
+    void delayDistanceDisables();
     void firstReasonInOrderWins();
     void reasonNamesAreUniqueAndNotEmpty();
 };
@@ -141,6 +145,22 @@ void KisStrokePredictionPolicyContractTest::activeAssistantDisables()
     input.assistantActive = true;
     QCOMPARE(KisStrokePredictionPolicy::evaluate(input),
              KisStrokePredictionPolicyReason::Assistant);
+}
+
+void KisStrokePredictionPolicyContractTest::unsupportedToolDisables()
+{
+    KisStrokePredictionPolicyInput input = enabledInput();
+    input.toolSupported = false;
+    QCOMPARE(KisStrokePredictionPolicy::evaluate(input),
+             KisStrokePredictionPolicyReason::Tool);
+}
+
+void KisStrokePredictionPolicyContractTest::delayDistanceDisables()
+{
+    KisStrokePredictionPolicyInput input = enabledInput();
+    input.delayDistance = true;
+    QCOMPARE(KisStrokePredictionPolicy::evaluate(input),
+             KisStrokePredictionPolicyReason::Delay);
 }
 
 void KisStrokePredictionPolicyContractTest::firstReasonInOrderWins()

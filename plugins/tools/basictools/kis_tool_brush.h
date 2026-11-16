@@ -68,6 +68,8 @@ public:
     qreal delayDistance() const;
 
     bool finishStabilizedCurve() const;
+
+    bool strokePredictionSupported() const override { return true; }
     bool stabilizeSensors() const;
 
 protected:

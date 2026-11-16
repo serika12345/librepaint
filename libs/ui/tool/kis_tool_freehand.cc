@@ -320,6 +320,8 @@ void KisToolFreehand::startPrediction()
     input.eraser = isEraser();
     input.compositeNormal = currentPaintOpPreset()->settings()->paintOpCompositeOp() == COMPOSITE_OVER;
     input.assistantActive = m_assistant;
+    input.toolSupported = strokePredictionSupported();
+    input.delayDistance = smoothingOptions()->useDelayDistance();
 
     const KisStrokePredictionPolicyReason reason = KisStrokePredictionPolicy::evaluate(input);
 

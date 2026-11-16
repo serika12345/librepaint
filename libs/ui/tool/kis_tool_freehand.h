@@ -64,6 +64,11 @@ protected:
     bool wantsAutoScroll() const override;
 
 
+    /// Whether the stroke is drawn where the pointer is, so that the display-only
+    /// prediction line fits it. Tools that delay or reshape the stroke (Dyna,
+    /// Lazy Brush) keep the default; the brush tool turns it on.
+    virtual bool strokePredictionSupported() const { return false; }
+
     virtual void initStroke(KoPointerEvent *event);
     virtual void doStroke(KoPointerEvent *event);
     virtual void endStroke();
