@@ -76,6 +76,14 @@ kis_add_test(
 target_compile_definitions(KisSpeedSmootherContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisStrokePredictionContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsstrokepredictionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStrokePredictionContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
     KisToolChangesTrackerDataContractTest.cpp
     LINK_LIBRARIES
         kritatoolschangestrackerdataobjects
