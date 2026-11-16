@@ -76,6 +76,7 @@ def read_capture(path):
                 "xmin": int(r["xmin"]),
                 "xmax": int(r["xmax"]),
                 "dense_xmax": int(r["dense_xmax"]) if r["dense_xmax"] else None,
+                "dense_gap": int(r["dense_gap"]) if r.get("dense_gap") else None,
                 "arrival": int(r["arrival_ns"]),
             }
     return dict(sorted(frames.items()))
@@ -265,11 +266,15 @@ def frame_samples(directory):
     """Return (frames, offsets, samples) for a run.
 
     samples lists (kind, frame_ns, crossed_ns, arrival_ns, speed_px_ms,
-    pen_x, pen_speed_px_ms, signed_gap_px). The last three describe the pen
-    tip at the capture frame time: its x, its speed there, and the signed
-    distance from the displayed line end to the pen tip. A positive signed
-    gap means the line end is behind the pen tip (latency left); a negative
-    one means it is ahead (prediction overshoot).
+    pen_x, pen_speed_px_ms, signed_gap_px, dense_gap_px, pass_id, direction,
+    line_end_px). The middle three describe the pen tip at the capture frame
+    time: its x, its speed there, and the signed distance from the displayed
+    line end to the pen tip. A positive signed gap means the line end is
+    behind the pen tip (latency left); a negative one means it is ahead
+    (prediction overshoot). dense_gap_px is the capture tool's dense_gap
+    (None for a tool that did not write the column), pass_id identifies the
+    pass in all_passes, direction is the pass direction, and line_end_px is
+    the displayed line end after the calibration offset.
     """
     injected = read_inject(os.path.join(directory, "inject.csv"))
     frames = read_capture(os.path.join(directory, "capture.csv"))
@@ -285,7 +290,7 @@ def frame_samples(directory):
     offset = {kind: statistics.median(values) if values else None for kind, values in offsets.items()}
 
     samples = []
-    for pass_ in all_passes:
+    for pass_id, pass_ in enumerate(all_passes):
         if offset[pass_.kind] is None:
             continue
         begin, end = pass_.times[0], pass_.times[-1] + MAX_LATENCY_NS
@@ -306,7 +311,8 @@ def frame_samples(directory):
             line_end = value - offset[pass_.kind]
             signed_gap = pass_.direction * (pen_x - line_end) if pen_x is not None else None
             samples.append((pass_.kind, t, crossed, detection["arrival"], speed,
-                            pen_x, pen_speed, signed_gap))
+                            pen_x, pen_speed, signed_gap, detection.get("dense_gap"),
+                            pass_id, pass_.direction, line_end))
     return frame_times, offsets, offset, samples
 
 
@@ -490,6 +496,7 @@ def analyze_run(directory):
     intervals = [(b - a) / 1e6 for a, b in zip(frame_times, frame_times[1:]) if b - a < 100_000_000]
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
     result.update(l2p_summary(samples))
+    result.update(l2p_settle(directory))
     result["frames"] = {"n": len(frame_times), "interval": analyze.describe(intervals)}
     result["calibration"] = {
         kind: {"offset_px": offset[kind], "spread_px": (max(v) - min(v)) if v else None, "n": len(v)}
@@ -561,7 +568,69 @@ def l2p_summary(samples):
     }
     if gaps_ms:
         result["l2p.signed_gap_ms"] = analyze.describe(gaps_ms)
+    holes = [sample[8] for sample in samples if sample[0] == "ink" and sample[8] is not None]
+    if holes:
+        result["l2p.hole_px"] = analyze.describe(holes)
+    ends = collections.defaultdict(list)
+    for sample in samples:
+        if sample[0] == "ink":
+            ends[sample[9]].append(sample)
+    retracts = []
+    for group in ends.values():
+        group = sorted(group, key=lambda sample: sample[1])
+        for before, after in zip(group, group[1:]):
+            retracts.append(max(0.0, -before[10] * (after[11] - before[11])))
+    if retracts:
+        result["l2p.retract_px"] = analyze.describe(retracts)
     return result
+
+
+SETTLE_WINDOW_NS = 100_000_000
+SETTLE_GAP_PX = -1.0
+
+
+def l2p_settle(directory):
+    """Time from the last injection of each ink pass until the line end settles.
+
+    A pass settles at the first frame between its last injection T_end and
+    T_end + 100 ms whose line end is at most 1.0 px ahead of the last injected
+    position, in the pass direction. Frames are read without Pass.locate so
+    that a predicted line end outside the input range is still inspected. A
+    pass with no such frame is not counted.
+    """
+    injected = read_inject(os.path.join(directory, "inject.csv"))
+    frames = read_capture(os.path.join(directory, "capture.csv"))
+    frame_times = list(frames)
+    all_passes = passes(injected)
+    if not all_passes:
+        return {}
+    offsets = {"hover": [], "ink": []}
+    for pass_ in all_passes:
+        offsets[pass_.kind].extend(dwell_offsets(pass_, frames, frame_times))
+    ink_offset = statistics.median(offsets["ink"]) if offsets["ink"] else None
+    if ink_offset is None:
+        return {}
+    values = []
+    for pass_ in all_passes:
+        if pass_.kind != "ink" or not pass_.times:
+            continue
+        t_end, last_x = pass_.times[-1], pass_.xs[-1]
+        begin = bisect.bisect_left(frame_times, t_end)
+        end = bisect.bisect_right(frame_times, t_end + SETTLE_WINDOW_NS)
+        for t in frame_times[begin:end]:
+            detection = frames[t].get(pass_.band)
+            if detection is None:
+                continue
+            value = position("ink", detection)
+            if value is None:
+                continue
+            gap = pass_.direction * (last_x - (value - ink_offset))
+            if gap >= SETTLE_GAP_PX:
+                values.append((t - t_end) / 1e6)
+                break
+    if not values:
+        return {}
+    return {"l2p.settle_ms": analyze.describe(values)}
 
 
 def ink_speed_groups(samples):

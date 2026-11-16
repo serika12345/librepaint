@@ -83,6 +83,53 @@ def simulate(directory, delay_ns, arrival_delay_ns=1_000_000, options=None):
         writer.writerows(rows)
 
 
+CAPTURE_FIELDS = ["frame_ns", "arrival_ns", "band", "xmin", "xmax",
+                  "dense_xmin", "dense_xmax", "ymin", "ymax", "dense_gap"]
+
+
+def write_csv(path, fields, rows):
+    with open(path, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(fields)
+        writer.writerows(rows)
+
+
+def sample(frame_ns=0, dense_gap=None, pass_id=0, direction=1, line_end=0.0,
+           signed_gap=0.0, kind="ink"):
+    """One frame sample in the 12-element shape of frame_samples()."""
+    return (kind, frame_ns, frame_ns - 1_000_000, frame_ns, 0.5, 0.0, 0.5,
+            signed_gap, dense_gap, pass_id, direction, line_end)
+
+
+def write_settle_run(directory, settle_densities):
+    """One ink pass with controlled line ends after its last injection.
+
+    The calibration offset is 19.5 px (the dwell positions are 0.5 and 200.5
+    and the displayed line ends are 20 and 220), so a dense_xmax of 230 is
+    10.5 px ahead of the last injected x of 200.
+    """
+    t_end = 1_116_000_000
+    inject = [
+        (1_000_000_000, "dwell", "stroke0", 0.5, 300.0, 1),
+        (1_010_000_000, "dwell", "stroke0", 0.5, 300.0, 1),
+    ]
+    inject += [(1_100_000_000 + i * 4_000_000, "move", "stroke0", x, 300.0, 1)
+               for i, x in enumerate((0.0, 50.0, 100.0, 150.0, 200.0))]
+    inject.append((1_300_000_000, "dwell", "stroke0", 200.5, 300.0, 1))
+    write_csv(os.path.join(directory, "inject.csv"),
+              ["time_ns", "phase", "band", "x", "y", "pressed"], inject)
+
+    rows = [(1_000_000_000, 1_000_000_000, "stroke0", 0, 220, 0, 20, 310, 320, "")]
+    rows += [(1_100_000_000 + i * 4_000_000, 1_100_000_000, "stroke0", 0, dense,
+              max(0, dense - 40), dense, 310, 320, "")
+             for i, dense in enumerate((20, 70, 120, 170))]
+    rows += [(t_end + (i + 1) * 4_000_000, t_end, "stroke0", 0, dense,
+              max(0, dense - 40), dense, 310, 320, "")
+             for i, dense in enumerate(settle_densities)]
+    rows.append((1_300_000_000, 1_300_000_000, "stroke0", 0, 220, 180, 220, 310, 320, ""))
+    write_csv(os.path.join(directory, "capture.csv"), CAPTURE_FIELDS, rows)
+
+
 def write_probe(directory, intervals_ns):
     """Write Qt tablet moves with the given gaps; frequency is 10 MHz."""
     with open(os.path.join(directory, "probe.csv"), "w") as handle:
@@ -349,6 +396,100 @@ class CollapsedIntervalTest(unittest.TestCase):
         for group in result["l2p.speed_groups"]:
             self.assertLess(group["speed_px_ms"], 1.0)
             self.assertAlmostEqual(group["l2p_signed_gap_ms"]["p50"], 50.0, delta=1.0)
+
+
+class DenseGapColumnTest(unittest.TestCase):
+    def test_read_capture_reads_dense_gap_and_accepts_rows_without_it(self):
+        rows = [
+            (100, 1, "ink", 10, 20, 10, 20, 5, 6, "0"),
+            (200, 2, "ink", 10, 20, 10, 20, 5, 6, "7"),
+            (300, 3, "ink", 10, 20, 10, 20, 5, 6, ""),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "capture.csv")
+            write_csv(path, CAPTURE_FIELDS, rows)
+            frames = capture_analyze.read_capture(path)
+        self.assertEqual(frames[100]["ink"]["dense_gap"], 0)
+        self.assertEqual(frames[200]["ink"]["dense_gap"], 7)
+        self.assertIsNone(frames[300]["ink"]["dense_gap"])
+
+        old = [(400, 4, "ink", 10, 20, 10, 20, 5, 6),
+               (500, 5, "ink", 10, 20, 10, 20, 5, 6)]
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "capture.csv")
+            write_csv(path, CAPTURE_FIELDS[:9], old)
+            frames = capture_analyze.read_capture(path)
+        self.assertIsNone(frames[400]["ink"]["dense_gap"])
+        self.assertIsNone(frames[500]["ink"]["dense_gap"])
+
+    def test_frame_samples_have_twelve_fields_and_keep_the_existing_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            _, _, _, samples = capture_analyze.frame_samples(directory)
+            result = capture_analyze.analyze_run(directory)
+        self.assertTrue(samples)
+        for entry in samples:
+            self.assertEqual(len(entry), 12)
+        ink = [entry for entry in samples if entry[0] == "ink"]
+        self.assertTrue(ink)
+        for entry in ink:
+            self.assertIsNone(entry[8])  # simulate() writes the old 9 columns
+            self.assertIsInstance(entry[9], int)
+            self.assertIn(entry[10], (1, -1))
+            self.assertIsNotNone(entry[11])
+        self.assertAlmostEqual(result["l2p.signed_gap_px"]["p50"], 25.0, delta=0.5)
+        self.assertAlmostEqual(result["l2p.signed_gap_ms"]["p50"], 50.0, delta=0.5)
+
+
+class PredictionMetricTest(unittest.TestCase):
+    def test_hole_px_is_the_dense_gap_distribution(self):
+        samples = [sample(frame_ns=(i + 1) * 10, dense_gap=gap, line_end=100.0 + 10 * i)
+                   for i, gap in enumerate((0, 0, 30))]
+        result = capture_analyze.l2p_summary(samples)
+        self.assertEqual(result["l2p.hole_px"]["n"], 3)
+        self.assertEqual(result["l2p.hole_px"]["p50"], 0)
+        self.assertEqual(result["l2p.hole_px"]["p95"], 30)
+
+    def test_retract_px_is_the_backward_movement_of_the_line_end(self):
+        forward = [sample(frame_ns=(i + 1) * 100, line_end=x)
+                   for i, x in enumerate((100.0, 110.0, 105.0, 120.0))]
+        result = capture_analyze.l2p_summary(forward)
+        self.assertEqual(result["l2p.retract_px"]["n"], 3)
+        self.assertEqual(result["l2p.retract_px"]["p50"], 0)
+        self.assertEqual(result["l2p.retract_px"]["p95"], 5)
+
+        backward = [sample(frame_ns=(i + 1) * 100, direction=-1, line_end=x)
+                    for i, x in enumerate((200.0, 190.0, 195.0, 180.0))]
+        result = capture_analyze.l2p_summary(backward)
+        self.assertEqual(result["l2p.retract_px"]["n"], 3)
+        self.assertEqual(result["l2p.retract_px"]["p50"], 0)
+        self.assertEqual(result["l2p.retract_px"]["p95"], 5)
+
+    def test_settle_ms_waits_for_the_line_end_to_be_within_one_pixel(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_settle_run(directory, (230, 223, 220))
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.settle_ms"]["n"], 1)
+        self.assertEqual(result["l2p.settle_ms"]["p50"], 12.0)
+
+    def test_settle_ms_is_the_first_qualifying_frame(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_settle_run(directory, (220, 223, 230))
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.settle_ms"]["p50"], 4.0)
+
+    def test_a_pass_that_does_not_settle_within_100_ms_is_not_counted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_settle_run(directory, (260, 260, 260))
+            result = capture_analyze.analyze_run(directory)
+        self.assertNotIn("l2p.settle_ms", result)
+
+    def test_an_old_capture_without_dense_gap_has_no_hole_px(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            result = capture_analyze.analyze_run(directory)
+        self.assertNotIn("l2p.hole_px", result)
+        self.assertIn("l2p.signed_gap_px", result)
 
 
 class PresentationCheckTest(unittest.TestCase):
