@@ -28,7 +28,7 @@ KisStrokePredictionPolicyReason evaluate(const KisStrokePredictionPolicyInput &i
         return KisStrokePredictionPolicyReason::Opacity;
     }
 
-    if (input.flow != 1.0) {
+    if (!qFuzzyCompare(input.flow, 1.0)) {
         return KisStrokePredictionPolicyReason::Flow;
     }
 
