@@ -1108,6 +1108,16 @@
          </item>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="m_chkStrokePrediction">
+         <property name="toolTip">
+          <string>Draws the line a little ahead of the pen to reduce the visible lag. Only the screen is affected: the image, its history and the saved file are not.</string>
+         </property>
+         <property name="text">
+          <string>Predict pen movement and draw the line a little ahead</string>
+         </property>
+        </widget>
+       </item>
        <item row="7" column="1">
         <widget class="QCheckBox" name="m_chkSwitchSelectionCtrlAlt">
          <property name="text">

@@ -314,6 +314,7 @@ GeneralTab::GeneralTab(QWidget *_parent, const KisImportExportPreferenceOptions 
     // eraser
 
     m_chkSeparateEraserCursor->setChecked(cfg.separateEraserCursor());
+    m_chkStrokePrediction->setChecked(cfg.useStrokePrediction());
 
     m_cmbEraserCursorShape->addItems(cursorItems);
     m_cmbEraserCursorShape->addItem(i18n("Eraser"));
@@ -756,6 +757,7 @@ void GeneralTab::setDefault()
     m_cmbCursorShape->setCurrentIndex(cfg.newCursorStyle(true));
     m_cmbOutlineShape->setCurrentIndex(cfg.newOutlineStyle(true));
     m_chkSeparateEraserCursor->setChecked(cfg.readEntry<bool>("separateEraserCursor", false));
+    m_chkStrokePrediction->setChecked(cfg.useStrokePrediction(true));
     m_cmbEraserCursorShape->setCurrentIndex(cfg.eraserCursorStyle(true));
     m_cmbEraserOutlineShape->setCurrentIndex(cfg.eraserOutlineStyle(true));
     setColorSamplerPreviewStyleIndexByValue(m_cmbColorSamplerPreviewStyle, cfg.colorSamplerPreviewStyle(true));
@@ -3067,6 +3069,7 @@ bool KisDlgPreferences::editPreferences(std::optional<PageDesc>page)
         cfg.setNewCursorStyle(m_general->cursorStyle());
         cfg.setNewOutlineStyle(m_general->outlineStyle());
         cfg.setSeparateEraserCursor(m_general->m_chkSeparateEraserCursor->isChecked());
+        cfg.setUseStrokePrediction(m_general->m_chkStrokePrediction->isChecked());
         cfg.setEraserCursorStyle(m_general->eraserCursorStyle());
         cfg.setEraserOutlineStyle(m_general->eraserOutlineStyle());
         cfg.setColorSamplerPreviewStyle(m_general->colorSamplerPreviewStyle());
