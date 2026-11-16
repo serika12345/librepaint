@@ -168,7 +168,7 @@ OpenGL キャンバスでは、装飾の `QPainter` は `KisOpenGLCanvas2::paint
 
 ### 無効化と削除の条件
 
-予測の線は、隠し設定 `useStrokePrediction`（既定 `false`）と `strokePredictionHorizonMs`（既定 16.7、8〜25 に切る）、`strokePredictionAnchorMs`（既定 24）を kritarc に置く。`useStrokePrediction=false` のときは、予測器も装飾も作らない。予測の線が主指標を悪化させた場合、または表示の正しさの確認で確定の線と区別できない差が出た場合は、既定を `false` のままにする。
+予測の線の設定は、kritarc の `useStrokePrediction`（既定 `true`）で、設定画面の「一般」のチェックボックス（「ペンの動きを予測して、線を少し先まで描く」）で切り替える。`strokePredictionHorizonMs`（既定 16.7、8〜25 に切る）と `strokePredictionAnchorMs`（既定 24）は、設定画面に出さない隠し設定とする。切り替えは次のストロークから効き、ストロークの途中では値を読み直さない。`useStrokePrediction=false` のときは、予測器も装飾も作らない。計測で主指標を悪化させた環境、または表示の正しさの確認で確定の線と区別できない差が出た環境では、その環境の既定を `false` にする。既定を環境ごとに変える仕組みは、そのような環境が見つかったときに足す。
 
 ## 計測の方法
 
