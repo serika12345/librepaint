@@ -1,0 +1,246 @@
+{
+  "commit": "ba1431f729",
+  "date": "2026-11-16",
+  "format": 1,
+  "hosts": {
+    "linux": {
+      "capture_offset_ms": 16.0,
+      "kind": "linux",
+      "system": "GNOME, integrated GPU, 60 Hz",
+      "targets": {
+        "LibrePaint-wayland": {
+          "conditions": {
+            "canvas": [
+              820,
+              613
+            ],
+            "frame": [
+              1920,
+              1080
+            ],
+            "refresh": null,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 13.0456933125,
+              "p95": 17.61380125,
+              "runs": 5,
+              "spread": 0.0658859434995627
+            },
+            "ink.input_to_capture": {
+              "median": 16.582725250000003,
+              "p95": 26.138504625000003,
+              "runs": 5,
+              "spread": 0.14602028396991026
+            }
+          },
+          "reference": false,
+          "run_medians": {
+            "hover.input_to_capture": [
+              13.103935,
+              12.244407187500002,
+              13.0456933125,
+              13.0999724375,
+              12.747505
+            ],
+            "ink.input_to_capture": [
+              15.061696999999999,
+              16.160960000000003,
+              16.803183375000003,
+              17.48311125,
+              16.582725250000003
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        },
+        "LibrePaint-x11": {
+          "conditions": {
+            "canvas": [
+              821,
+              588
+            ],
+            "frame": [
+              1920,
+              1080
+            ],
+            "refresh": null,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 30.06874,
+              "p95": 35.58068525,
+              "runs": 5,
+              "spread": 0.10137319106154763
+            },
+            "ink.input_to_capture": {
+              "median": 32.499374375,
+              "p95": 53.380544875,
+              "runs": 5,
+              "spread": 0.1789260097103022
+            }
+          },
+          "reference": false,
+          "run_medians": {
+            "hover.input_to_capture": [
+              30.650695374999998,
+              29.926537000000003,
+              30.06874,
+              28.868765062500003,
+              31.916929187500003
+            ],
+            "ink.input_to_capture": [
+              32.5610901875,
+              30.9965689375,
+              32.499374375,
+              27.497770375,
+              33.31275375
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        },
+        "Reference-wayland": {
+          "conditions": {
+            "canvas": [
+              1484,
+              859
+            ],
+            "frame": [
+              1920,
+              1080
+            ],
+            "refresh": null,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 13.934650375,
+              "p95": 16.129277625,
+              "runs": 5,
+              "spread": 0.16022096912496114
+            },
+            "ink.input_to_capture": {
+              "median": 13.518912499999999,
+              "p95": 15.81721525,
+              "runs": 5,
+              "spread": 0.15366917457302864
+            }
+          },
+          "reference": true,
+          "run_medians": {
+            "hover.input_to_capture": [
+              14.782442750000001,
+              12.549819562499998,
+              14.226171999999998,
+              12.760841499999998,
+              13.934650375
+            ],
+            "ink.input_to_capture": [
+              14.646788749999999,
+              13.165356500000001,
+              13.518912499999999,
+              12.569348625,
+              13.7370426875
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        },
+        "Reference-x11": {
+          "conditions": {
+            "canvas": [
+              1519,
+              847
+            ],
+            "frame": [
+              1920,
+              1080
+            ],
+            "refresh": null,
+            "scale": null,
+            "stable": true
+          },
+          "metrics": {
+            "hover.input_to_capture": {
+              "median": 29.374098875,
+              "p95": 31.955033874999998,
+              "runs": 5,
+              "spread": 0.1238927261389904
+            },
+            "ink.input_to_capture": {
+              "median": 30.097045,
+              "p95": 32.52733025,
+              "runs": 5,
+              "spread": 0.11765666903511614
+            }
+          },
+          "reference": true,
+          "run_medians": {
+            "hover.input_to_capture": [
+              30.466003,
+              27.953922937499996,
+              31.593160124999997,
+              29.2091563125,
+              29.374098875
+            ],
+            "ink.input_to_capture": [
+              29.656983375000003,
+              30.097045,
+              31.440974124999997,
+              28.2047688125,
+              31.745886874999997
+            ]
+          },
+          "settle": {
+            "counted_runs": 10,
+            "unsettled": [
+              "hover.input_to_capture",
+              "ink.input_to_capture"
+            ],
+            "warmup_runs": 1,
+            "window_runs": 5
+          },
+          "states": {}
+        }
+      }
+    }
+  },
+  "label": "qt612-base-linux",
+  "scenario": "pen-light",
+  "settings": {
+    "max_runs": 10,
+    "runs": 5,
+    "spread_limit": 0.05,
+    "warmup_runs": 1
+  }
+}

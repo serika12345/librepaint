@@ -47,13 +47,24 @@ counted in the table.
 
 The group writes one line per event to the event log (build/perf/events.log,
 or --events): the start of the group and of every run, each result or failure,
-the early stop of a target that failed twice in a row for the same reason, and
-the exit code at the end (format: scripts/perf/events_log.py).
+the early stop of a target that failed twice in a row for the same reason, the
+settle of every window and the exit code at the end (format:
+scripts/perf/events_log.py).
+
+The first "warmup_runs" successful runs of a target are measured but left out
+of the aggregation. The aggregation uses the last "runs" usable runs (the
+window) of every target; a target whose window spread is at or above
+"spread_limit" gets further runs up to "max_runs". Every run records its
+canvas, frame size, scale and refresh rate (conditions), and the judge refuses
+a comparison whose conditions differ from the baseline by more than 2 %. A
+target of the hosts file can set "reference": true; the table then shows every
+target's median minus the reference target's median. --baseline-out writes a
+baseline JSON that carries only the keys the comparison reads.
 
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
          --label q1 --out build/perf/runs [--only windows,linux] [--baseline OLD.json] \
-         [--summary docs/perf/results/<file>.json]
+         [--summary docs/perf/results/<file>.json] [--baseline-out docs/perf/baselines/<file>.json]
   run.py --analyze-only RUN_ROOT ...   (re-analyze collected runs)
 """
 
@@ -193,6 +204,7 @@ def latest_run_dir(run_root, host, target, started):
 def run_detail(run_root, host, target, started):
     """Return the state and medians of the run that just finished.
 
+    The state label is classified for Windows hosts only and is "-" elsewhere.
     A run without a capture (the application did not start) has no medians.
     """
     newest = latest_run_dir(run_root, host, target, started)
@@ -205,42 +217,131 @@ def run_detail(run_root, host, target, started):
         value = (result.get(metric) or {}).get("p50")
         return "-" if value is None else "%.1f" % (value - offset)
 
-    state = (result.get("state") or {}).get("label", "unknown")
+    state = "-"
+    if host.get("kind") == "windows":
+        state = (result.get("state") or {}).get("label", "unknown")
     return "state=%s hover=%s ink=%s" % (
         state, median("hover.input_to_capture"), median("ink.input_to_capture"))
 
 
+def settle_settings(scenario):
+    """Return the scenario's (runs, warmup_runs, max_runs, spread_limit).
+
+    "warmup_runs" (default 0) counts the first successful runs of every target
+    that are measured but not aggregated. "max_runs" (default "runs") is the
+    most counted runs a target may collect while its window is not settled.
+    """
+    runs = scenario.get("runs")
+    if not isinstance(runs, int) or isinstance(runs, bool) or runs < 1:
+        raise SystemExit("scenario: runs must be a positive integer")
+    warmup_runs = scenario.get("warmup_runs", 0)
+    if not isinstance(warmup_runs, int) or isinstance(warmup_runs, bool) or warmup_runs < 0:
+        raise SystemExit("scenario: warmup_runs must be a non-negative integer")
+    max_runs = scenario.get("max_runs", runs)
+    if not isinstance(max_runs, int) or isinstance(max_runs, bool) or max_runs < 1:
+        raise SystemExit("scenario: max_runs must be a positive integer")
+    if runs > max_runs:
+        raise SystemExit("scenario: max_runs (%d) is smaller than runs (%d)" % (max_runs, runs))
+    return runs, warmup_runs, max_runs, float(scenario.get("spread_limit", 0.05))
+
+
+def set_aside_unmeasured(run_root, hosts, measured):
+    """Move the run directories this invocation did not measure out of the host directories.
+
+    The collection copies the whole output directory of a host, so the
+    directories left by an interrupted earlier invocation arrive with the
+    first collected run. They would be counted as runs of this invocation.
+    They move to <run_root>/_unmeasured/<host>/, where summarize does not
+    look, and stay available for inspection. "measured" maps a host name to
+    the set of directory names this invocation measured. Returns the moved
+    directory names.
+    """
+    moved = []
+    for host in hosts:
+        out = os.path.join(run_root, host["name"])
+        if not os.path.isdir(out):
+            continue
+        prefixes = tuple(target["name"] + "-" for target in host["targets"])
+        for name in sorted(os.listdir(out)):
+            path = os.path.join(out, name)
+            if not os.path.isdir(path) or not name.startswith(prefixes) \
+                    or name in measured.get(host["name"], ()):
+                continue
+            aside = os.path.join(run_root, "_unmeasured", host["name"])
+            os.makedirs(aside, exist_ok=True)
+            os.rename(path, os.path.join(aside, name))
+            moved.append(name)
+    return moved
+
+
 def measure_runs(hosts, scenario, run_root, label, events=None):
-    """Run every target once per round and stop a target that keeps failing.
+    """Run every target and keep measuring until its window settles.
 
     A target whose run fails twice in a row for the same reason (the text
     after "failed: " of status.txt) skips its remaining rounds; the other
-    targets continue. A target gets another run while fewer than
-    scenario["runs"] of its runs are usable (no failure and no processor
-    performance below the limit) and it has not used twice that many runs.
-    A Windows target rests for the scenario's "rest_seconds" after every run
-    except the last one. Every start, result, early stop and rest is written
-    to the event log when one is given.
+    targets continue. The first "warmup_runs" successful runs of a target are
+    measured but not recorded. Every further successful run is recorded with
+    run_record and counted as summarize counts it, so a run whose processor
+    performance stayed below the limit or that measured another window is not
+    usable. A target gets another run while fewer than "runs" runs are
+    counted, or while fewer than "max_runs" runs are counted and one of the
+    window's judgement units has a spread at or above "spread_limit". A target
+    starts at most warmup_runs + 2 * max_runs runs, failures and warm-ups
+    included. After every run that leaves at least "runs" counted runs, a
+    settle event reports the window. A Windows target rests for the scenario's
+    "rest_seconds" after every run except the last one. Every start, result,
+    early stop, settle and rest is written to the event log when one is given.
+
+    Run directories that this invocation did not measure (left by an
+    interrupted earlier one) are set aside before the function returns.
 
     Returns the names of the failed runs.
     """
     failures = []
+    measured = {host["name"]: set() for host in hosts}
     abandoned = set()
     previous_reason = {}
     rest_seconds = scenario.get("rest_seconds", 0)
-    started_runs = {(host["name"], target["name"]): 0
-                    for host in hosts for target in host["targets"]}
-    usable = {key: 0 for key in started_runs}
+    runs, warmup_runs, max_runs, spread_limit = settle_settings(scenario)
+    starts_limit = warmup_runs + 2 * max_runs
+    kinds = {(host["name"], target["name"]): host["kind"]
+             for host in hosts for target in host["targets"]}
+    started_runs = {key: 0 for key in kinds}
+    successes = {key: 0 for key in kinds}
+    records = {key: [] for key in kinds}
+
+    def counted(key):
+        """The target's usable records, as summarize counts them."""
+        return usable_runs({"runs": records[key]})
+
+    def window(key):
+        """The last "runs" counted records."""
+        return counted(key)[-runs:]
+
+    def unstable(key):
+        """Whether a judgement unit of the window's spread is at or above the limit."""
+        for _, _, values in settle_units(window(key), kinds[key], scenario):
+            if len(values) < 2:
+                continue
+            center = statistics.median(values)
+            if center and (max(values) - min(values)) / center >= spread_limit:
+                return True
+        return False
 
     def needs_run(key):
-        return (key not in abandoned
-                and usable[key] < scenario["runs"]
-                and started_runs[key] < 2 * scenario["runs"])
+        if key in abandoned or started_runs[key] >= starts_limit:
+            return False
+        count = len(counted(key))
+        if count < runs:
+            return True
+        if count >= max_runs:
+            return False
+        return unstable(key)
 
     if events:
         events_log.write(events, "run-start", label, "-", "-",
                          "scenario %s, %d rounds, %d host(s)" % (
-                             scenario["name"], scenario["runs"], len(hosts)))
+                             scenario["name"], runs, len(hosts)))
     while True:
         pending = [key for key in started_runs if needs_run(key)]
         if not pending:
@@ -262,13 +363,28 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                     status = run_command(collect)
                 if status == 0:
                     previous_reason.pop(key, None)
+                    successes[key] += 1
                     path = latest_run_dir(run_root, host, target, started)
-                    state = surface_state(path) if path else {}
-                    if not device_performance_low({"surface_state": state}):
-                        usable[key] += 1
+                    if path:
+                        measured[host["name"]].add(os.path.basename(path))
+                    if successes[key] > warmup_runs and path:
+                        record = run_record(path, host, scenario)
+                        record["start"] = number
+                        records[key].append(record)
                     if events:
                         events_log.write(events, "target-done", label, target["name"], number,
                                          run_detail(run_root, host, target, started))
+                    if events and len(counted(key)) >= runs:
+                        capped = []
+                        if len(counted(key)) >= max_runs and unstable(key):
+                            capped.append("runs")
+                        if started_runs[key] >= starts_limit and (
+                                len(counted(key)) < runs
+                                or (len(counted(key)) < max_runs and unstable(key))):
+                            capped.append("starts")
+                        events_log.write(events, "settle", label, target["name"], number,
+                                         settle_line(window(key), len(counted(key)),
+                                                     kinds[key], scenario, spread_limit, capped))
                 else:
                     failures.append("%s/%s round %d" % (host["name"], target["name"], number))
                     line = status_last_line(run_root, host, target, started)
@@ -292,6 +408,10 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                         events_log.write(events, "rest", label, target["name"], number,
                                          "rest_seconds=%s" % rest_seconds)
                     time.sleep(float(rest_seconds))
+    moved = set_aside_unmeasured(run_root, hosts, measured)
+    if moved:
+        print("set aside %d run directories that this invocation did not measure: %s"
+              % (len(moved), ", ".join(moved)), file=sys.stderr)
     return failures
 
 
@@ -744,8 +864,268 @@ def aggregate_power(runs):
     return result
 
 
+CANVAS_FILES = ("canvas.json", "capture-meta.json")
+
+
+def canvas_conditions(path):
+    """Return the capture conditions of one run, or None when they were not recorded.
+
+    The writers record the canvas rectangle in captured pixels as
+    [left, top, width, height]: windows_capture.cpp and macos_capture.mm write
+    canvas.json with "frame" [width, height] and, on macOS, "scale" and
+    "refresh" (Windows writes "refresh" too); mutter_capture.py writes
+    capture-meta.json with "frame" and neither scale nor refresh. A missing or
+    unreadable file leaves the conditions unknown instead of guessing values.
+    """
+    for name in CANVAS_FILES:
+        file_path = os.path.join(path, name)
+        if not os.path.exists(file_path):
+            continue
+        try:
+            with open(file_path, encoding="utf-8") as handle:
+                data = json.load(handle)
+        except (OSError, ValueError):
+            return None
+        canvas = data.get("canvas")
+        if not (isinstance(canvas, list) and len(canvas) == 4
+                and all(isinstance(value, (int, float)) for value in canvas)):
+            return None
+        width, height = canvas[2], canvas[3]
+        if not (width > 0 and height > 0):
+            return None
+        frame = data.get("frame")
+        return {
+            "canvas": [int(width), int(height)],
+            "frame": [int(value) for value in frame]
+            if isinstance(frame, list) and len(frame) == 2 else None,
+            "scale": number_or_none(data.get("scale")),
+            "refresh": number_or_none(data.get("refresh")),
+        }
+    return None
+
+
+def conditions_within(first, other):
+    """Whether two runs recorded the same canvas (2 %), scale and refresh (1 Hz)."""
+    if not first or not other:
+        return False
+    for index in (0, 1):
+        if abs(other["canvas"][index] - first["canvas"][index]) > 0.02 * first["canvas"][index]:
+            return False
+    for key in ("scale", "refresh"):
+        now, before = first.get(key), other.get(key)
+        if now is None or before is None:
+            if now is not before:
+                return False
+            continue
+        tolerance = 1.0 if key == "refresh" else 0.0
+        if abs(now - before) > tolerance:
+            return False
+    return True
+
+
+def conditions_differ(current, base):
+    """Whether a target's conditions differ from the baseline's by more than allowed."""
+    for index in (0, 1):
+        if abs(current["canvas"][index] - base["canvas"][index]) > 0.02 * base["canvas"][index]:
+            return True
+    for key, tolerance in (("scale", 0.0), ("refresh", 1.0)):
+        now, before = current.get(key), base.get(key)
+        if now is None or before is None:
+            continue
+        if abs(now - before) > tolerance:
+            return True
+    return False
+
+
+def target_conditions(window):
+    """Return the window's conditions, or None when no run recorded them.
+
+    "stable" is false when a run of the window recorded another canvas
+    (width or height beyond 2 %), scale or refresh (beyond 1 Hz), or none at
+    all.
+    """
+    recorded = [run.get("conditions") for run in window]
+    values = [value for value in recorded if value]
+    if not values:
+        return None
+    first = values[0]
+    stable = len(values) == len(recorded) and all(
+        conditions_within(first, value) for value in values)
+    return {"canvas": first["canvas"], "frame": first["frame"], "scale": first["scale"],
+            "refresh": first["refresh"], "stable": stable}
+
+
+def run_medians(runs, metric):
+    """The metric's per-run medians, leaving out runs without a value."""
+    values = []
+    for run in runs:
+        stat = (run.get("metrics") or {}).get(metric) or {}
+        if stat.get("n") and stat.get("p50") is not None:
+            values.append(stat["p50"])
+    return values
+
+
+def unit_name(metric, state):
+    """The judgement unit's full name, as it is recorded in settle.unsettled."""
+    return metric if state is None else "%s[%s]" % (metric, state)
+
+
+def settle_short_name(metric, state):
+    """The metric's family name, with the state for a Windows state group."""
+    base = metric.split(".", 1)[0]
+    return base if state is None else "%s[%s]" % (base, state)
+
+
+def settle_units(window, host_kind, scenario):
+    """Return [(metric, state, run medians)] for the window's judgement units.
+
+    Windows hover metrics are split by the run's state label, as judge splits
+    them; every other metric is one unit. A run without the metric's value
+    stays out of that unit's medians.
+    """
+    units = []
+    for metric in scenario["metrics"]:
+        groups = {}
+        if host_kind == "windows" and metric.startswith("hover."):
+            for run in window:
+                label = (run.get("state") or {}).get("label", "unknown")
+                groups.setdefault(label, []).append(run)
+        labels = sorted(label for label in groups if label in ("low", "high"))
+        if labels:
+            if "unknown" in groups:
+                labels.append("unknown")
+            for label in labels:
+                units.append((metric, label, run_medians(groups[label], metric)))
+        else:
+            units.append((metric, None, run_medians(window, metric)))
+    return units
+
+
+def settle_line(window, counted_runs, host_kind, scenario, limit, capped=()):
+    """Return the detail of a settle event: the window's spreads and the outcome."""
+    units = settle_units(window, host_kind, scenario)
+    short = {}
+    for metric, state, _ in units:
+        name = settle_short_name(metric, state)
+        short[name] = short.get(name, 0) + 1
+    parts = []
+    if window:
+        parts.append("window=%s..%s" % (window[0].get("start", "?"), window[-1].get("start", "?")))
+    parts.append("counted=%d" % counted_runs)
+    settled = True
+    for metric, state, values in units:
+        name = settle_short_name(metric, state)
+        if short[name] > 1:
+            name = unit_name(metric, state)
+        if len(values) < 2:
+            parts.append("%s=n/a" % name)
+            continue
+        center = statistics.median(values)
+        spread = (max(values) - min(values)) / center if center else None
+        if spread is not None and spread >= limit:
+            settled = False
+        parts.append("%s=%s" % (name, "n/a" if spread is None else "%.1f%%" % (100 * spread)))
+    parts.append("settled=%s" % ("yes" if settled else "no"))
+    parts.extend("capped=%s" % value for value in capped)
+    return " ".join(parts)
+
+
+def metric_groups(data, host_kind, metric, stat):
+    """Return [(state, group stat, runs)] of one metric, split for Windows hover."""
+    states = [state for state in data.get("states", {}) if state in ("low", "high")]
+    if host_kind == "windows" and metric.startswith("hover.") and states:
+        groups = [(state, data["states"][state]["metrics"].get(metric), data["states"][state]["runs"])
+                  for state in sorted(states)]
+        if "unknown" in data.get("states", {}):
+            groups.append(("unknown", data["states"]["unknown"]["metrics"].get(metric),
+                           data["states"]["unknown"]["runs"]))
+        return groups
+    return [(None, stat, stat.get("runs"))]
+
+
+def valid_runs(data):
+    """The runs the judgement counts: the window when the summary has one."""
+    runs = data.get("runs") if isinstance(data.get("runs"), list) else []
+    if any("in_window" in run for run in runs):
+        return [run for run in runs if run.get("in_window")]
+    return usable_runs(data)
+
+
+def states_of(host, window, scenario):
+    """The window's state groups; a target that is not a Windows target is not split."""
+    if host["kind"] != "windows":
+        return {}
+    groups = {}
+    for run in window:
+        groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
+    states = {}
+    for state, state_runs in sorted(groups.items()):
+        states[state] = {
+            "runs": len(state_runs),
+            "presentmon": sum(1 for run in state_runs if presentmon_status(run) == "present"),
+            "presentmon_status": {
+                status: sum(1 for run in state_runs if presentmon_status(run) == status)
+                for status in ("present", "partial", "none")
+            },
+            "metrics": aggregate(state_runs, scenario["metrics"]),
+        }
+    return states
+
+
+def unsettled_units(data, host_kind, limit):
+    """Names of the window's judgement units whose spread is at or above the limit."""
+    names = []
+    for metric, stat in data.get("metrics", {}).items():
+        for state, group_stat, _ in metric_groups(data, host_kind, metric, stat):
+            if not group_stat:
+                continue
+            spread = group_stat.get("spread")
+            if spread is not None and spread >= limit:
+                names.append(unit_name(metric, state))
+    return names
+
+
+def run_record(path, host, scenario):
+    """Return the record of one run: medians, state, device state and conditions.
+
+    summarize and measure_runs build their records with this function, so the
+    judgement during a measurement and after it sees the same values. A
+    successful run without capture.csv (the application started but the
+    capture did not finish) has no medians.
+    """
+    offset = float(host.get("capture_offset_ms", 0.0))
+    if os.path.exists(os.path.join(path, "capture.csv")):
+        result = capture_analyze.analyze_run(path)
+    else:
+        result = {}
+    return {
+        "name": os.path.basename(path),
+        "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
+        "state": result.get("state", {"label": "unknown"}),
+        "presentmon": result.get("presentmon", {"present": False}),
+        "foreground": result.get("foreground", {}),
+        "foreground_inject": result.get("foreground_inject", {}),
+        "excluded": result.get("excluded"),
+        "surface_state": surface_state(path),
+        "thread_cpu": thread_cpu.summarize(path),
+        "power": power.summarize(path),
+        "power_state": power_state(path),
+        "speed_groups": result.get("ink.speed_groups", []),
+        "speed_change": result.get("ink.speed_change", []),
+        "conditions": canvas_conditions(path),
+    }
+
+
 def summarize(run_root, hosts, scenario):
-    """Analyze every run directory and group run medians by host, target and state."""
+    """Analyze every run directory and group the window's medians by host, target and state.
+
+    The first "warmup_runs" runs of a target are kept in "runs" as warm-ups
+    and stay out of the aggregation and the run counts. The aggregation uses
+    the last "runs" usable runs (the window) of every target; "settle" reports
+    how many runs were counted, how large the window is and which judgement
+    units stayed unsettled. Only a Windows target is split by state.
+    """
+    runs_needed, warmup_runs, _, spread_limit = settle_settings(scenario)
     summary = {"scenario": scenario["name"], "hosts": {}}
     for host in hosts:
         host_dir = os.path.join(run_root, host["name"])
@@ -761,40 +1141,33 @@ def summarize(run_root, hosts, scenario):
             target = target_of(run_name, host["targets"])
             if target is None:
                 continue
-            result = capture_analyze.analyze_run(path)
             data = entry["targets"].setdefault(target, {"runs": []})
-            data["runs"].append({
-                "name": run_name,
-                "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
-                "state": result.get("state", {"label": "unknown"}),
-                "presentmon": result.get("presentmon", {"present": False}),
-                "foreground": result.get("foreground", {}),
-                "foreground_inject": result.get("foreground_inject", {}),
-                "excluded": result.get("excluded"),
-                "surface_state": surface_state(path),
-                "thread_cpu": thread_cpu.summarize(path),
-                "power": power.summarize(path),
-                "power_state": power_state(path),
-                "speed_groups": result.get("ink.speed_groups", []),
-                "speed_change": result.get("ink.speed_change", []),
-            })
+            data["runs"].append(run_record(path, host, scenario))
         for target, data in entry["targets"].items():
-            valid = usable_runs(data)
-            data["excluded"] = sum(1 for run in data["runs"] if run_excluded(run))
+            warmup = data["runs"][:warmup_runs]
+            for index, run in enumerate(data["runs"]):
+                run["warmup"] = index < warmup_runs
+            measured = data["runs"][len(warmup):]
+            counted = usable_runs({"runs": measured})
+            window = counted[-runs_needed:]
+            window_ids = {id(run) for run in window}
+            for run in data["runs"]:
+                run["in_window"] = id(run) in window_ids
+            data["excluded"] = sum(1 for run in measured if run_excluded(run))
             data["device_low"] = sum(
-                1 for run in data["runs"]
+                1 for run in measured
                 if not run_excluded(run) and device_performance_low(run))
             data["device_readings_missing"] = sum(
-                1 for run in data["runs"]
+                1 for run in measured
                 if (number_or_none((run.get("surface_state") or {}).get("during_readings_missing")) or 0) > 0)
-            data["shifts"] = shift_notes(valid)
+            data["shifts"] = shift_notes(window)
             data["foreground_inject_lost"] = sum(
-                1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
-            data["metrics"] = aggregate(valid, scenario["metrics"])
-            data["thread_cpu"] = aggregate_thread_cpu(valid)
-            data["power"] = aggregate_power(valid)
+                1 for run in window if (run.get("foreground_inject") or {}).get("foreground") is False)
+            data["metrics"] = aggregate(window, scenario["metrics"])
+            data["thread_cpu"] = aggregate_thread_cpu(window)
+            data["power"] = aggregate_power(window)
             data["presentmon"] = {
-                status: sum(1 for run in valid if presentmon_status(run) == status)
+                status: sum(1 for run in window if presentmon_status(run) == status)
                 for status in ("present", "partial", "none")
             }
             data["surface_state_modes"] = {
@@ -807,26 +1180,26 @@ def summarize(run_root, hosts, scenario):
                 key = (run.get("surface_state") or {}).get("wait") or "unrecorded"
                 waits[key] = waits.get(key, 0) + 1
             data["surface_state_waits"] = waits
-            groups = {}
-            for run in valid:
-                groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
-            data["states"] = {}
-            for state, state_runs in sorted(groups.items()):
-                data["states"][state] = {
-                    "runs": len(state_runs),
-                    "presentmon": sum(1 for run in state_runs if presentmon_status(run) == "present"),
-                    "presentmon_status": {
-                        status: sum(1 for run in state_runs if presentmon_status(run) == status)
-                        for status in ("present", "partial", "none")
-                    },
-                    "metrics": aggregate(state_runs, scenario["metrics"]),
-                }
+            data["states"] = states_of(host, window, scenario)
+            data["conditions"] = target_conditions(window)
+            data["settle"] = {
+                "warmup_runs": len(warmup),
+                "counted_runs": len(counted),
+                "window_runs": len(window),
+                "unsettled": unsettled_units(data, host["kind"], spread_limit),
+            }
         summary["hosts"][host["name"]] = entry
     return summary
 
 
+def baseline_target(baseline, host, target):
+    """Return the baseline's record of one target, or {}."""
+    host_data = (baseline or {}).get("hosts", {}).get(host, {})
+    return (host_data.get("targets", {}) or {}).get(target) or {}
+
+
 def baseline_metric(baseline, host, target, metric, state):
-    base = (baseline or {}).get("hosts", {}).get(host, {}).get("targets", {}).get(target, {})
+    base = baseline_target(baseline, host, target)
     if state is not None:
         state_data = base.get("states", {}).get(state)
         if not state_data:
@@ -838,22 +1211,16 @@ def baseline_metric(baseline, host, target, metric, state):
 def judge(summary, scenario, baseline=None):
     """Return rows of (host, target, metric, median, p95, spread, delta, verdict, notes, state)."""
     rows = []
-    limit = scenario.get("spread_limit", 0.05)
+    runs, _, _, limit = settle_settings(scenario)
     for host, entry in summary["hosts"].items():
+        kind = entry.get("kind")
         for target, data in entry["targets"].items():
-            valid = usable_runs(data) if isinstance(data.get("runs"), list) else []
-            states = [state for state in data.get("states", {}) if state in ("low", "high")]
+            valid = valid_runs(data)
+            base_target = baseline_target(baseline, host, target)
+            base_unsettled = (base_target.get("settle") or {}).get("unsettled") or []
+            conditions = data.get("conditions")
             for metric, stat in data.get("metrics", {}).items():
-                grouped = states if metric.startswith("hover.") else []
-                if grouped:
-                    groups = [(state, data["states"][state]["metrics"].get(metric), data["states"][state]["runs"])
-                              for state in sorted(grouped)]
-                    if "unknown" in data.get("states", {}):
-                        groups.append(("unknown", data["states"]["unknown"]["metrics"].get(metric),
-                                       data["states"]["unknown"]["runs"]))
-                else:
-                    groups = [(None, stat, stat["runs"])]
-                for state, group_stat, group_runs in groups:
+                for state, group_stat, group_runs in metric_groups(data, kind, metric, stat):
                     if not group_stat:
                         continue
                     notes, problems = [], []
@@ -863,10 +1230,16 @@ def judge(summary, scenario, baseline=None):
                         if group_stat["runs"] < 2:
                             problems.append("only %d run in state" % group_stat["runs"])
                     if group_stat["spread"] is not None and group_stat["spread"] >= limit:
-                        problems.append("spread %.1f%% >= %.0f%%" % (100 * group_stat["spread"], 100 * limit))
+                        counted = (data.get("settle") or {}).get("counted_runs")
+                        if counted is not None and counted > runs:
+                            problems.append("spread %.1f%% >= %.0f%% after %d runs" % (
+                                100 * group_stat["spread"], 100 * limit, counted))
+                        else:
+                            problems.append("spread %.1f%% >= %.0f%%" % (
+                                100 * group_stat["spread"], 100 * limit))
                     total_runs = len(valid) if valid else stat["runs"]
-                    if total_runs < scenario["runs"]:
-                        problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
+                    if total_runs < runs:
+                        problems.append("%d of %d runs" % (total_runs, runs))
                     if data.get("excluded"):
                         notes.append("%d run(s) left out: app not foreground or not presenting" % data["excluded"])
                     if data.get("device_low"):
@@ -882,16 +1255,31 @@ def judge(summary, scenario, baseline=None):
                     partial = sum(1 for run in valid if presentmon_status(run) == "partial")
                     if metric_needs_presentmon(metric) and partial:
                         notes.append("%d partial PresentMon run(s) left out" % partial)
+                    if unit_name(metric, state) in base_unsettled:
+                        notes.append("baseline unsettled")
+                    differ = False
+                    if baseline is not None:
+                        base_conditions = base_target.get("conditions")
+                        if base_conditions and conditions:
+                            if conditions_differ(conditions, base_conditions):
+                                problems.append("conditions differ from baseline: canvas %dx%d vs baseline %dx%d" % (
+                                    conditions["canvas"][0], conditions["canvas"][1],
+                                    base_conditions["canvas"][0], base_conditions["canvas"][1]))
+                                differ = True
+                        else:
+                            notes.append("conditions unknown")
+                    if conditions and conditions.get("stable") is False:
+                        notes.append("conditions vary inside the window")
                     base_stat = baseline_metric(baseline, host, target, metric, state)
                     delta = None
-                    if base_stat:
+                    if base_stat and not differ:
                         delta = group_stat["median"] - base_stat["median"]
                         threshold = scenario["metrics"][metric]["regression_ms"]
                         if delta > threshold:
                             problems.append("regression +%.1f ms" % delta)
                         elif delta < -threshold:
                             notes.append("improvement %.1f ms" % delta)
-                    elif baseline is not None and state is not None:
+                    elif base_stat is None and baseline is not None and state is not None:
                         notes.append("baseline has no %s state" % state)
                     verdict = "check" if problems else "ok"
                     rows.append((host, target, metric, group_stat["median"], group_stat["p95"], group_stat["spread"],
@@ -899,14 +1287,139 @@ def judge(summary, scenario, baseline=None):
     return rows
 
 
-def table(rows):
-    lines = ["| host | target | metric | state | median ms | P95 ms | spread | vs baseline | verdict | notes |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+def table(rows, extra=None):
+    columns = ["host", "target", "metric", "state", "median ms", "P95 ms", "spread", "vs baseline"]
+    if extra is not None:
+        columns.append("minus reference")
+    columns.extend(["verdict", "notes"])
+    lines = ["| " + " | ".join(columns) + " |",
+             "| " + " | ".join("---" for _ in columns) + " |"]
     for host, target, metric, median, p95, spread, delta, verdict, notes, state in rows:
-        lines.append("| %s | %s | %s | %s | %.1f | %.1f | %s | %s | %s | %s |" % (
-            host, target, metric, state or "-", median, p95, "-" if spread is None else "%.1f%%" % (100 * spread),
-            "-" if delta is None else "%+.1f" % delta, verdict, notes))
+        cells = [host, target, metric, state or "-", "%.1f" % median, "%.1f" % p95,
+                 "-" if spread is None else "%.1f%%" % (100 * spread),
+                 "-" if delta is None else "%+.1f" % delta]
+        if extra is not None:
+            cells.append(extra.get((host, target, metric, state), "-"))
+        cells.extend([verdict, notes])
+        lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines)
+
+
+def reference_pairs(host_config):
+    """Return {target name: reference target name} of one host.
+
+    A target names its reference with "against". Without it, the host's only
+    reference target ("reference": true) is the target's reference; a host
+    with several reference targets leaves a target that does not say which
+    one without a reference. Reference targets have no reference.
+    """
+    targets = host_config.get("targets", [])
+    references = [target["name"] for target in targets if target.get("reference") is True]
+    pairs = {}
+    for target in targets:
+        if target.get("reference") is True:
+            continue
+        against = target.get("against")
+        if against is not None:
+            if against in references:
+                pairs[target["name"]] = against
+        elif len(references) == 1:
+            pairs[target["name"]] = references[0]
+    return pairs
+
+
+def reference_columns(summary, baseline, hosts):
+    """Return the target-minus-reference cell of every judged row.
+
+    The reference of a target is given by reference_pairs; the baseline side
+    uses the targets of the same names. The value is the target's median
+    minus the reference's median of the same metric (the metrics aggregate),
+    in milliseconds, with a sign. When the baseline has both medians, the
+    baseline difference follows in parentheses. Reference targets and
+    targets without a reference have no cell.
+    """
+    pairs_of = {host["name"]: reference_pairs(host) for host in hosts or []}
+    cells = {}
+    for host, entry in summary.get("hosts", {}).items():
+        pairs = pairs_of.get(host, {})
+        for target, data in (entry.get("targets") or {}).items():
+            reference = pairs.get(target)
+            if reference is None:
+                continue
+            reference_data = (entry.get("targets") or {}).get(reference) or {}
+            for metric, stat in (data.get("metrics") or {}).items():
+                reference_stat = (reference_data.get("metrics") or {}).get(metric)
+                if not reference_stat:
+                    continue
+                difference = stat["median"] - reference_stat["median"]
+                base_target = baseline_metric(baseline, host, target, metric, None)
+                base_reference = baseline_metric(baseline, host, reference, metric, None)
+                if base_target and base_reference:
+                    value = "%+.1f (base %+.1f)" % (
+                        difference, base_target["median"] - base_reference["median"])
+                else:
+                    value = "%+.1f" % difference
+                for state, group_stat, _ in metric_groups(data, entry.get("kind"), metric, stat):
+                    if group_stat:
+                        cells[(host, target, metric, state)] = value
+    return cells
+
+
+BASELINE_FORMAT = 1
+
+
+def baseline_document(summary, hosts, scenario):
+    """Return the baseline document of a summary: only the keys the comparison reads.
+
+    The document carries no run names, paths, ssh names, environment variables
+    or tool locations, so it can be kept in the repository.
+    """
+    runs, warmup_runs, max_runs, spread_limit = settle_settings(scenario)
+    reference_names = {}
+    for host in hosts or []:
+        reference_names[host["name"]] = {
+            target["name"]: bool(target.get("reference")) for target in host.get("targets", [])}
+
+    def stats(metrics):
+        return {metric: {key: stat.get(key) for key in ("median", "p95", "spread", "runs")}
+                for metric, stat in (metrics or {}).items()}
+
+    document = {
+        "format": BASELINE_FORMAT,
+        "label": summary.get("label"),
+        "date": summary.get("date"),
+        "commit": summary.get("commit"),
+        "scenario": summary.get("scenario"),
+        "settings": {"runs": runs, "warmup_runs": warmup_runs, "max_runs": max_runs,
+                     "spread_limit": spread_limit},
+        "hosts": {},
+    }
+    for host, entry in summary.get("hosts", {}).items():
+        targets = {}
+        for target, data in (entry.get("targets") or {}).items():
+            window = [run for run in data.get("runs", []) if run.get("in_window")]
+            medians = {}
+            for metric in data.get("metrics") or {}:
+                values = run_medians(window, metric)
+                if values:
+                    medians[metric] = values
+            targets[target] = {
+                "reference": reference_names.get(host, {}).get(target, False),
+                "metrics": stats(data.get("metrics")),
+                "states": {state: {"runs": state_data.get("runs"),
+                                   "metrics": stats(state_data.get("metrics"))}
+                           for state, state_data in (data.get("states") or {}).items()},
+                "run_medians": medians,
+                "conditions": data.get("conditions"),
+                "settle": data.get("settle"),
+            }
+        document["hosts"][host] = {
+            "kind": entry.get("kind"),
+            "system": entry.get("system"),
+            "capture_offset_ms": entry.get("capture_offset_ms"),
+            "targets": targets,
+        }
+    return document
 
 
 def speed_table(runs):
@@ -967,6 +1480,8 @@ def main(argv):
     parser.add_argument("--only", help="comma-separated host names")
     parser.add_argument("--baseline", help="summary JSON to compare with")
     parser.add_argument("--summary", help="where to write the summary JSON")
+    parser.add_argument("--baseline-out", metavar="PATH",
+                        help="write the allowlisted baseline JSON here")
     parser.add_argument("--analyze-only", metavar="RUN_ROOT", help="analyze collected runs without measuring")
     parser.add_argument("--events", default=DEFAULT_EVENTS,
                         help="event log the auditor follows (default: build/perf/events.log)")
@@ -993,13 +1508,13 @@ def main(argv):
                                        capture_output=True, text=True).stdout.strip()
     baseline = json.load(open(args.baseline)) if args.baseline else None
     verdict_rows = judge(summary, scenario, baseline)
-    print(table(verdict_rows))
+    print(table(verdict_rows, reference_columns(summary, baseline, hosts) or None))
     present_lines = []
     for host, entry in summary["hosts"].items():
         if entry.get("kind") != "windows":
             continue
         for target, data in entry["targets"].items():
-            valid = usable_runs(data)
+            valid = valid_runs(data)
             counts = data.get("presentmon") or {
                 "present": sum(1 for run in valid if presentmon_status(run) == "present"),
                 "partial": sum(1 for run in valid if presentmon_status(run) == "partial"),
@@ -1075,7 +1590,7 @@ def main(argv):
     speed_lines = []
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():
-            valid = usable_runs(data) if isinstance(data.get("runs"), list) else []
+            valid = valid_runs(data)
             speed_rows = speed_table(valid)
             if speed_rows:
                 speed_lines.append("   %s/%s (speed px/ms, runs, median ms, P95 ms, spread, tip px)" % (
@@ -1137,6 +1652,11 @@ def main(argv):
     with open(destination, "w") as handle:
         json.dump(summary, handle, indent=2, sort_keys=True)
     print("summary: " + destination)
+    if args.baseline_out:
+        os.makedirs(os.path.dirname(os.path.abspath(args.baseline_out)), exist_ok=True)
+        with open(args.baseline_out, "w") as handle:
+            json.dump(baseline_document(summary, hosts, scenario), handle, indent=2, sort_keys=True)
+        print("baseline: " + args.baseline_out)
     status = 1 if any(row[7] != "ok" for row in verdict_rows) else 0
     if events:
         events_log.write(events, "run-done", args.label, "-", "-", str(status))

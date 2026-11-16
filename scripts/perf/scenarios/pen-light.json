@@ -16,6 +16,8 @@
     }
   },
   "runs": 5,
+  "warmup_runs": 1,
+  "max_runs": 10,
   "rest_seconds": 90,
   "spread_limit": 0.05,
   "metrics": {

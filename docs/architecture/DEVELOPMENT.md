@@ -629,6 +629,12 @@ MACOS_CAPTURE=/path/macos_capture \
   scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
 ```
 
+`run-linux.sh`は各回の前に`org.gnome.ScreenSaver.SetActive false`で消えた画面を起こす。
+GNOMEは、アイドル時間（既定300秒）の後に画面が消えている間と、画面がロックされている間、
+画面収録の作成を`Session creation inhibited`で拒否する。起こしても画面が有効なまま（ロック）の
+ときは、`the screen is locked or blanked and cannot be woken; unlock it at the machine`を
+出して止まる。
+
 `run-linux.sh`と`run-macos.sh`は、既定のkritarcを空のグループ（最初の`[Group]`より前）に
 書く。LibrePaintの`KisConfig`と`KisImageConfig`は`KConfigGroup::group(QString())`を読むため、
 `[General]`に書いた`newOutlineStyle`、`fpsLimit`、`newCursorStyle`は効かない（2026-11-09以前の
@@ -642,14 +648,17 @@ Linuxの計測はこの状態で、設定は既定のままだった）。`run.p
 集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
 すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
 シナリオの`rest_seconds`（既定0）は、Windowsの対象の回と回の間の休みの秒数である。各回の後
-（失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、失敗せず、
-計測中の`% Processor Performance`が70%を下回らなかった回（比較に使える回）がシナリオの
-`runs`に達するまで、対象ごとに回を足す。足せる回は対象ごとに`runs`回まで（合計は最大2倍）で、
-値のない回は使える回と数える。
+（失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、シナリオの
+`warmup_runs`回（既定0）を集計せずに測り、使える回が`runs`に達するまでと、窓が安定しない
+あいだ`max_runs`（既定は`runs`）に達するまで、対象ごとに回を足す。開始の上限は
+`warmup_runs + 2 × max_runs`回で、値のない回は使える回と数える。計測機の出力ディレクトリーは
+丸ごと取り込むため、中断した前回の計測が取り込まれずに残した回が混ざる。`run.py`は、この計測で
+測っていない回のディレクトリーを、終了時に`<計測結果>/_unmeasured/<機器>/`へ移す（消さない）。
 
 ```sh
 scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
-  --label <名前> [--only windows,linux] [--baseline <前回の集計.json>] [--summary docs/perf/results/<名前>.json]
+  --label <名前> [--only windows,linux] [--baseline <前回の集計.json>] [--summary docs/perf/results/<名前>.json] \
+  [--baseline-out docs/perf/baselines/<名前>.json]
 scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果のディレクトリー>
 ```
 
@@ -658,7 +667,8 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 1行を書くたびにファイルを閉じる（`tail -F`で追える）。種類は`run-start`（計測の組の開始）、
 `target-start`、`target-done`（成功。詳細に状態とホバー・インクの中央値）、`target-failed`
 （詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`rest`（回と回の間の
-休みの開始。詳細に秒数）、`step`（自動の確認の
+休みの開始。詳細に秒数）、`settle`（回ごとの窓の判定。詳細に窓の範囲、集計対象の回数、
+判定単位ごとのばらつき、安定したかどうか、上限で止めた理由）、`step`（自動の確認の
 手順の開始と終了。詳細に手順の名前）、`step-timeout`、`run-done`（終了コード）である。
 同じ対象で、同じ理由（`status.txt`の最後の行の`failed: `から後ろ）の失敗が2回続いたら、
 `run.py`はその対象の残りの回を回さずに`target-abandoned`を書き、ほかの対象は続ける。
@@ -671,8 +681,67 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 判定の規則：
 
 - 比較する対象は、同じ機器、同じ窓とキャンバスの大きさ、同じ設定で交互に計測する。
-- 各対象を5回測り、回ごとの中央値のばらつき（最大と最小の差を中央値で割ったもの）が5%未満で
-  あることを確かめる。満たさない場合は回数を増やす。
+- 各対象の最初の`warmup_runs`回（`pen-light.json`は1回）は、起動と描画の準備のために測るが
+  集計しない。失敗した開始はwarm-upを消費しない。
+- 集計には、warm-upを除いた使える回（終了状態が0で、計測中の`% Processor Performance`が70%を
+  下回らず、ほかの窓を測っていない回）の直近`runs`回（窓）を使う。窓に入らなかった回は集計の
+  JSONに残し、`in_window`で区別する。窓は直近の連続した回であり、ばらつきの小さい窓を選び直さない。
+- 窓の判定単位（シナリオの各指標。Windowsのホバーは状態ごと）の回ごとの中央値のばらつき
+  （最大と最小の差を中央値で割ったもの）が5%以上なら、集計対象の回が`max_runs`
+  （`pen-light.json`は10回）に達するまで回を足す。足しても5%未満にならない対象は未安定とし、
+  判定を`check`にし、集計のJSONと基準の`settle.unsettled`に残す。
+- 1つの対象の開始の上限は、warm-upと失敗の回を含めて`warmup_runs + 2 × max_runs`回である。
+- 集計対象の回が`runs`以上になった後の回ごとに、`settle`のイベントに窓の範囲、集計対象の
+  回数、判定単位ごとのばらつき、安定したかどうか、上限で止めた理由を書く。
+- 各回の取り込みは、キャンバスの大きさ、フレームの大きさ、倍率、リフレッシュレートを
+  `canvas.json`（Linuxは`capture-meta.json`）に残す。`run.py`はこれを回ごとの`conditions`
+  として集計し、窓の回で2%を超えてキャンバスが違うか、倍率が違い、リフレッシュレートが1 Hzを
+  超えて違う回が混ざるときは`conditions vary inside the window`と注記する。基準と比べるとき、
+  キャンバスの幅か高さが基準の値から2%を超えて違うか、倍率が違い、リフレッシュレートが1 Hzを
+  超えて違えば、その行を`check`にして差（`vs baseline`）を出さない。LinuxとmacOSの計測の
+  手順は窓の大きさを指定する手段を持たないため、条件を記録して比べる。
+- `--baseline-out`は、集計のあとに許可リストのキーだけの基準のJSONを書く（`docs/perf/baselines/`）。
+  キーは`format`、`label`、`date`、`commit`、`scenario`、`settings`（`runs`、`warmup_runs`、
+  `max_runs`、`spread_limit`）と、`hosts`の各機器の`kind`、`system`、`capture_offset_ms`、
+  各対象の`reference`、`metrics`（中央値、P95、ばらつき、回数）、`states`、窓の回の中央値
+  （`run_medians`）、`conditions`、`settle`である。回の名前、経路、sshの名前、環境変数、
+  kritarc、取り込みの道具の場所は書かない。`--baseline`はこのファイルと、これまでの集計の
+  JSON（`--summary`）のどちらも読む。未安定の対象は`settle.unsettled`に残り、比較の注記に
+  `baseline unsettled`と出る。
+
+```sh
+scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json \
+  --hosts build/perf/hosts.json --label <名前> \
+  --baseline-out docs/perf/baselines/<名前>.json
+```
+
+- `hosts.json`の対象に`"reference": true`を書くと、その機器の参照アプリになる。表の
+  `minus reference`の列は、各対象の中央値から同じ機器の参照アプリの中央値を引いた値
+  （ms、符号つき）である。基準に両方の値があれば、基準での差を`(base +2.8)`の形で添える。
+  判定はこれまでどおり対象の値と基準の差で行う。参照アプリが機器に1つなら、参照アプリでない
+  全対象がそれと比べられる。参照アプリが2つ以上ある機器（Linuxの X11 と Wayland など）では、
+  参照アプリでない対象に`"against": "<参照アプリの対象名>"`を書き、書かない対象の列は空にする。
+  参照アプリの行には列の値がない。
+- 対象の起動コマンドが指すNixのストアパスは、GCの根（`nix-build -o`や`nix build --out-link`
+  の出力リンク）の下のパスを使う。根のないストアパスは次のGCで消え、対象は
+  `application exited before the measurement`で止まる。X11の参照アプリのPythonは
+  `scripts/perf/pen-latency/reference-env.nix`で作る
+  （`nix-build scripts/perf/pen-latency/reference-env.nix -o <出力リンク>`、起動コマンドは
+  `<出力リンク>/bin/python3`）。
+- macOSの計測では、`run-macos.sh`を実行する端末アプリに画面収録とアクセシビリティの許可を
+  与える。`macos_capture`は入力を送る前にアクセシビリティの許可を調べ、ないときは
+  `Accessibility is not granted to the process that runs this tool; posted mouse events would be dropped`
+  を出して終了コード1で止まる。画面収録の許可がないときは
+  `no shareable content (Screen Recording permission?)`で止まる。取り込むのは対象プロセスの、
+  画面上にある100画素以上の窓のうち最も面積の大きい1つだけで、画面全体を取り込む経路はない。
+  キャンバスが300画素未満のときは`no white canvas of at least 300 px visible`で止まる。入力の
+  前に、キャンバスの中心が対象の窓のものであることを確かめ、前面になければ
+  `the window of process ... is not in front at the canvas; no input was posted (...)`を出して
+  終了コード1で止まる。計測中も100サンプルごとに前面を確かめ、対象が前面から外れたら入力を
+  止めて`the window of process ... lost the front; input stopped (...)`で終了コード1で終わる。
+  `run-macos.sh`は取り込みの終了コードが0でない回を`run N: capture failed: ...`として記録し、
+  その場で終了コード1で止まる。計測の前にアプリを前面に出し、ポインターは対象の窓のタイトル
+  バーに置く。
 - OSをまたぐ比較は、絶対値よりも同じ回の参照アプリとの差で行う。
 - 合成入力はOSの入力の入口から始まるため、ペンのハードウェアからOSまでの遅れは含まない。
   この区間は、`PenProbe.cs`で報告レートを数値として記録する。
@@ -680,7 +749,9 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   遅れの原因の特定））。`capture_analyze.py`が各回を`hover.frame_to_arrival`の中央値と
   `rate.qt_tablet_move_interval`のp05で`low`/`high`/`unknown`に分け、`run.py`はホバーの
   比較を状態ごとに行う。インクは全回でまとめる。状態の境目は2026-11-09の20回の値
-  （低い状態 11.2msと3.0〜3.3ms、高い状態 9.6〜9.8msと0.5〜2.0ms）で決めた。
+  （低い状態 11.2msと3.0〜3.3ms、高い状態 9.6〜9.8msと0.5〜2.0ms）で決めた。状態の分類と
+  状態ごとの比較はWindowsの対象だけで行う。LinuxとmacOSの対象は状態で分けず、ホバーも
+  全回でまとめる。
 - Windowsの対象は`presentmon`を`"off"`にするとPresentMonなしで測れる（既定は`on`）。
   PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。CSVはあるが
   `TimeInQPC`の範囲が合成入力の期間の95%未満しか覆っていない回は`PresentMon=partial`と出し、
