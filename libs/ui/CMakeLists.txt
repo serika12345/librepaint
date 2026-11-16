@@ -2009,6 +2009,7 @@ set(kritaui_LIB_SRCS
     opengl/KisOpenGLCanvasRenderer.cpp
     opengl/KisOpenGLContextSwitchLock.cpp
     canvas/kis_fps_decoration.cpp
+    canvas/KisPredictionDecoration.cpp
 
     tool/kis_selection_tool_helper.cpp
     tool/kis_tool_freehand.cc
