@@ -53,6 +53,7 @@ private Q_SLOTS:
     void stoppedEventsRemoveThePrediction();
     void mildDecelerationLowersTheConfidence();
     void decelerationSettingsAreClamped();
+    void maxMoveShortensThePredictedMove();
 };
 
 void KisStrokePredictionContractTest::constantSpeedReachesTheHorizon()
@@ -319,6 +320,28 @@ void KisStrokePredictionContractTest::decelerationSettingsAreClamped()
     VERIFY_CLOSE(kept.decelLongWindowMs, 4.0, 1e-9);
     VERIFY_CLOSE(kept.decelRatioZero, 0.9, 1e-9);
     VERIFY_CLOSE(kept.decelRatioFull, 0.91, 1e-9);
+}
+
+void KisStrokePredictionContractTest::maxMoveShortensThePredictedMove()
+{
+    KisStrokePrediction predictor;
+    KisStrokePredictionSettings settings;
+    settings.maxMovePx = 30.0;
+    predictor.setSettings(settings);
+    for (int i = 0; i < 8; ++i) {
+        const qreal time = 4.0 * i;
+        predictor.addSample(QPointF(4.0 * time, 0.0), time, 1.0);   // 4 px/ms
+    }
+
+    const KisStrokePredictionResult result = predictor.predict();
+    QVERIFY(result.valid);
+    VERIFY_CLOSE(result.moveLength, 30.0, 1e-9);
+    VERIFY_CLOSE(result.polyline.constLast().x() - result.polyline.at(result.latestIndex).x(), 30.0, 1e-9);
+
+    // Without the cap the same stroke predicts 4 * 16.7 px.
+    settings.maxMovePx = 0.0;
+    predictor.setSettings(settings);
+    VERIFY_CLOSE(predictor.predict().moveLength, 4.0 * 16.7, 1e-9);
 }
 
 void KisStrokePredictionContractTest::historyIsBounded()

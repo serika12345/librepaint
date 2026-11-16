@@ -2402,6 +2402,11 @@ qreal KisConfig::strokePredictionAnchorMs(bool defaultValue) const
     return (defaultValue ? 24.0 : m_cfg.readEntry("strokePredictionAnchorMs", 24.0));
 }
 
+qreal KisConfig::strokePredictionMaxMoveDiameters(bool defaultValue) const
+{
+    return (defaultValue ? 3.0 : m_cfg.readEntry("strokePredictionMaxMoveDiameters", 3.0));
+}
+
 void KisConfig::setDisableVectorOptimizations(bool value)
 {
     // use the old key name for compatibility

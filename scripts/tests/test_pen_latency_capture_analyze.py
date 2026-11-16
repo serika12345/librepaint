@@ -505,6 +505,8 @@ class PredictionMetricTest(unittest.TestCase):
             result = capture_analyze.analyze_run(directory)
         self.assertEqual(result["l2p.settle_ms"]["n"], 1)
         self.assertEqual(result["l2p.settle_ms"]["p50"], 12.0)
+        self.assertEqual(result["l2p.stop_overshoot_px"]["n"], 1)
+        self.assertAlmostEqual(result["l2p.stop_overshoot_px"]["p50"], 10.5, delta=0.1)
 
     def test_settle_ms_is_the_first_qualifying_frame(self):
         with tempfile.TemporaryDirectory() as directory:

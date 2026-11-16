@@ -105,6 +105,7 @@ void KisStrokePrediction::setSettings(const KisStrokePredictionSettings &setting
     clamped.pressureFull = settings.pressureFull <= settings.pressureZero
         ? settings.pressureZero + 0.01
         : settings.pressureFull;
+    clamped.maxMovePx = std::max(0.0, settings.maxMovePx);
     clamped.decelShortWindowMs = clampValue(settings.decelShortWindowMs, 2.0, 20.0);
     clamped.decelLongWindowMs = clampValue(settings.decelLongWindowMs, clamped.decelShortWindowMs + 2.0, 50.0);
     clamped.decelRatioZero = clampValue(settings.decelRatioZero, 0.0, 1.5);
@@ -204,9 +205,17 @@ KisStrokePredictionResult KisStrokePrediction::predict() const
 
     result.confidence = speedFactor * pressureFactor * decelFactor;
 
-    const QPointF moveVector =
+    QPointF moveVector =
         result.velocity * result.confidence * m_d->settings.horizonMs;
     result.moveLength = std::hypot(moveVector.x(), moveVector.y());
+
+    // A stroke that stops without a last slow event (a mouse that stops sends
+    // nothing) would leave the whole predicted move on the screen until the
+    // prediction expires. The cap bounds how far the tip can pass the pointer.
+    if (m_d->settings.maxMovePx > 0.0 && result.moveLength > m_d->settings.maxMovePx) {
+        moveVector *= m_d->settings.maxMovePx / result.moveLength;
+        result.moveLength = m_d->settings.maxMovePx;
+    }
 
     if (result.moveLength < m_d->settings.minMovePx) {
         return result;

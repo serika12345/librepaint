@@ -26,6 +26,7 @@ struct KisStrokePredictionSettings {
     qreal pressureZero = 0.05;       // confidence 0 at or below this pressure
     qreal pressureFull = 0.15;       // confidence 1 at or above this pressure
     qreal minMovePx = 0.5;           // no polyline below this move length
+    qreal maxMovePx = 0.0;           // 0 = no cap; else the predicted move is shortened to this length
     qreal decelShortWindowMs = 8.0;  // 2 to 20; speed over this window against the long one
     qreal decelLongWindowMs = 20.0;  // short + 2 to 50
     qreal decelRatioZero = 0.4;      // confidence 0 when short/long speed is at or below this

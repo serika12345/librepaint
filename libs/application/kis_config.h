@@ -668,6 +668,7 @@ public:
     /// Hidden setting: anchor window in milliseconds. No setter; the range
     /// is clamped by KisStrokePrediction::setSettings().
     qreal strokePredictionAnchorMs(bool defaultValue = false) const;
+    qreal strokePredictionMaxMoveDiameters(bool defaultValue = false) const;
 
     void setDisableVectorOptimizations(bool value);
     bool disableVectorOptimizations(bool defaultValue = false) const;

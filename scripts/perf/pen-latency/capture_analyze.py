@@ -611,12 +611,15 @@ def l2p_settle(directory):
     if ink_offset is None:
         return {}
     values = []
+    peaks = []
     for pass_ in all_passes:
         if pass_.kind != "ink" or not pass_.times:
             continue
         t_end, last_x = pass_.times[-1], pass_.xs[-1]
         begin = bisect.bisect_left(frame_times, t_end)
         end = bisect.bisect_right(frame_times, t_end + SETTLE_WINDOW_NS)
+        settled = None
+        peak = 0.0
         for t in frame_times[begin:end]:
             detection = frames[t].get(pass_.band)
             if detection is None:
@@ -625,12 +628,20 @@ def l2p_settle(directory):
             if value is None:
                 continue
             gap = pass_.direction * (last_x - (value - ink_offset))
-            if gap >= SETTLE_GAP_PX:
-                values.append((t - t_end) / 1e6)
-                break
-    if not values:
-        return {}
-    return {"l2p.settle_ms": analyze.describe(values)}
+            peak = max(peak, -gap)
+            if settled is None and gap >= SETTLE_GAP_PX:
+                settled = (t - t_end) / 1e6
+        if settled is not None:
+            values.append(settled)
+        peaks.append(peak)
+    result = {}
+    if values:
+        result["l2p.settle_ms"] = analyze.describe(values)
+    if peaks:
+        # How far the line end passed the final pointer position after the
+        # last injection: the visible overshoot of a stroke that stops.
+        result["l2p.stop_overshoot_px"] = analyze.describe(peaks)
+    return result
 
 
 def l2p_tip_samples(directory):
