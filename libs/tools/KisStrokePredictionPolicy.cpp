@@ -48,10 +48,6 @@ KisStrokePredictionPolicyReason evaluate(const KisStrokePredictionPolicyInput &i
         return KisStrokePredictionPolicyReason::Assistant;
     }
 
-    if (input.delayDistance) {
-        return KisStrokePredictionPolicyReason::Delay;
-    }
-
     return KisStrokePredictionPolicyReason::Enabled;
 }
 
@@ -78,8 +74,6 @@ const char *reasonName(KisStrokePredictionPolicyReason reason)
         return "assistant";
     case KisStrokePredictionPolicyReason::Tool:
         return "tool";
-    case KisStrokePredictionPolicyReason::Delay:
-        return "delay";
     }
     return "unknown";
 }

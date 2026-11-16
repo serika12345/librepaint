@@ -29,11 +29,10 @@ struct KisStrokePredictionPolicyInput {
     bool compositeNormal = true;   // blending mode is COMPOSITE_OVER
     bool assistantActive = false;  // an assistant corrects the input points
     bool toolSupported = true;     // the tool draws where the pointer is (not Dyna or Lazy Brush)
-    bool delayDistance = false;    // the brush delay distance keeps the line behind the pointer
 };
 
 enum class KisStrokePredictionPolicyReason {
-    Enabled, SettingOff, Smoothing, PaintOp, Opacity, Flow, Eraser, Composite, Assistant, Tool, Delay
+    Enabled, SettingOff, Smoothing, PaintOp, Opacity, Flow, Eraser, Composite, Assistant, Tool
 };
 
 /**
