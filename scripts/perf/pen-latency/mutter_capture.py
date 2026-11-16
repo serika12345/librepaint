@@ -117,6 +117,14 @@ def save_png(path, frame):
         handle.write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b""))
 
 
+def injected_first_band(injected):
+    """Band of the first pressed move sample (diagnostic)."""
+    for _, phase, band, _, _, pressed in injected:
+        if pressed and phase.startswith("move"):
+            return band
+    return None
+
+
 def find_canvas(frame, threshold=245):
     """Largest white axis-aligned rectangle around the white pixel nearest the frame center."""
     white = np.all(frame[:, :, :3] >= threshold, axis=2)
@@ -150,6 +158,7 @@ class Capture:
         self.dark = 128
         self.dense = 6
         self.offset = None
+        self.dump = None  # list of (frame_ns, crop) while --dump-stop-frames is on
         self.sink.connect("new-sample", self.on_sample)
 
     def start(self):
@@ -192,6 +201,9 @@ class Capture:
         return Gst.FlowReturn.OK
 
     def detect(self, frame, frame_ns, arrival):
+        if self.dump is not None and self.bands and len(self.dump) < 4000:
+            _, x0, x1, y0, y1 = next((b for b in self.bands if b[0].startswith("stroke")), self.bands[0])
+            self.dump.append((frame_ns, frame[max(0, y0 - 24):y1 + 24, x0:x1].copy()))
         for name, x0, x1, y0, y1 in self.bands:
             region = frame[y0:y1, x0:x1, :3]
             dark = np.all(region < self.dark, axis=2)
@@ -234,6 +246,9 @@ def main(argv):
     parser.add_argument("--dark", type=int, default=128, help="channel value below which a pixel is dark")
     parser.add_argument("--dense", type=int, default=6, help="dark pixels per column that count as ink")
     parser.add_argument("--snapshot", action="store_true", help="save first-frame.png and exit")
+    parser.add_argument("--dump-stop-frames", default=os.environ.get("DUMP_STOP_FRAMES"), metavar="DIR",
+                        help="diagnostic: save the first stroke band as PNG frames from 100 ms before to 150 ms after "
+                             "the end of the first ink stroke (slows the capture; not for measurements)")
     parser.add_argument("--wait", type=float, default=120, help="seconds to wait for the canvas")
     args = parser.parse_args(argv)
     os.makedirs(args.out, exist_ok=True)
@@ -287,6 +302,8 @@ def main(argv):
             }, handle, indent=2)
         with capture.lock:
             capture.bands = bands
+            if args.dump_stop_frames:
+                capture.dump = []
 
         injected = []
         pressed = False
@@ -311,6 +328,15 @@ def main(argv):
         capture.stop()
         mutter.stop()
 
+    if args.dump_stop_frames and capture.dump:
+        ink_times = [t for t, phase, band, x, y, p in injected if p and phase.startswith("move") and band == injected_first_band(injected)]
+        if ink_times:
+            os.makedirs(args.dump_stop_frames, exist_ok=True)
+            end = ink_times[-1]
+            for index, (frame_ns, crop) in enumerate(capture.dump):
+                dt = (frame_ns - end) / 1e6
+                if -100.0 <= dt <= 150.0:
+                    save_png(os.path.join(args.dump_stop_frames, "%04d_dt%+07.1fms.png" % (index, dt)), crop)
     with open(os.path.join(args.out, "inject.csv"), "w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["time_ns", "phase", "band", "x", "y", "pressed"])
