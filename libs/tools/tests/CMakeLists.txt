@@ -84,6 +84,22 @@ kis_add_test(
 target_compile_definitions(KisStrokePredictionContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisPredictionLinePainterContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolspredictiondrawobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisPredictionLinePainterContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
+    KisStrokePredictionPolicyContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolspredictiondrawobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStrokePredictionPolicyContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
     KisToolChangesTrackerDataContractTest.cpp
     LINK_LIBRARIES
         kritatoolschangestrackerdataobjects
