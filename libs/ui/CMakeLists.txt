@@ -2346,6 +2346,13 @@ add_dependencies(
     kritaapplicationui
     kritaapplicationui_generated_ui_headers
 )
+# This object library includes kis_dlg_preferences.h, which includes generated
+# UI headers (ui_WdgPopupPaletteSettings.h). Without the dependency a clean
+# parallel make compiles it before the headers exist (Issue #130).
+add_dependencies(
+    kritauiselectionactionspanelsourceobjects
+    kritaapplicationui_generated_ui_headers
+)
 
 target_sources(
     kritaapplicationui
