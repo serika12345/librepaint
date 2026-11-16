@@ -36,7 +36,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 1. 予測点を実際の点で上書きする（Windows の wet ink、DelegatedInkTrail、Chrome、Android、iPadOS）。
 2. 予測点を次の入力のたびに全部消してから描き直す（Chrome、DelegatedInkTrail、Android の「新しい予測点を追加するときに古い予測点を消す」）。
-3. 予測を使わず、平滑化だけで遅れを受け入れる（Krita。公式の文書に予測の記述がない商用のペイントソフトも同じ）。
+3. 予測を使わず、平滑化だけで遅れを受け入れる（Krita）。
 
 筆圧と傾きは、位置の予測ほど共通した扱いがない。Android は筆圧を Kalman filter で外挿し、傾きと orientation は最後の値を使う。Chrome は位置と時刻だけを更新し、筆圧と傾きは最後の実値のままにする。Windows Ink は予測部分の筆圧と傾きの作り方を公開していない。LibrePaint は Chrome と Android に合わせ、位置だけを予測し、筆圧と傾きは最後の実値を使うのが安全である。
 
