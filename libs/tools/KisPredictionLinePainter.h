@@ -20,9 +20,10 @@ class QPainter;
  *
  * The diameter is in the same unit as the polyline coordinates, which are
  * document pixels. When testColorRgb is not -1 it holds an opaque 0xRRGGBB
- * test color and the painter draws the overlap interval thin and the
- * prediction interval in the test color, so that a screen capture can tell
- * the prediction line from the committed stroke.
+ * test color and the painter draws only the predicted interval, in the test
+ * color. The interval that overlaps the displayed line is not drawn, so the
+ * committed stroke keeps its own pixels and a screen capture can tell where
+ * it ends and where the prediction starts.
  */
 struct KisPredictionLineStyle {
     QColor color;               // color of the committed stroke

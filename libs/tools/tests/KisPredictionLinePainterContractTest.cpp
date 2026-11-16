@@ -86,8 +86,8 @@ class KisPredictionLinePainterContractTest : public QObject
 
 private Q_SLOTS:
     void normalDrawsWholePolyline();
-    void testColorSeparatesOverlapAndPrediction();
-    void testColorKeepsThinCoreForSmallDiameter();
+    void testColorDrawsOnlyThePredictedPart();
+    void testColorWithoutALatestIndexDrawsNothing();
     void scaledTransformScalesWidths();
     void tooFewOrNonFinitePointsDrawNothing();
     void painterStateIsRestored();
@@ -107,7 +107,7 @@ void KisPredictionLinePainterContractTest::normalDrawsWholePolyline()
     QVERIFY(isWhite(image.pixelColor(50, 28)));
 }
 
-void KisPredictionLinePainterContractTest::testColorSeparatesOverlapAndPrediction()
+void KisPredictionLinePainterContractTest::testColorDrawsOnlyThePredictedPart()
 {
     QImage image = makeCanvas();
     QPainter gc(&image);
@@ -116,18 +116,21 @@ void KisPredictionLinePainterContractTest::testColorSeparatesOverlapAndPredictio
 
     QVERIFY(isTestRed(image.pixelColor(50, 20)));
     QVERIFY(isTestRed(image.pixelColor(50, 23)));
-    QVERIFY(isTestRed(image.pixelColor(25, 20)));
+    // The overlap with the displayed line is not drawn at all.
+    QVERIFY(isWhite(image.pixelColor(25, 20)));
     QVERIFY(isWhite(image.pixelColor(25, 23)));
 }
 
-void KisPredictionLinePainterContractTest::testColorKeepsThinCoreForSmallDiameter()
+void KisPredictionLinePainterContractTest::testColorWithoutALatestIndexDrawsNothing()
 {
-    QImage image = makeCanvas();
-    QPainter gc(&image);
-    KisPredictionLinePainter::paint(gc, threePoints(), 1, testStyle(2.0));
-    gc.end();
+    for (const int latestIndex : {-1, 2, 5}) {
+        QImage image = makeCanvas();
+        QPainter gc(&image);
+        KisPredictionLinePainter::paint(gc, threePoints(), latestIndex, testStyle(8.0));
+        gc.end();
 
-    QVERIFY(isTestRed(image.pixelColor(25, 20)));
+        QVERIFY2(isAllWhite(image), "latestIndex does not split the polyline");
+    }
 }
 
 void KisPredictionLinePainterContractTest::scaledTransformScalesWidths()
@@ -151,8 +154,8 @@ void KisPredictionLinePainterContractTest::scaledTransformScalesWidths()
         KisPredictionLinePainter::paint(gc, polyline, 1, testStyle(4.0));
         gc.end();
 
-        QVERIFY(isTestRed(image.pixelColor(20, 20)));
-        QVERIFY(isWhite(image.pixelColor(20, 23)));
+        QVERIFY(isWhite(image.pixelColor(20, 20)));
+        QVERIFY(isTestRed(image.pixelColor(50, 20)));
         QVERIFY(isTestRed(image.pixelColor(50, 23)));
     }
 }

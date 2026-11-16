@@ -65,21 +65,12 @@ void paint(QPainter &gc, const QVector<QPointF> &polyline, int latestIndex, cons
         gc.setPen(makePen(style.color, style.diameter));
         gc.drawPath(makePath(polyline, 0, lastIndex));
     } else {
-        QColor color = QColor::fromRgb(static_cast<QRgb>(style.testColorRgb));
-        color.setAlpha(255);
-
-        qreal scale = std::sqrt(std::abs(gc.transform().determinant()));
-        if (!(scale > 0.0)) {
-            scale = 1.0;
-        }
-        const qreal coreWidth = std::max(0.35 * style.diameter, 1.0 / scale);
-
-        if (latestIndex < 0 || latestIndex >= lastIndex) {
-            gc.setPen(makePen(color, coreWidth));
-            gc.drawPath(makePath(polyline, 0, lastIndex));
-        } else {
-            gc.setPen(makePen(color, coreWidth));
-            gc.drawPath(makePath(polyline, 0, latestIndex));
+        // Test colour: only the predicted part is drawn. The part that overlaps
+        // the displayed line is left out, so the displayed line keeps its own
+        // pixels and a capture sees where it ends and where the prediction starts.
+        if (latestIndex >= 0 && latestIndex < lastIndex) {
+            QColor color = QColor::fromRgb(static_cast<QRgb>(style.testColorRgb));
+            color.setAlpha(255);
             gc.setPen(makePen(color, style.diameter));
             gc.drawPath(makePath(polyline, latestIndex, lastIndex));
         }
