@@ -107,7 +107,7 @@ D≈25.6ms、v≈4.9px/ms、k=3、d=10px の推定値では、下限は約 95px�
    - ペンを離したときの消去（`endStroke` の `clearPrediction(1)`）は、離した瞬間の戻りを測り、悪化が示されたときだけ、確定線が最後の点に届いた次のフレームまで遅らせる。
 5. 合格条件を改める（段階 4）。
 6. 環境ごとの既定は、段階 3 の再測の後に、CHARTER の「悪化が示された環境では既定を無効にする」に照らして決める（段階 5）。配布は #108 の対策が終わるまで止めているため、既定の変更は今の測定の対象を隠す。
-7. OS が予測点を出す環境（iPadOS の `UIEvent.predictedTouches(for:)`、Android の `MotionEventPredictor`、Windows の `DelegatedInkTrailVisual`。`l2p-prediction.md` の方式の表を参照）では、OS の予測を優先し、自前の線形予測をフォールバックにする設計を、遅れの短縮の後に別の設計として扱う。Linux X11 に OS の予測はない。
+7. iPadOSとAndroidではOSの予測に委譲し、Windows、macOS、Linuxでは自前の予測器をKalmanフィルタへ高度化する。2026-11-19の利用者の決定で、設計は[`l2p-predictor-design.md`](l2p-predictor-design.md)にある。
 
 ## 実験
 
