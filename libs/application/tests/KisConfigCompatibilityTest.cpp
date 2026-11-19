@@ -67,6 +67,7 @@ private Q_SLOTS:
     void canvasSurfaceModeNamesRoundTrip();
     void displayFormatNamesRoundTrip();
     void strokePredictionDefaultsAndRoundTrip();
+    void strokePredictionExpiryDefaultsAndClamp();
 };
 
 void KisConfigCompatibilityTest::persistedIntegerModesRemainCompatible()
@@ -266,6 +267,47 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
 
     KisConfig unknownPredictor(true);
     QCOMPARE(unknownPredictor.strokePredictionPredictor(), QStringLiteral("kalman"));
+}
+
+void KisConfigCompatibilityTest::strokePredictionExpiryDefaultsAndClamp()
+{
+    /*
+     * Consumer: The freehand tool timing how long the prediction line stays on screen after the last event.
+     * Operation: Reads the built-in default of the hidden expiry setting and stores values below and above its range.
+     * Observable result: The default is 20 ms and a stored value is clamped to the range 5 to 100 ms.
+     * Failure impact: The line can stay on screen far longer than intended or vanish before the next event.
+     */
+    KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
+    ScopedConfigEntry restoreExpiry(configGroup, QStringLiteral("strokePredictionExpiryMs"));
+
+    {
+        KisConfig config(true);
+        QCOMPARE(config.strokePredictionExpiryMs(true), 20.0);
+    }
+
+    configGroup.writeEntry(QStringLiteral("strokePredictionExpiryMs"), 12.5);
+    configGroup.sync();
+
+    {
+        KisConfig config(true);
+        QCOMPARE(config.strokePredictionExpiryMs(), 12.5);
+    }
+
+    configGroup.writeEntry(QStringLiteral("strokePredictionExpiryMs"), 3.0);
+    configGroup.sync();
+
+    {
+        KisConfig config(true);
+        QCOMPARE(config.strokePredictionExpiryMs(), 5.0);
+    }
+
+    configGroup.writeEntry(QStringLiteral("strokePredictionExpiryMs"), 200.0);
+    configGroup.sync();
+
+    {
+        KisConfig config(true);
+        QCOMPARE(config.strokePredictionExpiryMs(), 100.0);
+    }
 }
 
 QTEST_GUILESS_MAIN(KisConfigCompatibilityTest)

@@ -64,6 +64,8 @@ class KisStrokePredictionReplayContractTest : public QObject
 private Q_SLOTS:
     void stopOvershootFollowsTheCap();
     void fixedExpiryDoesNotExpireMidStroke();
+    void shorterExpiryShortensTheVisibleStop();
+    void expiryBelowTheArrivalGapExpiresMidStroke();
     void gapExpiryExpiresBetweenBursts();
     void decelerationFactorKeepsSteadyAhead();
     void cappedPredictionErrorIsTheLeadMinusTheCap();
@@ -105,6 +107,58 @@ void KisStrokePredictionReplayContractTest::fixedExpiryDoesNotExpireMidStroke()
 
     QCOMPARE(report.midStrokeExpiry.n, 1);
     VERIFY_CLOSE(report.midStrokeExpiry.max, 0.0, 0.0);
+}
+
+void KisStrokePredictionReplayContractTest::shorterExpiryShortensTheVisibleStop()
+{
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.0, 8);
+
+    KisStrokePredictionReplaySettings longExpiry;
+    longExpiry.expiryMs = 20.0;
+
+    KisStrokePredictionReplaySettings shortExpiry;
+    shortExpiry.expiryMs = 5.0;
+
+    const KisStrokePredictionReplayReport longReport =
+        runKisStrokePredictionReplay(strokes, longExpiry);
+    const KisStrokePredictionReplayReport shortReport =
+        runKisStrokePredictionReplay(strokes, shortExpiry);
+
+    QCOMPARE(longReport.stopVisibleMs.n, 1);
+    QCOMPARE(shortReport.stopVisibleMs.n, 1);
+    QVERIFY(shortReport.stopVisibleMs.max < longReport.stopVisibleMs.max);
+
+    const QJsonObject json =
+        kisStrokePredictionReplayReportJson(shortReport, shortExpiry);
+    QCOMPARE(json.value(QStringLiteral("replay.stop_visible_ms"))
+                 .toObject()
+                 .value(QStringLiteral("max"))
+                 .toDouble(),
+             double(shortReport.stopVisibleMs.max));
+    QVERIFY(json.contains(QStringLiteral("replay.stop_excess_area_px_ms")));
+}
+
+void KisStrokePredictionReplayContractTest::expiryBelowTheArrivalGapExpiresMidStroke()
+{
+    // One sample per frame: the idle gap is the frame interval.
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 16.7, 8);
+
+    KisStrokePredictionReplaySettings below;
+    below.expiryMs = 16.0;
+
+    const KisStrokePredictionReplayReport expired =
+        runKisStrokePredictionReplay(strokes, below);
+    QCOMPARE(expired.midStrokeExpiry.n, 1);
+    QVERIFY(expired.midStrokeExpiry.sum >= 1.0);
+
+    KisStrokePredictionReplaySettings above;
+    above.expiryMs = 17.0;
+
+    const KisStrokePredictionReplayReport kept =
+        runKisStrokePredictionReplay(strokes, above);
+    VERIFY_CLOSE(kept.midStrokeExpiry.sum, 0.0, 0.0);
 }
 
 void KisStrokePredictionReplayContractTest::gapExpiryExpiresBetweenBursts()
