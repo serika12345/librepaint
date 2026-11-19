@@ -92,6 +92,22 @@ kis_add_test(
 target_compile_definitions(KisLinearStrokePredictorContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisKalmanStrokePredictorContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsstrokepredictionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisKalmanStrokePredictorContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
+    KisStrokeSampleHistoryContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsstrokepredictionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStrokeSampleHistoryContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
     KisStrokePredictionCapContractTest.cpp
     LINK_LIBRARIES
         kritatoolsstrokepredictionobjects
