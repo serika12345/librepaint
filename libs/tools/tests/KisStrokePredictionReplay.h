@@ -17,6 +17,7 @@ class QJsonObject;
  * arguments of KisStrokePredictionReplay.
  */
 struct KisStrokePredictionReplaySettings {
+    QString predictor = QStringLiteral("linear"); // the predictor under test
     qreal horizonMs = 16.7;
     qreal anchorMs = 24.0;
     qreal diameter = 10.0;

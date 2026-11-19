@@ -19,7 +19,7 @@ void printUsage()
 {
     std::fprintf(stderr,
                  "usage: KisStrokePredictionReplay --input FILE --output FILE\n"
-                 "         [--horizon-ms 16.7] [--anchor-ms 24] [--diameter 10]\n"
+                 "         [--predictor linear] [--horizon-ms 16.7] [--anchor-ms 24] [--diameter 10]\n"
                  "         [--cap-diameters 3] [--decel on|off]\n"
                  "         [--expiry fixed|gap] [--gap-reset-ms 20]\n"
                  "         [--frame-ms 16.667] [--pipeline-ms 0]\n");
@@ -46,6 +46,12 @@ int main(int argc, char **argv)
             inputPath = value;
         } else if (argument == QStringLiteral("--output")) {
             outputPath = value;
+        } else if (argument == QStringLiteral("--predictor")) {
+            if (value == QStringLiteral("linear")) {
+                settings.predictor = value;
+            } else {
+                ok = false;
+            }
         } else if (argument == QStringLiteral("--horizon-ms")) {
             settings.horizonMs = value.toDouble(&ok);
         } else if (argument == QStringLiteral("--anchor-ms")) {

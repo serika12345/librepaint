@@ -5,7 +5,9 @@
 
 #include "KisStrokePredictionReplay.h"
 
+#include "KisLinearStrokePredictor.h"
 #include "KisStrokePrediction.h"
+#include "KisStrokePredictionCap.h"
 
 #include <QFile>
 #include <QJsonObject>
@@ -71,17 +73,16 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
     timeline.predictionAtSample.resize(ordered.size());
     timeline.predictionValid.fill(false, ordered.size());
 
-    KisStrokePrediction predictor;
     KisStrokePredictionSettings predictorSettings;
     predictorSettings.horizonMs = settings.horizonMs;
     predictorSettings.anchorMs = settings.anchorMs;
-    predictorSettings.maxMovePx =
-        settings.capDiameters > 0.0 ? settings.capDiameters * settings.diameter : 0.0;
     if (!settings.decel) {
         predictorSettings.decelRatioZero = 0.0;
         predictorSettings.decelRatioFull = 0.01;
     }
-    predictor.setSettings(predictorSettings);
+    KisLinearStrokePredictor predictor(predictorSettings);
+    const qreal maxMovePx =
+        settings.capDiameters > 0.0 ? settings.capDiameters * settings.diameter : 0.0;
 
     const qreal lastArrivalMs = ordered.constLast().arrivalMs;
 
@@ -104,8 +105,14 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
             pendingExpiryMs = -1.0;
         }
 
-        predictor.addSample(sample.position, sample.eventMs, sample.pressure);
-        const KisStrokePredictionResult result = predictor.predict();
+        KisStrokePredictionSample predictionSample;
+        predictionSample.documentPos = sample.position;
+        predictionSample.timeMs = sample.eventMs;
+        predictionSample.pressure = sample.pressure;
+        predictor.addSample(predictionSample);
+
+        KisStrokePredictionResult result = predictor.predict(settings.horizonMs);
+        KisStrokePredictionCap::apply(result, maxMovePx);
         const bool valid = result.valid && !result.polyline.isEmpty();
 
         timeline.predictionValid[i] = valid;
@@ -394,6 +401,7 @@ QJsonObject kisStrokePredictionReplayReportJson(
     const KisStrokePredictionReplaySettings &settings)
 {
     QJsonObject arguments;
+    arguments.insert(QStringLiteral("predictor"), settings.predictor);
     arguments.insert(QStringLiteral("horizon_ms"), settings.horizonMs);
     arguments.insert(QStringLiteral("anchor_ms"), settings.anchorMs);
     arguments.insert(QStringLiteral("diameter"), settings.diameter);
