@@ -200,9 +200,9 @@ public:
 | --- | --- | --- | --- |
 | A：測定の修正 | 減速して止まる試験軌跡、停止後の指標、予測の消去の理由の集計 | `l2p.stop_overshoot_px`と`l2p.stop_retract_px`の測定の信頼性 | Pythonの試験が通り、既存の指標の値が保たれる |
 | B：再生器 | 記録から、今の`KisStrokePrediction`、期限、フレームの時計を再生する。記録にイベントの時刻を足す | すべての`l2p.*`の評価 | 既存の取り込みの記録から、取り込みの指標と同じ向きの結果が出る |
-| C：共通インターフェースと自前のKalman | `KisStrokePredictor`、`KisStrokeSampleHistory`、`KisLinearStrokePredictor`、`KisKalmanStrokePredictor`、`KisStrokePredictionCap`、`KisStrokePredictorFactory`、ツールの切り替え、記録の印を作り、再生器で比べ、Linuxで計測する | `l2p.residual_px`、`l2p.stop_overshoot_px`、`l2p.stop_retract_px` | 同じ入力の列で、旧`KisStrokePrediction`と`KisLinearStrokePredictor`の折れ線、`latestIndex`、信頼度が一致する契約テストが通る。Kalmanが`l2p-prediction-stop-overshoot.md`の段階3の合格条件を満たす |
+| C：共通インターフェースと自前のKalman | `KisStrokePredictor`、`KisLinearStrokePredictor`、`KisKalmanStrokePredictor`、`KisStrokePredictionCap`、`KisStrokePredictorFactory`、ツールの切り替え、記録の印を作り、再生器で比べ、Linuxで計測する | `l2p.residual_px`、`l2p.stop_overshoot_px`、`l2p.stop_retract_px` | 同じ入力の列で、旧`KisStrokePrediction`と`KisLinearStrokePredictor`の折れ線、`latestIndex`、信頼度が一致する契約テストが通る。Kalmanが`l2p-prediction-stop-overshoot.md`の段階3の合格条件を満たす |
 | D：WindowsとmacOS | 同じ計測を行う | 同上 | 同上 |
-| E：iPadOS | `KisPlatformPredictionBuffer`、`KisPlatformStrokePredictor`、iOSの供給元 | 同上 | 実機で予測点の取得、描画、消去を確かめ、キーの一致率が99%以上になる。性能はL3で測る |
+| E：iPadOS | `KisStrokeSampleHistory`、`KisPlatformPredictionBuffer`、`KisPlatformStrokePredictor`、iOSの供給元 | 同上 | 実機で予測点の取得、描画、消去を確かめ、キーの一致率が99%以上になる。性能はL3で測る |
 | F：Android | 受け口と実装の選択の分岐 | 利用者の決定の5点目による。指標は、Android機での内部の実装の段階で測る | 構築が通り、Androidで自前の予測器が選ばれる |
 
 ## 既知の制約
