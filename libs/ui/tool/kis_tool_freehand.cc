@@ -340,7 +340,8 @@ void KisToolFreehand::startPrediction(KoPointerEvent *event)
     m_predictionMaxMovePx = cfg.strokePredictionMaxMoveDiameters() * currentPaintOpPreset()->settings()->paintOpSize();
     m_predictionSettings = settings;
 
-    m_predictor = KisStrokePredictorFactory::create(*event, m_predictionSettings);
+    m_predictor = KisStrokePredictorFactory::create(*event, m_predictionSettings,
+                                                    cfg.strokePredictionPredictor());
     m_predictor->reset();
     KisLatencyProbe::mark("prediction_source", 0, 0, int(m_predictor->source()));
 

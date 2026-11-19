@@ -669,6 +669,9 @@ public:
     /// is clamped by KisStrokePrediction::setSettings().
     qreal strokePredictionAnchorMs(bool defaultValue = false) const;
     qreal strokePredictionMaxMoveDiameters(bool defaultValue = false) const;
+    /// Hidden setting: the predictor of the stroke, "linear" or "kalman".
+    /// Every other value means "linear".
+    QString strokePredictionPredictor(bool defaultValue = false) const;
 
     void setDisableVectorOptimizations(bool value);
     bool disableVectorOptimizations(bool defaultValue = false) const;

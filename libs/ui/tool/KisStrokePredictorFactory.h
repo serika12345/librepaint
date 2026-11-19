@@ -9,6 +9,7 @@
 #include <KisStrokePrediction.h>
 #include <KisStrokePredictor.h>
 
+#include <QString>
 #include <memory>
 
 #include "kritaui_export.h"
@@ -22,10 +23,12 @@ class KoPointerEvent;
 class KRITAUI_EXPORT KisStrokePredictorFactory
 {
 public:
-    /// The press decides the platform predictor in later work; every press
-    /// uses the linear predictor for now.
+    /// The press decides the platform predictor in later work. predictorName
+    /// is the hidden setting: "kalman" selects the Kalman predictor, every
+    /// other value the linear one.
     static std::unique_ptr<KisStrokePredictor> create(const KoPointerEvent &press,
-                                                      const KisStrokePredictionSettings &settings);
+                                                      const KisStrokePredictionSettings &settings,
+                                                      const QString &predictorName = QStringLiteral("linear"));
 };
 
 #endif // KIS_STROKE_PREDICTOR_FACTORY_H

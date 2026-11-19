@@ -5,6 +5,7 @@
 
 #include "KisStrokePredictionReplay.h"
 
+#include "KisKalmanStrokePredictor.h"
 #include "KisLinearStrokePredictor.h"
 #include "KisStrokePrediction.h"
 #include "KisStrokePredictionCap.h"
@@ -16,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
 namespace
 {
@@ -80,7 +82,12 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
         predictorSettings.decelRatioZero = 0.0;
         predictorSettings.decelRatioFull = 0.01;
     }
-    KisLinearStrokePredictor predictor(predictorSettings);
+    std::unique_ptr<KisStrokePredictor> predictor;
+    if (settings.predictor == QStringLiteral("kalman")) {
+        predictor = std::make_unique<KisKalmanStrokePredictor>(predictorSettings);
+    } else {
+        predictor = std::make_unique<KisLinearStrokePredictor>(predictorSettings);
+    }
     const qreal maxMovePx =
         settings.capDiameters > 0.0 ? settings.capDiameters * settings.diameter : 0.0;
 
@@ -109,9 +116,9 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
         predictionSample.documentPos = sample.position;
         predictionSample.timeMs = sample.eventMs;
         predictionSample.pressure = sample.pressure;
-        predictor.addSample(predictionSample);
+        predictor->addSample(predictionSample);
 
-        KisStrokePredictionResult result = predictor.predict(settings.horizonMs);
+        KisStrokePredictionResult result = predictor->predict(settings.horizonMs);
         KisStrokePredictionCap::apply(result, maxMovePx);
         const bool valid = result.valid && !result.polyline.isEmpty();
 

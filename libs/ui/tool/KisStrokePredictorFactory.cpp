@@ -5,12 +5,18 @@
 
 #include "KisStrokePredictorFactory.h"
 
+#include <KisKalmanStrokePredictor.h>
 #include <KisLinearStrokePredictor.h>
 
 std::unique_ptr<KisStrokePredictor> KisStrokePredictorFactory::create(
     const KoPointerEvent &press,
-    const KisStrokePredictionSettings &settings)
+    const KisStrokePredictionSettings &settings,
+    const QString &predictorName)
 {
     Q_UNUSED(press);
+
+    if (predictorName == QStringLiteral("kalman")) {
+        return std::make_unique<KisKalmanStrokePredictor>(settings);
+    }
     return std::make_unique<KisLinearStrokePredictor>(settings);
 }

@@ -2407,6 +2407,14 @@ qreal KisConfig::strokePredictionMaxMoveDiameters(bool defaultValue) const
     return (defaultValue ? 3.0 : m_cfg.readEntry("strokePredictionMaxMoveDiameters", 3.0));
 }
 
+QString KisConfig::strokePredictionPredictor(bool defaultValue) const
+{
+    const QString value = defaultValue
+        ? QStringLiteral("linear")
+        : m_cfg.readEntry("strokePredictionPredictor", "linear");
+    return value == QStringLiteral("kalman") ? value : QStringLiteral("linear");
+}
+
 void KisConfig::setDisableVectorOptimizations(bool value)
 {
     // use the old key name for compatibility
