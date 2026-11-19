@@ -2407,6 +2407,13 @@ qreal KisConfig::strokePredictionMaxMoveDiameters(bool defaultValue) const
     return (defaultValue ? 3.0 : m_cfg.readEntry("strokePredictionMaxMoveDiameters", 3.0));
 }
 
+qreal KisConfig::strokePredictionExpiryMs(bool defaultValue) const
+{
+    const qreal value = defaultValue ? 20.0
+                                     : m_cfg.readEntry("strokePredictionExpiryMs", 20.0);
+    return qBound(5.0, value, 100.0);
+}
+
 QString KisConfig::strokePredictionPredictor(bool defaultValue) const
 {
     const QString value = defaultValue

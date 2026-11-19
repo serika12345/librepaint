@@ -152,6 +152,7 @@ private:
     std::unique_ptr<KisStrokePredictor> m_predictor;
     KisStrokePredictionSettings m_predictionSettings;
     qreal m_predictionMaxMovePx {0.0};
+    qreal m_predictionExpiryMs {20.0};
     bool m_predictionActive {false};
     QTimer *m_predictionExpiry {nullptr};
 

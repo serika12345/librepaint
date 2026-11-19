@@ -338,6 +338,7 @@ void KisToolFreehand::startPrediction(KoPointerEvent *event)
     settings.horizonMs = cfg.strokePredictionHorizonMs();
     settings.anchorMs = cfg.strokePredictionAnchorMs();
     m_predictionMaxMovePx = cfg.strokePredictionMaxMoveDiameters() * currentPaintOpPreset()->settings()->paintOpSize();
+    m_predictionExpiryMs = cfg.strokePredictionExpiryMs();
     m_predictionSettings = settings;
 
     m_predictor = KisStrokePredictorFactory::create(*event, m_predictionSettings,
@@ -414,7 +415,7 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         connect(m_predictionExpiry, &QTimer::timeout, this, [this]() { expirePrediction(); });
     }
 
-    m_predictionExpiry->start(qRound(m_predictionSettings.gapResetMs));
+    m_predictionExpiry->start(qRound(m_predictionExpiryMs));
 }
 
 void KisToolFreehand::expirePrediction()

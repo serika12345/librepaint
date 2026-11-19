@@ -669,6 +669,9 @@ public:
     /// is clamped by KisStrokePrediction::setSettings().
     qreal strokePredictionAnchorMs(bool defaultValue = false) const;
     qreal strokePredictionMaxMoveDiameters(bool defaultValue = false) const;
+    /// Hidden setting: how long the prediction line stays on screen after the
+    /// last pointer event, clamped to [5, 100] ms.
+    qreal strokePredictionExpiryMs(bool defaultValue = false) const;
     /// Hidden setting: the predictor of the stroke, "linear", "kalman" or
     /// "kalman-jerk". Every other value means "kalman".
     QString strokePredictionPredictor(bool defaultValue = false) const;
