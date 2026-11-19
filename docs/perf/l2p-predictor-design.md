@@ -113,7 +113,10 @@ public:
 
 ### 自前の予測器
 
-- 1次線形の予測器に加えて、Androidの方式に沿ったKalmanフィルタの予測器を作る。状態は位置、速度、加速度、加速度の変化率の4つである。AndroidXのソースでは、加速度の変化率を`jank`と呼んでいる。加速度の変化率が大きいほど信頼度を下げて予測を縮める。
+- 1次線形の予測器に加えて、ChromiumのKalmanの予測器を移植した予測器を作る。移植の元は`ui/base/prediction`の`kalman_predictor.cc`と`kalman_filter.cc`である。ChromiumのソースはBSD-3-Clauseで、移したファイルの冒頭にChromiumの著作権表示を残し、`SPDX-License-Identifier: BSD-3-Clause`を付ける。
+- 状態は位置、速度、加速度の3つで、軸ごとにフィルタを持つ。時間の刻みは前の実点からの間隔のmsで、その間隔も別のKalmanフィルタでならした値を使う。前の実点から20msを超えて空いたら、すべてを初めの状態に戻す。
+- 更新が4回以上で予測を出す。予測点は1つで、最新の実点に「速度×予測の長さ＋0.5×加速度×予測の長さの2乗」を足した位置である。信頼度は、`KisStrokePrediction`と同じ式の速さの係数と筆圧の係数の積にする。移動量の上限は`KisStrokePredictionCap`でかけ、起点の折れ線は`KisStrokeSampleHistory`から作る。
+- Androidの方式より移植を選ぶ理由は3つである。ライセンスの扱いが明確であること、時間の刻みに実際の間隔を使うので予測の長さの設定をそのまま使えること、3行3列の行列だけで済み行数が小さいことである。
 - 予測の長さには、今の`horizonMs`と同じく8msから25msの範囲の切り詰めをかける。
 - 1次線形の実装は、再生器と計測での比較が終わるまで`KisLinearStrokePredictor`として残す。Kalmanの実装が`l2p-prediction-stop-overshoot.md`の段階3の合格条件を満たした時点で削除する。
 
