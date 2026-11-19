@@ -23,7 +23,9 @@ struct KisStrokePredictionSample {
 };
 
 /// Which implementation produced a prediction.
-enum class KisStrokePredictionSource { None = 0, Linear = 1, Kalman = 2, IosSystem = 3, AndroidSystem = 4 };
+enum class KisStrokePredictionSource {
+    None = 0, Linear = 1, Kalman = 2, IosSystem = 3, AndroidSystem = 4, KalmanJerk = 5
+};
 
 /**
  * Common interface of the stroke predictors. The tool owns one predictor for

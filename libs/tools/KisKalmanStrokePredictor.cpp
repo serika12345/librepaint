@@ -18,6 +18,11 @@ namespace
 /// filters start again.
 constexpr qreal MaximumTimeDeltaMs = 20.0;
 
+/// AndroidX: the change of the estimated acceleration, in px per sample, at
+/// which the confidence is left alone, and the one at which it reaches zero.
+constexpr qreal JerkZeroPx = 0.1;
+constexpr qreal JerkFullPx = 0.2;
+
 qreal clampValue(qreal value, qreal minimum, qreal maximum)
 {
     return std::min(std::max(value, minimum), maximum);
@@ -27,6 +32,13 @@ qreal smoothStep(qreal normalized)
 {
     const qreal c = clampValue(normalized, 0.0, 1.0);
     return c * c * (3.0 - 2.0 * c);
+}
+
+/// 1 while the acceleration is steady, falling to 0 at a change of JerkFullPx
+/// or more.
+qreal jerkFactor(qreal jerkPx)
+{
+    return 1.0 - clampValue((jerkPx - JerkZeroPx) / (JerkFullPx - JerkZeroPx), 0.0, 1.0);
 }
 
 KisStrokePredictionSettings clampSettings(const KisStrokePredictionSettings &settings)
@@ -58,8 +70,9 @@ KisStrokePredictionSettings clampSettings(const KisStrokePredictionSettings &set
 
 struct KisKalmanStrokePredictor::Private
 {
-    Private(const KisStrokePredictionSettings &input)
+    Private(const KisStrokePredictionSettings &input, bool inputJerkEnabled)
         : settings(clampSettings(input))
+        , jerkEnabled(inputJerkEnabled)
         , history(std::max(settings.velocityWindowMs, settings.decelLongWindowMs),
                   settings.anchorMs,
                   settings.gapResetMs)
@@ -71,17 +84,25 @@ struct KisKalmanStrokePredictor::Private
         xAxis.reset();
         yAxis.reset();
         intervals.reset();
+        jerkPx = 0.0;
+        hasAcceleration = false;
     }
 
     KisStrokePredictionSettings settings;
+    bool jerkEnabled = false;
     KisStrokeSampleHistory history;
     KisKalmanFilter xAxis;
     KisKalmanFilter yAxis;
     KisKalmanFilter intervals;
+    qreal jerkPx = 0.0;           // acceleration change of the latest update
+    qreal lastAccelerationX = 0.0;
+    qreal lastAccelerationY = 0.0;
+    bool hasAcceleration = false;
 };
 
-KisKalmanStrokePredictor::KisKalmanStrokePredictor(const KisStrokePredictionSettings &settings)
-    : m_d(new Private(settings))
+KisKalmanStrokePredictor::KisKalmanStrokePredictor(const KisStrokePredictionSettings &settings,
+                                                   bool jerkEnabled)
+    : m_d(new Private(settings, jerkEnabled))
 {
 }
 
@@ -121,6 +142,21 @@ void KisKalmanStrokePredictor::addSample(const KisStrokePredictionSample &sample
     const qreal dtMs = d.intervals.position();
     d.xAxis.update(sample.documentPos.x(), dtMs);
     d.yAxis.update(sample.documentPos.y(), dtMs);
+
+    if (d.jerkEnabled) {
+        const qreal accelerationX = d.xAxis.acceleration();
+        const qreal accelerationY = d.yAxis.acceleration();
+        if (d.hasAcceleration) {
+            d.jerkPx = std::hypot(accelerationX - d.lastAccelerationX,
+                                  accelerationY - d.lastAccelerationY)
+                * dtMs * dtMs;
+        } else {
+            d.jerkPx = 0.0;
+        }
+        d.lastAccelerationX = accelerationX;
+        d.lastAccelerationY = accelerationY;
+        d.hasAcceleration = true;
+    }
 }
 
 KisStrokePredictionResult KisKalmanStrokePredictor::predict(qreal horizonMs) const
@@ -141,6 +177,9 @@ KisStrokePredictionResult KisKalmanStrokePredictor::predict(qreal horizonMs) con
         (d.settings.pressureFull - d.settings.pressureZero));
 
     result.confidence = speedFactor * pressureFactor;
+    if (d.jerkEnabled) {
+        result.confidence *= jerkFactor(d.jerkPx);
+    }
 
     const qreal predDt = clampValue(horizonMs, 8.0, 25.0) * result.confidence;
     const QPointF acceleration(d.xAxis.acceleration(), d.yAxis.acceleration());
@@ -162,5 +201,6 @@ KisStrokePredictionResult KisKalmanStrokePredictor::predict(qreal horizonMs) con
 
 KisStrokePredictionSource KisKalmanStrokePredictor::source() const
 {
-    return KisStrokePredictionSource::Kalman;
+    return m_d->jerkEnabled ? KisStrokePredictionSource::KalmanJerk
+                            : KisStrokePredictionSource::Kalman;
 }

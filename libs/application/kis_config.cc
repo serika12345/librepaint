@@ -2412,7 +2412,9 @@ QString KisConfig::strokePredictionPredictor(bool defaultValue) const
     const QString value = defaultValue
         ? QStringLiteral("linear")
         : m_cfg.readEntry("strokePredictionPredictor", "linear");
-    return value == QStringLiteral("kalman") ? value : QStringLiteral("linear");
+    return value == QStringLiteral("kalman") || value == QStringLiteral("kalman-jerk")
+        ? value
+        : QStringLiteral("linear");
 }
 
 void KisConfig::setDisableVectorOptimizations(bool value)

@@ -26,11 +26,18 @@
  * KisStrokeSampleHistory. The maximum move is left to KisStrokePredictionCap,
  * so the settings lose their maxMovePx, and the deceleration settings are not
  * used.
+ *
+ * With jerkEnabled the confidence is multiplied by the jerk factor of
+ * AndroidX: a change of the estimated acceleration of 0.1 px per sample
+ * leaves it alone and 0.2 px per sample removes it. The result keeps the
+ * Kalman source, and source() reports KalmanJerk so that the latency probe
+ * can tell the two settings apart.
  */
 class KRITATOOLS_EXPORT KisKalmanStrokePredictor : public KisStrokePredictor
 {
 public:
-    explicit KisKalmanStrokePredictor(const KisStrokePredictionSettings &settings);
+    explicit KisKalmanStrokePredictor(const KisStrokePredictionSettings &settings,
+                                      bool jerkEnabled = false);
     ~KisKalmanStrokePredictor() override;
 
     void reset() override;
