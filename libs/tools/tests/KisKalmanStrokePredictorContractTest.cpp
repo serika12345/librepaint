@@ -3,6 +3,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisKalmanFilter.h"
 #include "KisKalmanStrokePredictor.h"
 #include "KisLinearStrokePredictor.h"
 #include "KisStrokePrediction.h"
@@ -76,6 +77,7 @@ private Q_SLOTS:
     void aSmoothStopMovesLessThanTheLinearPredictor();
     void aGapOfTwentyMillisecondsIsInvalid();
     void sourceIsKalman();
+    void twoUpdatesFollowTheChromiumFormulas();
 };
 
 void KisKalmanStrokePredictorContractTest::constantSpeedReachesTheHorizon()
@@ -168,6 +170,38 @@ void KisKalmanStrokePredictorContractTest::sourceIsKalman()
     const KisStrokePredictionResult result = predictor.predict(HorizonMs);
     QVERIFY(result.valid);
     QCOMPARE(result.source, KisStrokePredictionSource::Kalman);
+}
+
+void KisKalmanStrokePredictorContractTest::twoUpdatesFollowTheChromiumFormulas()
+{
+    // Chromium's KalmanFilter::Update() with the observations 100 and 120 at
+    // 4.17 ms apart. The expected values come from the equations and the
+    // constants of ui/base/prediction/kalman_filter.cc.
+    KisKalmanFilter filter;
+    filter.update(100.0, 0.0);
+    filter.update(120.0, 4.17);
+
+    const KisKalmanFilter::Vector3 state = filter.state();
+    QVERIFY(std::abs(state.x - 119.791097178885) <= 1e-9);
+    QVERIFY(std::abs(state.y - 8.520814975888097) <= 1e-9);
+    QVERIFY(std::abs(state.z - 1.8344580843737515) <= 1e-9);
+
+    const qreal expected[3][3] = {
+        {0.98955485894425, 0.4260407487944049, 0.09172290421868756},
+        {0.4260407487944049, 1.1852621035704118, 0.4704681117609309},
+        {0.09172290421868758, 0.4704681117609308, 0.20454499336999016},
+    };
+
+    const KisKalmanFilter::Matrix3 covariance = filter.covariance();
+    for (int row = 0; row < 3; ++row) {
+        for (int column = 0; column < 3; ++column) {
+            const qreal difference = std::abs(covariance.values[row][column]
+                                              - expected[row][column]);
+            QVERIFY2(difference <= 1e-9,
+                     qPrintable(QStringLiteral("covariance %1,%2 differs by %3")
+                                    .arg(row).arg(column).arg(difference)));
+        }
+    }
 }
 
 QTEST_GUILESS_MAIN(KisKalmanStrokePredictorContractTest)

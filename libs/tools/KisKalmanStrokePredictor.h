@@ -1,6 +1,7 @@
 /*
+ *  SPDX-FileCopyrightText: 2018 The Chromium Authors
  *  SPDX-FileCopyrightText: 2026 LibrePaint contributors
- *  SPDX-License-Identifier: GPL-2.0-or-later
+ *  SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef KIS_KALMAN_STROKE_PREDICTOR_H
@@ -14,12 +15,17 @@
 #include <kritatools_export.h>
 
 /**
- * A Kalman predictor of the stroke end with four states per axis: position,
- * velocity, acceleration and the change of the acceleration, following the
- * AndroidX stroke predictor. The confidence falls when the change of the
- * acceleration is large, so a stroke that starts or stops is predicted less
- * far. The maximum move is left to KisStrokePredictionCap, so the settings
- * lose their maxMovePx, and the deceleration settings are not used.
+ * The Kalman predictor of the stroke end, ported from Chromium's
+ * ui/base/prediction/kalman_predictor. It holds a filter for each axis and a
+ * third filter that smooths the interval between samples.
+ *
+ * The prediction is one point at the latest real point plus
+ * velocity * pred_dt + 0.5 * acceleration * pred_dt^2, where pred_dt is the
+ * horizon times the confidence. The confidence is the speed factor and the
+ * pressure factor of KisStrokePrediction. The anchor polyline comes from
+ * KisStrokeSampleHistory. The maximum move is left to KisStrokePredictionCap,
+ * so the settings lose their maxMovePx, and the deceleration settings are not
+ * used.
  */
 class KRITATOOLS_EXPORT KisKalmanStrokePredictor : public KisStrokePredictor
 {

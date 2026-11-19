@@ -23,6 +23,7 @@ set_target_properties(kritatoolsspeedsmootherobjects PROPERTIES
 )
 
 add_library(kritatoolsstrokepredictionobjects OBJECT
+    KisKalmanFilter.cpp
     KisKalmanStrokePredictor.cpp
     KisLinearStrokePredictor.cpp
     KisStrokePrediction.cpp
