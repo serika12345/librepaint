@@ -24,7 +24,8 @@ struct KisStrokePredictionReplaySettings {
     qreal capDiameters = 3.0;        // 0 = no cap
     bool decel = true;               // false = deceleration factor off
     bool gapExpiry = false;          // false = fixed expiry, true = gap expiry
-    qreal gapResetMs = 20.0;         // deadline of the fixed expiry
+    qreal gapResetMs = 20.0;         // --gap-reset-ms, reported as an argument
+    qreal expiryMs = 20.0;           // deadline of the fixed expiry
     qreal frameMs = 16.667;
     qreal pipelineMs = 0.0;
 };
@@ -50,11 +51,18 @@ struct KisStrokePredictionReplayStat {
     qreal p50 = 0.0;
     qreal p95 = 0.0;
     qreal max = 0.0;
+    qreal sum = 0.0;
 };
 
 struct KisStrokePredictionReplayReport {
     KisStrokePredictionReplayStat stopOvershootPx;
     KisStrokePredictionReplayStat stopRetractPx;
+    /// From the arrival of the last sample to the frame that shows no
+    /// prediction, capped at the 200 ms window after the last sample.
+    KisStrokePredictionReplayStat stopVisibleMs;
+    /// Sum over the frames after the last sample of the positive part of the
+    /// stop projection times the frame interval.
+    KisStrokePredictionReplayStat stopExcessAreaPxMs;
     KisStrokePredictionReplayStat aheadPx;
     KisStrokePredictionReplayStat predictionErrorPx;
     KisStrokePredictionReplayStat midStrokeExpiry;

@@ -42,7 +42,7 @@ qreal medianOf(QVector<qreal> values)
 qreal expiryDeadlineMs(const QVector<qreal> &intervals,
                        const KisStrokePredictionReplaySettings &settings)
 {
-    if (!settings.gapExpiry) return settings.gapResetMs;
+    if (!settings.gapExpiry) return settings.expiryMs;
 
     QVector<qreal> recent;
     const int first = std::max(0, int(intervals.size()) - GapIntervalCount);
@@ -58,6 +58,7 @@ struct DisplayStep {
     qreal timeMs = 0.0;
     QPointF lastReal;
     QPointF end;
+    bool predicted = false;
 };
 
 /// Frames collected after the last sample arrived, in frame order.
@@ -133,6 +134,7 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
         step.timeMs = sample.arrivalMs;
         step.lastReal = sample.position;
         step.end = valid ? result.polyline.constLast() : sample.position;
+        step.predicted = valid;
         timeline.steps.append(step);
 
         lastReal = sample.position;
@@ -191,6 +193,10 @@ KisStrokePredictionReplayStat summarize(QVector<qreal> values)
         : (values.at(size / 2 - 1) + values.at(size / 2)) / 2.0;
     stat.p95 = values.at(std::min(size - 1, int(0.95 * size)));
     stat.max = values.constLast();
+    stat.sum = 0.0;
+    for (qreal value : values) {
+        stat.sum += value;
+    }
 
     return stat;
 }
@@ -203,19 +209,28 @@ QJsonObject statJson(const KisStrokePredictionReplayStat &stat)
         object.insert(QStringLiteral("p50"), stat.p50);
         object.insert(QStringLiteral("p95"), stat.p95);
         object.insert(QStringLiteral("max"), stat.max);
+        object.insert(QStringLiteral("sum"), stat.sum);
     }
     return object;
 }
 
+/// One frame after the last sample arrived: when the frame is drawn, the line
+/// end projected on the stop direction, and whether it shows a prediction.
+struct StopFrame {
+    qreal timeMs = 0.0;
+    qreal projection = 0.0;
+    bool predicted = false;
+};
+
 /// Value of the line end after the last sample arrived, per frame. The frame
 /// shows the state that the samples and the expiries reached pipelineMs
 /// earlier.
-QVector<qreal> stopProjections(const QVector<KisStrokePredictionReplaySample> &ordered,
-                               const StrokeTimeline &timeline,
-                               const QPointF &direction,
-                               const KisStrokePredictionReplaySettings &settings)
+QVector<StopFrame> stopFrames(const QVector<KisStrokePredictionReplaySample> &ordered,
+                              const StrokeTimeline &timeline,
+                              const QPointF &direction,
+                              const KisStrokePredictionReplaySettings &settings)
 {
-    QVector<qreal> projections;
+    QVector<StopFrame> frames;
 
     const qreal firstArrivalMs = ordered.constFirst().arrivalMs;
     const qreal lastArrivalMs = ordered.constLast().arrivalMs;
@@ -237,11 +252,15 @@ QVector<qreal> stopProjections(const QVector<KisStrokePredictionReplaySample> &o
 
         if (shownMs < lastArrivalMs) continue;
 
-        const QPointF end = current ? current->end : lastPosition;
-        projections.append(projectOn(end - lastPosition, direction));
+        StopFrame stopFrame;
+        stopFrame.timeMs = frameMs;
+        stopFrame.projection = projectOn((current ? current->end : lastPosition) - lastPosition,
+                                         direction);
+        stopFrame.predicted = current && current->predicted;
+        frames.append(stopFrame);
     }
 
-    return projections;
+    return frames;
 }
 
 /// Projection and distance of the predicted point against the real position
@@ -354,6 +373,8 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
 {
     QVector<qreal> stopOvershoot;
     QVector<qreal> stopRetract;
+    QVector<qreal> stopVisible;
+    QVector<qreal> stopExcessArea;
     QVector<qreal> ahead;
     QVector<qreal> error;
     QVector<qreal> midStrokeExpiry;
@@ -372,26 +393,41 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
 
         const StrokeTimeline timeline = buildTimeline(ordered, settings);
         const QPointF direction = stopDirection(ordered);
-        const QVector<qreal> projections =
-            stopProjections(ordered, timeline, direction, settings);
+        const QVector<StopFrame> frames =
+            stopFrames(ordered, timeline, direction, settings);
+        const qreal lastArrivalMs = ordered.constLast().arrivalMs;
 
         qreal overshoot = 0.0;
         qreal retract = 0.0;
-        if (!projections.isEmpty()) {
+        if (!frames.isEmpty()) {
             int peak = 0;
-            for (int i = 1; i < projections.size(); ++i) {
-                if (projections.at(i) > projections.at(peak)) {
+            for (int i = 1; i < frames.size(); ++i) {
+                if (frames.at(i).projection > frames.at(peak).projection) {
                     peak = i;
                 }
             }
-            overshoot = std::max(0.0, projections.at(peak));
-            for (int i = peak; i + 1 < projections.size(); ++i) {
-                retract = std::max(retract, projections.at(i) - projections.at(i + 1));
+            overshoot = std::max(0.0, frames.at(peak).projection);
+            for (int i = peak; i + 1 < frames.size(); ++i) {
+                retract = std::max(retract,
+                                   frames.at(i).projection - frames.at(i + 1).projection);
+            }
+        }
+
+        qreal visibleMs = StopWindowMs;
+        qreal excessAreaPxMs = 0.0;
+        bool visibleFound = false;
+        for (const StopFrame &frame : frames) {
+            excessAreaPxMs += std::max(0.0, frame.projection) * settings.frameMs;
+            if (!visibleFound && !frame.predicted) {
+                visibleMs = frame.timeMs - lastArrivalMs;
+                visibleFound = true;
             }
         }
 
         stopOvershoot.append(overshoot);
         stopRetract.append(retract);
+        stopVisible.append(visibleMs);
+        stopExcessArea.append(excessAreaPxMs);
         midStrokeExpiry.append(timeline.midStrokeExpiry);
 
         predictionSamples += timeline.predictionValid.size();
@@ -407,6 +443,8 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     KisStrokePredictionReplayReport report;
     report.stopOvershootPx = summarize(stopOvershoot);
     report.stopRetractPx = summarize(stopRetract);
+    report.stopVisibleMs = summarize(stopVisible);
+    report.stopExcessAreaPxMs = summarize(stopExcessArea);
     report.aheadPx = summarize(ahead);
     report.predictionErrorPx = summarize(error);
     report.midStrokeExpiry = summarize(midStrokeExpiry);
@@ -431,6 +469,7 @@ QJsonObject kisStrokePredictionReplayReportJson(
     arguments.insert(QStringLiteral("expiry"), settings.gapExpiry ? QStringLiteral("gap")
                                                                  : QStringLiteral("fixed"));
     arguments.insert(QStringLiteral("gap_reset_ms"), settings.gapResetMs);
+    arguments.insert(QStringLiteral("expiry_ms"), settings.expiryMs);
     arguments.insert(QStringLiteral("frame_ms"), settings.frameMs);
     arguments.insert(QStringLiteral("pipeline_ms"), settings.pipelineMs);
 
@@ -438,6 +477,9 @@ QJsonObject kisStrokePredictionReplayReportJson(
     root.insert(QStringLiteral("arguments"), arguments);
     root.insert(QStringLiteral("replay.stop_overshoot_px"), statJson(report.stopOvershootPx));
     root.insert(QStringLiteral("replay.stop_retract_px"), statJson(report.stopRetractPx));
+    root.insert(QStringLiteral("replay.stop_visible_ms"), statJson(report.stopVisibleMs));
+    root.insert(QStringLiteral("replay.stop_excess_area_px_ms"),
+                statJson(report.stopExcessAreaPxMs));
     root.insert(QStringLiteral("replay.ahead_px"), statJson(report.aheadPx));
     root.insert(QStringLiteral("replay.pred_error_px"), statJson(report.predictionErrorPx));
     root.insert(QStringLiteral("replay.mid_stroke_expiry"), statJson(report.midStrokeExpiry));

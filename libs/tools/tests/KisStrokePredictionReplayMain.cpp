@@ -21,7 +21,7 @@ void printUsage()
                  "usage: KisStrokePredictionReplay --input FILE --output FILE\n"
                  "         [--predictor linear|kalman|kalman-jerk] [--horizon-ms 16.7] [--anchor-ms 24] [--diameter 10]\n"
                  "         [--cap-diameters 3] [--decel on|off]\n"
-                 "         [--expiry fixed|gap] [--gap-reset-ms 20]\n"
+                 "         [--expiry fixed|gap] [--expiry-ms 20] [--gap-reset-ms 20]\n"
                  "         [--frame-ms 16.667] [--pipeline-ms 0]\n");
 }
 } // namespace
@@ -31,6 +31,7 @@ int main(int argc, char **argv)
     KisStrokePredictionReplaySettings settings;
     QString inputPath;
     QString outputPath;
+    bool expiryGiven = false;
 
     for (int i = 1; i < argc; ++i) {
         const QString argument = QString::fromLocal8Bit(argv[i]);
@@ -79,6 +80,9 @@ int main(int argc, char **argv)
             }
         } else if (argument == QStringLiteral("--gap-reset-ms")) {
             settings.gapResetMs = value.toDouble(&ok);
+        } else if (argument == QStringLiteral("--expiry-ms")) {
+            settings.expiryMs = value.toDouble(&ok);
+            expiryGiven = true;
         } else if (argument == QStringLiteral("--frame-ms")) {
             settings.frameMs = value.toDouble(&ok);
         } else if (argument == QStringLiteral("--pipeline-ms")) {
@@ -93,6 +97,12 @@ int main(int argc, char **argv)
             std::fprintf(stderr, "bad value for %s\n", argv[i - 1]);
             return 2;
         }
+    }
+
+    // The fixed expiry starts at the gap reset value, so the earlier runs of
+    // the replay keep their numbers when --expiry-ms is not given.
+    if (!expiryGiven) {
+        settings.expiryMs = settings.gapResetMs;
     }
 
     if (inputPath.isEmpty() || outputPath.isEmpty()) {
