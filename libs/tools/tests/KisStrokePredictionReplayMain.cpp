@@ -22,7 +22,8 @@ void printUsage()
                  "         [--predictor linear|kalman|kalman-jerk] [--horizon-ms 16.7] [--anchor-ms 24] [--diameter 10]\n"
                  "         [--cap-diameters 3] [--decel on|off]\n"
                  "         [--expiry fixed|gap] [--expiry-ms 20] [--gap-reset-ms 20]\n"
-                 "         [--frame-ms 16.667] [--pipeline-ms 0]\n");
+                 "         [--frame-ms 16.667] [--pipeline-ms 0]\n"
+                 "         [--dump-samples FILE]\n");
 }
 } // namespace
 
@@ -31,6 +32,7 @@ int main(int argc, char **argv)
     KisStrokePredictionReplaySettings settings;
     QString inputPath;
     QString outputPath;
+    QString samplesPath;
     bool expiryGiven = false;
 
     for (int i = 1; i < argc; ++i) {
@@ -87,6 +89,9 @@ int main(int argc, char **argv)
             settings.frameMs = value.toDouble(&ok);
         } else if (argument == QStringLiteral("--pipeline-ms")) {
             settings.pipelineMs = value.toDouble(&ok);
+        } else if (argument == QStringLiteral("--dump-samples")) {
+            samplesPath = value;
+            settings.dumpSamples = true;
         } else {
             std::fprintf(stderr, "unknown argument %s\n", argv[i - 1]);
             printUsage();
@@ -119,6 +124,14 @@ int main(int argc, char **argv)
 
     const KisStrokePredictionReplayReport report =
         runKisStrokePredictionReplay(strokes, settings);
+
+    if (!samplesPath.isEmpty()) {
+        QString samplesError;
+        if (!writeKisStrokePredictionReplaySamples(samplesPath, report.samples, &samplesError)) {
+            std::fprintf(stderr, "%s\n", qPrintable(samplesError));
+            return 1;
+        }
+    }
 
     QFile file(outputPath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {

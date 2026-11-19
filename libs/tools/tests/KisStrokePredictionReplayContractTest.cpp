@@ -5,8 +5,11 @@
 
 #include "KisStrokePredictionReplay.h"
 
+#include <QFile>
 #include <QJsonObject>
 #include <QPointF>
+#include <QStringList>
+#include <QTemporaryDir>
 #include <QTest>
 
 namespace
@@ -70,6 +73,7 @@ private Q_SLOTS:
     void decelerationFactorKeepsSteadyAhead();
     void cappedPredictionErrorIsTheLeadMinusTheCap();
     void validPredictionsAreCounted();
+    void sampleDumpWritesOneRowPerPredictedSample();
 };
 
 void KisStrokePredictionReplayContractTest::stopOvershootFollowsTheCap()
@@ -253,6 +257,47 @@ void KisStrokePredictionReplayContractTest::validPredictionsAreCounted()
         runKisStrokePredictionReplay(single, settings);
     QCOMPARE(one.predictionSamples, 1);
     QCOMPARE(one.validPredictions, 0);
+}
+
+void KisStrokePredictionReplayContractTest::sampleDumpWritesOneRowPerPredictedSample()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const QString path = directory.filePath(QStringLiteral("samples.csv"));
+
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.17, 10);
+
+    KisStrokePredictionReplaySettings settings;
+    settings.predictor = QStringLiteral("kalman");
+    settings.dumpSamples = true;
+
+    const KisStrokePredictionReplayReport report =
+        runKisStrokePredictionReplay(strokes, settings);
+    QCOMPARE(report.samples.size(), report.predictionSamples);
+
+    QString error;
+    QVERIFY2(writeKisStrokePredictionReplaySamples(path, report.samples, &error),
+             qPrintable(error));
+
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QStringList lines =
+        QString::fromUtf8(file.readAll()).split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+    QCOMPARE(lines.size(), report.samples.size() + 1);
+    QCOMPARE(lines.constFirst(),
+             QStringLiteral("stroke,index,event_ms,arrival_ms,x,y,valid,speed,confidence"));
+
+    int validRows = 0;
+    for (int i = 1; i < lines.size(); ++i) {
+        const QStringList fields = lines.at(i).split(QLatin1Char(','));
+        QCOMPARE(fields.size(), 9);
+        if (fields.at(6) == QStringLiteral("1")) {
+            QVERIFY(fields.at(8).toDouble() > 0.0);
+            ++validRows;
+        }
+    }
+    QVERIFY(validRows > 0);
 }
 
 QTEST_GUILESS_MAIN(KisStrokePredictionReplayContractTest)

@@ -66,6 +66,8 @@ struct StrokeTimeline {
     QVector<DisplayStep> steps;
     QVector<QPointF> predictionAtSample;
     QVector<bool> predictionValid;
+    QVector<qreal> speedAtSample;
+    QVector<qreal> confidenceAtSample;
     int midStrokeExpiry = 0;
 };
 
@@ -75,6 +77,8 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
     StrokeTimeline timeline;
     timeline.predictionAtSample.resize(ordered.size());
     timeline.predictionValid.fill(false, ordered.size());
+    timeline.speedAtSample.fill(0.0, ordered.size());
+    timeline.confidenceAtSample.fill(0.0, ordered.size());
 
     KisStrokePredictionSettings predictorSettings;
     predictorSettings.horizonMs = settings.horizonMs;
@@ -122,6 +126,11 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
         predictor->addSample(predictionSample);
 
         KisStrokePredictionResult result = predictor->predict(settings.horizonMs);
+        // The dump keeps the values of predict(); the cap only shortens the
+        // move from the latest real point.
+        timeline.speedAtSample[i] = result.speed;
+        timeline.confidenceAtSample[i] = result.confidence;
+
         KisStrokePredictionCap::apply(result, maxMovePx);
         const bool valid = result.valid && !result.polyline.isEmpty();
 
@@ -378,10 +387,12 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     QVector<qreal> ahead;
     QVector<qreal> error;
     QVector<qreal> midStrokeExpiry;
+    QVector<KisStrokePredictionReplaySampleRecord> samples;
     int validPredictions = 0;
     int predictionSamples = 0;
 
-    for (const KisStrokePredictionReplayStroke &stroke : strokes) {
+    for (int strokeIndex = 0; strokeIndex < strokes.size(); ++strokeIndex) {
+        const KisStrokePredictionReplayStroke &stroke = strokes.at(strokeIndex);
         if (stroke.samples.isEmpty()) continue;
 
         QVector<KisStrokePredictionReplaySample> ordered = stroke.samples;
@@ -392,6 +403,22 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
                   });
 
         const StrokeTimeline timeline = buildTimeline(ordered, settings);
+
+        if (settings.dumpSamples) {
+            for (int i = 0; i < ordered.size(); ++i) {
+                KisStrokePredictionReplaySampleRecord record;
+                record.stroke = strokeIndex;
+                record.index = i;
+                record.eventMs = ordered.at(i).eventMs;
+                record.arrivalMs = ordered.at(i).arrivalMs;
+                record.position = ordered.at(i).position;
+                record.valid = timeline.predictionValid.at(i);
+                record.speed = timeline.speedAtSample.at(i);
+                record.confidence = timeline.confidenceAtSample.at(i);
+                samples.append(record);
+            }
+        }
+
         const QPointF direction = stopDirection(ordered);
         const QVector<StopFrame> frames =
             stopFrames(ordered, timeline, direction, settings);
@@ -450,8 +477,42 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     report.midStrokeExpiry = summarize(midStrokeExpiry);
     report.validPredictions = validPredictions;
     report.predictionSamples = predictionSamples;
+    report.samples = samples;
 
     return report;
+}
+
+bool writeKisStrokePredictionReplaySamples(
+    const QString &path,
+    const QVector<KisStrokePredictionReplaySampleRecord> &samples,
+    QString *error)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        *error = QStringLiteral("cannot write %1").arg(path);
+        return false;
+    }
+
+    QTextStream stream(&file);
+    stream << QStringLiteral("stroke,index,event_ms,arrival_ms,x,y,valid,speed,confidence\n");
+
+    for (const KisStrokePredictionReplaySampleRecord &sample : samples) {
+        stream << sample.stroke << QLatin1Char(',') << sample.index << QLatin1Char(',')
+               << QString::number(sample.eventMs, 'g', 10) << QLatin1Char(',')
+               << QString::number(sample.arrivalMs, 'g', 10) << QLatin1Char(',')
+               << QString::number(sample.position.x(), 'g', 10) << QLatin1Char(',')
+               << QString::number(sample.position.y(), 'g', 10) << QLatin1Char(',')
+               << (sample.valid ? 1 : 0) << QLatin1Char(',')
+               << QString::number(sample.speed, 'g', 10) << QLatin1Char(',')
+               << QString::number(sample.confidence, 'g', 10) << QLatin1Char('\n');
+    }
+
+    if (stream.status() != QTextStream::Ok) {
+        *error = QStringLiteral("cannot write %1").arg(path);
+        return false;
+    }
+
+    return true;
 }
 
 QJsonObject kisStrokePredictionReplayReportJson(

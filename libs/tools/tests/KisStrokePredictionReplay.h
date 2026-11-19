@@ -28,6 +28,7 @@ struct KisStrokePredictionReplaySettings {
     qreal expiryMs = 20.0;           // deadline of the fixed expiry
     qreal frameMs = 16.667;
     qreal pipelineMs = 0.0;
+    bool dumpSamples = false;        // --dump-samples: record every predicted sample
 };
 
 /**
@@ -54,6 +55,20 @@ struct KisStrokePredictionReplayStat {
     qreal sum = 0.0;
 };
 
+/// One sample of the replay on which the predictor was asked for a prediction.
+/// speed and confidence are the values that predict() returned, before the cap
+/// shortened the move.
+struct KisStrokePredictionReplaySampleRecord {
+    int stroke = 0;                  // position of the stroke in the input
+    int index = 0;                   // position of the sample in its stroke
+    qreal eventMs = 0.0;
+    qreal arrivalMs = 0.0;
+    QPointF position;
+    bool valid = false;
+    qreal speed = 0.0;
+    qreal confidence = 0.0;
+};
+
 struct KisStrokePredictionReplayReport {
     KisStrokePredictionReplayStat stopOvershootPx;
     KisStrokePredictionReplayStat stopRetractPx;
@@ -69,6 +84,9 @@ struct KisStrokePredictionReplayReport {
     /// Valid predictions and samples of every stroke, summed over the replay.
     int validPredictions = 0;
     int predictionSamples = 0;
+    /// One record per predicted sample, filled only when the settings ask for
+    /// the sample dump.
+    QVector<KisStrokePredictionReplaySampleRecord> samples;
 };
 
 /**
@@ -93,5 +111,15 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
 QJsonObject kisStrokePredictionReplayReportJson(
     const KisStrokePredictionReplayReport &report,
     const KisStrokePredictionReplaySettings &settings);
+
+/**
+ * Write the sample dump as CSV with the header row
+ * "stroke,index,event_ms,arrival_ms,x,y,valid,speed,confidence", one row per
+ * record. Returns false and fills @p error when the file cannot be written.
+ */
+bool writeKisStrokePredictionReplaySamples(
+    const QString &path,
+    const QVector<KisStrokePredictionReplaySampleRecord> &samples,
+    QString *error);
 
 #endif // KIS_STROKE_PREDICTION_REPLAY_H
