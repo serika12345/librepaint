@@ -497,6 +497,7 @@ def analyze_run(directory):
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
     result.update(l2p_summary(l2p_tip_samples(directory)))
     result.update(l2p_settle(directory))
+    result.update(l2p_stop_metrics(directory))
     result["frames"] = {"n": len(frame_times), "interval": analyze.describe(intervals)}
     result["calibration"] = {
         kind: {"offset_px": offset[kind], "spread_px": (max(v) - min(v)) if v else None, "n": len(v)}
@@ -587,6 +588,7 @@ def l2p_summary(samples):
 
 SETTLE_WINDOW_NS = 100_000_000
 SETTLE_GAP_PX = -1.0
+STOP_WINDOW_NS = 200_000_000
 
 
 def l2p_settle(directory):
@@ -641,6 +643,121 @@ def l2p_settle(directory):
         # How far the line end passed the final pointer position after the
         # last injection: the visible overshoot of a stroke that stops.
         result["l2p.stop_overshoot_px"] = analyze.describe(peaks)
+    return result
+
+
+def l2p_stop_metrics(directory):
+    """What the displayed line end does after a stroke stops.
+
+    For every ink pass the frames from the last injection T_end to
+    T_end + STOP_WINDOW_NS are read without Pass.locate, so a predicted line
+    end beyond the last injected position stays visible. ahead is the signed
+    distance from the last injected position to the calibrated line end in
+    the pass direction; a positive value means the line end passed it. The
+    end speed comes from the injection pairs in the last 12 ms before T_end.
+    A pass with no frame in the window has no value. The probe keys appear
+    only when probe.csv exists.
+    """
+    injected = read_inject(os.path.join(directory, "inject.csv"))
+    frames = read_capture(os.path.join(directory, "capture.csv"))
+    frame_times = list(frames)
+    all_passes = passes(injected)
+    offsets = {"hover": [], "ink": []}
+    for pass_ in all_passes:
+        offsets[pass_.kind].extend(dwell_offsets(pass_, frames, frame_times))
+    ink_offset = statistics.median(offsets["ink"]) if offsets["ink"] else None
+    if ink_offset is None:
+        return {}
+    overshoot_ms = []
+    retracts = []
+    settles = []
+    pass_speeds = []
+    examined = 0
+    unsettled = 0
+    for pass_ in all_passes:
+        if pass_.kind != "ink" or not pass_.times:
+            continue
+        t_end, x_end = pass_.times[-1], pass_.xs[-1]
+        begin = bisect.bisect_left(frame_times, t_end)
+        end = bisect.bisect_right(frame_times, t_end + STOP_WINDOW_NS)
+        aheads = []
+        times = []
+        for t in frame_times[begin:end]:
+            detection = frames[t].get(pass_.band)
+            if detection is None:
+                continue
+            value = position("ink", detection)
+            if value is None:
+                continue
+            aheads.append(pass_.direction * ((value - ink_offset) - x_end))
+            times.append(t)
+        if not aheads:
+            continue
+        examined += 1
+        end_speeds = []
+        for k in range(1, len(pass_.times)):
+            if pass_.times[k] < t_end - 12_000_000:
+                continue
+            duration_ms = (pass_.times[k] - pass_.times[k - 1]) / 1e6
+            if duration_ms > 0:
+                end_speeds.append(abs(pass_.xs[k] - pass_.xs[k - 1]) / duration_ms)
+        v_end = statistics.median(end_speeds) if end_speeds else 0.0
+        peak = max(aheads)
+        if v_end >= MIN_SPEED_FOR_MS:
+            overshoot_ms.append(max(0.0, peak) / v_end)
+        peak_index = aheads.index(peak)
+        retract = 0.0
+        for k in range(peak_index, len(aheads) - 1):
+            retract = max(retract, max(0.0, aheads[k] - aheads[k + 1]))
+        retracts.append(retract)
+        settle = None
+        for k in range(peak_index, len(aheads) - 1):
+            if aheads[k] <= 1.0 and aheads[k + 1] <= 1.0:
+                settle = (times[k] - t_end) / 1e6
+                break
+        if settle is None:
+            unsettled += 1
+        else:
+            settles.append(settle)
+        speeds = []
+        for k in range(1, len(pass_.move)):
+            if pass_.move[k - 1][1] == "move_decel" or pass_.move[k][1] == "move_decel":
+                continue
+            duration_ms = (pass_.move[k][0] - pass_.move[k - 1][0]) / 1e6
+            if duration_ms > 0:
+                speeds.append(abs(pass_.move[k][3] - pass_.move[k - 1][3]) / duration_ms)
+        if speeds:
+            pass_speeds.append(statistics.median(speeds))
+    result = {}
+    if overshoot_ms:
+        result["l2p.stop_overshoot_ms"] = dict(analyze.describe(overshoot_ms), max=max(overshoot_ms))
+    if retracts:
+        result["l2p.stop_retract_px"] = dict(analyze.describe(retracts), max=max(retracts))
+    if settles:
+        result["l2p.stop_settle_ms"] = dict(analyze.describe(settles), max=max(settles))
+    if examined:
+        result["l2p.stop_unsettled"] = {"n": unsettled, "of": examined}
+    if pass_speeds:
+        result["l2p.pass_speed_px_ms"] = dict(analyze.describe(pass_speeds), max=max(pass_speeds))
+    probe_path = os.path.join(directory, "probe.csv")
+    if os.path.exists(probe_path):
+        frequency, events = analyze.load_probe(probe_path)
+        clears = events.get("prediction_clear", [])
+        updates = [entry[0] for entry in events.get("prediction_update", [])]
+        stale = []
+        last_update = None
+        next_update = 0
+        for clear in clears:
+            while next_update < len(updates) and updates[next_update] <= clear[0]:
+                last_update = updates[next_update]
+                next_update += 1
+            if last_update is not None and frequency:
+                stale.append((clear[0] - last_update) * 1000.0 / frequency)
+        if stale:
+            result["l2p.stale_prediction_ms"] = dict(analyze.describe(stale), max=max(stale))
+        reasons = collections.Counter(str(entry[3]) for entry in clears)
+        if reasons:
+            result["l2p.prediction_clear_reason"] = {key: reasons[key] for key in sorted(reasons)}
     return result
 
 
@@ -912,6 +1029,13 @@ def main(argv):
                 continue
             if key == "l2p.speed_change":
                 print("   %-28s %s" % (key, analyze.format_l2p_speed_changes(stat)))
+                continue
+            if key == "l2p.stop_unsettled":
+                print("   %-28s n=%d of=%d" % (key, stat["n"], stat["of"]))
+                continue
+            if key == "l2p.prediction_clear_reason":
+                print("   %-28s %s" % (key, " ".join(
+                    "%s=%d" % (reason, count) for reason, count in sorted(stat.items()))))
                 continue
             print("   %-28s %s" % (key, analyze.format_stat(stat)))
     comparison = analyze.compare(results, PRIMARY, require_presentmon=False)

@@ -528,6 +528,94 @@ class PredictionMetricTest(unittest.TestCase):
         self.assertIn("l2p.signed_gap_px", result)
 
 
+def write_prediction_probe(directory):
+    """prediction_update and prediction_clear rows on the 10 MHz probe clock."""
+    with open(os.path.join(directory, "probe.csv"), "w") as handle:
+        handle.write("# frequency=10000000\n")
+        handle.write("time,event,x,y,extra,thread\n")
+        handle.write("1000000000,prediction_update,0.00,0.00,0,1\n")
+        handle.write("1000200000,prediction_clear,0.00,0.00,1,1\n")
+        handle.write("1000500000,prediction_update,0.00,0.00,0,1\n")
+        handle.write("1000580000,prediction_clear,0.00,0.00,4,1\n")
+
+
+STOP_FRAME_NS = 4_000_000
+
+
+def write_stop_run(directory, aheads, dwell_x=0.0):
+    """One ink pass that stops, with the given line-end overshoots after T_end.
+
+    The injection runs from x=0 to x=200 at 2.0 px/ms. The dwell pointer sits
+    at dwell_x and at 200 + dwell_x, so the ink's calibration offset is
+    20 - dwell_x px and a frame's displayed line end is 200 + 20 - dwell_x +
+    ahead. The frames after T_end come every STOP_FRAME_NS.
+    """
+    count, step_px, interval_ns = 101, 2.0, 1_000_000
+    first_ns = 1_100_000_000
+    t_end = first_ns + (count - 1) * interval_ns
+    last_x = (count - 1) * step_px
+    offset = 20.0 - dwell_x
+    inject = [
+        (1_000_000_000, "dwell", "stroke0", dwell_x, 300.0, 1),
+        (1_010_000_000, "dwell", "stroke0", dwell_x, 300.0, 1),
+    ]
+    inject += [(first_ns + i * interval_ns, "move", "stroke0", i * step_px, 300.0, 1)
+               for i in range(count)]
+    inject.append((1_500_000_000, "dwell", "stroke0", last_x + dwell_x, 300.0, 1))
+    write_csv(os.path.join(directory, "inject.csv"),
+              ["time_ns", "phase", "band", "x", "y", "pressed"], inject)
+    rows = [(1_000_000_000, 1_000_000_000, "stroke0", 0, 20, 0, 20, 310, 320, "")]
+    rows += [(t_end + (i + 1) * STOP_FRAME_NS, t_end, "stroke0", 0,
+              int(round(last_x + offset + ahead)), max(0, int(round(last_x + offset + ahead)) - 40),
+              int(round(last_x + offset + ahead)), 310, 320, "")
+             for i, ahead in enumerate(aheads)]
+    rows.append((1_500_000_000, 1_500_000_000, "stroke0", 0, 220, 180, 220, 310, 320, ""))
+    write_csv(os.path.join(directory, "capture.csv"), CAPTURE_FIELDS, rows)
+
+
+class StopMetricTest(unittest.TestCase):
+    """The metrics of the frames after the last injection of an ink pass."""
+
+    def test_the_line_end_retracts_after_its_peak(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_stop_run(directory, (10.5, 3.5, 0.5, 0.5), dwell_x=0.5)
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.stop_retract_px"]["n"], 1)
+        self.assertAlmostEqual(result["l2p.stop_retract_px"]["p50"], 7.0, delta=0.01)
+        self.assertEqual(result["l2p.stop_settle_ms"]["n"], 1)
+        self.assertAlmostEqual(result["l2p.stop_settle_ms"]["p50"], 3 * STOP_FRAME_NS / 1e6, delta=0.01)
+
+    def test_the_overshoot_is_the_peak_over_the_end_speed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_stop_run(directory, (10.0, 0.0))
+            result = capture_analyze.analyze_run(directory)
+        self.assertAlmostEqual(result["l2p.stop_overshoot_ms"]["p50"], 5.0, delta=0.01)
+        self.assertAlmostEqual(result["l2p.pass_speed_px_ms"]["p50"], 2.0, delta=0.01)
+
+    def test_a_pass_that_stays_ahead_is_counted_as_unsettled(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_stop_run(directory, (10.0, 5.0, 5.0))
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.stop_unsettled"], {"n": 1, "of": 1})
+        self.assertNotIn("l2p.stop_settle_ms", result)
+
+    def test_stale_predictions_and_clear_reasons_come_from_the_probe(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_stop_run(directory, (10.0, 0.0))
+            write_prediction_probe(directory)
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["l2p.stale_prediction_ms"]["n"], 2)
+        self.assertAlmostEqual(result["l2p.stale_prediction_ms"]["p50"], 14.0, delta=0.01)
+        self.assertEqual(result["l2p.prediction_clear_reason"], {"1": 1, "4": 1})
+
+    def test_a_run_without_probe_has_no_probe_keys(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_stop_run(directory, (10.0, 0.0))
+            result = capture_analyze.analyze_run(directory)
+        self.assertNotIn("l2p.stale_prediction_ms", result)
+        self.assertNotIn("l2p.prediction_clear_reason", result)
+
+
 class PresentationCheckTest(unittest.TestCase):
     def test_check_reads_the_capture_frames_and_reports_the_presented_delay(self):
         # presentation_check consumes capture_analyze.frame_samples, whose
