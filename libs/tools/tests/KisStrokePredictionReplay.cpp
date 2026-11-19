@@ -355,6 +355,8 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     QVector<qreal> ahead;
     QVector<qreal> error;
     QVector<qreal> midStrokeExpiry;
+    int validPredictions = 0;
+    int predictionSamples = 0;
 
     for (const KisStrokePredictionReplayStroke &stroke : strokes) {
         if (stroke.samples.isEmpty()) continue;
@@ -390,6 +392,13 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
         stopRetract.append(retract);
         midStrokeExpiry.append(timeline.midStrokeExpiry);
 
+        predictionSamples += timeline.predictionValid.size();
+        for (bool valid : timeline.predictionValid) {
+            if (valid) {
+                ++validPredictions;
+            }
+        }
+
         sampleDistances(ordered, timeline, direction, settings.horizonMs, &ahead, &error);
     }
 
@@ -399,6 +408,8 @@ KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     report.aheadPx = summarize(ahead);
     report.predictionErrorPx = summarize(error);
     report.midStrokeExpiry = summarize(midStrokeExpiry);
+    report.validPredictions = validPredictions;
+    report.predictionSamples = predictionSamples;
 
     return report;
 }
@@ -428,6 +439,11 @@ QJsonObject kisStrokePredictionReplayReportJson(
     root.insert(QStringLiteral("replay.ahead_px"), statJson(report.aheadPx));
     root.insert(QStringLiteral("replay.pred_error_px"), statJson(report.predictionErrorPx));
     root.insert(QStringLiteral("replay.mid_stroke_expiry"), statJson(report.midStrokeExpiry));
+
+    QJsonObject validPredictions;
+    validPredictions.insert(QStringLiteral("valid"), report.validPredictions);
+    validPredictions.insert(QStringLiteral("samples"), report.predictionSamples);
+    root.insert(QStringLiteral("replay.valid_predictions"), validPredictions);
 
     return root;
 }

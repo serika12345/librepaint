@@ -58,6 +58,9 @@ struct KisStrokePredictionReplayReport {
     KisStrokePredictionReplayStat aheadPx;
     KisStrokePredictionReplayStat predictionErrorPx;
     KisStrokePredictionReplayStat midStrokeExpiry;
+    /// Valid predictions and samples of every stroke, summed over the replay.
+    int validPredictions = 0;
+    int predictionSamples = 0;
 };
 
 /**
@@ -71,7 +74,8 @@ bool loadKisStrokePredictionReplayInput(const QString &path,
 
 /**
  * Run the predictor on every stroke with the expiry timer and the frame clock
- * of the tool and measure the line end after the stroke stops.
+ * of the tool and measure the line end after the stroke stops. The report
+ * also counts the samples that produced a valid prediction.
  */
 KisStrokePredictionReplayReport runKisStrokePredictionReplay(
     const QVector<KisStrokePredictionReplayStroke> &strokes,

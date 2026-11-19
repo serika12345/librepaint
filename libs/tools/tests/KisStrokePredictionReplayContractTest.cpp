@@ -5,6 +5,7 @@
 
 #include "KisStrokePredictionReplay.h"
 
+#include <QJsonObject>
 #include <QPointF>
 #include <QTest>
 
@@ -65,6 +66,7 @@ private Q_SLOTS:
     void fixedExpiryDoesNotExpireMidStroke();
     void gapExpiryExpiresBetweenBursts();
     void decelerationFactorKeepsSteadyAhead();
+    void validPredictionsAreCounted();
 };
 
 void KisStrokePredictionReplayContractTest::stopOvershootFollowsTheCap()
@@ -142,6 +144,37 @@ void KisStrokePredictionReplayContractTest::decelerationFactorKeepsSteadyAhead()
     QVERIFY(on.aheadPx.n > 0);
     QCOMPARE(on.aheadPx.n, off.aheadPx.n);
     VERIFY_CLOSE(on.aheadPx.p50, off.aheadPx.p50, 1e-9);
+}
+
+void KisStrokePredictionReplayContractTest::validPredictionsAreCounted()
+{
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.17, 8);
+
+    KisStrokePredictionReplaySettings settings;
+
+    const KisStrokePredictionReplayReport report =
+        runKisStrokePredictionReplay(strokes, settings);
+
+    QCOMPARE(report.predictionSamples, 8);
+    QVERIFY(report.validPredictions > 0);
+    QVERIFY(report.validPredictions <= report.predictionSamples);
+
+    const QJsonObject json =
+        kisStrokePredictionReplayReportJson(report, settings);
+    const QJsonObject counted =
+        json.value(QStringLiteral("replay.valid_predictions")).toObject();
+    QCOMPARE(counted.value(QStringLiteral("valid")).toInt(),
+             report.validPredictions);
+    QCOMPARE(counted.value(QStringLiteral("samples")).toInt(),
+             report.predictionSamples);
+
+    const QVector<KisStrokePredictionReplayStroke> single =
+        constantStroke(5.0, 4.17, 1);
+    const KisStrokePredictionReplayReport one =
+        runKisStrokePredictionReplay(single, settings);
+    QCOMPARE(one.predictionSamples, 1);
+    QCOMPARE(one.validPredictions, 0);
 }
 
 QTEST_GUILESS_MAIN(KisStrokePredictionReplayContractTest)
