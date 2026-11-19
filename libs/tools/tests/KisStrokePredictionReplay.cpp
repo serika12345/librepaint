@@ -83,7 +83,9 @@ StrokeTimeline buildTimeline(const QVector<KisStrokePredictionReplaySample> &ord
         predictorSettings.decelRatioFull = 0.01;
     }
     std::unique_ptr<KisStrokePredictor> predictor;
-    if (settings.predictor == QStringLiteral("kalman")) {
+    if (settings.predictor == QStringLiteral("kalman-jerk")) {
+        predictor = std::make_unique<KisKalmanStrokePredictor>(predictorSettings, true);
+    } else if (settings.predictor == QStringLiteral("kalman")) {
         predictor = std::make_unique<KisKalmanStrokePredictor>(predictorSettings);
     } else {
         predictor = std::make_unique<KisLinearStrokePredictor>(predictorSettings);
