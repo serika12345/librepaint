@@ -1,0 +1,149 @@
+/*
+ *  SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ *  SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "KisStrokePredictionReplay.h"
+
+#include <QPointF>
+#include <QTest>
+
+namespace
+{
+bool closeTo(qreal actual, qreal expected, qreal tolerance)
+{
+    return qAbs(actual - expected) <= tolerance;
+}
+
+#define VERIFY_CLOSE(actual, expected, tolerance)                              \
+    QVERIFY2(closeTo((actual), (expected), (tolerance)),                       \
+             qPrintable(QStringLiteral("%1 is not %2").arg(qreal(actual)).arg(qreal(expected))))
+
+QVector<KisStrokePredictionReplayStroke> constantStroke(qreal speedPerMs,
+                                                        qreal intervalMs,
+                                                        int count)
+{
+    KisStrokePredictionReplayStroke stroke;
+    for (int i = 0; i < count; ++i) {
+        KisStrokePredictionReplaySample sample;
+        sample.arrivalMs = intervalMs * i;
+        sample.eventMs = intervalMs * i;
+        sample.position = QPointF(speedPerMs * sample.eventMs, 0.0);
+        sample.pressure = 1.0;
+        stroke.samples.append(sample);
+    }
+    return {stroke};
+}
+
+/// Four events every 16.7 ms, one millisecond apart inside a burst.
+QVector<KisStrokePredictionReplayStroke> burstStroke()
+{
+    KisStrokePredictionReplayStroke stroke;
+    qreal arrivalMs = 0.0;
+    for (int burst = 0; burst < 4; ++burst) {
+        for (int i = 0; i < 4; ++i) {
+            KisStrokePredictionReplaySample sample;
+            sample.arrivalMs = arrivalMs;
+            sample.eventMs = arrivalMs;
+            sample.position = QPointF(5.0 * arrivalMs, 0.0);
+            sample.pressure = 1.0;
+            stroke.samples.append(sample);
+            arrivalMs += 1.0;
+        }
+        arrivalMs += 13.7;
+    }
+    return {stroke};
+}
+} // namespace
+
+class KisStrokePredictionReplayContractTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void stopOvershootFollowsTheCap();
+    void fixedExpiryDoesNotExpireMidStroke();
+    void gapExpiryExpiresBetweenBursts();
+    void decelerationFactorKeepsSteadyAhead();
+};
+
+void KisStrokePredictionReplayContractTest::stopOvershootFollowsTheCap()
+{
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.17, 8);
+
+    KisStrokePredictionReplaySettings settings;
+    settings.capDiameters = 0.0;
+
+    KisStrokePredictionReplayReport withoutCap =
+        runKisStrokePredictionReplay(strokes, settings);
+    QCOMPARE(withoutCap.stopOvershootPx.n, 1);
+    VERIFY_CLOSE(withoutCap.stopOvershootPx.max, 5.0 * 16.7, 2.0);
+
+    settings.capDiameters = 3.0;
+    settings.diameter = 10.0;
+
+    KisStrokePredictionReplayReport withCap =
+        runKisStrokePredictionReplay(strokes, settings);
+    QCOMPARE(withCap.stopOvershootPx.n, 1);
+    VERIFY_CLOSE(withCap.stopOvershootPx.max, 30.0, 1.0);
+}
+
+void KisStrokePredictionReplayContractTest::fixedExpiryDoesNotExpireMidStroke()
+{
+    KisStrokePredictionReplaySettings settings;
+    settings.gapExpiry = false;
+
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.17, 8);
+
+    const KisStrokePredictionReplayReport report =
+        runKisStrokePredictionReplay(strokes, settings);
+
+    QCOMPARE(report.midStrokeExpiry.n, 1);
+    VERIFY_CLOSE(report.midStrokeExpiry.max, 0.0, 0.0);
+}
+
+void KisStrokePredictionReplayContractTest::gapExpiryExpiresBetweenBursts()
+{
+    const QVector<KisStrokePredictionReplayStroke> strokes = burstStroke();
+
+    KisStrokePredictionReplaySettings gapSettings;
+    gapSettings.gapExpiry = true;
+    const KisStrokePredictionReplayReport gap =
+        runKisStrokePredictionReplay(strokes, gapSettings);
+    QCOMPARE(gap.midStrokeExpiry.n, 1);
+    QVERIFY(gap.midStrokeExpiry.max >= 1.0);
+
+    KisStrokePredictionReplaySettings fixedSettings;
+    fixedSettings.gapExpiry = false;
+    const KisStrokePredictionReplayReport fixed =
+        runKisStrokePredictionReplay(strokes, fixedSettings);
+    QCOMPARE(fixed.midStrokeExpiry.n, 1);
+    VERIFY_CLOSE(fixed.midStrokeExpiry.max, 0.0, 0.0);
+}
+
+void KisStrokePredictionReplayContractTest::decelerationFactorKeepsSteadyAhead()
+{
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(5.0, 4.0, 10);
+
+    KisStrokePredictionReplaySettings withDecel;
+    withDecel.decel = true;
+
+    KisStrokePredictionReplaySettings withoutDecel;
+    withoutDecel.decel = false;
+
+    const KisStrokePredictionReplayReport on =
+        runKisStrokePredictionReplay(strokes, withDecel);
+    const KisStrokePredictionReplayReport off =
+        runKisStrokePredictionReplay(strokes, withoutDecel);
+
+    QVERIFY(on.aheadPx.n > 0);
+    QCOMPARE(on.aheadPx.n, off.aheadPx.n);
+    VERIFY_CLOSE(on.aheadPx.p50, off.aheadPx.p50, 1e-9);
+}
+
+QTEST_GUILESS_MAIN(KisStrokePredictionReplayContractTest)
+
+#include "KisStrokePredictionReplayContractTest.moc"

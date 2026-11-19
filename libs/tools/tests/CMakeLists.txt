@@ -84,6 +84,29 @@ kis_add_test(
 target_compile_definitions(KisStrokePredictionContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisStrokePredictionReplayContractTest.cpp
+    KisStrokePredictionReplay.cpp
+    TEST_NAME KisStrokePredictionReplayContractTest
+    LINK_LIBRARIES
+        kritatoolsstrokepredictionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStrokePredictionReplayContractTest PRIVATE kritatools_EXPORTS)
+
+# Command line replay of the recorded strokes for the L2P measurements. It is a
+# measurement tool, so it is not registered with ctest.
+add_executable(KisStrokePredictionReplay
+    KisStrokePredictionReplayMain.cpp
+    KisStrokePredictionReplay.cpp
+)
+target_link_libraries(KisStrokePredictionReplay
+    kritatoolsstrokepredictionobjects
+    Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisStrokePredictionReplay PRIVATE kritatools_EXPORTS)
+ecm_mark_nongui_executable(KisStrokePredictionReplay)
+
+kis_add_test(
     KisPredictionLinePainterContractTest.cpp
     LINK_LIBRARIES
         kritatoolspredictiondrawobjects
