@@ -225,19 +225,22 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
     /*
      * Consumer: The freehand tool and the settings dialog reading the prediction line settings.
      * Operation: Reads the built-in defaults and saves and reloads each prediction setting.
-     * Observable result: The defaults stay on, 16.7 ms and 24.0 ms, and stored values survive a restart.
+     * Observable result: The defaults stay on, 16.7 ms and 24.0 ms, the Kalman predictor stays the
+     * default, stored values survive a restart, and an unknown predictor reads as Kalman.
      * Failure impact: The prediction line can switch itself off, or draw with an unintended horizon or anchor.
      */
     KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
     ScopedConfigEntry restoreEnabled(configGroup, QStringLiteral("useStrokePrediction"));
     ScopedConfigEntry restoreHorizon(configGroup, QStringLiteral("strokePredictionHorizonMs"));
     ScopedConfigEntry restoreAnchor(configGroup, QStringLiteral("strokePredictionAnchorMs"));
+    ScopedConfigEntry restorePredictor(configGroup, QStringLiteral("strokePredictionPredictor"));
 
     {
         KisConfig config(true);
         QVERIFY(config.useStrokePrediction(true));
         QCOMPARE(config.strokePredictionHorizonMs(true), 16.7);
         QCOMPARE(config.strokePredictionAnchorMs(true), 24.0);
+        QCOMPARE(config.strokePredictionPredictor(true), QStringLiteral("kalman"));
     }
 
     {
@@ -249,12 +252,20 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
     configGroup.writeEntry(QStringLiteral("useStrokePrediction"), true);
     configGroup.writeEntry(QStringLiteral("strokePredictionHorizonMs"), 12.5);
     configGroup.writeEntry(QStringLiteral("strokePredictionAnchorMs"), 30.0);
+    configGroup.writeEntry(QStringLiteral("strokePredictionPredictor"), QStringLiteral("kalman-jerk"));
     configGroup.sync();
 
     KisConfig config(true);
     QCOMPARE(config.useStrokePrediction(), true);
     QCOMPARE(config.strokePredictionHorizonMs(), 12.5);
     QCOMPARE(config.strokePredictionAnchorMs(), 30.0);
+    QCOMPARE(config.strokePredictionPredictor(), QStringLiteral("kalman-jerk"));
+
+    configGroup.writeEntry(QStringLiteral("strokePredictionPredictor"), QStringLiteral("unsupported"));
+    configGroup.sync();
+
+    KisConfig unknownPredictor(true);
+    QCOMPARE(unknownPredictor.strokePredictionPredictor(), QStringLiteral("kalman"));
 }
 
 QTEST_GUILESS_MAIN(KisConfigCompatibilityTest)
