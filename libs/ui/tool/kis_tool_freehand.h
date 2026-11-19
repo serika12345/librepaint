@@ -17,8 +17,11 @@
 #include "kis_signal_compressor_with_param.h"
 #include "KoPointerEvent.h"
 #include <KisStrokePrediction.h>
+#include <KisStrokePredictor.h>
 
 #include "kritaui_export.h"
+
+#include <memory>
 
 class KoPointerEvent;
 class KoCanvasBase;
@@ -114,7 +117,7 @@ private:
      * Display-only prediction line (Issue #129). The prediction never reaches
      * the paint device, the history or the saved file.
      */
-    void startPrediction();
+    void startPrediction(KoPointerEvent *event);
     void updatePrediction(KoPointerEvent *event);
     void clearPrediction(int reason);
     /// Called when no pointer event arrived for the prediction's gap time: a
@@ -146,7 +149,9 @@ private:
     bool m_paintopBasedSamplingInAction {false};
     KisSignalCompressorWithParam<qreal> m_brushResizeCompressor;
 
-    KisStrokePrediction m_prediction;
+    std::unique_ptr<KisStrokePredictor> m_predictor;
+    KisStrokePredictionSettings m_predictionSettings;
+    qreal m_predictionMaxMovePx {0.0};
     bool m_predictionActive {false};
     QTimer *m_predictionExpiry {nullptr};
 

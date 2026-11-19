@@ -11,6 +11,8 @@
 
 #include "kis_tool_freehand.h"
 #include <KisLatencyProbe.h>
+#include <KisStrokePredictionCap.h>
+#include <KisStrokePredictorFactory.h>
 #include <klocalizedstring.h>
 #include <QPainter>
 #include <QRect>
@@ -269,7 +271,7 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
     }
 
     initStroke(event);
-    startPrediction();
+    startPrediction(event);
 }
 
 void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
@@ -307,7 +309,7 @@ void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
     setMode(KisTool::HOVER_MODE);
 }
 
-void KisToolFreehand::startPrediction()
+void KisToolFreehand::startPrediction(KoPointerEvent *event)
 {
     m_predictionActive = false;
 
@@ -335,9 +337,12 @@ void KisToolFreehand::startPrediction()
     KisStrokePredictionSettings settings;
     settings.horizonMs = cfg.strokePredictionHorizonMs();
     settings.anchorMs = cfg.strokePredictionAnchorMs();
-    settings.maxMovePx = cfg.strokePredictionMaxMoveDiameters() * currentPaintOpPreset()->settings()->paintOpSize();
-    m_prediction.setSettings(settings);
-    m_prediction.reset();
+    m_predictionMaxMovePx = cfg.strokePredictionMaxMoveDiameters() * currentPaintOpPreset()->settings()->paintOpSize();
+    m_predictionSettings = settings;
+
+    m_predictor = KisStrokePredictorFactory::create(*event, m_predictionSettings);
+    m_predictor->reset();
+    KisLatencyProbe::mark("prediction_source", 0, 0, int(m_predictor->source()));
 
     if (!canvas2->decoration(KisPredictionDecoration::idTag)) {
         canvas2->addDecoration(new KisPredictionDecoration(canvas2->imageView()));
@@ -356,11 +361,19 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
     if (!decoration) return;
 
-    m_prediction.addSample(event->point, qreal(event->time()), event->pressure());
+    if (!m_predictor) return;
+
+    KisStrokePredictionSample sample;
+    sample.documentPos = event->point;
+    sample.timeMs = qreal(event->time());
+    sample.pressure = event->pressure();
+    sample.tablet = event->isTabletEvent();
+    m_predictor->addSample(sample);
 
     KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y(), qint64(event->time()));
 
-    const KisStrokePredictionResult result = m_prediction.predict();
+    KisStrokePredictionResult result = m_predictor->predict(m_predictionSettings.horizonMs);
+    KisStrokePredictionCap::apply(result, m_predictionMaxMovePx);
 
     QRectF rect;
 
@@ -377,7 +390,10 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         rect = decoration->setPrediction(result.polyline, result.latestIndex, diameter, color);
 
         const QPointF tip = result.polyline.constLast();
-        KisLatencyProbe::mark("prediction_point", tip.x(), tip.y(), qRound(result.confidence * 1000));
+        const int confidence = result.confidence >= 0.0
+            ? qRound(result.confidence * 1000)
+            : -1;
+        KisLatencyProbe::mark("prediction_point", tip.x(), tip.y(), confidence);
     } else {
         const bool hadPrediction = decoration->hasPrediction();
         rect = decoration->clearPrediction();
@@ -397,7 +413,7 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         connect(m_predictionExpiry, &QTimer::timeout, this, [this]() { expirePrediction(); });
     }
 
-    m_predictionExpiry->start(qRound(m_prediction.settings().gapResetMs));
+    m_predictionExpiry->start(qRound(m_predictionSettings.gapResetMs));
 }
 
 void KisToolFreehand::expirePrediction()
@@ -427,7 +443,9 @@ void KisToolFreehand::clearPrediction(int reason)
     }
 
     m_predictionActive = false;
-    m_prediction.reset();
+    if (m_predictor) {
+        m_predictor->reset();
+    }
 
     KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
     if (canvas2) {
