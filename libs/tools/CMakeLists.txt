@@ -23,7 +23,9 @@ set_target_properties(kritatoolsspeedsmootherobjects PROPERTIES
 )
 
 add_library(kritatoolsstrokepredictionobjects OBJECT
+    KisLinearStrokePredictor.cpp
     KisStrokePrediction.cpp
+    KisStrokePredictionCap.cpp
 )
 target_compile_definitions(kritatoolsstrokepredictionobjects PRIVATE kritatools_EXPORTS)
 target_include_directories(kritatoolsstrokepredictionobjects

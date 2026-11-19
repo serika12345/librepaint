@@ -156,6 +156,11 @@ bool KisStrokePrediction::addSample(const QPointF &pos, qreal timeMs, qreal pres
 
 KisStrokePredictionResult KisStrokePrediction::predict() const
 {
+    return predict(m_d->settings.horizonMs);
+}
+
+KisStrokePredictionResult KisStrokePrediction::predict(qreal horizonMs) const
+{
     KisStrokePredictionResult result;
 
     if (m_d->samples.size() < 2) return result;
@@ -206,7 +211,7 @@ KisStrokePredictionResult KisStrokePrediction::predict() const
     result.confidence = speedFactor * pressureFactor * decelFactor;
 
     QPointF moveVector =
-        result.velocity * result.confidence * m_d->settings.horizonMs;
+        result.velocity * result.confidence * clampValue(horizonMs, 8.0, 25.0);
     result.moveLength = std::hypot(moveVector.x(), moveVector.y());
 
     // A stroke that stops without a last slow event (a mouse that stops sends

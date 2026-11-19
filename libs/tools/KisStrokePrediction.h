@@ -6,6 +6,8 @@
 #ifndef KIS_STROKE_PREDICTION_H
 #define KIS_STROKE_PREDICTION_H
 
+#include <KisStrokePredictor.h>
+
 #include <QPointF>
 #include <QScopedPointer>
 #include <QVector>
@@ -44,6 +46,7 @@ struct KisStrokePredictionResult {
     qreal speed = 0.0;                // px/ms
     qreal confidence = 0.0;           // 0 to 1
     qreal moveLength = 0.0;           // predicted move length px
+    KisStrokePredictionSource source = KisStrokePredictionSource::None;
 };
 
 /**
@@ -73,7 +76,11 @@ public:
     /// dropped the history and this sample became the first one.
     bool addSample(const QPointF &pos, qreal timeMs, qreal pressure);
 
+    /// Predict at the horizon of the settings.
     KisStrokePredictionResult predict() const;
+    /// Predict at @p horizonMs past the latest sample, clamped to 8 to 25 ms
+    /// like the horizon of the settings.
+    KisStrokePredictionResult predict(qreal horizonMs) const;
 
     int sampleCount() const;
 
