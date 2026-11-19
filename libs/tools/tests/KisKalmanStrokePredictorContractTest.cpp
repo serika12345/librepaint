@@ -79,7 +79,32 @@ private Q_SLOTS:
     void aGapOfTwentyMillisecondsIsInvalid();
     void sourceIsKalman();
     void twoUpdatesFollowTheChromiumFormulas();
+    void jerkDisabledKeepsThePreviousResult();
+    void constantSpeedKeepsTheJerkFactorOne();
+    void aSuddenSpeedChangeShortensTheMove();
 };
+
+namespace
+{
+/// Constant speed, then a sudden rise to 2.4 times; both axes move.
+QVector<Sample> suddenSpeedChange()
+{
+    QVector<Sample> samples;
+    qreal x = 0.0;
+    qreal y = 0.0;
+    for (int i = 0; i < 20; ++i) {
+        const qreal time = IntervalMs * i;
+        const qreal speed = i < 12 ? SpeedPxPerMs : 12.0;
+        if (i > 0) {
+            x += speed * IntervalMs;
+            y += 0.25 * speed * IntervalMs;
+        }
+        samples.append({QPointF(x, y), time, 1.0});
+    }
+    return samples;
+}
+} // namespace
+
 
 void KisKalmanStrokePredictorContractTest::constantSpeedReachesTheHorizon()
 {
@@ -191,6 +216,113 @@ void KisKalmanStrokePredictorContractTest::sourceIsKalman()
     const KisStrokePredictionResult result = predictor.predict(HorizonMs);
     QVERIFY(result.valid);
     QCOMPARE(result.source, KisStrokePredictionSource::Kalman);
+
+    KisKalmanStrokePredictor jerk(settings, true);
+    QCOMPARE(jerk.source(), KisStrokePredictionSource::KalmanJerk);
+    for (const Sample &sample : constantSpeed(SpeedPxPerMs, IntervalMs, 30)) {
+        jerk.addSample(predictorSample(sample));
+    }
+    const KisStrokePredictionResult jerkResult = jerk.predict(HorizonMs);
+    QVERIFY(jerkResult.valid);
+    QCOMPARE(jerkResult.source, KisStrokePredictionSource::Kalman);
+}
+
+void KisKalmanStrokePredictorContractTest::jerkDisabledKeepsThePreviousResult()
+{
+    // The tips, the confidence and the move length of the predictor before the
+    // jerk factor was added, for suddenSpeedChange() from sample 12 on.
+    const qreal expected[][4] = {
+        {599.627618916915, 149.906904729229, 1.0, 330.093382022684},
+        {676.095530311410, 169.023882577852, 1.0, 357.334649558676},
+        {637.926497678097, 159.481624419524, 1.0, 266.410859888500},
+        {621.915272467595, 155.478818116899, 1.0, 198.326815327409},
+        {659.276238464769, 164.819059616192, 1.0, 185.257566221297},
+        {721.373380196457, 180.343345049114, 1.0, 197.685783446995},
+        {781.622140873458, 195.405535218365, 1.0, 208.208733091478},
+        {833.578136654273, 208.394534163568, 1.0, 210.183696337112},
+    };
+
+    KisStrokePredictionSettings settings;
+    KisKalmanStrokePredictor predictor(settings, false);
+
+    const QVector<Sample> samples = suddenSpeedChange();
+    int expectedIndex = 0;
+    for (int i = 0; i < samples.size(); ++i) {
+        predictor.addSample(predictorSample(samples.at(i)));
+        if (i < 12) continue;
+
+        const KisStrokePredictionResult result = predictor.predict(HorizonMs);
+        QVERIFY(result.valid);
+        const QPointF tip = result.polyline.constLast();
+        QVERIFY2(std::abs(tip.x() - expected[expectedIndex][0]) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: x %2").arg(i).arg(tip.x())));
+        QVERIFY2(std::abs(tip.y() - expected[expectedIndex][1]) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: y %2").arg(i).arg(tip.y())));
+        QVERIFY2(std::abs(result.confidence - expected[expectedIndex][2]) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: confidence %2")
+                                .arg(i).arg(result.confidence)));
+        QVERIFY2(std::abs(result.moveLength - expected[expectedIndex][3]) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: move %2")
+                                .arg(i).arg(result.moveLength)));
+        ++expectedIndex;
+    }
+    QCOMPARE(expectedIndex, 8);
+}
+
+void KisKalmanStrokePredictorContractTest::constantSpeedKeepsTheJerkFactorOne()
+{
+    KisStrokePredictionSettings settings;
+    KisKalmanStrokePredictor plain(settings, false);
+    KisKalmanStrokePredictor jerk(settings, true);
+
+    const QVector<Sample> samples = constantSpeed(SpeedPxPerMs, IntervalMs, 30);
+    for (int i = 0; i < samples.size(); ++i) {
+        plain.addSample(predictorSample(samples.at(i)));
+        jerk.addSample(predictorSample(samples.at(i)));
+        // The acceleration estimate still converges during the first samples
+        // of a stroke, so the steady part of the sequence is the one to check.
+        if (i < 15) continue;
+
+        const KisStrokePredictionResult plainResult = plain.predict(HorizonMs);
+        const KisStrokePredictionResult jerkResult = jerk.predict(HorizonMs);
+        QVERIFY(plainResult.valid);
+        QVERIFY2(jerkResult.valid, qPrintable(QStringLiteral("sample %1 is invalid").arg(i)));
+        QVERIFY2(std::abs(jerkResult.confidence - plainResult.confidence) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: confidence %2 against %3")
+                                .arg(i).arg(jerkResult.confidence).arg(plainResult.confidence)));
+        QVERIFY2(std::abs(jerkResult.moveLength - plainResult.moveLength) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: move %2 against %3")
+                                .arg(i).arg(jerkResult.moveLength).arg(plainResult.moveLength)));
+        const QPointF jerkTip = jerkResult.polyline.constLast();
+        const QPointF plainTip = plainResult.polyline.constLast();
+        QVERIFY2(std::abs(jerkTip.x() - plainTip.x()) <= 1e-9
+                     && std::abs(jerkTip.y() - plainTip.y()) <= 1e-9,
+                 qPrintable(QStringLiteral("sample %1: tip differs").arg(i)));
+    }
+}
+
+void KisKalmanStrokePredictorContractTest::aSuddenSpeedChangeShortensTheMove()
+{
+    KisStrokePredictionSettings settings;
+    KisKalmanStrokePredictor plain(settings, false);
+    KisKalmanStrokePredictor jerk(settings, true);
+
+    const QVector<Sample> samples = suddenSpeedChange();
+    const int changed = 12;
+    for (int i = 0; i <= changed; ++i) {
+        plain.addSample(predictorSample(samples.at(i)));
+        jerk.addSample(predictorSample(samples.at(i)));
+    }
+
+    const KisStrokePredictionResult plainResult = plain.predict(HorizonMs);
+    const KisStrokePredictionResult jerkResult = jerk.predict(HorizonMs);
+    QVERIFY(plainResult.valid);
+    QVERIFY2(jerkResult.confidence < plainResult.confidence,
+             qPrintable(QStringLiteral("confidence %1 against %2")
+                            .arg(jerkResult.confidence).arg(plainResult.confidence)));
+    QVERIFY2(jerkResult.moveLength < plainResult.moveLength,
+             qPrintable(QStringLiteral("move %1 against %2")
+                            .arg(jerkResult.moveLength).arg(plainResult.moveLength)));
 }
 
 void KisKalmanStrokePredictorContractTest::twoUpdatesFollowTheChromiumFormulas()
