@@ -112,12 +112,19 @@ def samples(left, top, width, height, overrides=None):
         direction = 1.0 if end > start else -1.0
         distance = abs(end - start)
         if decel:
-            # A linear fall of the speed from v0 to zero covers v0 * T / 2000
-            # pixels; the constant part of the line ends where it begins.
+            # The smooth fall of the speed from v0 to zero covers
+            # v0 * T / 2000 pixels; the constant part of the line ends where it
+            # begins. The speed follows the smoothstep shape, and the position
+            # uses u - u ** 3 + u ** 4 / 2 over the normalised time u.
             v0 = (profile[-1]["speed"] if profile else o["speed"]) * width
             decel_px = v0 * stop_ms / 2000.0
             if decel_px >= distance:
                 raise ValueError("stop_decel_ms must leave a constant-speed part")
+            if profile:
+                last = profile[-1]
+                if decel_px >= distance * (last["end"] - last["start"]):
+                    raise ValueError("stop_decel_ms must leave a constant-speed part "
+                                     "of the last speed profile segment")
             x_decel = end - direction * decel_px
         for _ in range(dwell):
             yield t, "dwell", band, start, y, pressed
@@ -147,7 +154,8 @@ def samples(left, top, width, height, overrides=None):
                 t += step
         if decel:
             # The smooth fall reaches rest at the end: x(u) uses
-            # u - u^3 + u^4 / 2, whose slope is 2 at u = 0 and 0 at u = 1.
+            # u - u ** 3 + u ** 4 / 2, whose slope is 1 at u = 0 and 0 at
+            # u = 1.
             seconds = stop_ms / 1000.0
             count = int(math.ceil(seconds / step))
             for i in range(1, count + 1):

@@ -136,6 +136,15 @@ class StopDecelerationTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             list(trajectory.samples(*RECT, self.options(speed=3.0, stop_decel_ms=600)))
 
+    def test_a_deceleration_covering_the_last_profile_segment_is_rejected(self):
+        profile = [
+            {"until": 0.9, "speed": 0.3, "label": "move_slow"},
+            {"until": 1.0, "speed": 3.0, "label": "move_fast"},
+        ]
+        with self.assertRaises(ValueError):
+            list(trajectory.samples(*RECT, self.options(
+                speed=0.5, speed_profiles=[profile], stop_decel_ms=90)))
+
     def test_twelve_strokes_keep_separate_bands(self):
         bands = trajectory.bands(RECT[1], RECT[3], trajectory.options({"strokes": 12}))
         self.assertEqual(len(bands), 13)
