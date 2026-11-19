@@ -66,6 +66,7 @@ private Q_SLOTS:
     void fixedExpiryDoesNotExpireMidStroke();
     void gapExpiryExpiresBetweenBursts();
     void decelerationFactorKeepsSteadyAhead();
+    void cappedPredictionErrorIsTheLeadMinusTheCap();
     void validPredictionsAreCounted();
 };
 
@@ -144,6 +145,29 @@ void KisStrokePredictionReplayContractTest::decelerationFactorKeepsSteadyAhead()
     QVERIFY(on.aheadPx.n > 0);
     QCOMPARE(on.aheadPx.n, off.aheadPx.n);
     VERIFY_CLOSE(on.aheadPx.p50, off.aheadPx.p50, 1e-9);
+}
+
+/// A steady stroke whose lead over one horizon exceeds the cap: the error to
+/// the real point one horizon later is the lead minus the cap.
+void KisStrokePredictionReplayContractTest::cappedPredictionErrorIsTheLeadMinusTheCap()
+{
+    const qreal speed = 5.0;
+    const QVector<KisStrokePredictionReplayStroke> strokes =
+        constantStroke(speed, 4.17, 20);
+
+    KisStrokePredictionReplaySettings settings;
+    settings.capDiameters = 3.0;
+    settings.diameter = 10.0;
+
+    const qreal lead = speed * settings.horizonMs;
+    const qreal cap = settings.capDiameters * settings.diameter;
+    QVERIFY(lead > cap);
+
+    const KisStrokePredictionReplayReport report =
+        runKisStrokePredictionReplay(strokes, settings);
+
+    QVERIFY(report.predictionErrorPx.n > 0);
+    VERIFY_CLOSE(report.predictionErrorPx.p50, lead - cap, 1.0);
 }
 
 void KisStrokePredictionReplayContractTest::validPredictionsAreCounted()
