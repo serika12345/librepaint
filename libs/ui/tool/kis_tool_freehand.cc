@@ -358,7 +358,7 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
 
     m_prediction.addSample(event->point, qreal(event->time()), event->pressure());
 
-    KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y());
+    KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y(), qint64(event->time()));
 
     const KisStrokePredictionResult result = m_prediction.predict();
 
