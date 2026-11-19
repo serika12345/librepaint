@@ -15,11 +15,11 @@ std::unique_ptr<KisStrokePredictor> KisStrokePredictorFactory::create(
 {
     Q_UNUSED(press);
 
-    if (predictorName == QStringLiteral("kalman")) {
-        return std::make_unique<KisKalmanStrokePredictor>(settings);
+    if (predictorName == QStringLiteral("linear")) {
+        return std::make_unique<KisLinearStrokePredictor>(settings);
     }
     if (predictorName == QStringLiteral("kalman-jerk")) {
         return std::make_unique<KisKalmanStrokePredictor>(settings, true);
     }
-    return std::make_unique<KisLinearStrokePredictor>(settings);
+    return std::make_unique<KisKalmanStrokePredictor>(settings);
 }
