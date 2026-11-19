@@ -1,0 +1,35 @@
+{
+  "name": "pen-light-speed-varied-decel",
+  "description": "Light load with speed changes inside each line and twelve strokes that each decelerate to a stop over 90 ms: the first three strokes go slowly and then jump to fast, the next three go fast and then stop.",
+  "trajectory": {
+    "hover_passes": 8,
+    "strokes": 12,
+    "speed": 0.5,
+    "speed_profiles": [
+      [
+        {"until": 0.5, "speed": 0.3, "label": "move_slow"},
+        {"until": 1.0, "speed": 3.0, "label": "move_fast"}
+      ],
+      [
+        {"until": 0.5, "speed": 3.0, "label": "move_fast"},
+        {"until": 1.0, "speed": 0.2, "label": "move_slow"}
+      ]
+    ],
+    "stop_decel_ms": 90,
+    "dwell": 0.3,
+    "rate": 240.0,
+    "margin": 0.1
+  },
+  "kritarc": {
+    "General": {
+      "newOutlineStyle": "2",
+      "fpsLimit": "100"
+    }
+  },
+  "runs": 5,
+  "spread_limit": 0.05,
+  "metrics": {
+    "hover.input_to_capture": {"regression_ms": 2.0},
+    "ink.input_to_capture": {"regression_ms": 2.0}
+  }
+}

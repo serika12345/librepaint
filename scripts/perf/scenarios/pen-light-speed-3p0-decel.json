@@ -1,0 +1,25 @@
+{
+  "name": "pen-light-speed-3p0-decel",
+  "description": "Light load at six times the base speed with twelve strokes that each decelerate to a stop over 90 ms: brush outline hover and ink strokes on a blank 2048x1536 RGB canvas at 72 dpi with the default brush.",
+  "trajectory": {
+    "hover_passes": 8,
+    "strokes": 12,
+    "speed": 3.0,
+    "stop_decel_ms": 90,
+    "dwell": 0.3,
+    "rate": 240.0,
+    "margin": 0.1
+  },
+  "kritarc": {
+    "General": {
+      "newOutlineStyle": "2",
+      "fpsLimit": "100"
+    }
+  },
+  "runs": 5,
+  "spread_limit": 0.05,
+  "metrics": {
+    "hover.input_to_capture": {"regression_ms": 2.0},
+    "ink.input_to_capture": {"regression_ms": 2.0}
+  }
+}

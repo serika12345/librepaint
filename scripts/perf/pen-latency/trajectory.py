@@ -22,13 +22,20 @@ Every pass starts and ends with a still dwell. capture_analyze.py uses the
 dwells to map injector coordinates to captured pixels and the moving parts
 to measure latency. Rows are separated so that each one gets its own capture
 band (see bands()).
+
+"stop_decel_ms" makes the pressed strokes end at rest: the last part of the
+line is drawn while the speed falls from the stroke's speed to zero. The
+hover passes keep their constant speed.
 """
+
+import math
 
 DEFAULTS = {
     "hover_passes": 8,
     "strokes": 6,
     "speed": 0.5,  # fraction of the rectangle width per second
     "speed_profiles": [],  # per-stroke lists of {until, speed, label}
+    "stop_decel_ms": 0,  # decelerate the pressed strokes to a stop over this time
     "dwell": 0.3,  # seconds of still pointer at both ends of every pass
     "rate": 240.0,  # injected samples per second
     "margin": 0.1,  # fraction of the width left unused at each end
@@ -100,12 +107,28 @@ def samples(left, top, width, height, overrides=None):
 
     def run(band, y, start, end, pressed, profile=None):
         nonlocal t
+        stop_ms = float(o.get("stop_decel_ms") or 0.0)
+        decel = pressed and stop_ms > 0.0
+        direction = 1.0 if end > start else -1.0
+        distance = abs(end - start)
+        if decel:
+            # A linear fall of the speed from v0 to zero covers v0 * T / 2000
+            # pixels; the constant part of the line ends where it begins.
+            v0 = (profile[-1]["speed"] if profile else o["speed"]) * width
+            decel_px = v0 * stop_ms / 2000.0
+            if decel_px >= distance:
+                raise ValueError("stop_decel_ms must leave a constant-speed part")
+            x_decel = end - direction * decel_px
         for _ in range(dwell):
             yield t, "dwell", band, start, y, pressed
             t += step
         if profile:
             span = end - start
-            for segment in profile:
+            segments_used = profile
+            if decel:
+                segments_used = [dict(segment) for segment in profile]
+                segments_used[-1]["end"] = 1.0 - decel_px / distance
+            for segment in segments_used:
                 segment_seconds = abs(span) * (segment["end"] - segment["start"]) / (segment["speed"] * width)
                 steps = max(1, int(round(segment_seconds / step)))
                 for i in range(1, steps + 1):
@@ -113,9 +136,26 @@ def samples(left, top, width, height, overrides=None):
                     yield t, segment["label"], band, start + span * fraction, y, pressed
                     t += step
         else:
-            steps = int(duration / step)
+            if decel:
+                steps = int(abs(x_decel - start) / (o["speed"] * width) / step)
+                moved = x_decel
+            else:
+                steps = int(duration / step)
+                moved = end
             for i in range(steps + 1):
-                yield t, "move", band, start + (end - start) * i / steps, y, pressed
+                yield t, "move", band, start + (moved - start) * i / steps, y, pressed
+                t += step
+        if decel:
+            # The smooth fall reaches rest at the end: x(u) uses
+            # u - u^3 + u^4 / 2, whose slope is 2 at u = 0 and 0 at u = 1.
+            seconds = stop_ms / 1000.0
+            count = int(math.ceil(seconds / step))
+            for i in range(1, count + 1):
+                u = min(i * step / seconds, 1.0)
+                position = x_decel + direction * v0 * seconds * (u - u ** 3 + u ** 4 / 2.0)
+                if i == count:
+                    position = end
+                yield t, "move_decel", band, position, y, pressed
                 t += step
         for _ in range(dwell):
             yield t, "dwell", band, end, y, pressed
