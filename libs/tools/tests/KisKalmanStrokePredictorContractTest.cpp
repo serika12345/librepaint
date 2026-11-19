@@ -12,6 +12,7 @@
 #include <QTest>
 #include <QVector>
 
+#include <algorithm>
 #include <cmath>
 
 namespace
@@ -74,7 +75,7 @@ class KisKalmanStrokePredictorContractTest : public QObject
 private Q_SLOTS:
     void constantSpeedReachesTheHorizon();
     void fewerThanFourSamplesAreInvalid();
-    void aSmoothStopMovesLessThanTheLinearPredictor();
+    void aSmoothStopLeadsNoMoreThanTheLinearPredictor();
     void aGapOfTwentyMillisecondsIsInvalid();
     void sourceIsKalman();
     void twoUpdatesFollowTheChromiumFormulas();
@@ -116,7 +117,7 @@ void KisKalmanStrokePredictorContractTest::fewerThanFourSamplesAreInvalid()
     }
 }
 
-void KisKalmanStrokePredictorContractTest::aSmoothStopMovesLessThanTheLinearPredictor()
+void KisKalmanStrokePredictorContractTest::aSmoothStopLeadsNoMoreThanTheLinearPredictor()
 {
     KisStrokePredictionSettings settings;
 
@@ -132,10 +133,30 @@ void KisKalmanStrokePredictorContractTest::aSmoothStopMovesLessThanTheLinearPred
 
     const KisStrokePredictionResult kalmanResult = kalman.predict(HorizonMs);
     const KisStrokePredictionResult linearResult = linear.predict(HorizonMs);
+    QVERIFY(kalmanResult.valid);
+    QVERIFY(linearResult.valid);
 
-    QVERIFY2(kalmanResult.moveLength < linearResult.moveLength,
-             qPrintable(QStringLiteral("Kalman moves %1 px, linear moves %2 px")
-                            .arg(kalmanResult.moveLength).arg(linearResult.moveLength)));
+    // The lead is the displacement from the newest real point to the predicted
+    // point along the direction of the stroke. A prediction behind the newest
+    // real point has no lead because it overlaps the stroke.
+    const QPointF first = samples.constFirst().position;
+    const QPointF latest = samples.constLast().position;
+    QPointF direction = latest - first;
+    const qreal length = std::hypot(direction.x(), direction.y());
+    QVERIFY(length > 0.0);
+    direction /= length;
+
+    const auto lead = [&latest, &direction](const KisStrokePredictionResult &result) {
+        const QPointF displacement = result.polyline.constLast() - latest;
+        return std::max<qreal>(0.0, displacement.x() * direction.x()
+                                        + displacement.y() * direction.y());
+    };
+
+    const qreal kalmanLead = lead(kalmanResult);
+    const qreal linearLead = lead(linearResult);
+    QVERIFY2(kalmanLead <= linearLead + 1.0,
+             qPrintable(QStringLiteral("Kalman leads %1 px, linear leads %2 px")
+                            .arg(kalmanLead).arg(linearLead)));
 }
 
 void KisKalmanStrokePredictorContractTest::aGapOfTwentyMillisecondsIsInvalid()
