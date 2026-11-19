@@ -3,9 +3,11 @@
 """Write the replay input of the pressed strokes of a scenario.
 
 The scenario's "trajectory" settings feed trajectory.samples(), and the
-samples with the primary button pressed become the strokes of
-KisStrokePredictionReplay. The coordinates are the injected ones, the event
-time and the arrival time are the injection time, and the pressure is 1.0.
+samples with the primary button pressed whose phase starts with "move" become
+the strokes of KisStrokePredictionReplay. The still dwell and the release
+around a stroke are left out. The coordinates are the injected ones, the event
+time is the injection time in milliseconds, the arrival time is the injection
+time in nanoseconds, and the pressure is 1.0.
 
 Usage: prediction_replay_synthetic.py SCENARIO OUTPUT.csv [--width 2048]
                                                         [--height 1536]
@@ -30,9 +32,9 @@ def convert(scenario_path, output_path, width=2048, height=1536):
 
     with open(output_path, "w", encoding="ascii", newline="") as handle:
         handle.write("stroke,arrival_ns,event_ms,x,y,pressure\n")
-        for time_s, _phase, current_band, x, y, pressed in trajectory.samples(
+        for time_s, phase, current_band, x, y, pressed in trajectory.samples(
                 0.0, 0.0, width, height, settings):
-            if not pressed:
+            if not pressed or not phase.startswith("move"):
                 continue
             if current_band != band:
                 band = current_band
