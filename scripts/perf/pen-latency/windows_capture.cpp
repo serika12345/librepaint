@@ -20,6 +20,15 @@
 // frame_ns is DXGI_OUTDUPL_FRAME_INFO::LastPresentTime. Run inside the
 // interactive desktop session (run-surface.ps1).
 //
+// Set LIBREPAINT_DIAG_FRAME_DUMP=1 to keep screen frames for the Windows ink
+// diagnosis: with --plan, the capture thread saves the measured region every
+// 100 ms as screen-000.bmp, screen-001.bmp and so on, up to 60 files, and
+// writes index,frame_ns,arrival_ns,left,top,width,height to screen-dumps.csv,
+// where left and top are relative to the primary output. After the replay and
+// the injection tail a full screen frame is saved as screen-after.bmp with the
+// same cursor nudge as the first snapshot. The variable is read once per
+// process.
+//
 // capture.csv rows are
 // frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap.
 // dense_gap is the widest run of columns with fewer than --dense dark pixels
@@ -441,14 +450,35 @@ int main(int argc, char **argv)
 
     std::atomic<bool> stop{false};
     std::string rows = "frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap\n";
+    const char *dumpEnv = std::getenv("LIBREPAINT_DIAG_FRAME_DUMP");
+    const bool dumpFrames = dumpEnv && std::string(dumpEnv) == "1";
+    std::ofstream screenDumps;
+    if (dumpFrames) {
+        screenDumps.open(out + "\\screen-dumps.csv", std::ios::binary);
+        screenDumps << "index,frame_ns,arrival_ns,left,top,width,height\n";
+    }
     std::thread capture([&] {
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
         char line[256];
+        int dumpIndex = 0;
+        long long dumpLast = 0;
         while (!stop) {
             long long frameNs; D3D11_MAPPED_SUBRESOURCE mapped;
             if (!dup.next(region, &frameNs, &mapped, 50)) continue;
             long long arrival = nowNs();
             const unsigned char *data = (const unsigned char *)mapped.pData;
+            if (dumpFrames && dumpIndex < 60 && (dumpLast == 0 || arrival - dumpLast >= 100000000LL)) {
+                char name[32];
+                snprintf(name, sizeof(name), "screen-%03d.bmp", dumpIndex);
+                int dumpWidth = region.right - region.left, dumpHeight = region.bottom - region.top;
+                saveBmp(out + "\\" + name, data, mapped.RowPitch, dumpWidth, dumpHeight);
+                screenDumps << dumpIndex << "," << frameNs << "," << arrival << ","
+                            << (region.left - dup.origin.x) << "," << (region.top - dup.origin.y) << ","
+                            << dumpWidth << "," << dumpHeight << "\n";
+                screenDumps.flush();
+                dumpLast = arrival;
+                ++dumpIndex;
+            }
             for (const Band &b : bands) {
                 int xmin = -1, xmax = -1, dxmin = -1, dxmax = -1, ymin = -1, ymax = -1;
                 std::vector<int> columns(b.x1 - b.x0, 0);
@@ -506,6 +536,25 @@ int main(int argc, char **argv)
     Sleep(500);
     stop = true;
     capture.join();
+    if (dumpFrames) {
+        screenDumps.close();
+        SetCursorPos(dup.origin.x + 1, dup.origin.y + dup.height - 2);
+        RECT full{0, 0, dup.width, dup.height};
+        long long afterNs; D3D11_MAPPED_SUBRESOURCE afterMapped;
+        bool got = false;
+        for (int i = 0; i < 50 && !got; ++i) got = dup.next(full, &afterNs, &afterMapped, 100);
+        if (!got) {
+            SetCursorPos(dup.origin.x + 2, dup.origin.y + dup.height - 3);
+            for (int i = 0; i < 50 && !got; ++i) got = dup.next(full, &afterNs, &afterMapped, 100);
+        }
+        if (got) {
+            saveBmp(out + "\\screen-after.bmp", (const unsigned char *)afterMapped.pData, afterMapped.RowPitch,
+                    dup.width, dup.height);
+            dup.unmap();
+        } else {
+            fprintf(stderr, "no frame for screen-after.bmp\n");
+        }
+    }
     std::ofstream(out + "\\capture.csv", std::ios::binary) << rows;
     std::ofstream(out + "\\inject.csv", std::ios::binary) << injected;
     std::ofstream(out + "\\capture-meta.json") << meta << ", \"inject_failures\": " << failures << "}\n";

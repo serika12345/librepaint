@@ -62,11 +62,134 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
+#include <QFile>
+#include <QFileInfo>
+#include <QImage>
+#include <QOpenGLFunctions>
+
+#include <chrono>
+#include <thread>
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
 static bool OPENGL_SUCCESS = false;
+
+namespace {
+
+// The canvas frame dump below exists only for the Windows desktop OpenGL
+// investigation (2026-11-21): with the desktop renderer the ink of a stroke is
+// missing on screen while ANGLE keeps it, and this dump separates "the canvas
+// render has no ink" from "the canvas render has ink but the screen does not
+// show it". Remove this code when the cause is fixed and recorded in
+// docs/perf/DECISIONS.md.
+bool diagFrameDumpEnabled()
+{
+    static const bool enabled = qgetenv("LIBREPAINT_DIAG_FRAME_DUMP") == "1";
+    return enabled;
+}
+
+QString diagLatencyLogPath()
+{
+    static const QString path = QString::fromLocal8Bit(qgetenv("LIBREPAINT_LATENCY_LOG"));
+    return path;
+}
+
+// Nanoseconds of the performance counter, the conversion of nowNs in
+// scripts/perf/pen-latency/windows_capture.cpp.
+qint64 diagNowNs()
+{
+#ifdef Q_OS_WIN
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER value;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&value);
+    return qint64(double(value.QuadPart) * 1e9 / double(frequency.QuadPart));
+#else
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+               std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
+}
+
+// Reads back the framebuffer of the paint call into a PNG beside the probe log
+// and appends one row to fbo-dumps.csv. The PNG is converted and written on a
+// separate thread; the paint thread only reads back and copies the image.
+void diagDumpCanvasFrame(KisOpenGLCanvas2 *canvas, const QRect &updateRect)
+{
+    static qint64 lastNs = 0;
+    static int count = 0;
+    if (count >= 60) return;
+
+    const qint64 now = diagNowNs();
+    if (lastNs != 0 && now - lastNs < 100000000) return;
+
+    const QString logPath = diagLatencyLogPath();
+    if (logPath.isEmpty()) return;
+
+    const qreal dpr = canvas->devicePixelRatioF();
+    const int width = qRound(canvas->width() * dpr);
+    const int height = qRound(canvas->height() * dpr);
+    if (width <= 0 || height <= 0) return;
+
+    QOpenGLContext *context = canvas->context();
+    if (!context) return;
+    QOpenGLFunctions *functions = context->functions();
+    if (!functions) return;
+
+    QImage image(width, height, QImage::Format_RGBA8888);
+    if (image.isNull()) return;
+
+    GLint previousFramebuffer = 0;
+    functions->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer);
+    functions->glBindFramebuffer(GL_FRAMEBUFFER, canvas->defaultFramebufferObject());
+    functions->glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    functions->glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
+    functions->glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer);
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 9, 0)
+    image = image.mirrored(false, true);
+#else
+    image = image.flipped(Qt::Orientation::Vertical);
+#endif
+
+    const int index = count;
+    ++count;
+    lastNs = now;
+
+    const QString folder = QFileInfo(logPath).absolutePath();
+    const QString name = QStringLiteral("fbo-") + QString::number(index).rightJustified(3, QLatin1Char('0'));
+    const QPoint global = canvas->mapToGlobal(QPoint(0, 0));
+
+    QFile csv(folder + QStringLiteral("/fbo-dumps.csv"));
+    if (csv.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        if (index == 0) {
+            csv.write("index,time_ns,global_x,global_y,width_px,height_px,dpr,native_window,"
+                      "update_x,update_y,update_w,update_h\n");
+        }
+        const QString row = QStringLiteral("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12\n")
+                                .arg(index)
+                                .arg(now)
+                                .arg(global.x())
+                                .arg(global.y())
+                                .arg(width)
+                                .arg(height)
+                                .arg(QString::number(dpr, 'g', 6))
+                                .arg(canvas->testAttribute(Qt::WA_NativeWindow) ? 1 : 0)
+                                .arg(updateRect.x())
+                                .arg(updateRect.y())
+                                .arg(updateRect.width())
+                                .arg(updateRect.height());
+        csv.write(row.toUtf8());
+    }
+
+    std::thread([folder, name, image] { image.save(folder + QLatin1Char('/') + name + QStringLiteral(".png"), "PNG"); })
+        .detach();
+
+    KisLatencyProbe::mark("diag_fbo_dump", width, height, index);
+}
+
+} // namespace
 
 class KisOpenGLCanvas2::CanvasBridge
     : public KisOpenGLCanvasRenderer::CanvasBridge
@@ -476,6 +599,14 @@ void KisOpenGLCanvas2::paintGL()
     }
 
     d->repaintDbg.paint(this, updateRect.isEmpty() ? rect() : updateRect);
+
+    // The canvas frame dump exists only for the Windows desktop OpenGL
+    // investigation: it separates a canvas render without ink from a canvas
+    // render whose ink does not reach the screen. Remove it when the cause is
+    // fixed and recorded in docs/perf/DECISIONS.md.
+    if (diagFrameDumpEnabled() && !canvasImageDirtyRect.isEmpty()) {
+        diagDumpCanvasFrame(this, updateRect);
+    }
 
     // We create the glFenceSync object here instead of in KisOpenGLRenderer,
     // because the glFenceSync object should be created after all render
