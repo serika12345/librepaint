@@ -67,6 +67,7 @@ private Q_SLOTS:
     void canvasSurfaceModeNamesRoundTrip();
     void displayFormatNamesRoundTrip();
     void strokePredictionDefaultsAndRoundTrip();
+    void strokePredictionDefaultWithoutStoredValue();
     void strokePredictionExpiryDefaultsAndClamp();
 };
 
@@ -267,6 +268,28 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
 
     KisConfig unknownPredictor(true);
     QCOMPARE(unknownPredictor.strokePredictionPredictor(), QStringLiteral("kalman"));
+}
+
+void KisConfigCompatibilityTest::strokePredictionDefaultWithoutStoredValue()
+{
+    /*
+     * Consumer: The freehand tool and the settings dialog on a profile that has no prediction preference yet.
+     * Operation: Reads useStrokePrediction with the entry deleted from kritarc.
+     * Observable result: The built-in default is off on Windows and on elsewhere.
+     * Failure impact: Windows keeps drawing a prediction line that the coarse tablet time defeats, or another
+     * platform loses the line it draws by default.
+     */
+    KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
+    ScopedConfigEntry restoreEnabled(configGroup, QStringLiteral("useStrokePrediction"));
+    configGroup.deleteEntry(QStringLiteral("useStrokePrediction"));
+    configGroup.sync();
+
+    KisConfig config(true);
+#ifdef Q_OS_WIN
+    QCOMPARE(config.useStrokePrediction(), false);
+#else
+    QCOMPARE(config.useStrokePrediction(), true);
+#endif
 }
 
 void KisConfigCompatibilityTest::strokePredictionExpiryDefaultsAndClamp()
