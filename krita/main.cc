@@ -58,6 +58,7 @@
 
 #ifdef Q_OS_WIN
 #include "KisWindowsPointerEventFilter.h"
+#include "KisWindowsPointerTimes.h"
 #include "wintab/KisWintabPacketPeeker.h"
 #include <dialogs/KisDlgCustomTabletResolution.h>
 #endif
@@ -1172,6 +1173,18 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     KisLatencyProbe::installNativeFilter(&app);
 
 #ifdef Q_OS_WIN
+    // msg.time only moves with the system timer, so Qt gives several samples
+    // of a fast pen the same time. The pointer samples keep the per-sample
+    // performance count for the tablet events.
+    {
+        LARGE_INTEGER frequency;
+        if (::QueryPerformanceFrequency(&frequency) && frequency.QuadPart > 0) {
+            auto *pointerTimes = new KisWindowsPointerTimes;
+            pointerTimes->setFrequency(quint64(frequency.QuadPart));
+            KisWindowsPointerTimes::install(pointerTimes);
+        }
+    }
+
     // The window frame and the Windows Ink press-and-hold gesture never reach
     // Qt as events. Q4 stage 3 (c41d66281e and 33a49f25d1) keeps the canvas
     // Enter/Leave, the cursor and the long press working with official Qt.

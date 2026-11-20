@@ -3,11 +3,27 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#if defined(_WIN32)
+// winuser.h hides POINTER_INFO and GetPointerPenInfoHistory below Windows 8.
+#ifndef WINVER
+#define WINVER 0x0A00
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0A00
+#endif
+#endif
+
 #include "KisWindowsPointerEventFilter.h"
 
+#include <QGuiApplication>
+#include <QScreen>
+#include <QVector>
 #include <QWidget>
+#include <qpa/qplatformscreen.h>
 
+#include "KisWindowsPointerTimes.h"
 #include "kis_input_manager.h"
+#include "wintab/KisWintabMapping.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -94,11 +110,76 @@ bool KisWindowsPointerEventFilter::nativeEventFilter(const QByteArray &eventType
 #ifdef Q_OS_WIN
     if (eventType != "windows_generic_MSG") return false;
 
+    const MSG *msg = static_cast<const MSG *>(message);
+
+    // Qt takes the tablet event time from msg.time, which only moves with the
+    // system timer. Every pen sample of a pointer message has its own
+    // performance count, so keep them here, before the canvas check, for the
+    // input manager to apply. Qt keeps handling the message as before.
+    if (msg->message == WM_POINTERDOWN || msg->message == WM_POINTERUPDATE ||
+        msg->message == WM_POINTERUP) {
+
+        if (KisWindowsPointerTimes *times = KisWindowsPointerTimes::instance()) {
+            const UINT32 pointerId = GET_POINTERID_WPARAM(msg->wParam);
+            POINTER_INPUT_TYPE pointerType = PT_POINTER;
+
+            if (::GetPointerType(pointerId, &pointerType) && pointerType == PT_PEN) {
+                POINTER_INFO info;
+                if (::GetPointerInfo(pointerId, &info)) {
+                    UINT32 count = info.historyCount;
+                    if (count > 64) {
+                        count = 64;
+                    }
+
+                    QVector<POINTER_PEN_INFO> history(count);
+                    if (count > 0 &&
+                        ::GetPointerPenInfoHistory(pointerId, &count, history.data())) {
+
+                        // The screen list uses the same procedure as
+                        // KisWintabPacketPeeker::currentScreens: the logical
+                        // geometry, the native geometry from QPlatformScreen
+                        // and the device pixel ratio of each screen.
+                        QVector<KisWintabMapping::Screen> screens;
+                        if (QGuiApplication::instance()) {
+                            const QList<QScreen *> guiScreens = QGuiApplication::screens();
+                            screens.reserve(guiScreens.size());
+
+                            for (QScreen *screen : guiScreens) {
+                                KisWintabMapping::Screen entry;
+                                entry.logicalRect = screen->geometry();
+                                entry.nativeRect = screen->handle()
+                                    ? screen->handle()->geometry() : entry.logicalRect;
+                                entry.devicePixelRatio = screen->devicePixelRatio();
+                                screens.append(entry);
+                            }
+                        }
+
+                        // GetPointerPenInfoHistory reports the newest sample
+                        // first; the times are stored oldest first.
+                        QVector<KisWindowsPointerTimes::Sample> samples;
+                        samples.reserve(int(count));
+                        for (int i = int(count) - 1; i >= 0; --i) {
+                            const POINTER_INFO &penInfo = history.at(i).pointerInfo;
+                            KisWindowsPointerTimes::Sample sample;
+                            sample.messageTime = quint32(msg->time);
+                            sample.performanceCount = quint64(penInfo.PerformanceCount);
+                            sample.logicalPosition = KisWintabMapping::logicalPosition(
+                                QPointF(penInfo.ptPixelLocation.x, penInfo.ptPixelLocation.y),
+                                screens);
+                            samples.append(sample);
+                        }
+
+                        times->addSamples(samples);
+                    }
+                }
+            }
+        }
+    }
+
     QWidget *canvas = m_canvasWidget.data();
     KisInputManager *inputManager = qobject_cast<KisInputManager *>(m_inputManager.data());
     if (!canvas || !inputManager) return false;
 
-    const MSG *msg = static_cast<const MSG *>(message);
     if (KisWindowsPointer::nonClientMessage(msg->message) ==
         KisWindowsPointer::NonClientMessage::None) {
         return false;

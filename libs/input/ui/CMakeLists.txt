@@ -59,6 +59,7 @@ set(kritainputui_LIB_SRCS
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
     KisWindowsPointerEventFilter.cpp
+    KisWindowsPointerTimes.cpp
     kis_abstract_input_action.cpp
     kis_alternate_invocation_action.cpp
     kis_change_primary_setting_action.cpp
@@ -145,10 +146,11 @@ set_target_properties(kritainputui
 )
 
 if (QT_MAJOR_VERSION STREQUAL "6")
-    # The Wintab peeker reads QScreen::handle()->geometry() to get the native
-    # pixel rectangle of each screen.
+    # The Wintab peeker and the pointer filter read QScreen::handle()->geometry()
+    # to get the native pixel rectangle of each screen.
     set_source_files_properties(
         wintab/KisWintabPacketPeeker.cpp
+        KisWindowsPointerEventFilter.cpp
         TARGET_DIRECTORY kritainputui
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"

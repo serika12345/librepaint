@@ -14,6 +14,7 @@
 #include "kis_assert.h"
 
 #include "wintab/KisWintabPacketPeeker.h"
+#include "KisWindowsPointerTimes.h"
 
 #include <KisMpl.h>
 #include <QApplication>
@@ -248,6 +249,7 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
     // on the event. Only the position changes; pressure, tilt, buttons and
     // the device stay as Qt delivered them.
     std::unique_ptr<QTabletEvent> correctedTabletEvent;
+    std::unique_ptr<QTabletEvent> retimedTabletEvent;
     if (event->type() == QEvent::TabletPress ||
         event->type() == QEvent::TabletMove ||
         event->type() == QEvent::TabletRelease) {
@@ -259,6 +261,33 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
                 event = correctedTabletEvent.get();
             }
         }
+
+        // msg.time only moves with the system timer, so several samples of a
+        // fast pen arrive with the same time. Windows reports the time of
+        // every sample in a performance count; the filter keeps them and the
+        // event gets the time of its own sample here.
+        bool retimed = false;
+        qint64 retimedDeltaMs = 0;
+
+        if (KisWindowsPointerTimes *times = KisWindowsPointerTimes::instance()) {
+            QTabletEvent *tabletEvent = static_cast<QTabletEvent *>(event);
+            const quint64 originalTimestamp = tabletEvent->timestamp();
+            quint64 timestampMs = 0;
+
+            if (times->take(originalTimestamp, tabletEvent->globalPosition(),
+                            &timestampMs)) {
+                retimedTabletEvent.reset(tabletEvent->clone());
+                if (retimedTabletEvent) {
+                    retimedTabletEvent->setTimestamp(timestampMs);
+                    event = retimedTabletEvent.get();
+                    retimed = true;
+                    retimedDeltaMs = qint64(timestampMs) - qint64(originalTimestamp);
+                }
+            }
+        }
+
+        KisLatencyProbe::mark("pointer_time", retimed ? 1 : 0, 0,
+                              retimed ? retimedDeltaMs : 0);
     }
 
     if (!d->matcher.hasRunningShortcut()) {

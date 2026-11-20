@@ -83,6 +83,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisWindowsPointerTimesTest.cpp
+    TEST_NAME KisWindowsPointerTimesTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KisWintabMappingTest.cpp
     TEST_NAME KisWintabMappingTest
     LINK_LIBRARIES
