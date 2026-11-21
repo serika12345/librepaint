@@ -441,6 +441,7 @@ private Q_SLOTS:
     void predictionRendererExistsDuringStroke();
     void predictionIsClearedAfterStrokeAndCancel();
     void predictionComposesWithLayerOpacityAndCompositeOp();
+    void directPaintingLayerShowsPredictionThroughProjection();
 };
 
 void KisStrokePredictionRenderContractTest::initTestCase()
@@ -684,6 +685,68 @@ void KisStrokePredictionRenderContractTest::predictionComposesWithLayerOpacityAn
                            QStringLiteral("prediction-composition-projection-actual.png"),
                            &mismatch),
              qPrintable(QStringLiteral("prediction composition differs at %1,%2")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
+}
+
+void KisStrokePredictionRenderContractTest::directPaintingLayerShowsPredictionThroughProjection()
+{
+    PredictionFixture fixture;
+
+    KisImageSP image = fixture.image();
+    KisPaintLayerSP layer = fixture.layer();
+    KisPaintDeviceSP original = layer->original();
+
+    const QRect rect(70, 70, 40, 40);
+
+    const QRect fullRect(0, 0, imageWidth, imageHeight);
+    original->fill(fullRect, KoColor(Qt::blue, image->colorSpace()));
+    layer->setDirty(fullRect);
+    image->waitForDone();
+
+    QVERIFY(!layer->hasTemporaryTarget());
+    QVERIFY(layer->projection() == original);
+
+    KisPaintDeviceSP prediction = new KisPaintDevice(image->colorSpace());
+    prediction->setDefaultBounds(original->defaultBounds());
+    prediction->fill(rect, KoColor(Qt::red, image->colorSpace()));
+
+    layer->setPrediction(prediction,
+                         rect,
+                         KisIndirectPaintingSupport::PredictionMode::ReplaceOriginal);
+    layer->setDirty(rect);
+    image->waitForDone();
+
+    QVERIFY(layer->projection() != original);
+
+    const QImage expected = regionImage(prediction, rect);
+
+    QPoint mismatch;
+    QVERIFY2(compareRegion(expected,
+                           regionImage(layer->projection(), rect),
+                           QStringLiteral("direct-prediction-layer-projection-actual.png"),
+                           &mismatch),
+             qPrintable(QStringLiteral("layer projection differs from the prediction at %1,%2")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
+
+    QVERIFY2(compareRegion(expected,
+                           regionImage(image->projection(), rect),
+                           QStringLiteral("direct-prediction-image-projection-actual.png"),
+                           &mismatch),
+             qPrintable(QStringLiteral("image projection differs from the prediction at %1,%2")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
+
+    layer->clearPrediction();
+    layer->setDirty(rect);
+    image->waitForDone();
+
+    QVERIFY2(compareRegion(regionImage(original, rect),
+                           regionImage(image->projection(), rect),
+                           QStringLiteral("direct-prediction-cleared-projection-actual.png"),
+                           &mismatch),
+             qPrintable(QStringLiteral("cleared prediction still shows at %1,%2")
                             .arg(mismatch.x())
                             .arg(mismatch.y())));
 }

@@ -148,9 +148,10 @@ KisPaintDeviceSP KisPaintLayer::paintDevice() const
     return m_d->paintDevice;
 }
 
+/* A direct painting layer can composite the stroke prediction only through its projection, so keep the projection while a prediction exists. */
 bool KisPaintLayer::needProjection() const
 {
-    return hasTemporaryTarget() || (isAnimated() && onionSkinEnabled());
+    return hasPrediction() || hasTemporaryTarget() || (isAnimated() && onionSkinEnabled());
 }
 
 namespace {
