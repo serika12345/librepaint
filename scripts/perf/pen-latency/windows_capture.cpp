@@ -24,7 +24,9 @@
 // diagnosis: with --plan, the capture thread saves the measured region every
 // 100 ms as screen-000.bmp, screen-001.bmp and so on, up to 60 files, and
 // writes index,frame_ns,arrival_ns,left,top,width,height to screen-dumps.csv,
-// where left and top are relative to the primary output. After the replay and
+// where left and top are relative to the primary output. Only frames from the
+// start of a pen press until 500 ms after the last release are saved, so the
+// files cover the strokes instead of the idle desktop. After the replay and
 // the injection tail a full screen frame is saved as screen-after.bmp with the
 // same cursor nudge as the first snapshot. The variable is read once per
 // process.
@@ -449,6 +451,8 @@ int main(int argc, char **argv)
     }
 
     std::atomic<bool> stop{false};
+    // Set while a synthetic press is down, so the dump keeps the stroke frames.
+    std::atomic<int> pressedNow{0};
     std::string rows = "frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap\n";
     const char *dumpEnv = std::getenv("LIBREPAINT_DIAG_FRAME_DUMP");
     const bool dumpFrames = dumpEnv && std::string(dumpEnv) == "1";
@@ -462,12 +466,20 @@ int main(int argc, char **argv)
         char line[256];
         int dumpIndex = 0;
         long long dumpLast = 0;
+        bool dumpWindow = false;
+        long long dumpWindowUntil = 0;
+        int lastPressed = 0;
         while (!stop) {
             long long frameNs; D3D11_MAPPED_SUBRESOURCE mapped;
             if (!dup.next(region, &frameNs, &mapped, 50)) continue;
             long long arrival = nowNs();
             const unsigned char *data = (const unsigned char *)mapped.pData;
-            if (dumpFrames && dumpIndex < 60 && (dumpLast == 0 || arrival - dumpLast >= 100000000LL)) {
+            const int pressedValue = pressedNow.load(std::memory_order_relaxed);
+            if (pressedValue && !dumpWindow) dumpWindow = true;
+            if (!pressedValue && lastPressed) dumpWindowUntil = arrival + 500000000LL;
+            lastPressed = pressedValue;
+            const bool dumpAllowed = dumpWindow && (pressedValue || arrival <= dumpWindowUntil);
+            if (dumpFrames && dumpAllowed && dumpIndex < 60 && (dumpLast == 0 || arrival - dumpLast >= 100000000LL)) {
                 char name[32];
                 snprintf(name, sizeof(name), "screen-%03d.bmp", dumpIndex);
                 int dumpWidth = region.right - region.left, dumpHeight = region.bottom - region.top;
@@ -526,6 +538,7 @@ int main(int argc, char **argv)
         }
         int x = dup.origin.x + (int)(s.x + 0.5), y = dup.origin.y + (int)(s.y + 0.5);
         long long t = nowNs();
+        pressedNow.store(s.pressed, std::memory_order_relaxed);
         bool ok = mouse ? injectMouse(x, y, s.pressed, pressed) : pen.inject(x, y, s.pressed, pressed);
         if (!ok) failures++;
         pressed = s.pressed;
