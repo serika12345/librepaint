@@ -1421,6 +1421,28 @@ build-incremental ios deploy [device-id]
 `KRITA_IOS_DEPLOY_PORT`、起動待機は`KRITA_IOS_LAUNCH_SETTLE_SECONDS`でも指定できる。
 配備の最後に使用中のNix入力を保護し、空き容量が閾値未満ならキャッシュ保守を行う。
 
+### 予測の線の実機での確認
+
+iOSの予測タッチから作る線を実機で確かめる。端末の準備と接続はAltStoreへの配備と同じである。
+
+```sh
+packaging/ios/scripts/check-prediction.sh [device-id]
+```
+
+省略時は最初の利用可能なCoreDeviceを選ぶ。導入済みのLibrePaintを再起動し、記録を
+`Library/Application Support/latency.csv`へ書く。案内に従い、新しい画像にApple Pencilで線を20本以上描く。
+速く描いて止める線と、ゆっくり描く線を混ぜる。待ち時間は`KRITA_IOS_PREDICTION_SECONDS`で決まり、既定は120秒である。
+待ち時間の間は30秒ごとに残りの秒数を表示する。記録と`librepaint.log`は`build-ios/deploy/prediction-<日時>.csv`と
+`.log`へ回収する。
+
+判定では、iOSの予測の線の記録、200以上の更新のキー、99%以上の一致率、点を持つOSの項目、描いた予測点、
+予測点の消去を確かめる。条件を満たさない場合は`ANOMALY`行を標準エラーへ書く。終了コードの意味は次のとおりである。
+
+- 0:すべての条件を満たす。
+- 1:いずれかの条件を満たさない。
+- 2:引数が誤っているか、導入済みのアプリが見つからない。
+- 3:記録またはログを回収できない。
+
 ### LiveContainerへの導入
 
 設定済みのLiveContainerへ`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`を

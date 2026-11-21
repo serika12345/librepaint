@@ -55,8 +55,14 @@ class Recorder
 public:
     Recorder()
     {
-        const QByteArray path = qgetenv("LIBREPAINT_LATENCY_LOG");
+        QByteArray path = qgetenv("LIBREPAINT_LATENCY_LOG");
         if (path.isEmpty()) return;
+#ifdef Q_OS_IOS
+        // The app container path changes with every installation, so a path relative to the container is accepted.
+        if (!path.startsWith('/')) {
+            path = qgetenv("HOME") + '/' + path;
+        }
+#endif
         m_file = std::fopen(path.constData(), "w");
         if (!m_file) return;
 #ifdef Q_OS_WIN
