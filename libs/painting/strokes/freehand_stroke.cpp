@@ -28,6 +28,7 @@
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include "FreehandStrokeRunnableJobDataWithUpdate.h"
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -100,7 +101,7 @@ struct FreehandStrokeStrategy::Private
 
     QVector<QPointF> predictionPoints;
     QVector<qreal> predictionDtMs;
-    bool predictionChanged = false;
+    std::atomic<bool> predictionChanged {false};
 
     std::mutex predictionRenderMutex;
     QRect lastPredictionRect;
@@ -187,19 +188,57 @@ void FreehandStrokeStrategy::initStrokeCallback()
     QVector<KisRunnableStrokeJobData*> jobs;
 
     KritaUtils::addJobSequential(jobs, [this] () {
-        if (!m_d->supportsPrediction) return;
+        // Reasons for the "prediction_render_setup" marks. The setup job
+        // always writes exactly one mark, so that the cause for a missing
+        // prediction renderer can be read from the measurement data:
+        //   0: the renderer was created
+        //   1: the stroke does not support prediction
+        //   2: the target node is not a KisPaintLayer
+        //   3: the stroke does not use exactly one masked painter
+        //   4: the preset needs masking brush rendering
+        //   5: the painter is missing or mirrors the stroke
+        //   6: the target device has no bounds or wraps around the image
+        //   7: a level-of-detail clone dropped the prediction
+        static const qint64 ReasonCreated = 0;
+        static const qint64 ReasonNotSupported = 1;
+        static const qint64 ReasonNotPaintLayer = 2;
+        static const qint64 ReasonNotSinglePainter = 3;
+        static const qint64 ReasonMaskingBrush = 4;
+        static const qint64 ReasonMirroring = 5;
+        static const qint64 ReasonWrapAround = 6;
+
+        if (!m_d->supportsPrediction) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonNotSupported);
+            return;
+        }
 
         KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
-        if (!layer) return;
+        if (!layer) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonNotPaintLayer);
+            return;
+        }
 
-        if (numMaskedPainters() != 1) return;
-        if (m_d->resources->needsMaskingBrushRendering()) return;
+        if (numMaskedPainters() != 1) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonNotSinglePainter);
+            return;
+        }
+
+        if (m_d->resources->needsMaskingBrushRendering()) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonMaskingBrush);
+            return;
+        }
 
         KisPainter *painter = mainPainter(0);
-        if (!painter || painter->hasMirroring()) return;
+        if (!painter || painter->hasMirroring()) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonMirroring);
+            return;
+        }
 
         KisPaintDeviceSP device = targetDevice();
-        if (!device || !device->defaultBounds() || device->defaultBounds()->wrapAroundMode()) return;
+        if (!device || !device->defaultBounds() || device->defaultBounds()->wrapAroundMode()) {
+            KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonWrapAround);
+            return;
+        }
 
         m_d->indirectPrediction = device != layer->paintDevice();
         m_d->predictionRenderer.reset(
@@ -208,6 +247,8 @@ void FreehandStrokeStrategy::initStrokeCallback()
                                             activeSelection(),
                                             m_d->indirectPrediction,
                                             m_d->resources->indirectPaintingCompositeOp()));
+
+        KisLatencyProbe::mark("prediction_render_setup", 0, 0, ReasonCreated);
     });
 
     runnableJobsInterface()->addRunnableJobs(jobs);
@@ -327,6 +368,7 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             m_d->predictionPoints = d->points;
             m_d->predictionDtMs = d->dtMs;
             m_d->predictionChanged = true;
+            KisLatencyProbe::mark("prediction_received", 0, 0, d->points.size());
             break;
         };
 
@@ -533,6 +575,7 @@ KisStrokeStrategy* FreehandStrokeStrategy::createLodClone(int levelOfDetail)
     if (!m_d->resources->presetAllowsLod()) return 0;
     if (!m_d->resources->currentNode()->supportsLodPainting()) return 0;
 
+    KisLatencyProbe::mark("prediction_render_setup", 0, 0, 7);
     m_d->supportsPrediction = false;
 
     FreehandStrokeStrategy *clone = new FreehandStrokeStrategy(*this, levelOfDetail);
