@@ -40,6 +40,11 @@ struct Q_DECL_HIDDEN KisIndirectPaintingSupport::Private {
 
     QReadWriteLock lock;
     bool finalMergeInProgress = true;
+
+    KisPaintDeviceSP predictionDevice;
+    QRect predictionRect;
+    KisIndirectPaintingSupport::PredictionMode predictionMode =
+        KisIndirectPaintingSupport::PredictionMode::ReplaceOriginal;
 };
 
 
@@ -60,6 +65,10 @@ void KisIndirectPaintingSupport::setCurrentColor(const KoColor &color)
 
 void KisIndirectPaintingSupport::setTemporaryTarget(KisPaintDeviceSP t)
 {
+    if (!t) {
+        clearPrediction();
+    }
+
     d->temporaryTarget = t;
 }
 
@@ -130,6 +139,50 @@ bool KisIndirectPaintingSupport::hasTemporaryTarget() const
     return d->temporaryTarget;
 }
 
+void KisIndirectPaintingSupport::setPrediction(KisPaintDeviceSP device, const QRect &rect, PredictionMode mode)
+{
+    WriteLocker locker(this);
+
+    d->predictionDevice = device;
+    d->predictionRect = rect;
+    d->predictionMode = mode;
+}
+
+void KisIndirectPaintingSupport::clearPrediction()
+{
+    WriteLocker locker(this);
+
+    d->predictionDevice.clear();
+    d->predictionRect = QRect();
+    d->predictionMode = PredictionMode::ReplaceOriginal;
+}
+
+bool KisIndirectPaintingSupport::hasPrediction() const
+{
+    ReadLocker locker(this);
+    return hasPredictionUnlocked();
+}
+
+KisPaintDeviceSP KisIndirectPaintingSupport::predictionDevice() const
+{
+    return d->predictionDevice;
+}
+
+QRect KisIndirectPaintingSupport::predictionRect() const
+{
+    return d->predictionRect;
+}
+
+KisIndirectPaintingSupport::PredictionMode KisIndirectPaintingSupport::predictionMode() const
+{
+    return d->predictionMode;
+}
+
+bool KisIndirectPaintingSupport::hasPredictionUnlocked() const
+{
+    return bool(d->predictionDevice) && !d->predictionRect.isEmpty();
+}
+
 void KisIndirectPaintingSupport::setupTemporaryPainter(KisPainter *painter) const
 {
      painter->setOpacityF(d->compositeOpacity);
@@ -140,6 +193,8 @@ void KisIndirectPaintingSupport::setupTemporaryPainter(KisPainter *painter) cons
 
 void KisIndirectPaintingSupport::mergeToLayer(KisNodeSP layer, KUndo2Command *parentCommand, const KUndo2MagicString &transactionText, int timedID)
 {
+    clearPrediction();
+
     QVector<KisRunnableStrokeJobData*> jobs;
     mergeToLayerThreaded(layer, parentCommand, transactionText, timedID, &jobs);
 

@@ -11,6 +11,7 @@
 #include "kritaimage_export.h"
 #include "kis_types.h"
 
+#include <QRect>
 #include <mutex>
 
 class QBitArray;
@@ -38,6 +39,15 @@ public:
     virtual ~KisIndirectPaintingSupport();
 
     bool hasTemporaryTarget() const;
+
+    enum class PredictionMode {
+        ReplaceTemporaryTarget,
+        ReplaceOriginal
+    };
+
+    void setPrediction(KisPaintDeviceSP device, const QRect &rect, PredictionMode mode);
+    void clearPrediction();
+    bool hasPrediction() const;
 
     virtual void setCurrentColor(const KoColor &color);
     void setTemporaryTarget(KisPaintDeviceSP t);
@@ -151,6 +161,11 @@ protected:
     void mergeToLayerImpl(KisPaintDeviceSP dst, KUndo2Command *parentCommand, const KUndo2MagicString &transactionText, int timedID, bool cleanResources, WriteLockerSP sharedWriteLock, QVector<KisRunnableStrokeJobData *> *jobs);
     virtual void writeMergeData(KisPainter *painter, KisPaintDeviceSP src, const QRect &rc);
     void lockTemporaryTargetForWrite() const;
+
+    KisPaintDeviceSP predictionDevice() const;
+    QRect predictionRect() const;
+    PredictionMode predictionMode() const;
+    bool hasPredictionUnlocked() const;
 
     QString temporaryCompositeOp() const;
     void releaseResources();

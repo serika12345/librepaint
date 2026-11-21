@@ -10,6 +10,7 @@ set(kritapainting_LIB_SRCS
     kis_painting_utils.cpp
 
     strokes/freehand_stroke.cpp
+    strokes/KisStrokePredictionRenderer.cpp
     strokes/KisStrokeEfficiencyMeasurer.cpp
     strokes/kis_painter_based_stroke_strategy.cpp
     strokes/kis_filter_stroke_strategy.cpp

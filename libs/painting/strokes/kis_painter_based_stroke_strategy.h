@@ -53,6 +53,9 @@ protected:
     KisMaskedFreehandStrokePainter* maskedPainter(int strokeInfoId);
     int numMaskedPainters() const;
 
+    KisPainter* mainPainter(int strokeInfoId) const;
+    KisFreehandStrokeInfo* mainStrokeInfo(int strokeInfoId) const;
+
     void setUndoEnabled(bool value);
 
     /**

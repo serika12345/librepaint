@@ -131,6 +131,16 @@ int KisPainterBasedStrokeStrategy::numMaskedPainters() const
     return m_maskedPainters.size();
 }
 
+KisPainter *KisPainterBasedStrokeStrategy::mainPainter(int strokeInfoId) const
+{
+    return m_strokeInfos[strokeInfoId]->painter;
+}
+
+KisFreehandStrokeInfo *KisPainterBasedStrokeStrategy::mainStrokeInfo(int strokeInfoId) const
+{
+    return m_strokeInfos[strokeInfoId];
+}
+
 bool KisPainterBasedStrokeStrategy::needsMaskingUpdates() const
 {
     return bool(m_maskingBrushRenderer);

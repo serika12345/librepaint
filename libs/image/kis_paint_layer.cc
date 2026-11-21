@@ -153,18 +153,64 @@ bool KisPaintLayer::needProjection() const
     return hasTemporaryTarget() || (isAnimated() && onionSkinEnabled());
 }
 
+namespace {
+
+template <typename Func>
+void forEachRectOutside(const QRect &rect, const QRect &hole, Func func)
+{
+    if (hole.isEmpty()) {
+        func(rect);
+        return;
+    }
+
+    const QRect topRect(rect.left(), rect.top(), rect.width(), hole.top() - rect.top());
+    const QRect bottomRect(rect.left(), hole.bottom() + 1, rect.width(), rect.bottom() - hole.bottom());
+    const QRect leftRect(rect.left(), hole.top(), hole.left() - rect.left(), hole.height());
+    const QRect rightRect(hole.right() + 1, hole.top(), rect.right() - hole.right(), hole.height());
+
+    const QRect parts[] = {topRect, bottomRect, leftRect, rightRect};
+    for (const QRect &part : parts) {
+        if (!part.isEmpty()) {
+            func(part);
+        }
+    }
+}
+
+} // namespace
+
 void KisPaintLayer::copyOriginalToProjection(const KisPaintDeviceSP original,
                                              KisPaintDeviceSP projection,
                                              const QRect& rect) const
 {
     KisIndirectPaintingSupport::ReadLocker l(this);
 
-    KisPainter::copyAreaOptimized(rect.topLeft(), original, projection, rect);
+    const KisPaintDeviceSP predictionDevice = this->predictionDevice();
+    const QRect predictionRect = this->predictionRect();
+    const bool usePrediction = predictionDevice && predictionRect.intersects(rect);
+    const QRect overlap = usePrediction ? (rect & predictionRect) : QRect();
+    const PredictionMode mode = predictionMode();
+
+    if (usePrediction && mode == PredictionMode::ReplaceOriginal) {
+        forEachRectOutside(rect, overlap, [&] (const QRect &part) {
+            KisPainter::copyAreaOptimized(part.topLeft(), original, projection, part);
+        });
+        KisPainter::copyAreaOptimized(overlap.topLeft(), predictionDevice, projection, overlap);
+    } else {
+        KisPainter::copyAreaOptimized(rect.topLeft(), original, projection, rect);
+    }
 
     if (hasTemporaryTarget()) {
         KisPainter gc(projection);
         setupTemporaryPainter(&gc);
-        gc.bitBlt(rect.topLeft(), temporaryTarget(), rect);
+
+        if (usePrediction && mode == PredictionMode::ReplaceTemporaryTarget) {
+            forEachRectOutside(rect, overlap, [&] (const QRect &part) {
+                gc.bitBlt(part.topLeft(), temporaryTarget(), part);
+            });
+            gc.bitBlt(overlap.topLeft(), predictionDevice, overlap);
+        } else {
+            gc.bitBlt(rect.topLeft(), temporaryTarget(), rect);
+        }
     }
 
     if (m_d->contentChannel &&

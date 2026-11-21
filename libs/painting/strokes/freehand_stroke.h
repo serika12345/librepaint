@@ -26,7 +26,8 @@ public:
     enum Flag {
         None = 0x0,
         SupportsContinuedInterstrokeData = 0x1,
-        SupportsTimedMergeId = 0x2
+        SupportsTimedMergeId = 0x2,
+        SupportsPrediction = 0x4
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -44,7 +45,8 @@ public:
             ELLIPSE,
             PAINTER_PATH,
             QPAINTER_PATH,
-            QPAINTER_PATH_FILL
+            QPAINTER_PATH_FILL,
+            PREDICTION
         };
 
         Data(int _strokeInfoId,
@@ -107,6 +109,14 @@ public:
             pen(_pen), customColor(_customColor)
         {}
 
+        Data(int _strokeInfoId,
+             const QVector<QPointF> &_points,
+             const QVector<qreal> &_dtMs)
+            : KisStrokeJobData(KisStrokeJobData::UNIQUELY_CONCURRENT),
+              strokeInfoId(_strokeInfoId),
+              type(PREDICTION), points(_points), dtMs(_dtMs)
+        {}
+
         KisStrokeJobData* createLodClone(int levelOfDetail) override {
             return new Data(*this, levelOfDetail);
         }
@@ -157,6 +167,10 @@ public:
                 pen = rhs.pen;
                 customColor = rhs.customColor;
                 break;
+            case Data::PREDICTION:
+                points = t.map(rhs.points);
+                dtMs = rhs.dtMs;
+                break;
             };
         }
     public:
@@ -169,6 +183,7 @@ public:
         QPointF control2;
 
         vQPointF points;
+        QVector<qreal> dtMs;
         QRectF rect;
         QPainterPath path;
         QPen pen;
@@ -196,6 +211,7 @@ public:
 
     void initStrokeCallback() override;
     void finishStrokeCallback() override;
+    void cancelStrokeCallback() override;
 
     void doStrokeCallback(KisStrokeJobData *data) override;
 
@@ -212,6 +228,7 @@ private:
 
     void tryDoUpdate(bool forceEnd = false);
     void issueSetDirtySignals();
+    void clearLayerPrediction();
 
 private:
     struct Private;

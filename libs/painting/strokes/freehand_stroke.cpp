@@ -29,6 +29,7 @@
 #include <KisRunnableStrokeJobUtils.h>
 #include "FreehandStrokeRunnableJobDataWithUpdate.h"
 #include <functional>
+#include <memory>
 #include <mutex>
 
 #include "KisStrokeEfficiencyMeasurer.h"
@@ -37,11 +38,14 @@
 #include <QtGlobal>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/KisMaskedFreehandStrokePainter.h>
+#include <strokes/KisStrokePredictionRenderer.h>
 #include <tuple>
 
 #include "brushengine/kis_paintop_utils.h"
 #include "KisAsynchronousStrokeUpdateHelper.h"
 #include "kundo2magicstring.h"
+#include "kis_paint_layer.h"
+#include "kis_default_bounds.h"
 
 struct FreehandStrokeStrategy::Private
 {
@@ -85,6 +89,20 @@ struct FreehandStrokeStrategy::Private
 
     const bool needsAsynchronousUpdates = false;
     std::mutex updateEntryMutex;
+
+    bool supportsPrediction = false;
+
+    std::unique_ptr<KisStrokePredictionRenderer> predictionRenderer;
+    bool indirectPrediction = false;
+
+    KisPaintInformation lastPaintedInfo;
+    bool hasLastPaintedInfo = false;
+
+    QVector<QPointF> predictionPoints;
+    QVector<qreal> predictionDtMs;
+    bool predictionChanged = false;
+
+    QRect lastPredictionRect;
 };
 
 FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
@@ -145,6 +163,8 @@ void FreehandStrokeStrategy::init(Flags flags)
     setSupportsContinuedInterstrokeData(flags & SupportsContinuedInterstrokeData);
     setSupportsTimedMergeId(flags & SupportsTimedMergeId);
 
+    m_d->supportsPrediction = flags & SupportsPrediction;
+
     enableJob(KisSimpleStrokeStrategy::JOB_DOSTROKE);
 
     if (m_d->needsAsynchronousUpdates) {
@@ -162,13 +182,51 @@ void FreehandStrokeStrategy::init(Flags flags)
 void FreehandStrokeStrategy::initStrokeCallback()
 {
     KisPainterBasedStrokeStrategy::initStrokeCallback();
+
+    QVector<KisRunnableStrokeJobData*> jobs;
+
+    KritaUtils::addJobSequential(jobs, [this] () {
+        if (!m_d->supportsPrediction) return;
+
+        KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
+        if (!layer) return;
+
+        if (numMaskedPainters() != 1) return;
+        if (m_d->resources->needsMaskingBrushRendering()) return;
+
+        KisPainter *painter = mainPainter(0);
+        if (!painter || painter->hasMirroring()) return;
+
+        KisPaintDeviceSP device = targetDevice();
+        if (!device || !device->defaultBounds() || device->defaultBounds()->wrapAroundMode()) return;
+
+        m_d->indirectPrediction = device != layer->paintDevice();
+        m_d->predictionRenderer.reset(
+            new KisStrokePredictionRenderer(m_d->resources,
+                                            device,
+                                            activeSelection(),
+                                            m_d->indirectPrediction,
+                                            m_d->resources->indirectPaintingCompositeOp()));
+    });
+
+    runnableJobsInterface()->addRunnableJobs(jobs);
+
     m_d->efficiencyMeasurer.notifyRenderingStarted();
 }
 
 void FreehandStrokeStrategy::finishStrokeCallback()
 {
+    clearLayerPrediction();
+
     m_d->efficiencyMeasurer.notifyRenderingFinished();
     KisPainterBasedStrokeStrategy::finishStrokeCallback();
+}
+
+void FreehandStrokeStrategy::cancelStrokeCallback()
+{
+    clearLayerPrediction();
+
+    KisPainterBasedStrokeStrategy::cancelStrokeCallback();
 }
 
 
@@ -194,6 +252,8 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi1.setRandomSource(rnd);
             d->pi1.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintAt(d->pi1);
+            m_d->lastPaintedInfo = d->pi1;
+            m_d->hasLastPaintedInfo = true;
             KisLatencyProbe::mark("stroke_dab", d->pi1.pos().x(), d->pi1.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi1.pos());
             break;
@@ -203,6 +263,8 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi1.setPerStrokeRandomSource(strokeRnd);
             d->pi2.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintLine(d->pi1, d->pi2);
+            m_d->lastPaintedInfo = d->pi2;
+            m_d->hasLastPaintedInfo = true;
             KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
@@ -215,6 +277,8 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
                                          d->control1,
                                          d->control2,
                                          d->pi2);
+            m_d->lastPaintedInfo = d->pi2;
+            m_d->hasLastPaintedInfo = true;
             KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
@@ -257,6 +321,11 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
         case Data::QPAINTER_PATH_FILL:
             maskedPainter->drawAndFillPainterPath(d->path, d->pen, d->customColor);
             KisLatencyProbe::mark("stroke_dab", d->path.boundingRect().center().x(), d->path.boundingRect().center().y());
+            break;
+        case Data::PREDICTION:
+            m_d->predictionPoints = d->points;
+            m_d->predictionDtMs = d->dtMs;
+            m_d->predictionChanged = true;
             break;
         };
 
@@ -370,6 +439,43 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
         runnableJobsInterface()->addRunnableJobs(jobs);
 
     } else {
+        KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
+
+        if (layer && m_d->predictionRenderer && m_d->predictionChanged) {
+            QRect currentRect;
+
+            if (!m_d->predictionPoints.isEmpty() && m_d->hasLastPaintedInfo) {
+                KisStrokePredictionRenderer::Result result =
+                    m_d->predictionRenderer->render(m_d->lastPaintedInfo,
+                                                    *mainStrokeInfo(0)->dragDistance,
+                                                    m_d->randomSource,
+                                                    m_d->predictionPoints,
+                                                    m_d->predictionDtMs);
+                if (!result.rect.isEmpty()) {
+                    layer->setPrediction(result.device,
+                                         result.rect,
+                                         m_d->indirectPrediction ?
+                                             KisIndirectPaintingSupport::PredictionMode::ReplaceTemporaryTarget :
+                                             KisIndirectPaintingSupport::PredictionMode::ReplaceOriginal);
+                    currentRect = result.rect;
+                } else {
+                    layer->clearPrediction();
+                }
+            } else {
+                layer->clearPrediction();
+            }
+
+            if (!m_d->lastPredictionRect.isEmpty()) {
+                dirtyRects.append(m_d->lastPredictionRect);
+            }
+            if (!currentRect.isEmpty()) {
+                dirtyRects.append(currentRect);
+            }
+            m_d->lastPredictionRect = currentRect;
+
+            m_d->predictionChanged = false;
+        }
+
         targetNode()->setDirty(dirtyRects);
     }
 
@@ -381,8 +487,26 @@ KisStrokeStrategy* FreehandStrokeStrategy::createLodClone(int levelOfDetail)
     if (!m_d->resources->presetAllowsLod()) return 0;
     if (!m_d->resources->currentNode()->supportsLodPainting()) return 0;
 
+    m_d->supportsPrediction = false;
+
     FreehandStrokeStrategy *clone = new FreehandStrokeStrategy(*this, levelOfDetail);
+    clone->m_d->supportsPrediction = false;
     return clone;
+}
+
+void FreehandStrokeStrategy::clearLayerPrediction()
+{
+    KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
+    if (!layer) return;
+
+    layer->clearPrediction();
+
+    if (!m_d->lastPredictionRect.isEmpty()) {
+        targetNode()->setDirty(m_d->lastPredictionRect);
+        m_d->lastPredictionRect = QRect();
+    }
+
+    m_d->predictionChanged = false;
 }
 
 void FreehandStrokeStrategy::notifyUserStartedStroke()

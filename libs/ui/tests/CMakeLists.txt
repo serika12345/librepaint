@@ -151,6 +151,22 @@ kis_add_test( FreehandStrokeContractTest.cpp
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
     )
 
+kis_add_test( KisStrokePredictionRenderContractTest.cpp
+    $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
+    TEST_NAME KisStrokePredictionRenderContractTest
+    LINK_LIBRARIES kritapainting kritaapplicationui kritalibbrush kritatestsdk
+    )
+
+target_include_directories(KisStrokePredictionRenderContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/plugins/paintops/defaultpaintops/brush
+    ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
+    )
+
+target_link_libraries(KisStrokePredictionRenderContractTest
+    kritapaintopruntime
+    kritapixelbrushobjects
+    )
+
 kis_add_test(
     KisCanvasUpdatesCompressorContractTest.cpp
     ../canvas/kis_canvas_updates_compressor.cpp
@@ -1197,6 +1213,21 @@ krita_add_broken_unit_test( FreehandStrokeBenchmark.cpp  $<TARGET_PROPERTY:krita
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
+krita_add_broken_unit_test( KisStrokePredictionRenderBenchmark.cpp
+    TEST_NAME KisStrokePredictionRenderBenchmark
+    LINK_LIBRARIES kritapainting kritaapplicationui kritalibbrush kritatestsdk
+    )
+
+target_include_directories(KisStrokePredictionRenderBenchmark PRIVATE
+    ${CMAKE_SOURCE_DIR}/plugins/paintops/defaultpaintops/brush
+    ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
+    )
+
+target_link_libraries(KisStrokePredictionRenderBenchmark
+    kritapaintopruntime
+    kritapixelbrushobjects
+    )
+
 krita_add_broken_unit_test( KisPaintOnTransparencyMaskTest.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME KisPaintOnTransparencyMaskTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
@@ -1230,6 +1261,8 @@ krita_add_broken_unit_test( kis_action_manager_test.cpp
 
 if (${INSTALL_BENCHMARKS})
     install(TARGETS FreehandStrokeBenchmark  ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+    install(TARGETS KisStrokePredictionRenderBenchmark ${INSTALL_TARGETS_DEFAULT_ARGS})
 
     install(FILES data/testing_200px_colorsmudge_default_dulling_old_sa.kpp
         data/testing_200px_colorsmudge_default_dulling_new_nsa.kpp
