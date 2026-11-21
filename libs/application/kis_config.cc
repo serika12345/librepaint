@@ -2385,13 +2385,7 @@ void KisConfig::setEnableBrushSpeedLogging(bool value) const
 bool KisConfig::useStrokePrediction(bool defaultValue) const
 {
     if (defaultValue) return true;
-#ifdef Q_OS_WIN
-    // The Windows tablet time advances only with the system timer, so the
-    // predictor cannot estimate the pen speed there.
-    return m_cfg.readEntry("useStrokePrediction", false);
-#else
     return m_cfg.readEntry("useStrokePrediction", true);
-#endif
 }
 
 void KisConfig::setUseStrokePrediction(bool value) const
