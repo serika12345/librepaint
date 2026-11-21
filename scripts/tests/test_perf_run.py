@@ -590,6 +590,26 @@ class StateSummaryTest(unittest.TestCase):
         self.assertIn("high state: 3 of 3 runs", notes)
 
 
+class ShortTargetsTest(unittest.TestCase):
+    """A target whose window counted too few runs makes the measurement fail."""
+
+    SCENARIO = {"name": "test", "runs": 3, "spread_limit": 0.05, "metrics": {}}
+    HOSTS = [{"name": "h", "kind": "linux", "targets": [{"name": "A"}, {"name": "B"}]}]
+
+    def test_targets_with_enough_runs_are_not_returned(self):
+        summary = {"hosts": {"h": {"targets": {
+            "A": {"settle": {"window_runs": 3}},
+            "B": {"settle": {"window_runs": 4}},
+        }}}}
+        self.assertEqual(run.short_targets(summary, self.HOSTS, self.SCENARIO), [])
+
+    def test_a_target_without_counted_runs_and_a_missing_target_are_returned(self):
+        summary = {"hosts": {"h": {"targets": {"A": {"settle": {"window_runs": 0},
+                                                   "excluded": 1, "device_low": 2}}}}}
+        self.assertEqual(run.short_targets(summary, self.HOSTS, self.SCENARIO),
+                         [("h", "A", 0, 1, 2), ("h", "B", 0, 0, 0)])
+
+
 class EarlyStopTest(unittest.TestCase):
     """A target that fails twice in a row for the same reason stops early."""
 

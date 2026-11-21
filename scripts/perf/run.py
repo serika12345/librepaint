@@ -49,7 +49,9 @@ The group writes one line per event to the event log (build/perf/events.log,
 or --events): the start of the group and of every run, each result or failure,
 the early stop of a target that failed twice in a row for the same reason, the
 settle of every window and the exit code at the end (format:
-scripts/perf/events_log.py).
+scripts/perf/events_log.py). A target whose window counted fewer runs than the
+scenario's "runs" is reported on standard error as an anomaly, and the exit
+code is 4.
 
 The first "warmup_runs" successful runs of a target are measured but left out
 of the aggregation. The aggregation uses the last "runs" usable runs (the
@@ -1210,6 +1212,26 @@ def summarize(run_root, hosts, scenario):
     return summary
 
 
+def short_targets(summary, hosts, scenario):
+    """Return (host, target, window_runs, excluded, device_low) for short windows.
+
+    A target is short when its window counted fewer runs than the scenario's
+    "runs". A target or host missing from the summary counts as 0 runs.
+    """
+    runs = settle_settings(scenario)[0]
+    short = []
+    for host in hosts:
+        host_data = (summary.get("hosts") or {}).get(host["name"]) or {}
+        targets = host_data.get("targets") or {}
+        for target in host.get("targets", []):
+            data = targets.get(target["name"]) or {}
+            window_runs = (data.get("settle") or {}).get("window_runs") or 0
+            if window_runs < runs:
+                short.append((host["name"], target["name"], window_runs,
+                              data.get("excluded") or 0, data.get("device_low") or 0))
+    return short
+
+
 def baseline_target(baseline, host, target):
     """Return the baseline's record of one target, or {}."""
     host_data = (baseline or {}).get("hosts", {}).get(host, {})
@@ -1676,6 +1698,14 @@ def main(argv):
             json.dump(baseline_document(summary, hosts, scenario), handle, indent=2, sort_keys=True)
         print("baseline: " + args.baseline_out)
     status = 1 if any(row[7] != "ok" for row in verdict_rows) else 0
+    runs_needed = settle_settings(scenario)[0]
+    short = short_targets(summary, hosts, scenario)
+    for host, target, window_runs, excluded, device_low in short:
+        print("ANOMALY too few counted runs: %s/%s %d of %d (excluded %d, processor performance low %d)"
+              % (host, target, window_runs, runs_needed, excluded, device_low),
+              file=sys.stderr)
+    if short:
+        status = 4
     if events:
         events_log.write(events, "run-done", args.label, "-", "-", str(status))
     return status
