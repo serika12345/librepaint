@@ -180,6 +180,20 @@ class DeviceShiftTest(unittest.TestCase):
         self.assertFalse(run.device_performance_low(
             {"surface_state": {"during_min_processor_performance_pct": "0"}}))
 
+    def test_a_run_under_a_performance_limit_is_reported(self):
+        def capped(limit):
+            with tempfile.TemporaryDirectory() as root:
+                with open(os.path.join(root, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_mode=light\n")
+                    if limit is not None:
+                        handle.write("surface_state_before_performance_limit_pct=%s\n" % limit)
+                return run.run_performance_capped(root)
+
+        self.assertEqual(capped("72"), 72)
+        self.assertIsNone(capped("100"))
+        self.assertIsNone(capped("unavailable"))
+        self.assertIsNone(capped(None))
+
     def write_device_state(self, path, values):
         with open(os.path.join(path, "surface-state.csv"), "w", newline="") as handle:
             writer = csv.writer(handle)

@@ -10,6 +10,16 @@
 # and the five busiest processes, so a later analysis can mark the runs that
 # ran on a colder, hotter or busier device.
 #
+# Why the performance limit is recorded: on 2026-11-21, from about 11:30, the
+# measuring Windows device pinned \Processor Information(_Total)\% Performance
+# Limit at 72 %. The temperature stayed near 35 C and no thermal limit value
+# was reported. Under that limit % Processor Performance fell to about 40 %
+# and every round was left out of the aggregation, while the limit itself was
+# not part of the record. % Performance Limit is sampled next to % Processor
+# Performance, so a run that started under a cap can be found and the
+# measurement stopped instead of collecting hours of rounds that cannot be
+# compared.
+#
 # Two modes exist because the sampling itself may perturb the device. A run
 # on 2026-11-11 05:04 showed `% Processor Performance` at 42-50 % while the
 # sampler ran and a WmiPrvSE process in the busiest five every second, so the
@@ -76,7 +86,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$columns = @('time', 'phase', 'max_temp_c', 'processor_performance_pct', 'total_cpu_pct', 'top_processes')
+$columns = @('time', 'phase', 'max_temp_c', 'processor_performance_pct', 'performance_limit_pct', 'total_cpu_pct', 'top_processes')
 
 function Format-Value($value) {
     if ($null -eq $value) { return 'unavailable' }
@@ -100,17 +110,29 @@ function Get-MaxThermalZoneC {
     }
 }
 
-function Get-ProcessorPerformancePct {
+function Get-ProcessorInformation {
+    # One WMI read supplies both % Processor Performance (how far the CPU is
+    # throttled from its nominal clock) and % Performance Limit (the ceiling
+    # the platform currently allows; 100 when nothing caps it). Both come from
+    # the same instance so a sample does not add a second query.
     try {
         $entry = Get-CimInstance -ClassName 'Win32_PerfFormattedData_Counters_ProcessorInformation' `
             -Filter "Name='_Total'" -ErrorAction Stop
-        if ($entry -and $null -ne $entry.PercentProcessorPerformance) {
-            return [int]$entry.PercentProcessorPerformance
-        }
-        return $null
+        if (-not $entry) { return @{ performance = $null; limit = $null } }
+        $performance = if ($null -ne $entry.PercentProcessorPerformance) {
+            [int]$entry.PercentProcessorPerformance
+        } else { $null }
+        $limit = if ($null -ne $entry.PercentPerformanceLimit) {
+            [int][math]::Round([double]$entry.PercentPerformanceLimit)
+        } else { $null }
+        return @{ performance = $performance; limit = $limit }
     } catch {
-        return $null
+        return @{ performance = $null; limit = $null }
     }
+}
+
+function Get-ProcessorPerformancePct {
+    return (Get-ProcessorInformation).performance
 }
 
 function Get-TotalCpuPct {
@@ -146,12 +168,13 @@ function Get-TopProcesses {
     }
 }
 
-function Add-Row([string]$time, [string]$phase, $temp, $performance, $cpu, $top) {
+function Add-Row([string]$time, [string]$phase, $temp, $performance, $limit, $cpu, $top) {
     $row = [pscustomobject]@{
         time                      = $time
         phase                     = $phase
         max_temp_c                = Format-Value $temp
         processor_performance_pct = Format-Value $performance
+        performance_limit_pct     = Format-Value $limit
         total_cpu_pct             = Format-Value $cpu
         top_processes             = (Format-Value $top) -replace ',', ';'
     }
@@ -164,7 +187,8 @@ function Add-Row([string]$time, [string]$phase, $temp, $performance, $cpu, $top)
 }
 
 function Add-Sample {
-    Add-Row ((Get-Date).ToString('o')) $Phase (Get-MaxThermalZoneC) (Get-ProcessorPerformancePct) `
+    $counters = Get-ProcessorInformation
+    Add-Row ((Get-Date).ToString('o')) $Phase (Get-MaxThermalZoneC) $counters.performance $counters.limit `
         (Get-TotalCpuPct) (Get-TopProcesses)
 }
 
@@ -254,13 +278,16 @@ function Add-LightSamples([string]$stopFile) {
     # subsystem; the loop only writes the rows. The temperature and the
     # busiest processes are left to the before and after samples.
     $performancePath = Resolve-CounterPath 'Processor Information' '% Processor Performance'
+    $limitPath = Resolve-CounterPath 'Processor Information' '% Performance Limit'
     $cpuPath = Resolve-CounterPath 'Processor' '% Processor Time'
     if (-not $performancePath) { $performancePath = '\Processor Information(_Total)\% Processor Performance' }
+    if (-not $limitPath) { $limitPath = '\Processor Information(_Total)\% Performance Limit' }
     if (-not $cpuPath) { $cpuPath = '\Processor(_Total)\% Processor Time' }
     try {
         Set-Content -Path ([System.IO.Path]::ChangeExtension($Out, '.paths.txt')) -Value @(
             'mode=light',
             "processor_performance=$performancePath",
+            "performance_limit=$limitPath",
             "total_cpu=$cpuPath"
         )
     } catch { }
@@ -271,32 +298,35 @@ function Add-LightSamples([string]$stopFile) {
     while ($written -lt $limit) {
         if (Test-Path $stopFile) { break }
         if ($broken) {
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null $null
             $written++
             Start-Sleep -Milliseconds ([math]::Max(100, $IntervalMs))
             continue
         }
         $batch = [int][math]::Min(5, $limit - $written)
         try {
-            $sets = @(Get-Counter -Counter @($performancePath, $cpuPath) -MaxSamples $batch `
+            $sets = @(Get-Counter -Counter @($performancePath, $limitPath, $cpuPath) -MaxSamples $batch `
                 -SampleInterval $interval -ErrorAction Stop)
         } catch {
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null $null
             $written++
             $broken = $true
             continue
         }
         foreach ($set in $sets) {
             $performance = $null
+            $limitValue = $null
             $cpu = $null
             foreach ($sample in @($set.CounterSamples)) {
                 if ($sample.Path -like "*$performancePath") {
                     $performance = [math]::Round([double]$sample.CookedValue)
+                } elseif ($sample.Path -like "*$limitPath") {
+                    $limitValue = [math]::Round([double]$sample.CookedValue)
                 } elseif ($sample.Path -like "*$cpuPath") {
                     $cpu = [math]::Round([double]$sample.CookedValue)
                 }
             }
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $performance $cpu $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $null $performance $limitValue $cpu $null
             $written++
         }
     }

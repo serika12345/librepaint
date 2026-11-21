@@ -51,7 +51,8 @@ the early stop of a target that failed twice in a row for the same reason, the
 settle of every window and the exit code at the end (format:
 scripts/perf/events_log.py). A target whose window counted fewer runs than the
 scenario's "runs" is reported on standard error as an anomaly, and the exit
-code is 4.
+code is 4. A run that started while "% Performance Limit" capped the processor
+below 100 % is reported on standard error as an anomaly, and the exit code is 5.
 
 The first "warmup_runs" successful runs of a target are measured but left out
 of the aggregation. The aggregation uses the last "runs" usable runs (the
@@ -238,6 +239,25 @@ def run_ink_missing(path):
     return capture_analyze.analyze_run(path).get("ink_missing") or []
 
 
+def run_performance_capped(path):
+    """The performance limit a run started under when the platform capped it.
+
+    On 2026-11-21 the measuring Windows device pinned "% Performance Limit" at
+    72 % from about 11:30 while the temperature stayed near 35 C. Under that
+    cap "% Processor Performance" fell to about 40 %, every round was left out
+    of the aggregation, and the measurement kept running. A limit below 100
+    means the platform caps the processor, so the caller stops instead of
+    collecting rounds that cannot be compared. A run without the record (Linux,
+    macOS, an older runner) or with an unreadable value does not cap.
+    """
+    if not path:
+        return None
+    value = number_or_none(surface_state(path).get("before_performance_limit_pct"))
+    if value is None or value >= 100:
+        return None
+    return int(value) if value == int(value) else value
+
+
 def settle_settings(scenario):
     """Return the scenario's (runs, warmup_runs, max_runs, spread_limit).
 
@@ -387,6 +407,11 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                             print("ANOMALY ink missing: %s %s" % (target["name"], band),
                                   file=sys.stderr)
                         raise SystemExit(3)
+                    limit = run_performance_capped(path)
+                    if limit is not None:
+                        print("ANOMALY performance limit: %s %s%% before the run"
+                              % (target["name"], limit), file=sys.stderr)
+                        raise SystemExit(5)
                     if successes[key] > warmup_runs and path:
                         record = run_record(path, host, scenario)
                         record["start"] = number
@@ -667,10 +692,12 @@ SURFACE_STATE_KEYS = {
     "surface_state_wait_last_pct": "wait_last_pct",
     "surface_state_before_max_temp_c": "before_max_temp_c",
     "surface_state_before_processor_performance_pct": "before_processor_performance_pct",
+    "surface_state_before_performance_limit_pct": "before_performance_limit_pct",
     "surface_state_before_total_cpu_pct": "before_total_cpu_pct",
     "surface_state_during_samples": "during_samples",
     "surface_state_during_max_temp_c": "during_max_temp_c",
     "surface_state_during_min_processor_performance_pct": "during_min_processor_performance_pct",
+    "surface_state_during_min_performance_limit_pct": "during_min_performance_limit_pct",
     "surface_state_during_max_total_cpu_pct": "during_max_total_cpu_pct",
     "surface_state_during_mean_total_cpu_pct": "during_mean_total_cpu_pct",
     "surface_state_top_process": "top_process",

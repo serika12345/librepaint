@@ -131,12 +131,17 @@ function Write-SurfaceStateSummary($dir, $csv) {
         $lines += "surface_state_${phase}_processor_performance_pct=$(if ($row) { $row.processor_performance_pct } else { 'unavailable' })"
         $lines += "surface_state_${phase}_total_cpu_pct=$(if ($row) { $row.total_cpu_pct } else { 'unavailable' })"
     }
+    $beforeRow = $rows | Where-Object { $_.phase -eq 'before' } | Select-Object -First 1
+    $beforeLimit = if ($beforeRow -and $beforeRow.performance_limit_pct) { $beforeRow.performance_limit_pct } else { 'unavailable' }
+    $lines += "surface_state_before_performance_limit_pct=$beforeLimit"
     $temps = @($during | Where-Object { $_.max_temp_c -match '^-?[0-9]+(\.[0-9]+)?$' } | ForEach-Object { [double]$_.max_temp_c })
     $performance = @($during | Where-Object { $_.processor_performance_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.processor_performance_pct })
+    $limits = @($during | Where-Object { $_.performance_limit_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.performance_limit_pct })
     $cpu = @($during | Where-Object { $_.total_cpu_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.total_cpu_pct })
     $lines += "surface_state_during_samples=$($during.Count)"
     $lines += "surface_state_during_max_temp_c=$(if ($temps.Count) { ($temps | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
     $lines += "surface_state_during_min_processor_performance_pct=$(if ($performance.Count) { ($performance | Measure-Object -Minimum).Minimum } else { 'unavailable' })"
+    $lines += "surface_state_during_min_performance_limit_pct=$(if ($limits.Count) { ($limits | Measure-Object -Minimum).Minimum } else { 'unavailable' })"
     $lines += "surface_state_during_max_total_cpu_pct=$(if ($cpu.Count) { ($cpu | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
     $lines += "surface_state_during_mean_total_cpu_pct=$(if ($cpu.Count) { [math]::Round(($cpu | Measure-Object -Average).Average, 1) } else { 'unavailable' })"
     $names = @()
