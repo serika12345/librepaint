@@ -10,16 +10,6 @@
 # and the five busiest processes, so a later analysis can mark the runs that
 # ran on a colder, hotter or busier device.
 #
-# Why the performance limit is recorded: on 2026-11-21, from about 11:30, the
-# measuring Windows device pinned \Processor Information(_Total)\% Performance
-# Limit at 72 %. The temperature stayed near 35 C and no thermal limit value
-# was reported. Under that limit % Processor Performance fell to about 40 %
-# and every round was left out of the aggregation, while the limit itself was
-# not part of the record. % Performance Limit is sampled next to % Processor
-# Performance, so a run that started under a cap can be found and the
-# measurement stopped instead of collecting hours of rounds that cannot be
-# compared.
-#
 # Two modes exist because the sampling itself may perturb the device. A run
 # on 2026-11-11 05:04 showed `% Processor Performance` at 42-50 % while the
 # sampler ran and a WmiPrvSE process in the busiest five every second, so the
@@ -27,26 +17,41 @@
 # hosts.json):
 #   on     four WMI queries per second (temperature, processor performance,
 #          total CPU, busiest processes), as before.
-#   light  one Get-Counter call per five seconds for the CPU counters only;
-#          temperature and the busiest processes only before and after.
+#   light  one Get-Counter call per five seconds for the CPU counters and one
+#          WMI temperature read per call; the busiest processes only before
+#          and after.
 #   off    nothing (the runner does not start this script).
 #
+# Why the wait: on 2026-11-21 a one-second record of the temperature and the
+# load showed how heat reduces the work done. When the maximum
+# HighPrecisionTemperature of Win32_PerfFormattedData_Counters_
+# ThermalZoneInformation reached about 50 C, the CPU package power
+# (\Energy Meter(RAPL_Package0_PKG)\Power) fell from 25-32 W to 3-9 W. From
+# 44 C, a load on every core held 31-34 W and 220 % performance for 28 s and
+# dropped once the temperature passed 50 C; started at 49 C, the same load
+# stayed near 9 W from the beginning. About six minutes of idle from 49 C
+# brought the temperature down to 42 C. MSAcpi_ThermalZoneTemperature stayed
+# at 26.9 C on that device and % Performance Limit read 72 % even when
+# nothing was wrong, so neither marks a hot device. The wait therefore reads
+# the high-precision temperature every five seconds and returns once it is
+# below -WaitMaximumC (45 C by default) for two samples in a row, with a hard
+# cap so a device that does not cool still produces a run.
+#
 # Called by run-surface.ps1:
-#   - before each run, to wait until the device has recovered from a throttled
-#     state (-WaitForProcessorPerformance): it reads % Processor Performance
-#     from the language-independent Win32_PerfFormattedData_Counters_
-#     ProcessorInformation class every five seconds and returns as soon as the
-#     value is at least the requested minimum for two samples in a row (the
-#     runner asks for 75). A device that took the
-#     2026-11-11 measurements stayed at 42-50 % for minutes; starting a run
-#     there produced values that cannot be compared (progress.md, q4-cpu).
-#     The wait is capped (120 s by default) so a device that does not recover
-#     still produces a run, and the result is written to meta.txt.
+#   - before each run, to wait until the device has cooled (-WaitForCoolDevice):
+#     it reads the temperature from Win32_PerfFormattedData_Counters_
+#     ThermalZoneInformation every five seconds and returns as soon as the
+#     value is below the requested maximum for two samples in a row (the
+#     runner asks for 45 C). A device above 50 C limits the CPU package to
+#     3-9 W (2026-11-21), so a run started there cannot be compared with a
+#     cool one. The wait is capped (900 s from the runner) so a device that
+#     does not cool still produces a run, and the result is written to
+#     meta.txt.
 #     run-surface.ps1 starts this mode in its own powershell.exe process and
-#     stops it at a hard wall-clock limit: a single WMI or Get-Counter read
-#     can block without returning when the performance-counter subsystem is
-#     unhealthy, so an in-process deadline is not enough (2026-11-11: the
-#     first wait hung the runner for 36 minutes before the app started).
+#     stops it at a hard wall-clock limit: a single WMI read can block without
+#     returning when the performance-counter subsystem is unhealthy, so an
+#     in-process deadline is not enough (2026-11-11: the first wait hung the
+#     runner for 36 minutes before the app started).
 #     The wait reads WMI, not Get-Counter, so it needs neither Perflib nor a
 #     localized counter path. $Out is optional so the wait mode never prompts
 #     for a missing mandatory parameter: run-surface.ps1 starts this mode in a
@@ -77,8 +82,8 @@ param(
     [int]$IntervalMs = 1000,
     [string]$StopFile,
     [ValidateSet('on', 'light')][string]$Mode = 'on',
-    [switch]$WaitForProcessorPerformance,
-    [int]$WaitMinimumPct = 75,
+    [switch]$WaitForCoolDevice,
+    [int]$WaitMaximumC = 45,
     [int]$WaitConsecutiveSamples = 2,
     [int]$WaitTimeoutSeconds = 120,
     [int]$WaitSampleSeconds = 5
@@ -86,7 +91,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$columns = @('time', 'phase', 'max_temp_c', 'processor_performance_pct', 'performance_limit_pct', 'total_cpu_pct', 'top_processes')
+$columns = @('time', 'phase', 'max_temp_c', 'processor_performance_pct', 'total_cpu_pct', 'top_processes')
 
 function Format-Value($value) {
     if ($null -eq $value) { return 'unavailable' }
@@ -94,13 +99,16 @@ function Format-Value($value) {
 }
 
 function Get-MaxThermalZoneC {
-    # MSAcpi_ThermalZoneTemperature reports tenths of a kelvin.
+    # Win32_PerfFormattedData_Counters_ThermalZoneInformation reports
+    # HighPrecisionTemperature in tenths of a kelvin. The older MSAcpi_
+    # ThermalZoneTemperature class stayed at 26.9 C on the measuring device
+    # (2026-11-21), so it could not show when the device was hot.
     try {
-        $zones = @(Get-CimInstance -Namespace 'root/wmi' -ClassName 'MSAcpi_ThermalZoneTemperature' -ErrorAction Stop)
+        $zones = @(Get-CimInstance -ClassName 'Win32_PerfFormattedData_Counters_ThermalZoneInformation' -ErrorAction Stop)
         $values = @()
         foreach ($zone in $zones) {
-            if ($null -ne $zone.CurrentTemperature) {
-                $values += [math]::Round(([double]$zone.CurrentTemperature / 10.0) - 273.15, 1)
+            if ($null -ne $zone.HighPrecisionTemperature) {
+                $values += [math]::Round(([double]$zone.HighPrecisionTemperature / 10.0) - 273.15, 1)
             }
         }
         if ($values.Count -eq 0) { return $null }
@@ -111,28 +119,19 @@ function Get-MaxThermalZoneC {
 }
 
 function Get-ProcessorInformation {
-    # One WMI read supplies both % Processor Performance (how far the CPU is
-    # throttled from its nominal clock) and % Performance Limit (the ceiling
-    # the platform currently allows; 100 when nothing caps it). Both come from
-    # the same instance so a sample does not add a second query.
+    # % Processor Performance says how far the CPU is throttled from its
+    # nominal clock.
     try {
         $entry = Get-CimInstance -ClassName 'Win32_PerfFormattedData_Counters_ProcessorInformation' `
             -Filter "Name='_Total'" -ErrorAction Stop
-        if (-not $entry) { return @{ performance = $null; limit = $null } }
+        if (-not $entry) { return @{ performance = $null } }
         $performance = if ($null -ne $entry.PercentProcessorPerformance) {
             [int]$entry.PercentProcessorPerformance
         } else { $null }
-        $limit = if ($null -ne $entry.PercentPerformanceLimit) {
-            [int][math]::Round([double]$entry.PercentPerformanceLimit)
-        } else { $null }
-        return @{ performance = $performance; limit = $limit }
+        return @{ performance = $performance }
     } catch {
-        return @{ performance = $null; limit = $null }
+        return @{ performance = $null }
     }
-}
-
-function Get-ProcessorPerformancePct {
-    return (Get-ProcessorInformation).performance
 }
 
 function Get-TotalCpuPct {
@@ -168,13 +167,12 @@ function Get-TopProcesses {
     }
 }
 
-function Add-Row([string]$time, [string]$phase, $temp, $performance, $limit, $cpu, $top) {
+function Add-Row([string]$time, [string]$phase, $temp, $performance, $cpu, $top) {
     $row = [pscustomobject]@{
         time                      = $time
         phase                     = $phase
         max_temp_c                = Format-Value $temp
         processor_performance_pct = Format-Value $performance
-        performance_limit_pct     = Format-Value $limit
         total_cpu_pct             = Format-Value $cpu
         top_processes             = (Format-Value $top) -replace ',', ';'
     }
@@ -188,7 +186,7 @@ function Add-Row([string]$time, [string]$phase, $temp, $performance, $limit, $cp
 
 function Add-Sample {
     $counters = Get-ProcessorInformation
-    Add-Row ((Get-Date).ToString('o')) $Phase (Get-MaxThermalZoneC) $counters.performance $counters.limit `
+    Add-Row ((Get-Date).ToString('o')) $Phase (Get-MaxThermalZoneC) $counters.performance `
         (Get-TotalCpuPct) (Get-TopProcesses)
 }
 
@@ -228,30 +226,30 @@ function Resolve-CounterPath([string]$setName, [string]$counterName) {
     return ('\{0}(_Total)\{1}' -f $setLocal, $counterLocal)
 }
 
-function Wait-ForProcessorPerformance {
-    # Wait for the device to leave a throttled state before a measurement.
-    # Only the final result is printed (key=value lines) so run-surface.ps1
-    # can append it to meta.txt. A counter that cannot be read is recorded as
-    # "unavailable" and does not block the measurement.
+function Wait-ForCoolDevice {
+    # Wait for the device to cool before a measurement. Only the final result
+    # is printed (key=value lines) so run-surface.ps1 can append it to
+    # meta.txt. A reading that cannot be taken resets the run of cool samples
+    # and does not block the measurement.
     #
-    # The reading comes from the WMI formatted class, the same source as the
-    # "on" samples: on a Japanese Windows the English Get-Counter path does
-    # not resolve and building the localized path reads the large Perflib
-    # lists. Either call can block for ever when the counter subsystem is
-    # unhealthy, so run-surface.ps1 also bounds this whole mode with a
-    # separate process and a hard timeout.
-    $source = 'Win32_PerfFormattedData_Counters_ProcessorInformation'
+    # The reading comes from the WMI formatted thermal zone class: on a
+    # Japanese Windows the English Get-Counter path does not resolve and
+    # building the localized path reads the large Perflib lists. Either call
+    # can block for ever when the counter subsystem is unhealthy, so
+    # run-surface.ps1 also bounds this whole mode with a separate process and
+    # a hard timeout.
+    $source = 'Win32_PerfFormattedData_Counters_ThermalZoneInformation'
     $started = Get-Date
     $readings = @()
     $consecutive = 0
     $state = 'timeout'
     while ($true) {
-        $value = Get-ProcessorPerformancePct
+        $value = Get-MaxThermalZoneC
         if ($null -eq $value) {
             $consecutive = 0
         } else {
             $readings += $value
-            if ($value -ge $WaitMinimumPct) { $consecutive++ } else { $consecutive = 0 }
+            if ($value -lt $WaitMaximumC) { $consecutive++ } else { $consecutive = 0 }
         }
         if ($consecutive -ge [math]::Max(1, $WaitConsecutiveSamples)) { $state = 'ready'; break }
         $elapsed = ((Get-Date) - $started).TotalSeconds
@@ -259,35 +257,32 @@ function Wait-ForProcessorPerformance {
         Start-Sleep -Seconds ([math]::Max(1, $WaitSampleSeconds))
     }
     $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
-    if ($readings.Count -eq 0) { $state = 'unavailable' }
-    $minimum = if ($readings.Count) { ($readings | Measure-Object -Minimum).Minimum } else { 'unavailable' }
+    $first = if ($readings.Count) { $readings[0] } else { 'unavailable' }
     $last = if ($readings.Count) { $readings[-1] } else { 'unavailable' }
     Write-Output "surface_state_wait=$state"
     Write-Output "surface_state_wait_seconds=$elapsed"
     Write-Output "surface_state_wait_samples=$($readings.Count)"
     Write-Output "surface_state_wait_consecutive_required=$([math]::Max(1, $WaitConsecutiveSamples))"
-    Write-Output "surface_state_wait_minimum_pct=$WaitMinimumPct"
-    Write-Output "surface_state_wait_min_pct=$minimum"
-    Write-Output "surface_state_wait_last_pct=$last"
+    Write-Output "surface_state_wait_maximum_c=$WaitMaximumC"
+    Write-Output "surface_state_wait_first_c=$first"
+    Write-Output "surface_state_wait_last_c=$last"
     Write-Output "surface_state_wait_source=wmi"
     Write-Output "surface_state_wait_path=$source"
 }
 
 function Add-LightSamples([string]$stopFile) {
     # One Get-Counter call collects a batch of samples inside the counter
-    # subsystem; the loop only writes the rows. The temperature and the
-    # busiest processes are left to the before and after samples.
+    # subsystem; the loop only writes the rows. The temperature is one WMI
+    # read per batch and is written to every row of it. The busiest processes
+    # are left to the before and after samples.
     $performancePath = Resolve-CounterPath 'Processor Information' '% Processor Performance'
-    $limitPath = Resolve-CounterPath 'Processor Information' '% Performance Limit'
     $cpuPath = Resolve-CounterPath 'Processor' '% Processor Time'
     if (-not $performancePath) { $performancePath = '\Processor Information(_Total)\% Processor Performance' }
-    if (-not $limitPath) { $limitPath = '\Processor Information(_Total)\% Performance Limit' }
     if (-not $cpuPath) { $cpuPath = '\Processor(_Total)\% Processor Time' }
     try {
         Set-Content -Path ([System.IO.Path]::ChangeExtension($Out, '.paths.txt')) -Value @(
             'mode=light',
             "processor_performance=$performancePath",
-            "performance_limit=$limitPath",
             "total_cpu=$cpuPath"
         )
     } catch { }
@@ -297,47 +292,45 @@ function Add-LightSamples([string]$stopFile) {
     $broken = $false
     while ($written -lt $limit) {
         if (Test-Path $stopFile) { break }
+        $temperature = Get-MaxThermalZoneC
         if ($broken) {
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $temperature $null $null $null
             $written++
             Start-Sleep -Milliseconds ([math]::Max(100, $IntervalMs))
             continue
         }
         $batch = [int][math]::Min(5, $limit - $written)
         try {
-            $sets = @(Get-Counter -Counter @($performancePath, $limitPath, $cpuPath) -MaxSamples $batch `
+            $sets = @(Get-Counter -Counter @($performancePath, $cpuPath) -MaxSamples $batch `
                 -SampleInterval $interval -ErrorAction Stop)
         } catch {
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $null $null $null $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $temperature $null $null $null
             $written++
             $broken = $true
             continue
         }
         foreach ($set in $sets) {
             $performance = $null
-            $limitValue = $null
             $cpu = $null
             foreach ($sample in @($set.CounterSamples)) {
                 if ($sample.Path -like "*$performancePath") {
                     $performance = [math]::Round([double]$sample.CookedValue)
-                } elseif ($sample.Path -like "*$limitPath") {
-                    $limitValue = [math]::Round([double]$sample.CookedValue)
                 } elseif ($sample.Path -like "*$cpuPath") {
                     $cpu = [math]::Round([double]$sample.CookedValue)
                 }
             }
-            Add-Row ((Get-Date).ToString('o')) $Phase $null $performance $limitValue $cpu $null
+            Add-Row ((Get-Date).ToString('o')) $Phase $temperature $performance $cpu $null
             $written++
         }
     }
 }
 
-if (-not $WaitForProcessorPerformance -and -not $Out) {
-    throw '-Out is required unless -WaitForProcessorPerformance is used'
+if (-not $WaitForCoolDevice -and -not $Out) {
+    throw '-Out is required unless -WaitForCoolDevice is used'
 }
 
-if ($WaitForProcessorPerformance) {
-    Wait-ForProcessorPerformance
+if ($WaitForCoolDevice) {
+    Wait-ForCoolDevice
 } elseif ($StopFile -and $Mode -eq 'light') {
     Add-LightSamples $StopFile
 } elseif ($StopFile) {

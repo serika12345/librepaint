@@ -28,10 +28,11 @@ the run). A Windows target records the device state (surface_state.ps1) with
 "surface_state": "light" (the default: one Get-Counter call per five seconds,
 no per-second process list) or "on" (one WMI sample per second); only an
 explicit "off" records nothing. Before every run the runner waits, unless the
-target sets "surface_state_wait": "off", for the device's % Processor
-Performance to reach 75 % twice in a row (one Get-Counter read per five
-seconds, at most 120 s); a run whose reading stayed below 70 % during the
-measurement is marked and left out of the aggregation. A Windows target that
+target sets "surface_state_wait": "off", for the device's high-precision
+temperature to stay below 45 C for two samples in a row (one WMI read per
+five seconds, at most 900 s); a run whose % Processor Performance stayed
+below 70 % during the measurement is marked and left out of the
+aggregation. A Windows target that
 sets "thread_cpu": "on"
 has thread_cpu.ps1 sample the process and thread CPU counters; the table then
 shows the CPU time inside the injected input window. A target that sets
@@ -694,16 +695,14 @@ SURFACE_STATE_KEYS = {
     "surface_state_wait_mode": "wait_mode",
     "surface_state_wait": "wait",
     "surface_state_wait_seconds": "wait_seconds",
-    "surface_state_wait_min_pct": "wait_min_pct",
-    "surface_state_wait_last_pct": "wait_last_pct",
+    "surface_state_wait_first_c": "wait_first_c",
+    "surface_state_wait_last_c": "wait_last_c",
     "surface_state_before_max_temp_c": "before_max_temp_c",
     "surface_state_before_processor_performance_pct": "before_processor_performance_pct",
-    "surface_state_before_performance_limit_pct": "before_performance_limit_pct",
     "surface_state_before_total_cpu_pct": "before_total_cpu_pct",
     "surface_state_during_samples": "during_samples",
     "surface_state_during_max_temp_c": "during_max_temp_c",
     "surface_state_during_min_processor_performance_pct": "during_min_processor_performance_pct",
-    "surface_state_during_min_performance_limit_pct": "during_min_performance_limit_pct",
     "surface_state_during_max_total_cpu_pct": "during_max_total_cpu_pct",
     "surface_state_during_mean_total_cpu_pct": "during_mean_total_cpu_pct",
     "surface_state_top_process": "top_process",

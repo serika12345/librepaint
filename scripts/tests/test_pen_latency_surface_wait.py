@@ -42,7 +42,7 @@ class RunnerWaitTest(unittest.TestCase):
         self.block = function_block(self.text, "Invoke-SurfaceStateWait")
 
     def test_wait_runs_in_its_own_process(self):
-        self.assertNotIn("& $surfaceScript -WaitForProcessorPerformance", self.text)
+        self.assertNotIn("& $surfaceScript -WaitForCoolDevice", self.text)
         self.assertIn("Start-Process -FilePath 'powershell.exe'", self.block)
         self.assertIn("'surface_state.ps1'", self.text)
 
@@ -51,7 +51,8 @@ class RunnerWaitTest(unittest.TestCase):
         # waited at the mandatory-parameter prompt before the wait began.
         self.assertIn("'-Out'", self.block)
         self.assertIn("$waitCsv", self.block)
-        self.assertIn("'-WaitForProcessorPerformance'", self.block)
+        self.assertIn("'-WaitForCoolDevice'", self.block)
+        self.assertIn("'-WaitMaximumC'", self.block)
 
     def test_parent_stops_a_blocked_wait_at_a_wall_clock_limit(self):
         self.assertIn("WaitForExit(", self.block)
@@ -68,12 +69,12 @@ class RunnerWaitTest(unittest.TestCase):
 class StateWaitTest(unittest.TestCase):
     def setUp(self):
         self.text = read(STATE)
-        self.block = function_block(self.text, "Wait-ForProcessorPerformance")
+        self.block = function_block(self.text, "Wait-ForCoolDevice")
 
     def test_reading_is_language_independent_wmi(self):
-        self.assertIn("Get-ProcessorPerformancePct", self.block)
+        self.assertIn("Get-MaxThermalZoneC", self.block)
         self.assertIn("surface_state_wait_source=wmi", self.block)
-        self.assertIn("Win32_PerfFormattedData_Counters_ProcessorInformation", self.block)
+        self.assertIn("Win32_PerfFormattedData_Counters_ThermalZoneInformation", self.block)
         code = code_only(self.block)
         self.assertNotIn("Get-Counter", code)
         self.assertNotIn("Perflib", code)
@@ -81,13 +82,14 @@ class StateWaitTest(unittest.TestCase):
     def test_timeout_and_result_keys_stay_stable(self):
         self.assertRegex(self.text, r"\[int\]\$WaitTimeoutSeconds = 120")
         for key in ("surface_state_wait=", "surface_state_wait_seconds=",
-                    "surface_state_wait_min_pct=", "surface_state_wait_last_pct="):
+                    "surface_state_wait_first_c=", "surface_state_wait_last_c=",
+                    "surface_state_wait_maximum_c="):
             self.assertIn(key, self.block)
 
     def test_the_wait_mode_needs_no_output_file(self):
         self.assertNotIn("[Parameter(Mandatory = $true)][string]$Out", self.text)
         self.assertIn("[string]$Out = ''", self.text)
-        self.assertIn("unless -WaitForProcessorPerformance is used", self.text)
+        self.assertIn("unless -WaitForCoolDevice is used", self.text)
 
     def test_wait_no_longer_uses_the_removed_counter_helpers(self):
         self.assertNotIn("function Read-ProcessorPerformancePct", self.text)

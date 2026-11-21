@@ -23,6 +23,18 @@
 # settings at the start, after the first window and before the capture.
 # status.txt reports progress and ends with "done" or "failed: <reason>".
 #
+# Before each run the runner waits for the device to cool. On 2026-11-21 the
+# measuring device limited the CPU package to 3-9 W once the maximum
+# HighPrecisionTemperature of Win32_PerfFormattedData_Counters_
+# ThermalZoneInformation reached about 50 C, from 25-32 W when cold. A load on
+# every core from 44 C held 220 % performance for 28 s and dropped above
+# 50 C; started at 49 C it stayed near 9 W from the beginning, and about six
+# minutes of idle from 49 C reached 42 C. A run started while the device is
+# hot therefore records values that cannot be compared with a cool one. The
+# wait reads that temperature every five seconds and returns once it is below
+# 45 C for two samples in a row, with a 900 s cap. It runs in its own process
+# so a blocked WMI read cannot hold the runner.
+#
 # Before a LibrePaint run the runner pins the brush colors in kritarc to a
 # black foreground and a white background. A leftover white foreground made
 # the synthetic strokes invisible on the white canvas, so the capture held only
@@ -131,17 +143,12 @@ function Write-SurfaceStateSummary($dir, $csv) {
         $lines += "surface_state_${phase}_processor_performance_pct=$(if ($row) { $row.processor_performance_pct } else { 'unavailable' })"
         $lines += "surface_state_${phase}_total_cpu_pct=$(if ($row) { $row.total_cpu_pct } else { 'unavailable' })"
     }
-    $beforeRow = $rows | Where-Object { $_.phase -eq 'before' } | Select-Object -First 1
-    $beforeLimit = if ($beforeRow -and $beforeRow.performance_limit_pct) { $beforeRow.performance_limit_pct } else { 'unavailable' }
-    $lines += "surface_state_before_performance_limit_pct=$beforeLimit"
     $temps = @($during | Where-Object { $_.max_temp_c -match '^-?[0-9]+(\.[0-9]+)?$' } | ForEach-Object { [double]$_.max_temp_c })
     $performance = @($during | Where-Object { $_.processor_performance_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.processor_performance_pct })
-    $limits = @($during | Where-Object { $_.performance_limit_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.performance_limit_pct })
     $cpu = @($during | Where-Object { $_.total_cpu_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.total_cpu_pct })
     $lines += "surface_state_during_samples=$($during.Count)"
     $lines += "surface_state_during_max_temp_c=$(if ($temps.Count) { ($temps | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
     $lines += "surface_state_during_min_processor_performance_pct=$(if ($performance.Count) { ($performance | Measure-Object -Minimum).Minimum } else { 'unavailable' })"
-    $lines += "surface_state_during_min_performance_limit_pct=$(if ($limits.Count) { ($limits | Measure-Object -Minimum).Minimum } else { 'unavailable' })"
     $lines += "surface_state_during_max_total_cpu_pct=$(if ($cpu.Count) { ($cpu | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
     $lines += "surface_state_during_mean_total_cpu_pct=$(if ($cpu.Count) { [math]::Round(($cpu | Measure-Object -Average).Average, 1) } else { 'unavailable' })"
     $names = @()
@@ -179,12 +186,12 @@ function Wait-MainWindow($process, [int]$seconds) {
     throw "no main window after $seconds s"
 }
 
-function Invoke-SurfaceStateWait($surfaceScript, $dir, [int]$timeoutSeconds, [int]$minimumPct) {
+function Invoke-SurfaceStateWait($surfaceScript, $dir, [int]$timeoutSeconds, [int]$maximumC) {
     # The wait must never hold the runner. On 2026-11-11 the first wait hung
     # the runner for 36 minutes before the application started: the call did
     # not pass -Out, which used to be a mandatory parameter, so the hidden,
     # non-interactive console waited at a parameter prompt. The wait's own
-    # 120 s cap never started. -Out is now optional, and this still passes a
+    # cap never started. -Out is now optional, and this still passes a
     # path and runs the wait in its own powershell.exe with a wall-clock
     # limit: one blocked WMI read must not hold the runner either.
     $graceSeconds = 15
@@ -194,8 +201,8 @@ function Invoke-SurfaceStateWait($surfaceScript, $dir, [int]$timeoutSeconds, [in
     $started = Get-Date
     $process = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
         -ArgumentList @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
-            '-File', "`"$surfaceScript`"", '-Out', "`"$waitCsv`"", '-WaitForProcessorPerformance',
-            '-WaitMinimumPct', [string]$minimumPct, '-WaitTimeoutSeconds', [string]$timeoutSeconds) `
+            '-File', "`"$surfaceScript`"", '-Out', "`"$waitCsv`"", '-WaitForCoolDevice',
+            '-WaitMaximumC', [string]$maximumC, '-WaitTimeoutSeconds', [string]$timeoutSeconds) `
         -RedirectStandardOutput $out -RedirectStandardError $err
     $finished = $process.WaitForExit(($timeoutSeconds + $graceSeconds) * 1000)
     $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
@@ -215,8 +222,9 @@ function Invoke-SurfaceStateWait($surfaceScript, $dir, [int]$timeoutSeconds, [in
             'surface_state_wait=timeout',
             "surface_state_wait_seconds=$elapsed",
             'surface_state_wait_samples=0',
-            'surface_state_wait_min_pct=unavailable',
-            'surface_state_wait_last_pct=unavailable',
+            "surface_state_wait_maximum_c=$maximumC",
+            'surface_state_wait_first_c=unavailable',
+            'surface_state_wait_last_c=unavailable',
             'surface_state_wait_source=wmi',
             'surface_state_wait_timed_out=process'
         )
@@ -1132,9 +1140,9 @@ try {
         Log ("unknown surface_state '" + $surfaceStateMode + "', recording nothing")
         $surfaceStateMode = 'off'
     }
-    # Waiting for the device to leave a throttled state is a setting of its
-    # own: it uses one Get-Counter read per five seconds before the run and
-    # changes nothing during it. It stays on when the state recording is off.
+    # Waiting for the device to cool is a setting of its own: it reads the
+    # WMI temperature once per five seconds before the run and changes nothing
+    # during it. It stays on when the state recording is off.
     $surfaceStateWait = if ($null -ne $request.surface_state_wait) { [string]$request.surface_state_wait } else { 'on' }
     if ($surfaceStateWait -notin @('off', 'on')) {
         Log ("unknown surface_state_wait '" + $surfaceStateWait + "', waiting")
@@ -1171,14 +1179,14 @@ try {
         Add-Content -Path (Join-Path $dir 'meta.txt') -Value "thread_cpu_mode=$threadCpuMode"
         Add-Content -Path (Join-Path $dir 'meta.txt') -Value "power_mode=$powerMode"
         Write-LaunchFacts $dir 'start' $null
-        # Wait for the device to recover before it is measured. The wait runs
+        # Wait for the device to cool before it is measured. The wait runs
         # in a separate process before the sampler and the application start,
-        # so a throttled device delays the run instead of changing its values,
-        # and a blocked counter read stops at a hard limit instead of holding
+        # so a hot device delays the run instead of changing its values,
+        # and a blocked WMI read stops at a hard limit instead of holding
         # the runner.
         if ($surfaceStateWait -eq 'on' -and (Test-Path $surfaceScript)) {
             try {
-                $waitLines = @(Invoke-SurfaceStateWait $surfaceScript $dir 120 75)
+                $waitLines = @(Invoke-SurfaceStateWait $surfaceScript $dir 900 45)
                 if ($waitLines.Count) {
                     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $waitLines
                     Log ("surface state wait: " + ($waitLines -join ' '))
