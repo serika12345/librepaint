@@ -30,6 +30,10 @@ class KisStrokeRandomSource;
  * stroke before every render. The copy is advanced by the rendering and
  * the confirmed stroke state is not changed.
  *
+ * A copy of KisStrokeRandomSource shares its generators, so the renderer
+ * copies the generators themselves and leaves the confirmed stroke's
+ * random sequence unadvanced.
+ *
  * Every render discards the previous prediction and draws all points again
  * from the confirmed pixels. Drawing on top of the previous prediction
  * would change the density of semi-transparent brushes and leave marks of

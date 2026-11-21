@@ -25,6 +25,8 @@ class KRITAIMAGE_EXPORT  KisStrokeRandomSource
 {
 public:
     KisStrokeRandomSource();
+    // Creates both the per-dab and the per-stroke random sequences from the
+    // seed, so tests can reproduce their results.
     explicit KisStrokeRandomSource(int dabRandomSeed);
     KisStrokeRandomSource(const KisStrokeRandomSource &rhs);
     KisStrokeRandomSource& operator=(const KisStrokeRandomSource &rhs);

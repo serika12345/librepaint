@@ -18,6 +18,7 @@ class KRITAIMAGE_EXPORT KisPerStrokeRandomSource : public KisShared
 {
 public:
     KisPerStrokeRandomSource();
+    explicit KisPerStrokeRandomSource(int seed);
     KisPerStrokeRandomSource(const KisPerStrokeRandomSource &rhs);
 
     ~KisPerStrokeRandomSource();

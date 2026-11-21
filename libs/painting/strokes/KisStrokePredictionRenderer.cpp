@@ -13,8 +13,10 @@
 #include "kis_paint_device.h"
 #include "kis_paint_information.h"
 #include "kis_painter.h"
+#include "kis_paintop.h"
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
+#include "KisRunnableStrokeJobData.h"
 #include "kis_resources_snapshot.h"
 #include "kis_stroke_random_source.h"
 
@@ -65,9 +67,10 @@ KisStrokePredictionRenderer::KisStrokePredictionRenderer(KisResourcesSnapshotSP 
             painter->setChannelFlags(QBitArray());
         }
 
-        // The painter keeps its own KisFakeRunnableStrokeJobsExecutor, so the
-        // brush dab jobs are executed in place and render() returns after all
-        // dabs have been written.
+        // The painter keeps its own KisFakeRunnableStrokeJobsExecutor, but the
+        // pixel brush dabs are written only when the jobs returned by
+        // doAsynchronousUpdate are run, so render() runs those jobs before it
+        // returns.
         m_d->devices[i] = device;
         m_d->painters[i].reset(painter);
     }
@@ -122,13 +125,16 @@ KisStrokePredictionRenderer::render(const KisPaintInformation &lastReal,
     KisPainter::copyAreaOptimized(rect.topLeft(), m_d->source, device, rect);
 
     KisDistanceInformation distanceCopy(distance);
-    KisStrokeRandomSource randomCopy(random);
-    KisRandomSourceSP rnd = randomCopy.source();
-    KisPerStrokeRandomSourceSP strokeRnd = randomCopy.perStrokeSource();
+    KisRandomSourceSP rnd(new KisRandomSource(*random.source()));
+    KisPerStrokeRandomSourceSP strokeRnd(new KisPerStrokeRandomSource(*random.perStrokeSource()));
 
     const int startDabSeqNo = distanceCopy.currentDabSeqNo();
 
     KisPaintInformation previous = lastReal;
+    // KisPaintInformation::mix inherits the random sources from the starting
+    // information, so the start of the prediction needs the copies as well.
+    previous.setRandomSource(rnd);
+    previous.setPerStrokeRandomSource(strokeRnd);
 
     for (int i = 0; i < points.size(); i++) {
         const qreal dt = i < dtMs.size() ? dtMs[i] : 0.0;
@@ -155,6 +161,30 @@ KisStrokePredictionRenderer::render(const KisPaintInformation &lastReal,
     }
 
     const int dabCount = distanceCopy.currentDabSeqNo() - startDabSeqNo;
+
+    if (painter->paintOp()) {
+        int flushCount = 0;
+
+        while (true) {
+            QVector<KisRunnableStrokeJobData*> jobs;
+            const bool needsMoreUpdates =
+                painter->paintOp()->doAsynchronousUpdate(jobs).second;
+
+            for (KisRunnableStrokeJobData *job : jobs) {
+                job->run();
+                delete job;
+            }
+
+            if (jobs.isEmpty() && !needsMoreUpdates) {
+                break;
+            }
+
+            if (++flushCount >= 64) {
+                KisLatencyProbe::mark("prediction_render_flush_limit", 0, 0, 64);
+                break;
+            }
+        }
+    }
 
     const QVector<QRect> dirtyRects = painter->takeDirtyRegion();
     QRect dirtyBounds;
