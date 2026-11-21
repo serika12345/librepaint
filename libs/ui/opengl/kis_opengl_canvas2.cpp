@@ -78,16 +78,9 @@ static bool OPENGL_SUCCESS = false;
 
 namespace {
 
-// The canvas frame dump below exists only for the Windows desktop OpenGL
-// investigation (2026-11-21): with the desktop renderer the ink of a stroke is
-// missing on screen while ANGLE keeps it, and this dump separates "the canvas
-// render has no ink" from "the canvas render has ink but the screen does not
-// show it". Remove this code when the cause is fixed and recorded in
-// docs/perf/DECISIONS.md.
 bool diagFrameDumpEnabled()
 {
-    static const bool enabled = qgetenv("LIBREPAINT_DIAG_FRAME_DUMP") == "1";
-    return enabled;
+    return KisLatencyProbe::diagFrameDumpEnabled();
 }
 
 QString diagLatencyLogPath()

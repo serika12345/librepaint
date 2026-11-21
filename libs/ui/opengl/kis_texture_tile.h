@@ -67,6 +67,20 @@ public:
         return m_tileRectInTexturePixels;
     }
 
+    /// Texture id of the tile, for the Windows ink diagnosis.
+    GLuint textureId() const {
+        return m_textureId;
+    }
+
+    /// True when the last texture upload was recorded by the Windows ink diagnosis.
+    bool diagUploadedSinceDraw() const {
+        return m_diagUploadedSinceDraw;
+    }
+
+    void clearDiagUploadedSinceDraw() {
+        m_diagUploadedSinceDraw = false;
+    }
+
     QRectF imageRectInTexturePixels(const QRect &imageRect) const;
 
     /**
@@ -97,6 +111,7 @@ private:
     QOpenGLFunctions *f;
     KisOpenGLBufferCircularStorage *m_bufferStorage;
     bool m_mipmapHasBeenAllocated = false;
+    bool m_diagUploadedSinceDraw = false;
     Q_DISABLE_COPY(KisTextureTile)
 };
 

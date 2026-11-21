@@ -123,6 +123,8 @@ class QCoreApplication;
 namespace KisLatencyProbe
 {
 KRITAGLOBAL_EXPORT bool enabled();
+/// True when LIBREPAINT_DIAG_FRAME_DUMP is "1", read once per process.
+KRITAGLOBAL_EXPORT bool diagFrameDumpEnabled();
 /// Records @p event, which must be a string literal or otherwise outlive the process.
 KRITAGLOBAL_EXPORT void mark(const char *event, double x = 0.0, double y = 0.0, qint64 extra = 0);
 /// Records Windows pointer, Wintab and mouse messages when the probe is enabled.

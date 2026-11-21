@@ -12,6 +12,7 @@
 #include "opengl/kis_opengl.h"
 #include <cstring>
 #include <qopengl.h>
+#include <QOpenGLContext>
 #if defined(QT_OPENGL_ES_3)
 #include <GLES3/gl3.h>
 #endif
@@ -35,6 +36,22 @@
 #ifndef GL_RGBA16_EXT
 #define GL_RGBA16_EXT 0x805B
 #endif
+
+namespace
+{
+// Counts the pixels whose first three bytes are all below 128. The value is
+// the same for BGRA and RGBA layouts.
+int countDiagDarkPixels(const quint8 *data, int width, int height)
+{
+    int count = 0;
+    const int numPixels = width * height;
+    for (int i = 0; i < numPixels; ++i) {
+        const quint8 *pixel = data + i * 4;
+        if (pixel[0] < 128 && pixel[1] < 128 && pixel[2] < 128) ++count;
+    }
+    return count;
+}
+} // namespace
 
 
 void KisTextureTile::setTextureParameters()
@@ -259,7 +276,16 @@ void KisTextureTile::update(const KisTextureTileUpdateInfo &updateInfo, bool blo
         bottomHeight = 0;
     }
 
+    // This record exists only for the Windows desktop OpenGL investigation
+    // (2026-11-21): with the desktop renderer the ink of a stroke is missing on
+    // screen while ANGLE keeps it. The branch number is 1 for the edge-extended
+    // glTexSubImage2D, 2 for glTexImage2D and 3 for the plain
+    // glTexSubImage2D. Remove this code when the cause is fixed and recorded
+    // in docs/perf/DECISIONS.md.
+    int diagBranch = 3;
+
     if (topHeight > 0 || leftWidth > 0 || rightWidth > 0 || bottomHeight > 0) {
+        diagBranch = 1;
         int bufWidth = leftWidth + centerWidth + rightWidth;
         int bufHeight = topHeight + centerHeight + bottomHeight;
 
@@ -341,6 +367,7 @@ void KisTextureTile::update(const KisTextureTileUpdateInfo &updateInfo, bool blo
                            fd);
 
     } else if (updateInfo.isEntireTileUpdated()) {
+        diagBranch = 2;
         const GLvoid *fd = updateInfo.data();
         KisOpenGLBufferCircularStorage::BufferBinder b(
             m_bufferStorage, &fd, updateInfo.patchPixelsLength());
@@ -376,6 +403,57 @@ void KisTextureTile::update(const KisTextureTileUpdateInfo &updateInfo, bool blo
     //     qDebug() << "    " << ppVar(m_preparedLodPlane);
     //     qDebug() << "    " << ppVar(patchLevelOfDetail);
     // }
+
+    // This record exists only for the Windows desktop OpenGL investigation
+    // (2026-11-21): with the desktop renderer the ink of a stroke is missing on
+    // screen while ANGLE keeps it. It counts the dark pixels of the uploaded
+    // data, then reads the same rectangle back from the texture through a
+    // temporary framebuffer. Remove this code when the cause is fixed and
+    // recorded in docs/perf/DECISIONS.md.
+    if (KisLatencyProbe::diagFrameDumpEnabled()) {
+        int uploadDark = -1;
+        if (pixelSize == 4 && m_texturesInfo->type == GL_UNSIGNED_BYTE) {
+            uploadDark = countDiagDarkPixels(updateInfo.data(),
+                                             patchSize.width(), patchSize.height());
+        }
+
+        int readDark = -2;
+        QOpenGLFunctions *diagFunctions = f;
+        if (!diagFunctions && QOpenGLContext::currentContext()) {
+            diagFunctions = QOpenGLContext::currentContext()->functions();
+        }
+
+        if (diagFunctions) {
+            GLint previousFramebuffer = 0;
+            GLuint framebuffer = 0;
+            diagFunctions->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer);
+            diagFunctions->glGenFramebuffers(1, &framebuffer);
+            diagFunctions->glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            diagFunctions->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                                  GL_TEXTURE_2D, m_textureId,
+                                                  patchLevelOfDetail);
+            if (diagFunctions->glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+                QByteArray readback(patchSize.width() * patchSize.height() * 4, 0);
+                diagFunctions->glReadPixels(patchOffset.x(), patchOffset.y(),
+                                            patchSize.width(), patchSize.height(),
+                                            GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+                readDark = countDiagDarkPixels(
+                    reinterpret_cast<const quint8 *>(readback.constData()),
+                    patchSize.width(), patchSize.height());
+            }
+            diagFunctions->glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer);
+            diagFunctions->glDeleteFramebuffers(1, &framebuffer);
+        }
+
+        KisLatencyProbe::mark("diag_tile_upload", uploadDark, readDark,
+                              diagBranch + 10 * patchLevelOfDetail +
+                                  1000 * (m_textureId % 1000000));
+        KisLatencyProbe::mark("diag_tile_origin", m_tileRectInImagePixels.x(),
+                              m_tileRectInImagePixels.y(), 0);
+        KisLatencyProbe::mark("diag_tile_rect", patchOffset.x(), patchOffset.y(),
+                              patchSize.width() * 100000 + patchSize.height());
+        m_diagUploadedSinceDraw = true;
+    }
 
     restoreTextureParameters();
 
