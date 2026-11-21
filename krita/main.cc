@@ -77,6 +77,7 @@
 #include "KisIOSLifecycleHandler.h"
 #include "KisIOSMemoryWarningHandler.h"
 #include "KisIOSPencilInteraction.h"
+#include "KisIOSPredictedTouches.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -1168,6 +1169,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     QWindow *window = mainWindow ? mainWindow->windowHandle() : nullptr;
     void *nativeView = window ? reinterpret_cast<void *>(window->winId()) : nullptr;
     installKisIOSPencilInteraction(nativeView, handleKisIOSPencilTap);
+    installKisIOSPredictedTouches(nativeView);
 #endif
 
     KisLatencyProbe::installNativeFilter(&app);

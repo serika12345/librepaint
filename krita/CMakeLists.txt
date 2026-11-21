@@ -14,6 +14,7 @@ if (IOS)
         KisIOSLifecycleHandler.mm
         KisIOSMemoryWarningHandler.mm
         KisIOSPencilInteraction.mm
+        KisIOSPredictedTouches.mm
     )
 endif()
 
@@ -195,6 +196,10 @@ if(IOS)
 endif()
 if(NOT IOS)
     target_link_libraries(krita PRIVATE Qt${QT_MAJOR_VERSION}::PrintSupport)
+endif()
+if(IOS)
+    # KisIOSPredictedTouches.mm includes KisPlatformPredictionBuffer.h.
+    target_link_libraries(krita PRIVATE kritatools)
 endif()
 if(HAVE_KCRASH)
     target_link_libraries(krita PRIVATE KF${KF_MAJOR}::Crash)
