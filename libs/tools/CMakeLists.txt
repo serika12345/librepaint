@@ -26,6 +26,8 @@ add_library(kritatoolsstrokepredictionobjects OBJECT
     KisKalmanFilter.cpp
     KisKalmanStrokePredictor.cpp
     KisLinearStrokePredictor.cpp
+    KisPlatformPredictionBuffer.cpp
+    KisPlatformStrokePredictor.cpp
     KisStrokePrediction.cpp
     KisStrokePredictionCap.cpp
     KisStrokeSampleHistory.cpp
@@ -39,6 +41,7 @@ target_include_directories(kritatoolsstrokepredictionobjects
 target_link_libraries(kritatoolsstrokepredictionobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritatoolsstrokepredictionobjects PROPERTIES
     AUTOMOC OFF

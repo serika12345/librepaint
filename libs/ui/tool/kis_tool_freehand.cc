@@ -54,6 +54,7 @@
 #include <kis_layer.h>
 #include "kis_image_config.h"
 #include "canvas/kis_canvas2.h"
+#include <kis_coordinates_converter.h>
 #include "kis_cursor.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
@@ -341,8 +342,17 @@ void KisToolFreehand::startPrediction(KoPointerEvent *event)
     m_predictionExpiryMs = cfg.strokePredictionExpiryMs();
     m_predictionSettings = settings;
 
+    const QTransform widgetToDocument =
+        canvas2->coordinatesConverter()->documentToWidgetTransform().inverted();
+    const QTransform linearWidgetToDocument(widgetToDocument.m11(),
+                                            widgetToDocument.m12(),
+                                            widgetToDocument.m21(),
+                                            widgetToDocument.m22(),
+                                            0.0, 0.0);
+
     m_predictor = KisStrokePredictorFactory::create(*event, m_predictionSettings,
-                                                    cfg.strokePredictionPredictor());
+                                                    cfg.strokePredictionPredictor(),
+                                                    linearWidgetToDocument);
     m_predictor->reset();
     KisLatencyProbe::mark("prediction_source", 0, 0, int(m_predictor->source()));
 
@@ -371,6 +381,11 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
     sample.pressure = event->pressure();
     sample.tablet = event->isTabletEvent();
     m_predictor->addSample(sample);
+
+    const KisStrokePredictionMiss miss = m_predictor->lastSampleMiss();
+    if (miss != KisStrokePredictionMiss::None) {
+        KisLatencyProbe::mark("prediction_miss", event->point.x(), event->point.y(), int(miss));
+    }
 
     KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y(), qint64(event->time()));
 

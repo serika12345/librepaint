@@ -27,6 +27,13 @@ enum class KisStrokePredictionSource {
     None = 0, Linear = 1, Kalman = 2, IosSystem = 3, AndroidSystem = 4, KalmanJerk = 5
 };
 
+/// Which useful prediction of the operating system a sample lacked.
+enum class KisStrokePredictionMiss {
+    None = 0,
+    MissingEntry = 1,
+    IncompleteEvent = 2
+};
+
 /**
  * Common interface of the stroke predictors. The tool owns one predictor for
  * a stroke and asks it for the prediction at a length it chooses.
@@ -41,6 +48,12 @@ public:
     /// prediction to reach, measured from that point's event time.
     virtual KisStrokePredictionResult predict(qreal horizonMs) const = 0;
     virtual KisStrokePredictionSource source() const = 0;
+    /// The miss of the last addSample() call. Only the predictor that follows
+    /// the operating system reports one.
+    virtual KisStrokePredictionMiss lastSampleMiss() const
+    {
+        return KisStrokePredictionMiss::None;
+    }
 };
 
 #endif // KIS_STROKE_PREDICTOR_H
