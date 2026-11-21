@@ -5,8 +5,12 @@
 
 /*
  * Qt does not read the predicted touches of the operating system. This file
- * therefore attaches a passive gesture recognizer to the Qt view and leaves
- * the Qt fork unchanged.
+ * therefore adds a passive gesture recognizer and leaves the Qt fork
+ * unchanged.
+ *
+ * Qt enters main() before UIKit connects the window scene, so the recognizer
+ * attaches to the UIKit window instead of the view and reattaches when the
+ * window becomes visible. KisIOSPencilInteraction.mm follows the same shape.
  *
  * The entry time and the coordinates use the same expressions as Qt, so the
  * predictor can match each entry to the real touches of the same event by
@@ -31,6 +35,12 @@
 @interface KisPredictedTouchesRecognizer : UIGestureRecognizer
 @end
 
+static UIView *s_applicationView = nil;
+static KisPredictedTouchesRecognizer *s_recognizer = nil;
+static id s_windowDidBecomeVisibleObserver = nil;
+static id s_windowDidBecomeKeyObserver = nil;
+static id s_applicationDidBecomeActiveObserver = nil;
+
 @implementation KisPredictedTouchesRecognizer
 
 - (instancetype)init
@@ -54,7 +64,10 @@
     UITouch *last = coalesced.lastObject;
 
     const quint64 keyMs = quint64(ulong(event.timestamp * 1000));
-    UIView *view = self.view;
+
+    // Qt takes locationInView: from the view that received the touch, so the
+    // deltas use the same view.
+    UIView *view = last.view ?: s_applicationView;
 
     QVector<KisPlatformPredictedPoint> points;
     const CGPoint lastLocation = [last locationInView:view];
@@ -88,6 +101,16 @@
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
+    NSUInteger pencilTouchCount = 0;
+    for (UITouch *touch in touches) {
+        if (touch.type == UITouchTypePencil) {
+            ++pencilTouchCount;
+        }
+    }
+    if (pencilTouchCount > 0) {
+        KisLatencyProbe::mark("prediction_os_touch", 0, 0, qint64(pencilTouchCount));
+    }
+
     [super touchesBegan:touches withEvent:event];
     [self pushEntriesForTouches:touches withEvent:event];
 }
@@ -112,23 +135,79 @@
 
 @end
 
-static KisPredictedTouchesRecognizer *s_recognizer = nil;
+static bool attachPredictedTouchesRecognizer()
+{
+    if (!s_applicationView) {
+        return false;
+    }
+
+    UIView *window = s_applicationView.window;
+    if (!window) {
+        return false;
+    }
+
+    UIView *attachedView = s_recognizer.view;
+    if (attachedView == window) {
+        return true;
+    }
+    if (attachedView) {
+        [attachedView removeGestureRecognizer:s_recognizer];
+    }
+    [window addGestureRecognizer:s_recognizer];
+
+    KisPlatformPredictionBuffer::instance().setSupplierInstalled(true);
+    KisLatencyProbe::mark("prediction_os_attach", 0, 0, 1);
+    qInfo() << "Attached Apple Pencil predicted touch recognizer to the main window";
+    return true;
+}
 
 void installKisIOSPredictedTouches(void *nativeView)
 {
-    if (s_recognizer) {
-        return;
-    }
-
     UIView *view = reinterpret_cast<UIView *>(nativeView);
-    if (!view) {
-        qWarning() << "Could not attach Apple Pencil predicted touches: no native view";
-        return;
+    if (view) {
+        s_applicationView = view;
     }
 
-    // Keep the recognizer alive for the process lifetime.
-    s_recognizer = [[KisPredictedTouchesRecognizer alloc] init];
-    [view addGestureRecognizer:s_recognizer];
-    KisPlatformPredictionBuffer::instance().setSupplierInstalled(true);
-    qInfo() << "Attached Apple Pencil predicted touch recognizer";
+    if (!s_recognizer) {
+        // Keep the recognizer alive for the process lifetime.
+        s_recognizer = [[KisPredictedTouchesRecognizer alloc] init];
+    }
+
+    if (!s_windowDidBecomeVisibleObserver) {
+        NSNotificationCenter *notificationCenter = NSNotificationCenter.defaultCenter;
+        s_windowDidBecomeVisibleObserver = [notificationCenter
+            addObserverForName:UIWindowDidBecomeVisibleNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *notification) {
+                        Q_UNUSED(notification);
+                        attachPredictedTouchesRecognizer();
+                    }];
+        s_windowDidBecomeKeyObserver = [notificationCenter
+            addObserverForName:UIWindowDidBecomeKeyNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *notification) {
+                        Q_UNUSED(notification);
+                        attachPredictedTouchesRecognizer();
+                    }];
+        s_applicationDidBecomeActiveObserver = [notificationCenter
+            addObserverForName:UIApplicationDidBecomeActiveNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *) {
+                        attachPredictedTouchesRecognizer();
+                    }];
+    }
+
+    if (!attachPredictedTouchesRecognizer()) {
+        // Qt enters main() before UIKit connects its UIWindowScene. Retry once
+        // the event loop starts; the observers above also cover later window
+        // activation and foreground transitions without changing the target.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!attachPredictedTouchesRecognizer()) {
+                qWarning() << "Could not attach Apple Pencil predicted touch recognizer to the LibrePaint main window";
+            }
+        });
+    }
 }
