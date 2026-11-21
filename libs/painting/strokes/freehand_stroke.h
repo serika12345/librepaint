@@ -9,6 +9,7 @@
 
 
 #include <QPen>
+#include <functional>
 #include "kritapainting_export.h"
 #include "kis_types.h"
 #include "kis_node.h"
@@ -218,6 +219,15 @@ public:
      * tests read it to observe the state during a stroke.
      */
     bool hasPredictionRenderer() const;
+
+    /**
+     * Test hook: registers a reader called with the target projection after
+     * the prediction of an update has been merged into it. The reader also
+     * receives the last confirmed point and the first predicted point, so
+     * tests can check the seam between the confirmed line and the prediction.
+     */
+    void setPredictionProjectionReaderForTest(
+        std::function<void(KisPaintDeviceSP, const QPointF &, const QPointF &)> reader);
 
     void doStrokeCallback(KisStrokeJobData *data) override;
 

@@ -105,6 +105,9 @@ struct FreehandStrokeStrategy::Private
 
     std::mutex predictionRenderMutex;
     QRect lastPredictionRect;
+
+    std::function<void(KisPaintDeviceSP, const QPointF &, const QPointF &)>
+        predictionProjectionReaderForTest;
 };
 
 FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
@@ -256,6 +259,12 @@ void FreehandStrokeStrategy::paintersInitialized()
 bool FreehandStrokeStrategy::hasPredictionRenderer() const
 {
     return bool(m_d->predictionRenderer);
+}
+
+void FreehandStrokeStrategy::setPredictionProjectionReaderForTest(
+    std::function<void(KisPaintDeviceSP, const QPointF &, const QPointF &)> reader)
+{
+    m_d->predictionProjectionReaderForTest = std::move(reader);
 }
 
 void FreehandStrokeStrategy::finishStrokeCallback()
@@ -442,6 +451,43 @@ void FreehandStrokeStrategy::tryDoUpdate(bool forceEnd)
 
 void FreehandStrokeStrategy::issueSetDirtySignals()
 {
+    // The prediction starts from the last point whose dabs are reserved, so
+    // dabs that paintLine reserved and the brush has not written yet leave a
+    // gap at the seam between the confirmed line and the prediction. Write
+    // them into the layer before the prediction is rendered.
+    if (m_d->predictionRenderer &&
+        m_d->predictionChanged &&
+        !m_d->predictionPoints.isEmpty()) {
+
+        KisLatencyProbe::mark("prediction_real_flush_begin");
+
+        int flushedJobs = 0;
+        int flushCount = 0;
+
+        while (true) {
+            QVector<KisRunnableStrokeJobData*> jobs;
+            const bool needsMoreUpdates =
+                maskedPainter(0)->doAsynchronousUpdate(jobs).second;
+
+            for (KisRunnableStrokeJobData *job : jobs) {
+                job->run();
+                delete job;
+                flushedJobs++;
+            }
+
+            if (jobs.isEmpty() && !needsMoreUpdates) {
+                break;
+            }
+
+            if (++flushCount >= 64) {
+                KisLatencyProbe::mark("prediction_real_flush_limit", 0, 0, 64);
+                break;
+            }
+        }
+
+        KisLatencyProbe::mark("prediction_real_flush_end", 0, 0, flushedJobs);
+    }
+
     QVector<QRect> dirtyRects;
 
     for (int i = 0; i < numMaskedPainters(); i++) {
@@ -520,6 +566,22 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
                     targetNode()->setDirty(predictionRects);
                 }
             });
+
+        if (m_d->predictionProjectionReaderForTest &&
+            hasLastPaintedInfo &&
+            !points.isEmpty()) {
+
+            auto reader = m_d->predictionProjectionReaderForTest;
+            const QPointF lastRealPosition = lastPaintedInfo.pos();
+            const QPointF firstPredictedPosition = points.first();
+
+            KritaUtils::addJobBarrier(jobs,
+                [this, reader, lastRealPosition, firstPredictedPosition] () {
+                    reader(targetNode()->projection(),
+                           lastRealPosition,
+                           firstPredictedPosition);
+                });
+        }
     };
 
     if (needsMaskingUpdates()) {

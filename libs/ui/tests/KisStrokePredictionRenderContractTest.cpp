@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QImage>
 #include <QTemporaryDir>
+#include <QtMath>
 
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
@@ -528,6 +529,87 @@ protected:
     }
 };
 
+class PredictionSeamTester : public utils::StrokeTester
+{
+public:
+    PredictionSeamTester()
+        : StrokeTester(QStringLiteral("prediction_seam"),
+                       QSize(imageWidth, imageHeight),
+                       QStringLiteral("Basic_tip_default.kpp"))
+    {
+    }
+
+    struct Capture {
+        QImage projection;
+        QPointF lastReal;
+        QPointF firstPredicted;
+    };
+
+    QVector<Capture> captures;
+
+protected:
+    KisStrokeStrategy *createStroke(KisResourcesSnapshotSP resources, KisImageWSP image) override
+    {
+        Q_UNUSED(image);
+
+        FreehandStrokeStrategy *stroke = new FreehandStrokeStrategy(
+            resources,
+            new KisFreehandStrokeInfo(),
+            kundo2_noi18n("Prediction Seam Stroke"),
+            FreehandStrokeStrategy::SupportsPrediction,
+            dabRandomSeed);
+
+        stroke->setPredictionProjectionReaderForTest(
+            [this](KisPaintDeviceSP projection,
+                   const QPointF &lastReal,
+                   const QPointF &firstPredicted) {
+                Capture capture;
+                capture.projection =
+                    projection->convertToQImage(nullptr, 0, 0, imageWidth, imageHeight);
+                capture.lastReal = lastReal;
+                capture.firstPredicted = firstPredicted;
+                captures.append(capture);
+            });
+
+        return stroke;
+    }
+
+    void addPaintingJobs(KisImageWSP image, KisResourcesSnapshotSP resources) override
+    {
+        Q_UNUSED(resources);
+
+        const qreal lineY = 100.0;
+
+        for (int step = 0; step < 12; step++) {
+            const qreal x = 30.0 + 10.0 * step;
+
+            if (step == 0) {
+                image->addJob(strokeId(),
+                    new FreehandStrokeStrategy::Data(0, fixedPaintInformation(QPointF(x, lineY))));
+            } else {
+                image->addJob(strokeId(),
+                    new FreehandStrokeStrategy::Data(0,
+                        fixedPaintInformation(QPointF(x - 10.0, lineY)),
+                        fixedPaintInformation(QPointF(x, lineY))));
+            }
+
+            const QVector<QPointF> predicted{
+                QPointF(x + 10.0, lineY),
+                QPointF(x + 20.0, lineY),
+                QPointF(x + 30.0, lineY)};
+            const QVector<qreal> dtMs{2.0, 2.0, 2.0};
+            image->addJob(strokeId(),
+                new FreehandStrokeStrategy::Data(0, predicted, dtMs));
+
+            image->addJob(strokeId(),
+                new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
+        }
+
+        image->addJob(strokeId(),
+            new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
+    }
+};
+
 } // namespace
 
 class KisStrokePredictionRenderContractTest : public QObject
@@ -546,6 +628,7 @@ private Q_SLOTS:
     void predictionIsClearedAfterStrokeAndCancel();
     void predictionComposesWithLayerOpacityAndCompositeOp();
     void directPaintingLayerShowsPredictionThroughProjection();
+    void confirmedLineIsContinuousUpToPrediction();
 };
 
 void KisStrokePredictionRenderContractTest::initTestCase()
@@ -974,6 +1057,46 @@ void KisStrokePredictionRenderContractTest::directPaintingLayerShowsPredictionTh
              qPrintable(QStringLiteral("cleared prediction still shows at %1,%2")
                             .arg(mismatch.x())
                             .arg(mismatch.y())));
+}
+
+void KisStrokePredictionRenderContractTest::confirmedLineIsContinuousUpToPrediction()
+{
+    PredictionSeamTester tester;
+    tester.benchmark();
+
+    QVERIFY(!tester.captures.isEmpty());
+
+    int checkedIntervals = 0;
+
+    for (const PredictionSeamTester::Capture &capture : tester.captures) {
+        const QImage &projection = capture.projection;
+        QVERIFY(!projection.isNull());
+
+        const int row = qRound(capture.lastReal.y());
+        const int firstX = qCeil(capture.lastReal.x());
+        const int lastX = qFloor(capture.firstPredicted.x()) - 1;
+
+        if (firstX > lastX) continue;
+
+        QVERIFY(row >= 0 && row < projection.height());
+
+        checkedIntervals++;
+
+        for (int x = firstX; x <= lastX; x++) {
+            QVERIFY(x >= 0 && x < projection.width());
+            QVERIFY2(qAlpha(projection.pixel(x, row)) != 0,
+                     qPrintable(QStringLiteral("no confirmed dab at %1,%2 between the last sent point %3,%4 and the prediction start %5,%6")
+                                    .arg(x)
+                                    .arg(row)
+                                    .arg(capture.lastReal.x())
+                                    .arg(capture.lastReal.y())
+                                    .arg(capture.firstPredicted.x())
+                                    .arg(capture.firstPredicted.y())));
+        }
+    }
+
+    QVERIFY2(checkedIntervals > 0,
+             "no captured projection had a prediction ahead of the last sent point");
 }
 
 int main(int argc, char *argv[])
