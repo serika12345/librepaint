@@ -173,17 +173,6 @@ bool enabled()
     return recorder().enabled();
 }
 
-// This switch exists only for the Windows desktop OpenGL investigation
-// (2026-11-21): with the desktop renderer the ink of a stroke is missing on
-// screen while ANGLE keeps it, and the frame and texture dumps separate the
-// stage where the ink is lost. Remove this code when the cause is fixed and
-// recorded in docs/perf/DECISIONS.md.
-bool diagFrameDumpEnabled()
-{
-    static const bool enabled = qgetenv("LIBREPAINT_DIAG_FRAME_DUMP") == "1";
-    return enabled;
-}
-
 void mark(const char *event, double x, double y, qint64 extra)
 {
     Recorder &instance = recorder();

@@ -313,26 +313,13 @@ KisOpenGLUpdateInfoSP KisOpenGLImageTextures::updateCacheImpl(const QRect& rect,
 
 void KisOpenGLImageTextures::recalculateCache(KisUpdateInfoSP info, bool blockMipmapRegeneration)
 {
-    // These records exist only for the Windows desktop OpenGL investigation
-    // (2026-11-21): with the desktop renderer the ink of a stroke is missing on
-    // screen while ANGLE keeps it. Remove this code when the cause is fixed and
-    // recorded in docs/perf/DECISIONS.md.
     if (!m_initialized) {
-        if (KisLatencyProbe::diagFrameDumpEnabled()) KisLatencyProbe::mark("diag_recalc_drop", 0, 0, 1);
         dbgUI << "OpenGL: Tried to edit image texture cache before it was initialized.";
         return;
     }
 
     KisOpenGLUpdateInfoSP glInfo = dynamic_cast<KisOpenGLUpdateInfo*>(info.data());
-    if(!glInfo) {
-        if (KisLatencyProbe::diagFrameDumpEnabled()) KisLatencyProbe::mark("diag_recalc_drop", 0, 0, 2);
-        return;
-    }
-
-    if (KisLatencyProbe::diagFrameDumpEnabled()) {
-        KisLatencyProbe::mark("diag_recalc", glInfo->tileList.size(),
-                              blockMipmapRegeneration ? 1 : 0, 0);
-    }
+    if(!glInfo) return;
 
     QScopedPointer<KisOpenGLSync> sync;
     int numProcessedTiles = 0;

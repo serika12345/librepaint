@@ -195,13 +195,6 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi1.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintAt(d->pi1);
             KisLatencyProbe::mark("stroke_dab", d->pi1.pos().x(), d->pi1.pos().y());
-            // Diagnostic only for the Windows ink that never reaches the
-            // canvas texture: records the pressure of the painted dab.
-            // Remove this when the cause is fixed and recorded in
-            // docs/perf/DECISIONS.md.
-            if (KisLatencyProbe::diagFrameDumpEnabled()) {
-                KisLatencyProbe::mark("diag_dab_pressure", d->pi1.pressure() * 1000.0, 0, 0);
-            }
             m_d->efficiencyMeasurer.addSample(d->pi1.pos());
             break;
         case Data::LINE:
@@ -211,13 +204,6 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
             d->pi2.setPerStrokeRandomSource(strokeRnd);
             maskedPainter->paintLine(d->pi1, d->pi2);
             KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
-            // Diagnostic only for the Windows ink that never reaches the
-            // canvas texture: records the pressure of the painted dab.
-            // Remove this when the cause is fixed and recorded in
-            // docs/perf/DECISIONS.md.
-            if (KisLatencyProbe::diagFrameDumpEnabled()) {
-                KisLatencyProbe::mark("diag_dab_pressure", d->pi2.pressure() * 1000.0, 0, 0);
-            }
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
         case Data::CURVE:
@@ -230,13 +216,6 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
                                          d->control2,
                                          d->pi2);
             KisLatencyProbe::mark("stroke_dab", d->pi2.pos().x(), d->pi2.pos().y());
-            // Diagnostic only for the Windows ink that never reaches the
-            // canvas texture: records the pressure of the painted dab.
-            // Remove this when the cause is fixed and recorded in
-            // docs/perf/DECISIONS.md.
-            if (KisLatencyProbe::diagFrameDumpEnabled()) {
-                KisLatencyProbe::mark("diag_dab_pressure", d->pi2.pressure() * 1000.0, 0, 0);
-            }
             m_d->efficiencyMeasurer.addSample(d->pi2.pos());
             break;
         case Data::POLYLINE:

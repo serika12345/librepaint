@@ -7,7 +7,6 @@
 
 #include "KisQStringListFwd.h"
 #include "KisWraparoundAxis.h"
-#include <KisLatencyProbe.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoColorDisplayRendererInterface.h"
 #include "KoCompositeOpIds.h"
@@ -963,18 +962,6 @@ void KisOpenGLCanvasRenderer::drawImageTiles(int firstCol, int lastCol, int firs
             // switching uniform is a rather expensive operation on macOS, so we change it only
             // when it is really needed
             const int currentLodPlane = tile->bindToActiveTexture(d->lodSwitchInProgress);
-
-            // This record exists only for the Windows desktop OpenGL
-            // investigation (2026-11-21): with the desktop renderer the ink of a
-            // stroke is missing on screen while ANGLE keeps it. It marks the
-            // tiles whose texture upload was recorded during this frame. Remove
-            // this code when the cause is fixed and recorded in
-            // docs/perf/DECISIONS.md.
-            if (KisLatencyProbe::diagFrameDumpEnabled() && tile->diagUploadedSinceDraw()) {
-                KisLatencyProbe::mark("diag_tile_draw", currentLodPlane, 0, tile->textureId() % 1000000);
-                tile->clearDiagUploadedSinceDraw();
-            }
-
             if (d->displayShader->location(Uniform::FixedLodLevel) >= 0 &&
                 (lastTileLodPlane < 0 || lastTileLodPlane != currentLodPlane)) {
 
@@ -1157,18 +1144,6 @@ QRect KisOpenGLCanvasRenderer::updateCanvasProjection(KisUpdateInfoSP info)
 {
     // See KisQPainterCanvas::updateCanvasProjection for more info
     bool isOpenGLUpdateInfo = dynamic_cast<KisOpenGLUpdateInfo*>(info.data());
-
-    // This record exists only for the Windows desktop OpenGL investigation
-    // (2026-11-21): with the desktop renderer the ink of a stroke is missing on
-    // screen while ANGLE keeps it. Remove this code when the cause is fixed and
-    // recorded in docs/perf/DECISIONS.md.
-    if (KisLatencyProbe::diagFrameDumpEnabled()) {
-        const QRect dirtyImageRect = info->dirtyImageRect();
-        const KisOpenGLUpdateInfo *glInfo = dynamic_cast<KisOpenGLUpdateInfo*>(info.data());
-        KisLatencyProbe::mark("diag_update_info", dirtyImageRect.width(), dirtyImageRect.height(),
-                              glInfo ? 1000000 + glInfo->tileList.size() : 0);
-    }
-
     if (isOpenGLUpdateInfo) {
         d->openGLImageTextures->recalculateCache(info, d->lodSwitchInProgress);
     }

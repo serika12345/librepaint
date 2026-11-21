@@ -760,16 +760,6 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QTabletEvent, false>(event);
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
 
-        // Diagnostic only for the Windows ink that never reaches the canvas
-        // texture: records the pressure of the tablet events. Remove this
-        // when the cause is fixed and recorded in docs/perf/DECISIONS.md.
-        if (KisLatencyProbe::diagFrameDumpEnabled()) {
-            KisLatencyProbe::mark("diag_tablet_pressure",
-                                  tabletEvent->pressure() * 1000.0,
-                                  1,
-                                  int(tabletEvent->pointerType()));
-        }
-
         d->setTabletInProximity(true);
         d->tabletPressed = true;
 
@@ -854,15 +844,6 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->synthesizeCanvasEnter();
 
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
-        // Diagnostic only for the Windows ink that never reaches the canvas
-        // texture: records the pressure of the tablet events. Remove this
-        // when the cause is fixed and recorded in docs/perf/DECISIONS.md.
-        if (KisLatencyProbe::diagFrameDumpEnabled()) {
-            KisLatencyProbe::mark("diag_tablet_pressure",
-                                  tabletEvent->pressure() * 1000.0,
-                                  2,
-                                  int(tabletEvent->pointerType()));
-        }
         KisLatencyProbe::mark("qt_tablet_move", tabletEvent->position().x(), tabletEvent->position().y(), int(tabletEvent->buttons()));
         retval = compressMoveEventCommon(tabletEvent);
 
@@ -896,15 +877,6 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QTabletEvent, false>(event);
 
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
-        // Diagnostic only for the Windows ink that never reaches the canvas
-        // texture: records the pressure of the tablet events. Remove this
-        // when the cause is fixed and recorded in docs/perf/DECISIONS.md.
-        if (KisLatencyProbe::diagFrameDumpEnabled()) {
-            KisLatencyProbe::mark("diag_tablet_pressure",
-                                  tabletEvent->pressure() * 1000.0,
-                                  3,
-                                  int(tabletEvent->pointerType()));
-        }
         retval = d->matcher.buttonReleased(tabletEvent->button(), tabletEvent);
         retval = true;
         event->setAccepted(true);
