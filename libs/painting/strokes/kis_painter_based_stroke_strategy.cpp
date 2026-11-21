@@ -366,6 +366,8 @@ void KisPainterBasedStrokeStrategy::initStrokeCallback()
             KIS_ASSERT_RECOVER_RETURN(!hasIndirectPainting || indirect);
             KIS_ASSERT_RECOVER_RETURN(!hasIndirectPainting || !indirect->temporarySelection() || !m_strokeInfos.first()->painter->selection());
         }
+
+        paintersInitialized();
     });
 
     runnableJobsInterface()->addRunnableJobs(jobs);

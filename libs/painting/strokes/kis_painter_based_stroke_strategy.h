@@ -50,6 +50,12 @@ protected:
     KisPaintDeviceSP targetDevice() const;
     KisSelectionSP activeSelection() const;
 
+    /**
+     * Called from the initialization job after the painters, the target
+     * device, and the selection have been prepared.
+     */
+    virtual void paintersInitialized() {}
+
     KisMaskedFreehandStrokePainter* maskedPainter(int strokeInfoId);
     int numMaskedPainters() const;
 

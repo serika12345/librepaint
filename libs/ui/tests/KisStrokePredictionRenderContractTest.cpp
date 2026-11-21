@@ -359,6 +359,74 @@ private:
     KisImageSP m_image;
 };
 
+class RecordingPredictionStrokeStrategy : public FreehandStrokeStrategy
+{
+public:
+    RecordingPredictionStrokeStrategy(KisResourcesSnapshotSP resources,
+                                      KisFreehandStrokeInfo *strokeInfo,
+                                      const KUndo2MagicString &name,
+                                      Flags flags,
+                                      bool *rendererSeenDuringStroke)
+        : FreehandStrokeStrategy(resources, strokeInfo, name, flags)
+        , m_rendererSeenDuringStroke(rendererSeenDuringStroke)
+    {
+    }
+
+protected:
+    void paintersInitialized() override
+    {
+        FreehandStrokeStrategy::paintersInitialized();
+        *m_rendererSeenDuringStroke = hasPredictionRenderer();
+    }
+
+private:
+    bool *m_rendererSeenDuringStroke;
+};
+
+class PredictionMidStrokeTester : public utils::StrokeTester
+{
+public:
+    PredictionMidStrokeTester()
+        : StrokeTester(QStringLiteral("prediction_mid_stroke"),
+                       QSize(imageWidth, imageHeight),
+                       QStringLiteral("Basic_tip_default.kpp"))
+    {
+    }
+
+    bool predictionRendererSeenDuringStroke = false;
+
+protected:
+    KisStrokeStrategy *createStroke(KisResourcesSnapshotSP resources, KisImageWSP image) override
+    {
+        Q_UNUSED(image);
+
+        return new RecordingPredictionStrokeStrategy(
+            resources,
+            new KisFreehandStrokeInfo(),
+            kundo2_noi18n("Prediction Mid Stroke Stroke"),
+            FreehandStrokeStrategy::SupportsPrediction,
+            &predictionRendererSeenDuringStroke);
+    }
+
+    void addPaintingJobs(KisImageWSP image, KisResourcesSnapshotSP resources) override
+    {
+        Q_UNUSED(resources);
+
+        const KisPaintInformation start = fixedPaintInformation(QPointF(30.0, 100.0));
+        const KisPaintInformation end = fixedPaintInformation(QPointF(110.0, 100.0));
+        image->addJob(strokeId(), new FreehandStrokeStrategy::Data(0, start, end));
+
+        const QVector<QPointF> predicted{
+            QPointF(130.0, 100.0),
+            QPointF(150.0, 100.0),
+            QPointF(170.0, 100.0)};
+        const QVector<qreal> dtMs{2.0, 2.0, 2.0};
+        image->addJob(strokeId(), new FreehandStrokeStrategy::Data(0, predicted, dtMs));
+
+        image->addJob(strokeId(), new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
+    }
+};
+
 } // namespace
 
 class KisStrokePredictionRenderContractTest : public QObject
@@ -370,6 +438,7 @@ private Q_SLOTS:
     void predictionMatchesLaterRealPainting_data();
     void predictionMatchesLaterRealPainting();
     void predictionJobsDoNotChangeLayerOrUndoHistory();
+    void predictionRendererExistsDuringStroke();
     void predictionIsClearedAfterStrokeAndCancel();
     void predictionComposesWithLayerOpacityAndCompositeOp();
 };
@@ -507,6 +576,14 @@ void KisStrokePredictionRenderContractTest::predictionJobsDoNotChangeLayerOrUndo
 
     QVERIFY(withPredictions.resultLayer);
     QVERIFY(!withPredictions.resultLayer->hasPrediction());
+}
+
+void KisStrokePredictionRenderContractTest::predictionRendererExistsDuringStroke()
+{
+    PredictionMidStrokeTester tester;
+    tester.benchmark();
+
+    QVERIFY(tester.predictionRendererSeenDuringStroke);
 }
 
 void KisStrokePredictionRenderContractTest::predictionIsClearedAfterStrokeAndCancel()

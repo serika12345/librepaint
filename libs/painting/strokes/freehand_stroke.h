@@ -213,6 +213,12 @@ public:
     void finishStrokeCallback() override;
     void cancelStrokeCallback() override;
 
+    /**
+     * Reports whether paintersInitialized() created the prediction renderer;
+     * tests read it to observe the state during a stroke.
+     */
+    bool hasPredictionRenderer() const;
+
     void doStrokeCallback(KisStrokeJobData *data) override;
 
     KisStrokeStrategy* createLodClone(int levelOfDetail) override;
@@ -222,6 +228,8 @@ public:
 
 protected:
     FreehandStrokeStrategy(const FreehandStrokeStrategy &rhs, int levelOfDetail);
+
+    void paintersInitialized() override;
 
 private:
     void init(FreehandStrokeStrategy::Flags flags);
