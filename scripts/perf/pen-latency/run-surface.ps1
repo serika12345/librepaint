@@ -22,6 +22,12 @@
 # also records the timer resolution, the foreground window and the app process
 # settings at the start, after the first window and before the capture.
 # status.txt reports progress and ends with "done" or "failed: <reason>".
+#
+# Before a LibrePaint run the runner pins the brush colors in kritarc to a
+# black foreground and a white background. A leftover white foreground made
+# the synthetic strokes invisible on the white canvas, so the capture held only
+# the brush outline and the prediction line (2026-11-21). The whole file is
+# restored after the application exits, as for the scenario's kritarc keys.
 
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -286,6 +292,48 @@ function Set-TargetKritarc($dir, $map) {
     [System.IO.File]::WriteAllLines($path, [string[]]$out, (New-Object System.Text.UTF8Encoding($false)))
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $meta
     return [pscustomobject]@{ Path = $path; Backup = $backup; Existed = $existed }
+}
+
+function Set-TargetKritarcColors($dir) {
+    # Pin the brush colors in kritarc for a LibrePaint capture run. A leftover
+    # white foreground made the synthetic strokes invisible on the white
+    # canvas, so the capture kept only the brush outline and the prediction
+    # line (2026-11-21). Set-TargetKritarc already backed the file up; the whole
+    # file is restored after the application exits.
+    $path = Join-Path $env:LOCALAPPDATA 'kritarc'
+    $lines = @()
+    if (Test-Path $path) {
+        $lines = @([System.IO.File]::ReadAllLines($path))
+    }
+    $section = $lines.Count
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match '^\s*\[') { $section = $i; break }
+    }
+    $root = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt $section; $i++) { $root.Add($lines[$i]) }
+    $rest = New-Object System.Collections.Generic.List[string]
+    for ($i = $section; $i -lt $lines.Count; $i++) { $rest.Add($lines[$i]) }
+
+    # KConfig stores a multi-line value as one line whose line breaks are the
+    # two characters \n, so each pin is a single line in the root group.
+    $pins = @{
+        'LastForeGroundColor' = 'LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n'
+        'LastBackGroundColor' = 'LastBackGroundColor=<!DOCTYPE LastBackGroundColor>\n<LastBackGroundColor>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastBackGroundColor>\n'
+    }
+    foreach ($name in @('LastForeGroundColor', 'LastBackGroundColor')) {
+        $pattern = '^\s*' + [regex]::Escape($name) + '\s*='
+        $found = $false
+        for ($i = 0; $i -lt $root.Count; $i++) {
+            if ($root[$i] -match $pattern) {
+                $root[$i] = $pins[$name]
+                $found = $true
+            }
+        }
+        if (-not $found) { $root.Add($pins[$name]) }
+    }
+    $out = @($root) + @($rest)
+    [System.IO.File]::WriteAllLines($path, [string[]]$out, (New-Object System.Text.UTF8Encoding($false)))
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value 'kritarc_pinned.colors=fg_black,bg_white'
 }
 
 function Restore-TargetKritarc($dir, $state) {
@@ -1185,7 +1233,12 @@ try {
         Set-TargetEnvironment $request.env
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
-        $kritarcState = Set-TargetKritarc $dir $request.kritarc
+        $kritarcRequest = $request.kritarc
+        # The pinning below needs the backup that Set-TargetKritarc makes, so a
+        # run without scenario keys still passes an (empty) key map.
+        if (-not $kritarcRequest) { $kritarcRequest = [pscustomobject]@{} }
+        $kritarcState = Set-TargetKritarc $dir $kritarcRequest
+        if ($target -eq 'LibrePaint') { Set-TargetKritarcColors $dir }
         # Record the values that are actually in effect after the target's
         # overrides. The scenario's newOutlineStyle and fpsLimit are not
         # written by the Windows runner, so the run has to state what it read
