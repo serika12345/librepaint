@@ -17,6 +17,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import <UIKit/UIGestureRecognizerSubclass.h>
 
 #include <QDebug>
 #include <QPointF>
@@ -87,25 +88,25 @@
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
+    [super touchesBegan:touches withEvent:event];
     [self pushEntriesForTouches:touches withEvent:event];
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
+    [super touchesMoved:touches withEvent:event];
     [self pushEntriesForTouches:touches withEvent:event];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    Q_UNUSED(touches);
-    Q_UNUSED(event);
+    [super touchesEnded:touches withEvent:event];
     self.state = UIGestureRecognizerStateFailed;
 }
 
 - (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    Q_UNUSED(touches);
-    Q_UNUSED(event);
+    [super touchesCancelled:touches withEvent:event];
     self.state = UIGestureRecognizerStateFailed;
 }
 
