@@ -20,6 +20,9 @@
 // frame_ns is DXGI_OUTDUPL_FRAME_INFO::LastPresentTime. Run inside the
 // interactive desktop session (run-surface.ps1).
 //
+// Set LIBREPAINT_DIAG_CAPTURE_MOUSE=1 to replay the plan with SendInput
+// mouse injection instead of the synthetic pen, the same as --mouse.
+//
 // Set LIBREPAINT_DIAG_FRAME_DUMP=1 to keep screen frames for the Windows ink
 // diagnosis: with --plan, the capture thread saves the measured region every
 // 100 ms as screen-000.bmp, screen-001.bmp and so on, up to 60 files, and
@@ -389,6 +392,8 @@ int main(int argc, char **argv)
         else if (a == "--monitor") monitor = true;
         else if (a == "--mouse") mouse = true;
     }
+    const char *mouseEnv = std::getenv("LIBREPAINT_DIAG_CAPTURE_MOUSE");
+    if (mouseEnv && std::string(mouseEnv) == "1") mouse = true;
     if (out.empty() || (!snapshot && snapshotFrame.empty() && planPath.empty() && !monitor)) {
         fprintf(stderr, "usage: windows_capture --out DIR (--snapshot | --snapshot-frame NAME | "
                         "--monitor [--seconds N --window HWND --canvas x,y,w,h] | --plan plan.csv [--mouse])\n");
@@ -570,7 +575,8 @@ int main(int argc, char **argv)
     }
     std::ofstream(out + "\\capture.csv", std::ios::binary) << rows;
     std::ofstream(out + "\\inject.csv", std::ios::binary) << injected;
-    std::ofstream(out + "\\capture-meta.json") << meta << ", \"inject_failures\": " << failures << "}\n";
+    std::ofstream(out + "\\capture-meta.json") << meta << ", \"inject_failures\": " << failures
+                                               << ", \"mouse\": " << (mouse ? "true" : "false") << "}\n";
     printf("samples=%zu failures=%d\n", samples.size(), failures);
     return failures ? 1 : 0;
 }
