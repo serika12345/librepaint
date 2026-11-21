@@ -180,19 +180,21 @@ class DeviceShiftTest(unittest.TestCase):
         self.assertFalse(run.device_performance_low(
             {"surface_state": {"during_min_processor_performance_pct": "0"}}))
 
-    def test_a_run_under_a_performance_limit_is_reported(self):
-        def capped(limit):
-            with tempfile.TemporaryDirectory() as root:
-                with open(os.path.join(root, "meta.txt"), "w") as handle:
-                    handle.write("surface_state_mode=light\n")
-                    if limit is not None:
-                        handle.write("surface_state_before_performance_limit_pct=%s\n" % limit)
-                return run.run_performance_capped(root)
+    def test_three_low_runs_in_a_row_are_counted(self):
+        low = {"surface_state": {"during_min_processor_performance_pct": "42"}}
+        streak = 0
+        for _ in range(3):
+            streak = run.device_low_streak(streak, low)
+        self.assertEqual(streak, 3)
 
-        self.assertEqual(capped("72"), 72)
-        self.assertIsNone(capped("100"))
-        self.assertIsNone(capped("unavailable"))
-        self.assertIsNone(capped(None))
+    def test_a_run_that_is_not_low_resets_the_streak(self):
+        low = {"surface_state": {"during_min_processor_performance_pct": "42"}}
+        high = {"surface_state": {"during_min_processor_performance_pct": "80"}}
+        self.assertEqual(run.device_low_streak(run.device_low_streak(0, low), high), 0)
+
+    def test_a_failed_zero_reading_does_not_count_as_low(self):
+        zero = {"surface_state": {"during_min_processor_performance_pct": "0"}}
+        self.assertEqual(run.device_low_streak(2, zero), 0)
 
     def write_device_state(self, path, values):
         with open(os.path.join(path, "surface-state.csv"), "w", newline="") as handle:
@@ -742,7 +744,8 @@ class EarlyStopTest(unittest.TestCase):
         self.assertEqual(failures, [])
 
     def test_added_runs_stop_at_twice_the_scenario_count(self):
-        calls, failures, _, _ = self.measure_device_runs(["42", "42", "42", "42"])
+        with mock.patch.object(run, "DEVICE_LOW_STOP_RUNS", 100):
+            calls, failures, _, _ = self.measure_device_runs(["42", "42", "42", "42"])
         self.assertEqual(len(calls), 4, calls)
         self.assertEqual(failures, [])
 

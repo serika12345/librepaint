@@ -51,8 +51,9 @@ the early stop of a target that failed twice in a row for the same reason, the
 settle of every window and the exit code at the end (format:
 scripts/perf/events_log.py). A target whose window counted fewer runs than the
 scenario's "runs" is reported on standard error as an anomaly, and the exit
-code is 4. A run that started while "% Performance Limit" capped the processor
-below 100 % is reported on standard error as an anomaly, and the exit code is 5.
+code is 4. A run whose recorded % Processor Performance stayed below 70 % is
+counted; when three such runs arrive in a row across targets, the group stops
+with an anomaly on standard error and the exit code 5.
 
 The first "warmup_runs" successful runs of a target are measured but left out
 of the aggregation. The aggregation uses the last "runs" usable runs (the
@@ -239,25 +240,6 @@ def run_ink_missing(path):
     return capture_analyze.analyze_run(path).get("ink_missing") or []
 
 
-def run_performance_capped(path):
-    """The performance limit a run started under when the platform capped it.
-
-    On 2026-11-21 the measuring Windows device pinned "% Performance Limit" at
-    72 % from about 11:30 while the temperature stayed near 35 C. Under that
-    cap "% Processor Performance" fell to about 40 %, every round was left out
-    of the aggregation, and the measurement kept running. A limit below 100
-    means the platform caps the processor, so the caller stops instead of
-    collecting rounds that cannot be compared. A run without the record (Linux,
-    macOS, an older runner) or with an unreadable value does not cap.
-    """
-    if not path:
-        return None
-    value = number_or_none(surface_state(path).get("before_performance_limit_pct"))
-    if value is None or value >= 100:
-        return None
-    return int(value) if value == int(value) else value
-
-
 def settle_settings(scenario):
     """Return the scenario's (runs, warmup_runs, max_runs, spread_limit).
 
@@ -325,6 +307,8 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
     settle event reports the window. A Windows target rests for the scenario's
     "rest_seconds" after every run except the last one. Every start, result,
     early stop, settle and rest is written to the event log when one is given.
+    A run whose recorded % Processor Performance stayed below 70 % is counted
+    across targets, and DEVICE_LOW_STOP_RUNS such runs in a row stop the group.
 
     Run directories that this invocation did not measure (left by an
     interrupted earlier one) are set aside before the function returns.
@@ -343,6 +327,7 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
     started_runs = {key: 0 for key in kinds}
     successes = {key: 0 for key in kinds}
     records = {key: [] for key in kinds}
+    low_streak = 0
 
     def counted(key):
         """The target's usable records, as summarize counts them."""
@@ -407,15 +392,20 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                             print("ANOMALY ink missing: %s %s" % (target["name"], band),
                                   file=sys.stderr)
                         raise SystemExit(3)
-                    limit = run_performance_capped(path)
-                    if limit is not None:
-                        print("ANOMALY performance limit: %s %s%% before the run"
-                              % (target["name"], limit), file=sys.stderr)
-                        raise SystemExit(5)
-                    if successes[key] > warmup_runs and path:
+                    if path:
                         record = run_record(path, host, scenario)
                         record["start"] = number
-                        records[key].append(record)
+                        if successes[key] > warmup_runs:
+                            records[key].append(record)
+                        low_streak = device_low_streak(low_streak, record)
+                        if low_streak >= DEVICE_LOW_STOP_RUNS:
+                            state = record.get("surface_state") or {}
+                            print("ANOMALY processor performance low in %d consecutive runs: "
+                                  "%s %s%%" % (
+                                      low_streak, target["name"],
+                                      state.get("during_min_processor_performance_pct")),
+                                  file=sys.stderr)
+                            raise SystemExit(5)
                     if events:
                         events_log.write(events, "target-done", label, target["name"], number,
                                          run_detail(run_root, host, target, started))
@@ -661,6 +651,22 @@ def device_performance_low(run):
     state = run.get("surface_state") or {}
     value = number_or_none(state.get("during_min_processor_performance_pct"))
     return value is not None and 0 < value < DEVICE_MIN_PROCESSOR_PERFORMANCE_PCT
+
+
+# Three low runs in a row mean the device slowed down, not the version under
+# test. After the measuring Windows device restarted on 2026-11-21, "% Processor
+# Performance" reached 236 % while "% Performance Limit" showed 72 %, so that
+# value does not mark a slowdown and the earlier rule stopped every time. A
+# single "% Processor Performance" reading before a run also varied from 73 %
+# to 219 % in normal hours, so it cannot serve as the mark either. After the
+# slowdown from 11:30 on, every target's run in a row was left out of the
+# aggregation by device_performance_low. The caller stops on the streak.
+DEVICE_LOW_STOP_RUNS = 3
+
+
+def device_low_streak(previous, run):
+    """Count the runs in a row whose recorded processor performance was low."""
+    return previous + 1 if device_performance_low(run) else 0
 
 
 def usable_runs(data):
