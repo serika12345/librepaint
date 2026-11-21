@@ -326,26 +326,6 @@ set_target_properties(kritagloballatencyl1switches PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Colour switch that tells the prediction line apart in captures
-# (KisPredictionTestSwitches.h owns the removal condition).
-add_library(kritaglobalpredictiontestswitches OBJECT
-    KisPredictionTestSwitches.cpp
-)
-target_compile_definitions(kritaglobalpredictiontestswitches PRIVATE kritaglobal_EXPORTS)
-target_include_directories(kritaglobalpredictiontestswitches
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-)
-target_link_libraries(kritaglobalpredictiontestswitches
-    PUBLIC
-        Qt${QT_MAJOR_VERSION}::Core
-)
-set_target_properties(kritaglobalpredictiontestswitches PROPERTIES
-    AUTOMOC OFF
-    POSITION_INDEPENDENT_CODE ON
-)
-
 add_library(kritaglobalsignalcompressorobjects OBJECT
     kis_signal_compressor.cpp
     kis_signal_compressor_with_param.cpp
@@ -901,7 +881,6 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritagloballatencytrackerobjects>
     $<TARGET_OBJECTS:kritagloballatencyprobeobjects>
     $<TARGET_OBJECTS:kritagloballatencyl1switches>
-    $<TARGET_OBJECTS:kritaglobalpredictiontestswitches>
     $<TARGET_OBJECTS:kritaglobalsignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>

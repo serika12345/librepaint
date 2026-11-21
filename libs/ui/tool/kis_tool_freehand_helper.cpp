@@ -95,6 +95,7 @@ struct KisToolFreehandHelper::Private
     QVector<KisFreehandStrokeInfo*> strokeInfos;
     KisResourcesSnapshotSP resources;
     KisStrokeId strokeId;
+    bool strokePredictionEnabled = false;
 
     KisPaintInformation previousPaintInformation;
     // Used only by basic, weighted and pixel smoothing.
@@ -316,6 +317,20 @@ bool KisToolFreehandHelper::isRunning() const
     return bool(m_d->strokeId);
 }
 
+void KisToolFreehandHelper::setStrokePredictionEnabled(bool value)
+{
+    m_d->strokePredictionEnabled = value;
+}
+
+void KisToolFreehandHelper::paintPrediction(const QVector<QPointF> &points,
+                                            const QVector<qreal> &dtMs)
+{
+    if (!m_d->strokePredictionEnabled || !isRunning()) return;
+
+    m_d->strokesFacade->addJob(m_d->strokeId,
+                               new FreehandStrokeStrategy::Data(0, points, dtMs));
+}
+
 void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           const KisPaintInformation &pi,
                                           KoCanvasResourceProvider *resourceManager,
@@ -355,12 +370,18 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     createPainters(m_d->strokeInfos,
                    startDist);
 
+    FreehandStrokeStrategy::Flags strokeFlags =
+        FreehandStrokeStrategy::SupportsContinuedInterstrokeData |
+        FreehandStrokeStrategy::SupportsTimedMergeId;
+    if (m_d->strokePredictionEnabled) {
+        strokeFlags |= FreehandStrokeStrategy::SupportsPrediction;
+    }
+
     KisStrokeStrategy *stroke =
         new FreehandStrokeStrategy(m_d->resources,
                                    m_d->strokeInfos,
                                    m_d->transactionText,
-                                   FreehandStrokeStrategy::SupportsContinuedInterstrokeData |
-                                   FreehandStrokeStrategy::SupportsTimedMergeId);
+                                   strokeFlags);
 
     m_d->strokeId = m_d->strokesFacade->startStroke(stroke);
 

@@ -50,6 +50,11 @@ public:
 
     bool isRunning() const;
 
+    /// Set before initPaint(); the stroke strategy gets SupportsPrediction.
+    void setStrokePredictionEnabled(bool value);
+    /// Queue the latest prediction for the running stroke. Empty vectors clear it.
+    void paintPrediction(const QVector<QPointF> &points, const QVector<qreal> &dtMs);
+
     void cursorMoved(const QPointF &cursorPos);
 
     /**

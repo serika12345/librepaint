@@ -102,6 +102,7 @@ struct FreehandStrokeStrategy::Private
     QVector<qreal> predictionDtMs;
     bool predictionChanged = false;
 
+    std::mutex predictionRenderMutex;
     QRect lastPredictionRect;
 };
 
@@ -404,6 +405,79 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
         dirtyRects.append(maskedPainter->takeDirtyRegion());
     }
 
+    auto queuePredictionRenderJob =
+        [this] (QVector<KisRunnableStrokeJobData*> &jobs) {
+
+        if (!m_d->predictionRenderer || !m_d->predictionChanged) return;
+
+        const QVector<QPointF> points = m_d->predictionPoints;
+        const QVector<qreal> dtMs = m_d->predictionDtMs;
+        const KisPaintInformation lastPaintedInfo = m_d->lastPaintedInfo;
+        const bool hasLastPaintedInfo = m_d->hasLastPaintedInfo;
+
+        KisDistanceInformation distance;
+        if (!points.isEmpty() && hasLastPaintedInfo && mainStrokeInfo(0)) {
+            distance = *mainStrokeInfo(0)->dragDistance;
+        }
+
+        const bool indirectPrediction = m_d->indirectPrediction;
+        const KisStrokeRandomSource randomSource = m_d->randomSource;
+
+        m_d->predictionChanged = false;
+
+        KritaUtils::addJobConcurrent(jobs,
+            [this, points, dtMs, lastPaintedInfo, hasLastPaintedInfo,
+             distance, indirectPrediction, randomSource] () {
+
+                std::unique_lock<std::mutex> renderLock(m_d->predictionRenderMutex,
+                                                        std::try_to_lock);
+                if (!renderLock.owns_lock()) {
+                    m_d->predictionChanged = true;
+                    KisLatencyProbe::mark("prediction_render_skip", 0, 0, 1);
+                    return;
+                }
+
+                KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
+                if (!layer || !m_d->predictionRenderer) return;
+
+                QRect currentRect;
+
+                if (!points.isEmpty() && hasLastPaintedInfo) {
+                    KisStrokePredictionRenderer::Result result =
+                        m_d->predictionRenderer->render(lastPaintedInfo,
+                                                        distance,
+                                                        randomSource,
+                                                        points,
+                                                        dtMs);
+                    if (!result.rect.isEmpty()) {
+                        layer->setPrediction(result.device,
+                                             result.rect,
+                                             indirectPrediction ?
+                                                 KisIndirectPaintingSupport::PredictionMode::ReplaceTemporaryTarget :
+                                                 KisIndirectPaintingSupport::PredictionMode::ReplaceOriginal);
+                        currentRect = result.rect;
+                    } else {
+                        layer->clearPrediction();
+                    }
+                } else {
+                    layer->clearPrediction();
+                }
+
+                QVector<QRect> predictionRects;
+                if (!m_d->lastPredictionRect.isEmpty()) {
+                    predictionRects.append(m_d->lastPredictionRect);
+                }
+                if (!currentRect.isEmpty()) {
+                    predictionRects.append(currentRect);
+                }
+                m_d->lastPredictionRect = currentRect;
+
+                if (!predictionRects.isEmpty()) {
+                    targetNode()->setDirty(predictionRects);
+                }
+            });
+    };
+
     if (needsMaskingUpdates()) {
 
         // optimize the rects so that they would never intersect with each other!
@@ -436,47 +510,19 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
             }
         );
 
+        queuePredictionRenderJob(jobs);
+
         runnableJobsInterface()->addRunnableJobs(jobs);
 
     } else {
-        KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
-
-        if (layer && m_d->predictionRenderer && m_d->predictionChanged) {
-            QRect currentRect;
-
-            if (!m_d->predictionPoints.isEmpty() && m_d->hasLastPaintedInfo) {
-                KisStrokePredictionRenderer::Result result =
-                    m_d->predictionRenderer->render(m_d->lastPaintedInfo,
-                                                    *mainStrokeInfo(0)->dragDistance,
-                                                    m_d->randomSource,
-                                                    m_d->predictionPoints,
-                                                    m_d->predictionDtMs);
-                if (!result.rect.isEmpty()) {
-                    layer->setPrediction(result.device,
-                                         result.rect,
-                                         m_d->indirectPrediction ?
-                                             KisIndirectPaintingSupport::PredictionMode::ReplaceTemporaryTarget :
-                                             KisIndirectPaintingSupport::PredictionMode::ReplaceOriginal);
-                    currentRect = result.rect;
-                } else {
-                    layer->clearPrediction();
-                }
-            } else {
-                layer->clearPrediction();
-            }
-
-            if (!m_d->lastPredictionRect.isEmpty()) {
-                dirtyRects.append(m_d->lastPredictionRect);
-            }
-            if (!currentRect.isEmpty()) {
-                dirtyRects.append(currentRect);
-            }
-            m_d->lastPredictionRect = currentRect;
-
-            m_d->predictionChanged = false;
-        }
-
         targetNode()->setDirty(dirtyRects);
+
+        QVector<KisRunnableStrokeJobData*> jobs;
+        queuePredictionRenderJob(jobs);
+
+        if (!jobs.isEmpty()) {
+            runnableJobsInterface()->addRunnableJobs(jobs);
+        }
     }
 
     //KisUpdateTimeMonitor::instance()->reportJobFinished(data, dirtyRects);
@@ -496,6 +542,8 @@ KisStrokeStrategy* FreehandStrokeStrategy::createLodClone(int levelOfDetail)
 
 void FreehandStrokeStrategy::clearLayerPrediction()
 {
+    std::unique_lock<std::mutex> renderLock(m_d->predictionRenderMutex);
+
     KisPaintLayer *layer = dynamic_cast<KisPaintLayer*>(targetNode().data());
     if (!layer) return;
 

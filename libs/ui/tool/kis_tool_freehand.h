@@ -29,7 +29,6 @@ class KUndo2MagicString;
 
 class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;
-class KisPredictionDecoration;
 class QTimer;
 
 
@@ -117,6 +116,7 @@ private:
      * Display-only prediction line (Issue #129). The prediction never reaches
      * the paint device, the history or the saved file.
      */
+    bool evaluatePrediction();
     void startPrediction(KoPointerEvent *event);
     void updatePrediction(KoPointerEvent *event);
     void clearPrediction(int reason);
@@ -154,6 +154,8 @@ private:
     qreal m_predictionMaxMovePx {0.0};
     qreal m_predictionExpiryMs {20.0};
     bool m_predictionActive {false};
+    bool m_predictionEnabledForStroke {false};
+    bool m_predictionShown {false};
     QTimer *m_predictionExpiry {nullptr};
 
     std::optional<KoPointerEventWrapper> m_beginAlternateActionEvent;

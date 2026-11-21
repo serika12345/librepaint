@@ -41,10 +41,9 @@
 // Krita/ui
 #include "KisPerStrokeRandomSource.h"
 #include "canvas/kis_abstract_perspective_grid.h"
+#include <QLineF>
 #include <QTimer>
 
-#include "canvas/KisPredictionDecoration.h"
-#include "canvas/kis_display_color_converter.h"
 #include "application/kis_config.h"
 #include <KisStrokePredictionPolicy.h>
 #include <KoCompositeOpIds.h>
@@ -271,6 +270,7 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
         canvas2->viewManager()->disableControls();
     }
 
+    evaluatePrediction();
     initStroke(event);
     startPrediction(event);
 }
@@ -310,9 +310,9 @@ void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
     setMode(KisTool::HOVER_MODE);
 }
 
-void KisToolFreehand::startPrediction(KoPointerEvent *event)
+bool KisToolFreehand::evaluatePrediction()
 {
-    m_predictionActive = false;
+    m_predictionEnabledForStroke = false;
 
     KisConfig cfg(true);
 
@@ -332,8 +332,23 @@ void KisToolFreehand::startPrediction(KoPointerEvent *event)
     KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
     if (!canvas2 || reason != KisStrokePredictionPolicyReason::Enabled) {
         KisLatencyProbe::mark("prediction_policy", 0, 0, int(reason));
-        return;
+        m_helper->setStrokePredictionEnabled(false);
+        return false;
     }
+
+    m_predictionEnabledForStroke = true;
+    m_helper->setStrokePredictionEnabled(true);
+    return true;
+}
+
+void KisToolFreehand::startPrediction(KoPointerEvent *event)
+{
+    if (!m_predictionEnabledForStroke) return;
+
+    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
+    if (!canvas2) return;
+
+    KisConfig cfg(true);
 
     KisStrokePredictionSettings settings;
     settings.horizonMs = cfg.strokePredictionHorizonMs();
@@ -356,23 +371,12 @@ void KisToolFreehand::startPrediction(KoPointerEvent *event)
     m_predictor->reset();
     KisLatencyProbe::mark("prediction_source", 0, 0, int(m_predictor->source()));
 
-    if (!canvas2->decoration(KisPredictionDecoration::idTag)) {
-        canvas2->addDecoration(new KisPredictionDecoration(canvas2->imageView()));
-    }
-
     m_predictionActive = true;
     KisLatencyProbe::mark("prediction_policy", 0, 0, 0);
 }
 
 void KisToolFreehand::updatePrediction(KoPointerEvent *event)
 {
-    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
-    if (!canvas2) return;
-
-    KisPredictionDecoration *decoration =
-        dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
-    if (!decoration) return;
-
     if (!m_predictor) return;
 
     KisStrokePredictionSample sample;
@@ -392,35 +396,40 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
     KisStrokePredictionResult result = m_predictor->predict(m_predictionSettings.horizonMs);
     KisStrokePredictionCap::apply(result, m_predictionMaxMovePx);
 
-    QRectF rect;
-
     if (result.valid) {
-        const qreal diameter = currentPaintOpPreset()->settings()->paintOpSize();
+        QVector<QPointF> points;
+        QVector<qreal> dtMs;
 
-        QColor color;
-        if (canvas2->displayColorConverter()) {
-            color = canvas2->displayColorConverter()->toQColor(currentFgColor());
-        } else {
-            color = currentFgColor().toQColor();
+        const qreal horizonMs = m_predictionSettings.horizonMs;
+
+        if (result.latestIndex >= 0 && result.latestIndex < result.polyline.size()) {
+            QPointF previous = result.polyline.at(result.latestIndex);
+            qreal accumulatedPx = 0.0;
+
+            for (int i = result.latestIndex + 1; i < result.polyline.size(); ++i) {
+                const QPointF point = result.polyline.at(i);
+                accumulatedPx += QLineF(previous, point).length();
+                previous = point;
+
+                points.append(point);
+                dtMs.append(result.moveLength > 0.0
+                                ? accumulatedPx / result.moveLength * horizonMs
+                                : horizonMs);
+            }
         }
 
-        rect = decoration->setPrediction(result.polyline, result.latestIndex, diameter, color);
+        m_helper->paintPrediction(points, dtMs);
+        m_predictionShown = true;
 
-        const QPointF tip = result.polyline.constLast();
+        const QPointF tip = result.polyline.isEmpty() ? QPointF() : result.polyline.constLast();
         const int confidence = result.confidence >= 0.0
             ? qRound(result.confidence * 1000)
             : -1;
         KisLatencyProbe::mark("prediction_point", tip.x(), tip.y(), confidence);
-    } else {
-        const bool hadPrediction = decoration->hasPrediction();
-        rect = decoration->clearPrediction();
-        if (hadPrediction) {
-            KisLatencyProbe::mark("prediction_clear", 0, 0, 2);
-        }
-    }
-
-    if (!rect.isEmpty()) {
-        canvas2->updateCanvasDecorations(rect);
+    } else if (m_predictionShown) {
+        m_helper->paintPrediction(QVector<QPointF>(), QVector<qreal>());
+        KisLatencyProbe::mark("prediction_clear", 0, 0, 2);
+        m_predictionShown = false;
     }
 
     if (!m_predictionExpiry) {
@@ -436,19 +445,11 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
 void KisToolFreehand::expirePrediction()
 {
     if (!m_predictionActive) return;
+    if (!m_predictionShown) return;
 
-    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
-    if (!canvas2) return;
-
-    KisPredictionDecoration *decoration =
-        dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
-    if (!decoration || !decoration->hasPrediction()) return;
-
-    const QRectF rect = decoration->clearPrediction();
+    m_helper->paintPrediction(QVector<QPointF>(), QVector<qreal>());
     KisLatencyProbe::mark("prediction_clear", 0, 0, 4);
-    if (!rect.isEmpty()) {
-        canvas2->updateCanvasDecorations(rect);
-    }
+    m_predictionShown = false;
 }
 
 void KisToolFreehand::clearPrediction(int reason)
@@ -460,20 +461,9 @@ void KisToolFreehand::clearPrediction(int reason)
     }
 
     m_predictionActive = false;
+    m_predictionShown = false;
     if (m_predictor) {
         m_predictor->reset();
-    }
-
-    KisCanvas2 *canvas2 = dynamic_cast<KisCanvas2 *>(canvas());
-    if (canvas2) {
-        KisPredictionDecoration *decoration =
-            dynamic_cast<KisPredictionDecoration *>(canvas2->decoration(KisPredictionDecoration::idTag).data());
-        if (decoration) {
-            const QRectF rect = decoration->clearPrediction();
-            if (!rect.isEmpty()) {
-                canvas2->updateCanvasDecorations(rect);
-            }
-        }
     }
 
     // One clear row per stroke: the prediction was either showing or it was

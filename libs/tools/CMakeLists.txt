@@ -49,7 +49,6 @@ set_target_properties(kritatoolsstrokepredictionobjects PROPERTIES
 )
 
 add_library(kritatoolspredictiondrawobjects OBJECT
-    KisPredictionLinePainter.cpp
     KisStrokePredictionPolicy.cpp
 )
 target_compile_definitions(kritatoolspredictiondrawobjects PRIVATE kritatools_EXPORTS)

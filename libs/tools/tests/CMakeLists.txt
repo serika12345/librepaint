@@ -147,14 +147,6 @@ target_compile_definitions(KisStrokePredictionReplay PRIVATE kritatools_EXPORTS)
 ecm_mark_nongui_executable(KisStrokePredictionReplay)
 
 kis_add_test(
-    KisPredictionLinePainterContractTest.cpp
-    LINK_LIBRARIES
-        kritatoolspredictiondrawobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_compile_definitions(KisPredictionLinePainterContractTest PRIVATE kritatools_EXPORTS)
-
-kis_add_test(
     KisStrokePredictionPolicyContractTest.cpp
     LINK_LIBRARIES
         kritatoolspredictiondrawobjects

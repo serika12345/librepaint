@@ -144,14 +144,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 ### テスト用の見分け
 
-予測の線と確定の線は同じ色と太さで描くため、目視でも画面の取り込みでも見分けられない。そこで、環境変数 `LIBREPAINT_PREDICTION_TEST_COLOR`（`RRGGBB` の 16 進 6 桁）を最初から実装に入れる。設定されているときだけ、予測の線を次のように描く。
-
-- 最新の実点から予測の点までの区間（予測だけの区間）だけを、この色で、確定の線と同じ太さで描く。
-- 始点から最新の実点までの区間（確定の線と重なる区間）は描かない。確定の線が自分の画素をそのまま保つため、確定の線がどこまで届いているかと、予測の線の始まりとの間の隙間が見える。
-
-重なる区間を細い芯で描く案は、2026-11-16 の測定で退けた。芯が確定の線の黒い画素を隠し、暗い画素の判定が確定の線の端を手前に測った（予測なしの 9.6px に対し 23px）ためである。
-
-環境変数は、プロセスごとに 1 回だけ読む。値が 16 進 6 桁でないときは無視し、通常の描き方にする。kritarc には書かない（テストの設定が利用者の設定に残らないようにするため）。この色の予測の線は、取り込みの暗い画素の判定（3 色とも 128 未満）に入らない色（例：`FF0000`）を使えば、`dense_xmax` が確定の線の端だけを写し、確定の線の遅れを予測の影響なしに測れる（重なる区間を描かないため）。予測だけの区間の端は、色で検出する取り込みの変更（`pred_xmax`）を足したときに測る。この機構は、既定の見た目と主指標の計測には使わない。削除の条件は、予測の線の既定を有効にして取り込みの検査が色の検出を必要としなくなったときで、`KisPredictionTestSwitches.h` に書く。
+予測の区間は、確定の線と同じブラシの処理と同じ層の合成で描く。目視でも画面の取り込みでも、確定の線と見分けられない。描き方は[`l2p-prediction-rendering.md`](l2p-prediction-rendering.md)が定める。2026-11-21まであった試験用の色の環境変数`LIBREPAINT_PREDICTION_TEST_COLOR`は、画面の最前面に描く方式とともに取り除いた。
 
 ### 筆圧と傾き
 
@@ -159,15 +152,7 @@ Windows Ink と Chrome は、予測の長さを「表示までの残りの時間
 
 ### 描画の層と更新
 
-新しい装飾を `libs/ui/canvas` に置く。名前は `KisPredictionDecoration` とする。予測の状態は `libs/tools` の `KisStrokePrediction` が持ち、装飾はその写しを描く。どちらも GUI スレッドで動く。
-
-1. `KisToolPaintInteraction` のポインターイベントで、`KisStrokePrediction::update` を呼ぶ。
-2. `KisStrokePrediction::predict` が、最後の実点と予測の点を文書座標で返す。
-3. `KisToolPaintInteraction` が、古い予測の矩形と新しい予測の矩形を合わせ、ブラシの半径の分だけ広げて `KisCanvas2::updateCanvasDecorations` に渡す。
-4. `KisCanvasWidgetBase::drawDecorations` が `KisPredictionDecoration::drawDecoration` を呼び、`KisCoordinatesConverter::documentToWidgetTransform` でウィジェット座標に変換して描く。
-5. 次の実点、押下の終了、離脱で `KisStrokePrediction::clear` を呼び、古い矩形を更新する。
-
-OpenGL キャンバスでは、装飾の `QPainter` は `KisOpenGLCanvas2::paintGL` の中の `drawDecorations` で動く。予測の線が 1 本だけなら、この経路の費用は小さい。計測で `paintgl_begin` から `paintgl_end` の時間が増えた場合だけ、`KisOpenGLCanvasRenderer::paintToolOutline` と同じ `solidColorShader` と VBO を使う GPU の経路へ移す。その場合も画素の正本は触らない。
+予測の状態はGUIスレッドのツールが持ち、予測の点をストロークのジョブとして`FreehandStrokeStrategy`へ送る。予測の区間は、確定の線の点を層へ書き込んだ後に、並行して実行するジョブで予測専用の画素の置き場に描き、`KisPaintLayer`の投影で確定の線の代わりに合成する。詳しくは[`l2p-prediction-rendering.md`](l2p-prediction-rendering.md)が定める。
 
 ### 無効化と削除の条件
 
