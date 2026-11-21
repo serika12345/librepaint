@@ -224,6 +224,18 @@ def run_detail(run_root, host, target, started):
         state, median("hover.input_to_capture"), median("ink.input_to_capture"))
 
 
+def run_ink_missing(path):
+    """Bands of a run whose captured stroke is far narrower than the injected one.
+
+    A run without capture.csv has no analysis and no missing ink. The same
+    analysis sets the run's "excluded" note, so --analyze-only keeps the run out
+    of the aggregation instead of stopping the measurement.
+    """
+    if not path or not os.path.exists(os.path.join(path, "capture.csv")):
+        return []
+    return capture_analyze.analyze_run(path).get("ink_missing") or []
+
+
 def settle_settings(scenario):
     """Return the scenario's (runs, warmup_runs, max_runs, spread_limit).
 
@@ -367,6 +379,12 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                     path = latest_run_dir(run_root, host, target, started)
                     if path:
                         measured[host["name"]].add(os.path.basename(path))
+                    missing = run_ink_missing(path)
+                    if missing:
+                        for band in missing:
+                            print("ANOMALY ink missing: %s %s" % (target["name"], band),
+                                  file=sys.stderr)
+                        raise SystemExit(3)
                     if successes[key] > warmup_runs and path:
                         record = run_record(path, host, scenario)
                         record["start"] = number

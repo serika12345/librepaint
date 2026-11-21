@@ -72,7 +72,9 @@ def simulate(directory, delay_ns, arrival_delay_ns=1_000_000, options=None):
                 xmin, xmax = int(round(center - 15)), int(round(center + 15))
             if ink[name] is not None:
                 dense = int(round(ink[name] + INK_OFFSET))
-                xmin = dense - 200 if xmin == "" else xmin
+                # xmin/xmax span all dark columns of the band, as the capture
+                # tools write them; dense_xmin/dense_xmax hold the dense window.
+                xmin = 0 if xmin == "" else xmin
                 xmax = dense if xmax == "" else max(xmax, dense)
             rows.append((frame, frame + arrival_delay_ns, name, xmin, xmax,
                          "" if dense == "" else dense - 200, dense, "", ""))
@@ -636,6 +638,41 @@ class PresentationCheckTest(unittest.TestCase):
         text = output.getvalue()
         self.assertIn("presented=", text)
         self.assertRegex(text, r"inject_to_presented\s+p05=.*p50=\s*12\.0")
+
+
+def narrow_stroke_widths(directory, width):
+    """Rewrite the captured stroke bands so each spans only width pixels."""
+    path = os.path.join(directory, "capture.csv")
+    with open(path) as handle:
+        reader = csv.DictReader(handle)
+        fields = reader.fieldnames
+        rows = list(reader)
+    for row in rows:
+        if row["xmin"] != "" and row["band"].startswith("stroke"):
+            row["xmin"] = "0"
+            row["xmax"] = str(width - 1)
+            row["dense_xmax"] = "0"
+    write_csv(path, fields, [[row[field] for field in fields] for row in rows])
+
+
+class InkCoverageTest(unittest.TestCase):
+    def test_a_captured_stroke_keeps_the_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            result = capture_analyze.analyze_run(directory)
+        self.assertTrue(result["ink_coverage"])
+        self.assertEqual(result["ink_missing"], [])
+        self.assertIsNone(result["excluded"])
+
+    def test_an_outline_only_capture_is_marked_and_excluded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            narrow_stroke_widths(directory, 30)
+            result = capture_analyze.analyze_run(directory)
+        self.assertIn("stroke0", result["ink_missing"])
+        self.assertLess(result["ink_coverage"]["stroke0"]["ratio"], 0.5)
+        self.assertEqual(result["excluded"],
+                         "ink missing in " + ", ".join(result["ink_missing"]))
 
 
 if __name__ == "__main__":

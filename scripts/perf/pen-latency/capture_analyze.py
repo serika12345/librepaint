@@ -56,6 +56,11 @@ TABLET_INTERVAL_LOW_MS = 2.8
 TABLET_INTERVAL_HIGH_MS = 2.4
 STATE_UNKNOWN = "unknown"
 
+# A captured stroke narrower than this fraction of the injected stroke is
+# missing its ink. A white foreground on the white canvas left only the brush
+# outline and the prediction line in the capture (2026-11-21).
+INK_MISSING_RATIO = 0.5
+
 
 def read_inject(path):
     with open(path) as handle:
@@ -481,6 +486,41 @@ def classify_hover_state(frame_to_arrival_p50_ms, tablet_interval_p05_ms):
     return labels.pop(), "; ".join(reason for _, reason in votes)
 
 
+def ink_coverage(directory):
+    """Width of the captured stroke against the injected stroke, per band.
+
+    planned_px is the x range of the pressed samples of a stroke band in
+    inject.csv. seen_px is the widest x range the capture recorded for the same
+    band. A band whose ink never reached the canvas shows only the brush
+    outline, so seen_px stays far below planned_px (2026-11-21).
+    """
+    inject_path = os.path.join(directory, "inject.csv")
+    capture_path = os.path.join(directory, "capture.csv")
+    if not os.path.exists(inject_path) or not os.path.exists(capture_path):
+        return {}
+    planned = {}
+    for _, _, band, x, _, pressed in read_inject(inject_path):
+        if not band.startswith("stroke") or not pressed:
+            continue
+        low, high = planned.get(band, (x, x))
+        planned[band] = (min(low, x), max(high, x))
+    seen = {}
+    for frame in read_capture(capture_path).values():
+        for band, entry in frame.items():
+            width = entry["xmax"] - entry["xmin"] + 1
+            if width > seen.get(band, 0):
+                seen[band] = width
+    result = {}
+    for band, (low, high) in planned.items():
+        planned_px = high - low
+        if planned_px <= 0:
+            continue
+        seen_px = seen.get(band, 0)
+        result[band] = {"planned_px": planned_px, "seen_px": seen_px,
+                        "ratio": seen_px / planned_px}
+    return result
+
+
 def analyze_run(directory):
     frame_times, offsets, offset, samples = frame_samples(directory)
     stats = collections.defaultdict(list)
@@ -525,7 +565,13 @@ def analyze_run(directory):
     result["foreground"] = foreground
     result["foreground_inject"] = inject_foreground_state(directory)
     result["presentation"] = presentation
+    result["ink_coverage"] = ink_coverage(directory)
+    ink_missing = [band for band, value in result["ink_coverage"].items()
+                   if value["ratio"] < INK_MISSING_RATIO]
+    result["ink_missing"] = ink_missing
     result["excluded"] = exclusion_reason(foreground, presentation)
+    if result["excluded"] is None and ink_missing:
+        result["excluded"] = "ink missing in " + ", ".join(ink_missing)
     return result
 
 
@@ -1016,7 +1062,8 @@ def main(argv):
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
         for key, stat in result.items():
             if key in ("frames", "calibration", "state", "presentmon", "foreground",
-                       "foreground_inject", "presentation", "excluded"):
+                       "foreground_inject", "presentation", "excluded",
+                       "ink_coverage", "ink_missing"):
                 continue
             if key == "ink.speed_groups":
                 print("   %-28s %s" % (key, format_speed_groups(stat)))
