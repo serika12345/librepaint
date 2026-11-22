@@ -40,3 +40,24 @@ void KisStrokePredictionCap::apply(KisStrokePredictionResult &result, qreal maxM
         walked += segmentLength;
     }
 }
+
+void KisStrokePredictionCap::mapToPixels(KisStrokePredictionResult &result, const QTransform &documentToPixel)
+{
+    if (!result.valid) return;
+
+    for (int i = 0; i < result.polyline.size(); ++i) {
+        result.polyline[i] = documentToPixel.map(result.polyline.at(i));
+    }
+
+    const QTransform linear(documentToPixel.m11(), documentToPixel.m12(),
+                            documentToPixel.m21(), documentToPixel.m22(),
+                            0.0, 0.0);
+    result.velocity = linear.map(result.velocity);
+    result.speed = std::hypot(result.velocity.x(), result.velocity.y());
+
+    result.moveLength = 0.0;
+    for (int i = result.latestIndex; i >= 0 && i + 1 < result.polyline.size(); ++i) {
+        const QPointF delta = result.polyline.at(i + 1) - result.polyline.at(i);
+        result.moveLength += std::hypot(delta.x(), delta.y());
+    }
+}

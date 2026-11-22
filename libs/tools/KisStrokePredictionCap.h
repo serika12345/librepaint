@@ -8,6 +8,8 @@
 
 #include <KisStrokePrediction.h>
 
+#include <QTransform>
+
 #include <kritatools_export.h>
 
 /**
@@ -26,6 +28,15 @@ public:
      * unchanged.
      */
     static void apply(KisStrokePredictionResult &result, qreal maxMovePx);
+
+    /**
+     * Map every point of @p result with @p documentToPixel, and update
+     * moveLength, velocity and speed to the mapped coordinates. The
+     * predictors work in document coordinates; the stroke paints in image
+     * pixels, so the prediction is mapped before the cap and the stroke use it.
+     * A result that is not valid is left unchanged.
+     */
+    static void mapToPixels(KisStrokePredictionResult &result, const QTransform &documentToPixel);
 };
 
 #endif // KIS_STROKE_PREDICTION_CAP_H

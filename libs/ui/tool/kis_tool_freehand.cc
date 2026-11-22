@@ -394,9 +394,14 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
     KisLatencyProbe::mark("prediction_update", event->point.x(), event->point.y(), qint64(event->time()));
 
     KisStrokePredictionResult result = m_predictor->predict(m_predictionSettings.horizonMs);
-    KisStrokePredictionCap::apply(result, m_predictionMaxMovePx);
 
-    if (result.valid) {
+    KisImageWSP image = this->image();
+    if (image) {
+        KisStrokePredictionCap::mapToPixels(result, QTransform::fromScale(image->xRes(), image->yRes()));
+        KisStrokePredictionCap::apply(result, m_predictionMaxMovePx);
+    }
+
+    if (image && result.valid) {
         QVector<QPointF> points;
         QVector<qreal> dtMs;
 
@@ -425,6 +430,7 @@ void KisToolFreehand::updatePrediction(KoPointerEvent *event)
         const int confidence = result.confidence >= 0.0
             ? qRound(result.confidence * 1000)
             : -1;
+        // This mark is in image pixels; prediction_update is in document coordinates.
         KisLatencyProbe::mark("prediction_point", tip.x(), tip.y(), confidence);
     } else if (m_predictionShown) {
         m_helper->paintPrediction(QVector<QPointF>(), QVector<qreal>());
