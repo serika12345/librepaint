@@ -227,7 +227,7 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
     /*
      * Consumer: The freehand tool and the settings dialog reading the prediction line settings.
      * Operation: Reads the built-in defaults and saves and reloads each prediction setting.
-     * Observable result: The defaults stay on, 16.7 ms and 24.0 ms, the Kalman predictor stays the
+     * Observable result: The defaults stay on, 50.0 ms and 24.0 ms, the Kalman predictor stays the
      * default, stored values survive a restart, and an unknown predictor reads as Kalman.
      * Failure impact: The prediction line can switch itself off, or draw with an unintended horizon or anchor.
      */
@@ -240,7 +240,7 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
     {
         KisConfig config(true);
         QVERIFY(config.useStrokePrediction(true));
-        QCOMPARE(config.strokePredictionHorizonMs(true), 16.7);
+        QCOMPARE(config.strokePredictionHorizonMs(true), 50.0);
         QCOMPARE(config.strokePredictionAnchorMs(true), 24.0);
         QCOMPARE(config.strokePredictionPredictor(true), QStringLiteral("kalman"));
     }

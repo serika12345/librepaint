@@ -2395,7 +2395,7 @@ void KisConfig::setUseStrokePrediction(bool value) const
 
 qreal KisConfig::strokePredictionHorizonMs(bool defaultValue) const
 {
-    return (defaultValue ? 16.7 : m_cfg.readEntry("strokePredictionHorizonMs", 16.7));
+    return (defaultValue ? 50.0 : m_cfg.readEntry("strokePredictionHorizonMs", 50.0));
 }
 
 qreal KisConfig::strokePredictionAnchorMs(bool defaultValue) const
@@ -2405,7 +2405,7 @@ qreal KisConfig::strokePredictionAnchorMs(bool defaultValue) const
 
 qreal KisConfig::strokePredictionMaxMoveDiameters(bool defaultValue) const
 {
-    return (defaultValue ? 3.0 : m_cfg.readEntry("strokePredictionMaxMoveDiameters", 3.0));
+    return (defaultValue ? 8.0 : m_cfg.readEntry("strokePredictionMaxMoveDiameters", 8.0));
 }
 
 qreal KisConfig::strokePredictionExpiryMs(bool defaultValue) const
