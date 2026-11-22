@@ -23,6 +23,11 @@ constexpr qreal MaximumTimeDeltaMs = 20.0;
 constexpr qreal JerkZeroPx = 0.1;
 constexpr qreal JerkFullPx = 0.2;
 
+/// The prediction is displayed through the same path as the confirmed line,
+/// so the upper limit is 60 ms to try a length close to the whole delay from
+/// input to display.
+constexpr qreal kMaxHorizonMs = 60.0;
+
 qreal clampValue(qreal value, qreal minimum, qreal maximum)
 {
     return std::min(std::max(value, minimum), maximum);
@@ -45,7 +50,7 @@ KisStrokePredictionSettings clampSettings(const KisStrokePredictionSettings &set
 {
     KisStrokePredictionSettings clamped = settings;
 
-    clamped.horizonMs = clampValue(settings.horizonMs, 8.0, 25.0);
+    clamped.horizonMs = clampValue(settings.horizonMs, 8.0, kMaxHorizonMs);
     clamped.anchorMs = clampValue(settings.anchorMs, 0.0, 100.0);
     clamped.velocityWindowMs = clampValue(settings.velocityWindowMs, 4.0, 50.0);
     clamped.gapResetMs = clampValue(settings.gapResetMs, 5.0, 100.0);
@@ -181,7 +186,7 @@ KisStrokePredictionResult KisKalmanStrokePredictor::predict(qreal horizonMs) con
         result.confidence *= jerkFactor(d.jerkPx);
     }
 
-    const qreal predDt = clampValue(horizonMs, 8.0, 25.0) * result.confidence;
+    const qreal predDt = clampValue(horizonMs, 8.0, kMaxHorizonMs) * result.confidence;
     const QPointF acceleration(d.xAxis.acceleration(), d.yAxis.acceleration());
     const QPointF latest = d.history.latest().position;
     const QPointF predicted =

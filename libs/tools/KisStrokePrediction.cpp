@@ -14,6 +14,11 @@ namespace
 {
 constexpr int MaximumSampleCount = 64;
 
+/// The prediction is displayed through the same path as the confirmed line,
+/// so the upper limit is 60 ms to try a length close to the whole delay from
+/// input to display.
+constexpr qreal kMaxHorizonMs = 60.0;
+
 qreal clampValue(qreal value, qreal minimum, qreal maximum)
 {
     return std::min(std::max(value, minimum), maximum);
@@ -95,7 +100,7 @@ void KisStrokePrediction::setSettings(const KisStrokePredictionSettings &setting
 {
     KisStrokePredictionSettings clamped = settings;
 
-    clamped.horizonMs = clampValue(settings.horizonMs, 8.0, 25.0);
+    clamped.horizonMs = clampValue(settings.horizonMs, 8.0, kMaxHorizonMs);
     clamped.anchorMs = clampValue(settings.anchorMs, 0.0, 100.0);
     clamped.velocityWindowMs = clampValue(settings.velocityWindowMs, 4.0, 50.0);
     clamped.gapResetMs = clampValue(settings.gapResetMs, 5.0, 100.0);
@@ -211,7 +216,7 @@ KisStrokePredictionResult KisStrokePrediction::predict(qreal horizonMs) const
     result.confidence = speedFactor * pressureFactor * decelFactor;
 
     QPointF moveVector =
-        result.velocity * result.confidence * clampValue(horizonMs, 8.0, 25.0);
+        result.velocity * result.confidence * clampValue(horizonMs, 8.0, kMaxHorizonMs);
     result.moveLength = std::hypot(moveVector.x(), moveVector.y());
 
     // A stroke that stops without a last slow event (a mouse that stops sends

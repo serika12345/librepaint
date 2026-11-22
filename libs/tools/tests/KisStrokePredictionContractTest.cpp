@@ -219,9 +219,9 @@ void KisStrokePredictionContractTest::settingsAreClampedAndKeepTheHistory()
     VERIFY_CLOSE(clamped.pressureFull, 0.21, 1e-12);
     QCOMPARE(predictor.sampleCount(), 2);
 
-    settings.horizonMs = 30.0;
+    settings.horizonMs = 70.0;
     predictor.setSettings(settings);
-    VERIFY_CLOSE(predictor.settings().horizonMs, 25.0, 1e-12);
+    VERIFY_CLOSE(predictor.settings().horizonMs, 60.0, 1e-12);
 }
 
 void KisStrokePredictionContractTest::resetDropsTheHistory()
