@@ -28,6 +28,7 @@
 #include "kis_perspective_math.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_paintop_utils.h"
+#include "KisRenderedDab.h"
 
 
 #define BEZIER_FLATNESS_THRESHOLD 0.5
@@ -92,6 +93,15 @@ std::pair<int, bool> KisPaintOp::doAsynchronousUpdate(QVector<KisRunnableStrokeJ
 {
     Q_UNUSED(jobs);
     return std::make_pair(40, false);
+}
+
+QList<KisRenderedDab> KisPaintOp::renderPendingDabsForPreview(int *lastTakenSeqNo)
+{
+    if (lastTakenSeqNo) {
+        *lastTakenSeqNo = -1;
+    }
+
+    return QList<KisRenderedDab>();
 }
 
 static void paintBezierCurve(KisPaintOp *paintOp,

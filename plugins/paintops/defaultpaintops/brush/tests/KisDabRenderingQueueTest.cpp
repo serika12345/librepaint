@@ -526,4 +526,68 @@ void KisDabRenderingQueueTest::testExecutor()
 
 }
 
+void KisDabRenderingQueueTest::testPendingJobsSnapshot()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+
+    SurrogateCacheInterface *cacheInterface = new SurrogateCacheInterface();
+    cacheInterface->typeOverride = KisDabRenderingJob::Dab;
+
+    KisDabRenderingQueue queue(cs, testResourcesFactory);
+    queue.setCacheInterface(cacheInterface);
+
+    KoColor color;
+    KisDabShape shape;
+
+    KisPaintInformation pi1(QPointF(10, 10));
+    KisPaintInformation pi2(QPointF(20, 20));
+    KisPaintInformation pi3(QPointF(30, 30));
+
+    KisDabCacheUtils::DabRequestInfo request1(color, QPointF(10, 10), shape, pi1, 1.0);
+    KisDabCacheUtils::DabRequestInfo request2(color, QPointF(20, 20), shape, pi2, 1.0);
+    KisDabCacheUtils::DabRequestInfo request3(color, QPointF(30, 30), shape, pi3, 1.0);
+
+    KisDabRenderingJobSP job0 = queue.addDab(request1, 0.5, 0.25);
+    QVERIFY(job0);
+    KisDabRenderingJobSP job1 = queue.addDab(request2, 0.75, 0.5);
+    QVERIFY(job1);
+    KisDabRenderingJobSP job2 = queue.addDab(request3, 0.25, 0.125);
+    QVERIFY(job2);
+
+    int lastTakenSeqNo = -2;
+
+    QList<KisDabRenderingJob> pendingJobs = queue.pendingJobsSnapshot(&lastTakenSeqNo);
+    QCOMPARE(pendingJobs.size(), 3);
+    QCOMPARE(lastTakenSeqNo, -1);
+
+    QCOMPARE(pendingJobs[0].seqNo, job0->seqNo);
+    QCOMPARE(pendingJobs[1].seqNo, job1->seqNo);
+    QCOMPARE(pendingJobs[2].seqNo, job2->seqNo);
+
+    QCOMPARE(pendingJobs[0].type, KisDabRenderingJob::Dab);
+    QCOMPARE(pendingJobs[1].opacity, 0.75);
+    QCOMPARE(pendingJobs[1].flow, 0.5);
+    QCOMPARE(pendingJobs[2].opacity, 0.25);
+    QCOMPARE(pendingJobs[2].flow, 0.125);
+
+    QVERIFY(!pendingJobs[1].originalDevice);
+    QVERIFY(!pendingJobs[1].postprocessedDevice);
+
+    // complete and take the first job, leaving the other two pending
+    job0->originalDevice = new KisFixedPaintDevice(cs);
+    job0->postprocessedDevice = job0->originalDevice;
+
+    QList<KisDabRenderingJobSP> jobs = queue.notifyJobFinished(job0->seqNo);
+    QVERIFY(jobs.isEmpty());
+
+    QList<KisRenderedDab> renderedDabs = queue.takeReadyDabs();
+    QCOMPARE(renderedDabs.size(), 1);
+
+    pendingJobs = queue.pendingJobsSnapshot(&lastTakenSeqNo);
+    QCOMPARE(pendingJobs.size(), 2);
+    QCOMPARE(lastTakenSeqNo, job0->seqNo);
+    QCOMPARE(pendingJobs[0].seqNo, job1->seqNo);
+    QCOMPARE(pendingJobs[1].seqNo, job2->seqNo);
+}
+
 SIMPLE_TEST_MAIN(KisDabRenderingQueueTest)

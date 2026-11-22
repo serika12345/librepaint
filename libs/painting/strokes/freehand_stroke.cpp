@@ -513,11 +513,14 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
         const bool indirectPrediction = m_d->indirectPrediction;
         const KisStrokeRandomSource randomSource = m_d->randomSource;
 
+        KisPainter *const confirmedPainter = mainPainter(0);
+        KisPaintOp *const realPaintOp = confirmedPainter ? confirmedPainter->paintOp() : nullptr;
+
         m_d->predictionChanged = false;
 
         KritaUtils::addJobConcurrent(jobs,
             [this, points, dtMs, lastPaintedInfo, hasLastPaintedInfo,
-             distance, indirectPrediction, randomSource] () {
+             distance, indirectPrediction, randomSource, realPaintOp] () {
 
                 std::unique_lock<std::mutex> renderLock(m_d->predictionRenderMutex,
                                                         std::try_to_lock);
@@ -538,7 +541,8 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
                                                         distance,
                                                         randomSource,
                                                         points,
-                                                        dtMs);
+                                                        dtMs,
+                                                        realPaintOp);
                     if (!result.rect.isEmpty()) {
                         layer->setPrediction(result.device,
                                              result.rect,

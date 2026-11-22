@@ -11,6 +11,7 @@
 #ifndef KIS_PAINTOP_H_
 #define KIS_PAINTOP_H_
 
+#include <QList>
 #include <QVector>
 
 #include <utility>
@@ -29,6 +30,8 @@ class KisPaintInformation;
 class KisRunnableStrokeJobData;
 class KisSpacingInformation;
 class KisTimingInformation;
+struct KisRenderedDab;
+
 
 /**
  * KisPaintOp are use by tools to draw on a paint device. A paintop takes settings
@@ -114,6 +117,10 @@ public:
      * @return a pair of <the desired FPS rate (period of updates); are there any unprocessed update jobs left?>
      */
     virtual std::pair<int, bool> doAsynchronousUpdate(QVector<KisRunnableStrokeJobData*> &jobs);
+
+    /// Dabs that the paintop has accepted but not written to its painter's
+    /// device yet, rendered for a display-only preview. The default has none.
+    virtual QList<KisRenderedDab> renderPendingDabsForPreview(int *lastTakenSeqNo);
 
 protected:
     friend class KisPaintInformation;

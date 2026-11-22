@@ -629,6 +629,8 @@ private Q_SLOTS:
     void predictionComposesWithLayerOpacityAndCompositeOp();
     void directPaintingLayerShowsPredictionThroughProjection();
     void confirmedLineIsContinuousUpToPrediction();
+    void predictionRebuildsPendingConfirmedDabs_data();
+    void predictionRebuildsPendingConfirmedDabs();
 };
 
 void KisStrokePredictionRenderContractTest::initTestCase()
@@ -1097,6 +1099,95 @@ void KisStrokePredictionRenderContractTest::confirmedLineIsContinuousUpToPredict
 
     QVERIFY2(checkedIntervals > 0,
              "no captured projection had a prediction ahead of the last sent point");
+}
+
+void KisStrokePredictionRenderContractTest::predictionRebuildsPendingConfirmedDabs_data()
+{
+    QTest::addColumn<QString>("presetFile");
+    QTest::addColumn<QString>("resultName");
+
+    QTest::newRow("basic")
+        << QStringLiteral("Basic_tip_default.kpp") << QStringLiteral("basic");
+    QTest::newRow("pencil")
+        << QStringLiteral("prediction_pencil_textured.kpp") << QStringLiteral("pencil");
+}
+
+void KisStrokePredictionRenderContractTest::predictionRebuildsPendingConfirmedDabs()
+{
+    QFETCH(QString, presetFile);
+    QFETCH(QString, resultName);
+
+    bool loaded = false;
+    KisPaintOpPresetSP preset = loadPreset(presetFile, &loaded);
+    if (!loaded) {
+        QWARN(qPrintable(QStringLiteral("skipping %1: preset did not load").arg(presetFile)));
+        return;
+    }
+
+    PredictionFixture fixture;
+    fixture.setPreset(preset);
+
+    KisImageSP image = fixture.image();
+    KisPaintLayerSP layer = fixture.layer();
+    KisResourcesSnapshotSP resources = fixture.resources();
+
+    KisPaintDeviceSP actualDevice = new KisPaintDevice(image->colorSpace());
+    actualDevice->setDefaultBounds(layer->paintDevice()->defaultBounds());
+
+    KisPainter actualPainter;
+    actualPainter.begin(actualDevice, nullptr);
+    setupPredictionPainter(&actualPainter, resources, false, QString());
+
+    KisStrokeRandomSource random(dabRandomSeed);
+    KisRandomSourceSP rnd = random.source();
+    KisPerStrokeRandomSourceSP strokeRnd = random.perStrokeSource();
+
+    KisPaintInformation pi0 = fixedPaintInformation(QPointF(40.0, 100.0));
+    KisPaintInformation pi1 = fixedPaintInformation(QPointF(100.0, 100.0));
+
+    pi0.setRandomSource(rnd);
+    pi0.setPerStrokeRandomSource(strokeRnd);
+    pi1.setRandomSource(rnd);
+    pi1.setPerStrokeRandomSource(strokeRnd);
+
+    KisDistanceInformation distance;
+    actualPainter.paintLine(pi0, pi1, &distance);
+
+    // The dabs of the confirmed line stay in the paint op queue here, so the
+    // device does not have any of them yet when the prediction is rendered.
+    KisStrokePredictionRenderer renderer(resources, actualDevice, nullptr, false, QString());
+
+    const QVector<QPointF> predicted{QPointF(160.0, 100.0), QPointF(190.0, 100.0)};
+    const QVector<qreal> dtMs{3.0, 3.0};
+    const KisStrokePredictionRenderer::Result result =
+        renderer.render(pi1, distance, random, predicted, dtMs, actualPainter.paintOp());
+
+    QVERIFY(!result.rect.isEmpty());
+    QVERIFY(result.device);
+
+    flushBrushDabs(&actualPainter);
+
+    // The confirmed line up to x = 84 lies outside the predicted interval, so
+    // only the rebuilt dabs can give the prediction its pixels there.
+    const QRect compareRect(30, 82, 55, 36);
+    QVERIFY(result.rect.contains(compareRect));
+
+    const QImage predictedImage = regionImage(result.device, compareRect);
+    const QImage actualImage = regionImage(actualDevice, compareRect);
+
+    QVERIFY2(hasNonTransparentPixel(predictedImage),
+             qPrintable(QStringLiteral("%1 pending dabs are missing from the prediction").arg(resultName)));
+    QVERIFY(hasNonTransparentPixel(actualImage));
+
+    QPoint mismatch;
+    QVERIFY2(compareRegion(predictedImage,
+                           actualImage,
+                           QStringLiteral("prediction-pending-%1-actual.png").arg(resultName),
+                           &mismatch),
+             qPrintable(QStringLiteral("%1 pending confirmed dabs differ at %2,%3")
+                            .arg(resultName)
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
 }
 
 int main(int argc, char *argv[])

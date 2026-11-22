@@ -14,6 +14,7 @@
 #include "kis_paint_information.h"
 #include "kis_painter.h"
 #include "kis_paintop.h"
+#include "KisRenderedDab.h"
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
 #include "KisRunnableStrokeJobData.h"
@@ -90,29 +91,37 @@ KisStrokePredictionRenderer::render(const KisPaintInformation &lastReal,
                                     const KisDistanceInformation &distance,
                                     const KisStrokeRandomSource &random,
                                     const QVector<QPointF> &points,
-                                    const QVector<qreal> &dtMs)
+                                    const QVector<qreal> &dtMs,
+                                    KisPaintOp *realPaintOp)
 {
     if (points.isEmpty()) {
         return Result();
     }
 
-    const qreal brushSize = m_d->resources->currentPaintOpPreset()->settings()->paintOpSize();
-    const qreal margin = brushSize + 2.0;
+    const qreal paintOpSize = m_d->resources->currentPaintOpPreset()->settings()->paintOpSize();
+    const qreal margin = paintOpSize + 4.0;
 
-    qreal minX = lastReal.pos().x();
-    qreal maxX = minX;
-    qreal minY = lastReal.pos().y();
-    qreal maxY = minY;
+    auto renderedBounds = [&] (const QList<KisRenderedDab> &dabs) {
+        qreal minX = lastReal.pos().x();
+        qreal maxX = minX;
+        qreal minY = lastReal.pos().y();
+        qreal maxY = minY;
 
-    for (const QPointF &point : points) {
-        minX = qMin(minX, point.x());
-        maxX = qMax(maxX, point.x());
-        minY = qMin(minY, point.y());
-        maxY = qMax(maxY, point.y());
-    }
+        for (const QPointF &point : points) {
+            minX = qMin(minX, point.x());
+            maxX = qMax(maxX, point.x());
+            minY = qMin(minY, point.y());
+            maxY = qMax(maxY, point.y());
+        }
 
-    const QRectF bounds = QRectF(QPointF(minX, minY), QPointF(maxX, maxY)).adjusted(-margin, -margin, margin, margin);
-    const QRect rect = bounds.toAlignedRect();
+        QRectF bounds(QPointF(minX, minY), QPointF(maxX, maxY));
+
+        for (const KisRenderedDab &dab : dabs) {
+            bounds |= QRectF(dab.realBounds());
+        }
+
+        return bounds.adjusted(-margin, -margin, margin, margin).toAlignedRect();
+    };
 
     KisLatencyProbe::mark("prediction_render_begin", points.last().x(), points.last().y(), points.size());
 
@@ -121,81 +130,131 @@ KisStrokePredictionRenderer::render(const KisPaintInformation &lastReal,
 
     KisPaintDeviceSP device = m_d->devices[index];
     KisPainter *painter = m_d->painters[index].data();
+    KisPaintDeviceSP source = m_d->source;
 
-    KisPainter::copyAreaOptimized(rect.topLeft(), m_d->source, device, rect);
-
-    KisDistanceInformation distanceCopy(distance);
-    KisRandomSourceSP rnd(new KisRandomSource(*random.source()));
-    KisPerStrokeRandomSourceSP strokeRnd(new KisPerStrokeRandomSource(*random.perStrokeSource()));
-
-    const int startDabSeqNo = distanceCopy.currentDabSeqNo();
-
-    KisPaintInformation previous = lastReal;
-    // KisPaintInformation::mix inherits the random sources from the starting
-    // information, so the start of the prediction needs the copies as well.
-    previous.setRandomSource(rnd);
-    previous.setPerStrokeRandomSource(strokeRnd);
-
-    for (int i = 0; i < points.size(); i++) {
-        const qreal dt = i < dtMs.size() ? dtMs[i] : 0.0;
-
-        KisPaintInformation pi(points[i],
-                               lastReal.pressure(),
-                               lastReal.xTilt(),
-                               lastReal.yTilt(),
-                               lastReal.rotation(),
-                               lastReal.tangentialPressure(),
-                               lastReal.perspective(),
-                               lastReal.currentTime() + dt,
-                               lastReal.drawingSpeed());
-
-        pi.setCanvasRotation(lastReal.canvasRotation());
-        pi.setCanvasMirroredH(lastReal.canvasMirroredH());
-        pi.setCanvasMirroredV(lastReal.canvasMirroredV());
-        pi.setTiltDirectionOffset(lastReal.tiltDirectionOffset());
-        pi.setRandomSource(rnd);
-        pi.setPerStrokeRandomSource(strokeRnd);
-
-        painter->paintLine(previous, pi, &distanceCopy);
-        previous = pi;
+    int seqBefore = -1;
+    QList<KisRenderedDab> pendingDabs;
+    if (realPaintOp) {
+        pendingDabs = realPaintOp->renderPendingDabsForPreview(&seqBefore);
     }
 
-    const int dabCount = distanceCopy.currentDabSeqNo() - startDabSeqNo;
+    QRect rect = renderedBounds(pendingDabs);
 
-    if (painter->paintOp()) {
-        int flushCount = 0;
+    int dabCount = 0;
+    int redrawCount = 0;
 
-        while (true) {
-            QVector<KisRunnableStrokeJobData*> jobs;
-            const bool needsMoreUpdates =
-                painter->paintOp()->doAsynchronousUpdate(jobs).second;
+    while (true) {
+        KisPainter::copyAreaOptimized(rect.topLeft(), source, device, rect);
 
-            for (KisRunnableStrokeJobData *job : jobs) {
-                job->run();
-                delete job;
-            }
+        if (realPaintOp) {
+            int seqAfter = -1;
+            QList<KisRenderedDab> afterDabs = realPaintOp->renderPendingDabsForPreview(&seqAfter);
 
-            if (jobs.isEmpty() && !needsMoreUpdates) {
-                break;
-            }
+            if (seqAfter != seqBefore) {
+                pendingDabs = afterDabs;
+                rect = renderedBounds(pendingDabs);
+                KisPainter::copyAreaOptimized(rect.topLeft(), source, device, rect);
 
-            if (++flushCount >= 64) {
-                KisLatencyProbe::mark("prediction_render_flush_limit", 0, 0, 64);
-                break;
+                int seqRedrawn = -1;
+                realPaintOp->renderPendingDabsForPreview(&seqRedrawn);
+
+                if (seqRedrawn != seqAfter) {
+                    KisLatencyProbe::mark("prediction_pending_race", 0, 0, 1);
+                }
+
+                seqBefore = seqAfter;
             }
         }
+
+        if (realPaintOp && !pendingDabs.isEmpty()) {
+            painter->bltFixed(rect, pendingDabs);
+        }
+
+        KisDistanceInformation distanceCopy(distance);
+        KisRandomSourceSP rnd(new KisRandomSource(*random.source()));
+        KisPerStrokeRandomSourceSP strokeRnd(new KisPerStrokeRandomSource(*random.perStrokeSource()));
+
+        const int startDabSeqNo = distanceCopy.currentDabSeqNo();
+
+        KisPaintInformation previous = lastReal;
+        // KisPaintInformation::mix inherits the random sources from the starting
+        // information, so the start of the prediction needs the copies as well.
+        previous.setRandomSource(rnd);
+        previous.setPerStrokeRandomSource(strokeRnd);
+
+        for (int i = 0; i < points.size(); i++) {
+            const qreal dt = i < dtMs.size() ? dtMs[i] : 0.0;
+
+            KisPaintInformation pi(points[i],
+                                   lastReal.pressure(),
+                                   lastReal.xTilt(),
+                                   lastReal.yTilt(),
+                                   lastReal.rotation(),
+                                   lastReal.tangentialPressure(),
+                                   lastReal.perspective(),
+                                   lastReal.currentTime() + dt,
+                                   lastReal.drawingSpeed());
+
+            pi.setCanvasRotation(lastReal.canvasRotation());
+            pi.setCanvasMirroredH(lastReal.canvasMirroredH());
+            pi.setCanvasMirroredV(lastReal.canvasMirroredV());
+            pi.setTiltDirectionOffset(lastReal.tiltDirectionOffset());
+            pi.setRandomSource(rnd);
+            pi.setPerStrokeRandomSource(strokeRnd);
+
+            painter->paintLine(previous, pi, &distanceCopy);
+            previous = pi;
+        }
+
+        dabCount = distanceCopy.currentDabSeqNo() - startDabSeqNo;
+
+        if (painter->paintOp()) {
+            int flushCount = 0;
+
+            while (true) {
+                QVector<KisRunnableStrokeJobData*> jobs;
+                const bool needsMoreUpdates =
+                    painter->paintOp()->doAsynchronousUpdate(jobs).second;
+
+                for (KisRunnableStrokeJobData *job : jobs) {
+                    job->run();
+                    delete job;
+                }
+
+                if (jobs.isEmpty() && !needsMoreUpdates) {
+                    break;
+                }
+
+                if (++flushCount >= 64) {
+                    KisLatencyProbe::mark("prediction_render_flush_limit", 0, 0, 64);
+                    break;
+                }
+            }
+        }
+
+        const QVector<QRect> dirtyRects = painter->takeDirtyRegion();
+        QRect dirtyBounds;
+        for (const QRect &dirtyRect : dirtyRects) {
+            dirtyBounds |= dirtyRect;
+        }
+        for (const KisRenderedDab &dab : pendingDabs) {
+            dirtyBounds |= dab.realBounds();
+        }
+
+        if (dirtyBounds.isEmpty() || rect.contains(dirtyBounds)) {
+            break;
+        }
+
+        if (redrawCount >= 1) {
+            KisLatencyProbe::mark("prediction_render_clip", 0.0, 0.0, 1);
+            break;
+        }
+
+        redrawCount++;
+        rect |= dirtyBounds;
     }
 
-    const QVector<QRect> dirtyRects = painter->takeDirtyRegion();
-    QRect dirtyBounds;
-    for (const QRect &dirtyRect : dirtyRects) {
-        dirtyBounds |= dirtyRect;
-    }
-
-    if (!dirtyBounds.isEmpty() && !rect.contains(dirtyBounds)) {
-        KisLatencyProbe::mark("prediction_render_clip", 0.0, 0.0, 1);
-    }
-
+    KisLatencyProbe::mark("prediction_pending_dabs", 0, 0, pendingDabs.size());
     KisLatencyProbe::mark("prediction_render_end", rect.width(), rect.height(), dabCount);
 
     Result result;

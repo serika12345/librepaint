@@ -378,6 +378,11 @@ std::pair<int, bool> KisBrushOp::doAsynchronousUpdate(QVector<KisRunnableStrokeJ
     return std::make_pair(m_currentUpdatePeriod, someDabsAreStillInQueue);
 }
 
+QList<KisRenderedDab> KisBrushOp::renderPendingDabsForPreview(int *lastTakenSeqNo)
+{
+    return m_dabExecutor->renderPendingDabsForPreview(lastTakenSeqNo);
+}
+
 KisSpacingInformation KisBrushOp::updateSpacingImpl(const KisPaintInformation &info) const
 {
     const qreal scale = m_sizeOption.apply(info) * KisLodTransform::lodToScale(painter()->device());

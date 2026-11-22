@@ -18,6 +18,7 @@
 
 class KisDistanceInformation;
 class KisPaintInformation;
+class KisPaintOp;
 class KisSelection;
 class KisStrokeRandomSource;
 
@@ -46,6 +47,12 @@ class KisStrokeRandomSource;
  * The renderer alternates between two devices because the layer projection
  * may still read the result of the previous render while the next result is
  * written.
+ *
+ * The confirmed dabs that the brush has reserved but not written to the layer
+ * yet are rebuilt on the prediction device, which fills the gap at the seam
+ * between the confirmed line and the prediction. The rebuilt dabs come from
+ * the queued job information, so they have the same pixels as the dabs that
+ * reach the layer later.
  */
 class KRITAPAINTING_EXPORT KisStrokePredictionRenderer
 {
@@ -65,11 +72,15 @@ public:
                                 const QString &indirectPaintingCompositeOp);
     ~KisStrokePredictionRenderer();
 
+    /// realPaintOp is the paint op that paints the confirmed part of the
+    /// stroke. The dabs it has reserved but not written yet are rebuilt on the
+    /// prediction device.
     Result render(const KisPaintInformation &lastReal,
                   const KisDistanceInformation &distance,
                   const KisStrokeRandomSource &random,
                   const QVector<QPointF> &points,
-                  const QVector<qreal> &dtMs);
+                  const QVector<qreal> &dtMs,
+                  KisPaintOp *realPaintOp = nullptr);
 
 private:
     struct Private;

@@ -36,6 +36,10 @@ public:
 
     QList<KisRenderedDab> takeReadyDabs(bool returnMutableDabs = false, int oneTimeLimit = -1, bool *someDabsLeft = 0);
 
+    /// Renders the dabs that are queued but not yet returned by takeReadyDabs(),
+    /// on the calling thread, for a display-only preview.
+    QList<KisRenderedDab> renderPendingDabsForPreview(int *lastTakenSeqNo);
+
     bool hasPreparedDabs() const;
 
     qreal averageDabRenderingTime() const; // msecs

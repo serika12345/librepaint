@@ -15,6 +15,7 @@
 
 #include <QList>
 class KoColorSpace;
+class KisDabRenderingJob;
 struct KisRenderedDab;
 
 #include "KisDabCacheUtils.h"
@@ -45,6 +46,11 @@ public:
     QList<KisDabRenderingJobSP> notifyJobFinished(int seqNo, int usecsTime = -1);
 
     QList<KisRenderedDab> takeReadyDabs(bool returnMutableDabs = false, int oneTimeLimit = -1, bool *someDabsLeft = 0);
+
+    /// Copies of the jobs that takeReadyDabs() has not returned yet, in order.
+    /// Devices are not copied. lastTakenSeqNo receives the seqNo of the last
+    /// job takeReadyDabs() returned, or -1.
+    QList<KisDabRenderingJob> pendingJobsSnapshot(int *lastTakenSeqNo) const;
 
     bool hasPreparedDabs() const;
 

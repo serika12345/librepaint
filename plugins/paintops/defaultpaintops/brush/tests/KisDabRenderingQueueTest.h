@@ -16,6 +16,7 @@ private Q_SLOTS:
     void testCachedDabs();
     void testPostprocessedDabs();
     void testRunningJobs();
+    void testPendingJobsSnapshot();
 
     void testExecutor();
 };

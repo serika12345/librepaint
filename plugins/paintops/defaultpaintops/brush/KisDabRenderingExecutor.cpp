@@ -13,6 +13,7 @@
 #include "KisRenderedDab.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "kis_stroke_job_strategy.h"
+#include "kis_assert.h"
 #include <qlist.h>
 #include <qscopedpointer.h>
 #include <QtGlobal>
@@ -64,6 +65,41 @@ QList<KisRenderedDab> KisDabRenderingExecutor::takeReadyDabs(bool returnMutableD
                                                              bool *someDabsLeft)
 {
     return m_d->renderingQueue->takeReadyDabs(returnMutableDabs, oneTimeLimit, someDabsLeft);
+}
+
+QList<KisRenderedDab> KisDabRenderingExecutor::renderPendingDabsForPreview(int *lastTakenSeqNo)
+{
+    QList<KisRenderedDab> renderedDabs;
+
+    QList<KisDabRenderingJob> pendingJobs =
+        m_d->renderingQueue->pendingJobsSnapshot(lastTakenSeqNo);
+
+    if (pendingJobs.isEmpty()) return renderedDabs;
+
+    KisDabCacheUtils::DabRenderingResources *resources =
+        m_d->renderingQueue->fetchResourcesFromCache();
+
+    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(resources, renderedDabs);
+
+    for (KisDabRenderingJob &job : pendingJobs) {
+        job.type = KisDabRenderingJob::Dab;
+
+        KisDabRenderingJobRunner::executeOneJob(&job, resources, m_d->renderingQueue.data());
+
+        if (!job.postprocessedDevice) continue;
+
+        KisRenderedDab dab;
+        dab.device = job.postprocessedDevice;
+        dab.offset = job.dstDabOffset();
+        dab.opacity = job.opacity;
+        dab.flow = job.flow;
+
+        renderedDabs.append(dab);
+    }
+
+    m_d->renderingQueue->putResourcesToCache(resources);
+
+    return renderedDabs;
 }
 
 bool KisDabRenderingExecutor::hasPreparedDabs() const

@@ -80,6 +80,7 @@ struct KisDabRenderingQueue::Private
     QList<KisDabRenderingJobSP> jobs;
     int nextSeqNoToUse = 0;
     int lastPaintedJob = -1;
+    int lastTakenSeqNo = -1;
     int lastDabJobInQueue = -1;
     QScopedPointer<CacheInterface> cacheInterface;
     const KoColorSpace *colorSpace;
@@ -343,6 +344,7 @@ QList<KisRenderedDab> KisDabRenderingQueue::takeReadyDabs(bool returnMutableDabs
         renderedDabs.append(dab);
 
         m_d->lastPaintedJob = i;
+        m_d->lastTakenSeqNo = j->seqNo;
     }
 
     m_d->cleanPaintedDabs();
@@ -352,6 +354,30 @@ QList<KisRenderedDab> KisDabRenderingQueue::takeReadyDabs(bool returnMutableDabs
     }
 
     return renderedDabs;
+}
+
+QList<KisDabRenderingJob> KisDabRenderingQueue::pendingJobsSnapshot(int *lastTakenSeqNo) const
+{
+    QMutexLocker l(&m_d->mutex);
+
+    QList<KisDabRenderingJob> pendingJobs;
+
+    for (int i = m_d->lastPaintedJob + 1; i < m_d->jobs.size(); i++) {
+        const KisDabRenderingJobSP &job = m_d->jobs[i];
+
+        KisDabRenderingJob copy(job->seqNo, job->type, job->opacity, job->flow);
+        copy.generationInfo = job->generationInfo;
+        copy.originalDevice.clear();
+        copy.postprocessedDevice.clear();
+
+        pendingJobs.append(copy);
+    }
+
+    if (lastTakenSeqNo) {
+        *lastTakenSeqNo = m_d->lastTakenSeqNo;
+    }
+
+    return pendingJobs;
 }
 
 bool KisDabRenderingQueue::Private::hasPreparedDabsImpl() const
