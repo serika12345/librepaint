@@ -3,15 +3,18 @@
 """Split the pen-to-display delay of runs into the part the application can
 see and the part after the buffer swap.
 
-A run directory needs probe.csv (with stroke_paint, stroke_dirty_issued,
+A run directory needs probe.csv (with stroke_begin, an arrival event
+stroke_paint, qt_tablet_move or qt_mouse_move, stroke_dirty_issued,
 paintgl_begin, frame_swapped and projection_update), inject.csv and
 capture.csv. For every stroke sample k the script finds
 
-  I  the injection time of k (inject.csv, the k-th pressed row after the
-     first one, because the first press starts the stroke),
-  A  the time the application painted k (stroke_paint),
+  I  the injection time of k (inject.csv; the pressed rows after the press
+     whose position changed, because a pen held still sends no event),
+  A  the time the application received k (the k-th arrival event of the
+     stroke),
   D  the first stroke_dirty_issued that covers k (the newest painted point
-     of that update is k or a later sample),
+     of that update is k or a later sample; its event time, in milliseconds
+     since the press, selects the sample),
   G  the first paintgl_begin after D, or after the first projection_update
      after D (the second variant),
   S  the first frame_swapped after G.
@@ -24,9 +27,9 @@ capture's own sampling. The median of the frames' input-to-capture delay is
 printed for comparison.
 
 The event time that the stroke passes on (extra of stroke_dirty_issued, in
-milliseconds of the operating system's event clock) is compared with I: the
-spread of its difference to I shows whether the event time can stand in for
-the injection time.
+milliseconds since the press) is compared with I minus the press time: the
+spread of the difference shows how well the operating system's event time
+follows the real input time.
 
 Usage: inapp_latency.py RUN_DIR [RUN_DIR ...]
 """
@@ -81,51 +84,108 @@ def percentile(values, q):
     return ordered[min(len(ordered) - 1, int(len(ordered) * q))]
 
 
-def stroke_inject_times(directory):
-    """Injection times of the pressed rows, split into strokes in order."""
+def read_strokes(directory):
+    """Pressed rows of each stroke in order: [(time_ns, x, y), ...]."""
     strokes = {}
     with open(os.path.join(directory, "inject.csv"), encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             if row["pressed"] == "1" and row["band"].startswith("stroke"):
-                strokes.setdefault(row["band"], []).append(int(row["time_ns"]))
+                strokes.setdefault(row["band"], []).append(
+                    (int(row["time_ns"]), float(row["x"]), float(row["y"])))
     return [strokes[key] for key in sorted(strokes)]
+
+
+def moving_rows(rows):
+    """The press time and the rows after the press whose position changed.
+
+    Rows that repeat the previous position (a pen held still) produce no
+    input event, so they have no arrival to match."""
+    press = rows[0][0]
+    moving = []
+    last = rows[0][1:]
+    for t, x, y in rows[1:]:
+        if (x, y) != last:
+            moving.append(t)
+        last = (x, y)
+    return press, moving
+
+
+ARRIVAL_EVENTS = ("stroke_paint", "qt_tablet_move", "qt_mouse_move")
+MATCH_TOLERANCE_MS = 2.5
 
 
 def analyze(directory):
     rows = read_probe(os.path.join(directory, "probe.csv"))
-    paints = [(t, x, y) for t, e, x, y, _ in rows if e == "stroke_paint"]
-    dirties = [(t, x, y, ex) for t, e, x, y, ex in rows if e == "stroke_dirty_issued"]
+    begins_stroke = [t for t, e, *_ in rows if e == "stroke_begin"]
+    dirties = [(t, ex) for t, e, _, _, ex in rows if e == "stroke_dirty_issued"]
     begins = [t for t, e, *_ in rows if e == "paintgl_begin"]
     swaps = [t for t, e, *_ in rows if e == "frame_swapped"]
     projections = [t for t, e, *_ in rows if e == "projection_update"]
     if not dirties:
         raise SystemExit("%s: probe.csv has no stroke_dirty_issued (older build)" % directory)
 
-    inject_strokes = stroke_inject_times(directory)
-    inject = []
-    for times in inject_strokes:
-        inject.extend(times[1:])
-    n = min(len(paints), len(inject))
-    if abs(len(paints) - len(inject)) > 12:
-        raise SystemExit("%s: %d painted samples against %d injected" % (directory, len(paints), len(inject)))
+    strokes = [moving_rows(rows_) for rows_ in read_strokes(directory)]
+    if len(begins_stroke) != len(strokes):
+        raise SystemExit("%s: %d stroke_begin rows against %d injected strokes"
+                         % (directory, len(begins_stroke), len(strokes)))
+    arrival_name = None
+    for name in ARRIVAL_EVENTS:
+        if any(e == name for _, e, *_ in rows):
+            arrival_name = name
+            break
+    if arrival_name is None:
+        raise SystemExit("%s: probe.csv has none of %s" % (directory, ", ".join(ARRIVAL_EVENTS)))
 
-    # k-th paint event <-> k-th pressed inject row (without the first of each stroke).
-    positions = {}
-    for k, (_, x, y) in enumerate(paints[:n]):
-        positions.setdefault((x, y), []).append(k)
-    paint_times = [t for t, _, _ in paints[:n]]
+    # Per stroke: the injection time of every moving row, its arrival at the
+    # application, and the stroke's press time (the origin of the event time).
+    inject, arrive, press_of, stroke_of = [], [], [], []
+    window_end = begins_stroke[1:] + [None]
+    for s, ((press, moving), begin, end) in enumerate(zip(strokes, begins_stroke, window_end)):
+        limit = moving[-1] + 300e6 if moving else begin
+        events = [t for t, e, *_ in rows
+                  if e == arrival_name and begin <= t < (end if end is not None else limit)
+                  and t <= limit]
+        if abs(len(events) - len(moving)) > 2:
+            raise SystemExit("%s: stroke %d has %d %s events against %d moving rows"
+                             % (directory, s, len(events), arrival_name, len(moving)))
+        for t_inject, t_arrive in zip(moving, events):
+            inject.append(t_inject)
+            arrive.append(t_arrive)
+            press_of.append(press)
+            stroke_of.append(s)
+    n = len(inject)
 
-    newest = []  # (dirty time, newest k covered)
-    for t, x, y, ex in dirties:
-        cands = [k for k in positions.get((x, y), []) if paint_times[k] <= t]
-        if cands:
-            newest.append((t, cands[-1], ex))
+    def newest_sample(dirty_time, extra, s):
+        """The moving row of stroke s whose event time (ms since the press)
+        is nearest to extra, if it had arrived before the dirty mark."""
+        try:
+            wanted = float(extra)
+        except ValueError:
+            return None
+        best, best_gap = None, MATCH_TOLERANCE_MS
+        for k in range(n):
+            if stroke_of[k] != s:
+                continue
+            gap = abs((inject[k] - press_of[k]) / 1e6 - wanted)
+            if gap <= best_gap and arrive[k] <= dirty_time:
+                best, best_gap = k, gap
+        return best
+
+    newest = []  # (dirty time, newest k covered, extra)
+    for t, ex in dirties:
+        s = bisect.bisect_right(begins_stroke, t) - 1
+        if s < 0:
+            continue
+        k = newest_sample(t, ex, s)
+        if k is not None:
+            newest.append((t, k, ex))
     running = -1
     firsts = {}
     for t, k, _ in newest:
         if k > running:
             for covered in range(running + 1, k + 1):
-                firsts[covered] = t
+                if stroke_of[covered] == stroke_of[k]:
+                    firsts[covered] = t
             running = k
 
     def swap_for(dirty_time, via_projection):
@@ -139,7 +199,7 @@ def analyze(directory):
             return None
         return first_at_or_after(swaps, paint)
 
-    result = {"samples": n}
+    result = {"samples": n, "arrival event": arrival_name, "dirty matched": len(newest), "dirty rows": len(dirties)}
     sample_swap = {}
     for variant, via in (("direct", False), ("projection", True)):
         s_minus_i, s_minus_a = [], []
@@ -152,42 +212,45 @@ def analyze(directory):
                 continue
             table[k] = swap
             s_minus_i.append((swap - inject[k]) / 1e6)
-            s_minus_a.append((swap - paint_times[k]) / 1e6)
+            s_minus_a.append((swap - arrive[k]) / 1e6)
         sample_swap[variant] = table
         result[variant] = {
             "S-I p50": median(s_minus_i), "S-I p90": percentile(s_minus_i, 0.9),
             "S-A p50": median(s_minus_a), "S-A p90": percentile(s_minus_a, 0.9),
             "samples": len(table),
         }
-    result["A-I p50"] = median([(paint_times[k] - inject[k]) / 1e6 for k in range(n)])
-    result["A-I p90"] = percentile([(paint_times[k] - inject[k]) / 1e6 for k in range(n)], 0.9)
+    a_minus_i = [(arrive[k] - inject[k]) / 1e6 for k in range(n)]
+    result["A-I p50"] = median(a_minus_i)
+    result["A-I p90"] = percentile(a_minus_i, 0.9)
 
-    # Event time of the OS against the injection time: spread after removing the median.
+    # Event time of the OS (since the press) against the injection time.
     diffs = []
     for t, k, ex in newest:
-        try:
-            diffs.append(float(ex) * 1e6 - inject[k])
-        except (ValueError, IndexError):
-            continue
+        diffs.append(float(ex) - (inject[k] - press_of[k]) / 1e6)
     if diffs:
         base = median(diffs)
-        dev = [abs(d - base) / 1e6 for d in diffs]
+        dev = [abs(d - base) for d in diffs]
         result["os_event_time"] = {"n": len(diffs), "dev p50 ms": median(dev), "dev p90 ms": percentile(dev, 0.9)}
 
     # After the swap: capture frame time minus the swap that showed the displayed sample.
     _, _, _, samples = capture_analyze.frame_samples(directory)
-    inject_flat = inject
     after = {"direct": [], "projection": []}
     capture_ms = []
+    order = sorted(range(n), key=lambda k: inject[k])
+    sorted_inject = [inject[k] for k in order]
     for sample in samples:
         kind, t, crossed = sample[0], sample[1], sample[2]
         if kind != "ink":
             continue
         capture_ms.append((t - crossed) / 1e6)
-        i = bisect.bisect_left(inject_flat, crossed)
-        if i >= len(inject_flat):
+        i = bisect.bisect_left(sorted_inject, crossed)
+        near = [j for j in (i - 1, i) if 0 <= j < len(order)]
+        if not near:
             continue
-        k = i if i < len(inject_flat) else len(inject_flat) - 1
+        j = min(near, key=lambda j: abs(sorted_inject[j] - crossed))
+        if abs(sorted_inject[j] - crossed) > MATCH_TOLERANCE_MS * 1e6:
+            continue
+        k = order[j]
         for variant in after:
             swap = sample_swap[variant].get(k)
             if swap is not None and 0 <= t - swap < 200e6:
@@ -195,6 +258,7 @@ def analyze(directory):
     result["capture p50"] = median(capture_ms)
     for variant in after:
         result[variant]["t-S p50"] = median(after[variant])
+        result[variant]["t-S p90"] = percentile(after[variant], 0.9)
         result[variant]["t-S frames"] = len(after[variant])
     swap_intervals = [(b - a) / 1e6 for a, b in zip(swaps, swaps[1:]) if b - a < 100e6]
     result["swap interval p50"] = median(swap_intervals)
@@ -214,13 +278,15 @@ def main(argv):
         r = analyze(directory)
         per_run.append(r)
         print(os.path.basename(directory))
-        print("  samples %d, capture p50 %s ms, swap interval p50 %s ms, A-I p50 %s p90 %s"
-              % (r["samples"], fmt(r["capture p50"]), fmt(r["swap interval p50"]), fmt(r["A-I p50"]), fmt(r["A-I p90"])))
+        print("  %s: %d samples, %d of %d dirty rows matched"
+              % (r["arrival event"], r["samples"], r["dirty matched"], r["dirty rows"]))
+        print("  capture p50 %s ms, swap interval p50 %s ms, A-I p50 %s p90 %s"
+              % (fmt(r["capture p50"]), fmt(r["swap interval p50"]), fmt(r["A-I p50"]), fmt(r["A-I p90"])))
         for variant in ("direct", "projection"):
             v = r[variant]
-            print("  %-10s S-I p50 %s p90 %s | S-A p50 %s p90 %s | t-S p50 %s (%s frames)"
+            print("  %-10s S-I p50 %s p90 %s | S-A p50 %s p90 %s | t-S p50 %s p90 %s (%s frames)"
                   % (variant, fmt(v["S-I p50"]), fmt(v["S-I p90"]), fmt(v["S-A p50"]), fmt(v["S-A p90"]),
-                     fmt(v.get("t-S p50")), v.get("t-S frames")))
+                     fmt(v.get("t-S p50")), fmt(v.get("t-S p90")), v.get("t-S frames")))
         if "os_event_time" in r:
             o = r["os_event_time"]
             print("  os event time vs injection: deviation p50 %s ms p90 %s ms (n=%d)"
