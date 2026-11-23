@@ -31,7 +31,12 @@ milliseconds since the press) is compared with I minus the press time: the
 spread of the difference shows how well the operating system's event time
 follows the real input time.
 
-Usage: inapp_latency.py RUN_DIR [RUN_DIR ...]
+Usage: inapp_latency.py [--macos-clocks] RUN_DIR [RUN_DIR ...]
+
+On macOS the injection and the capture use CLOCK_UPTIME_RAW while the probe
+uses CLOCK_MONOTONIC_RAW, which also counts the time asleep. --macos-clocks
+subtracts the current difference of the two clocks from the probe times; it
+is valid for runs made since the machine last woke up.
 """
 
 import bisect
@@ -96,7 +101,8 @@ def read_strokes(directory):
 
 
 def moving_rows(rows):
-    """The press time and the rows after the press whose position changed.
+    """The press time and the rows after the press whose position changed,
+    as [(time_ns, x)].
 
     Rows that repeat the previous position (a pen held still) produce no
     input event, so they have no arrival to match."""
@@ -105,17 +111,61 @@ def moving_rows(rows):
     last = rows[0][1:]
     for t, x, y in rows[1:]:
         if (x, y) != last:
-            moving.append(t)
+            moving.append((t, x))
         last = (x, y)
     return press, moving
+
+
+def pair_events(moving, events):
+    """Pair arrival events [(time_ns, x)] with moving rows [(time_ns, x)].
+
+    With equal counts the pairing follows the order. When the system merged
+    or dropped events, each event goes to the row whose position matches
+    through a line fitted from the first and last positions, refined by least
+    squares. Returns [(row index, event time)] or None if the fit is poor."""
+    if len(events) == len(moving):
+        return [(i, e[0]) for i, e in enumerate(events)]
+    rx = [x for _, x in moving]
+    ex = [x for _, x in events]
+    if len(ex) < 3 or rx[-1] == rx[0]:
+        return None
+    a = (ex[-1] - ex[0]) / (rx[-1] - rx[0])
+    b = ex[0] - a * rx[0]
+    step = abs(a) * abs(rx[-1] - rx[0]) / max(1, len(rx) - 1)
+    pairs = []
+    for _ in range(3):
+        pairs = []
+        for j, x in enumerate(ex):
+            i = min(range(len(rx)), key=lambda i: abs(a * rx[i] + b - x))
+            pairs.append((i, j))
+        n = len(pairs)
+        mx = sum(rx[i] for i, _ in pairs) / n
+        my = sum(ex[j] for _, j in pairs) / n
+        var = sum((rx[i] - mx) ** 2 for i, _ in pairs)
+        if var == 0:
+            return None
+        a = sum((rx[i] - mx) * (ex[j] - my) for i, j in pairs) / var
+        b = my - a * mx
+    residual = [abs(a * rx[i] + b - ex[j]) for i, j in pairs]
+    if statistics.median(residual) > 0.25 * step:
+        return None
+    seen, out = set(), []
+    for (i, j), r in zip(pairs, residual):
+        if r <= 0.6 * step and i not in seen:
+            seen.add(i)
+            out.append((i, events[j][0]))
+    return out
 
 
 ARRIVAL_EVENTS = ("stroke_paint", "qt_tablet_move", "qt_mouse_move")
 MATCH_TOLERANCE_MS = 2.5
 
 
-def analyze(directory):
-    rows = read_probe(os.path.join(directory, "probe.csv"))
+def analyze(directory, probe_offset_ns=0):
+    """probe_offset_ns is the probe clock minus the injection clock; it is
+    subtracted from every probe time (0 when both clocks are the same)."""
+    rows = [(t - probe_offset_ns,) + row[1:] for row in read_probe(os.path.join(directory, "probe.csv"))
+            for t in (row[0],)]
     begins_stroke = [t for t, e, *_ in rows if e == "stroke_begin"]
     dirties = [(t, ex) for t, e, _, _, ex in rows if e == "stroke_dirty_issued"]
     begins = [t for t, e, *_ in rows if e == "paintgl_begin"]
@@ -138,18 +188,20 @@ def analyze(directory):
 
     # Per stroke: the injection time of every moving row, its arrival at the
     # application, and the stroke's press time (the origin of the event time).
-    inject, arrive, press_of, stroke_of = [], [], [], []
+    inject, arrive, press_of, stroke_of, dropped = [], [], [], [], []
     window_end = begins_stroke[1:] + [None]
     for s, ((press, moving), begin, end) in enumerate(zip(strokes, begins_stroke, window_end)):
-        limit = moving[-1] + 300e6 if moving else begin
-        events = [t for t, e, *_ in rows
+        limit = moving[-1][0] + 300e6 if moving else begin
+        events = [(t, float(x)) for t, e, x, _, _ in rows
                   if e == arrival_name and begin <= t < (end if end is not None else limit)
                   and t <= limit]
-        if abs(len(events) - len(moving)) > 2:
-            raise SystemExit("%s: stroke %d has %d %s events against %d moving rows"
+        paired = pair_events(moving, events)
+        if paired is None:
+            raise SystemExit("%s: stroke %d has %d %s events against %d moving rows and the positions do not fit"
                              % (directory, s, len(events), arrival_name, len(moving)))
-        for t_inject, t_arrive in zip(moving, events):
-            inject.append(t_inject)
+        dropped.append(len(moving) - len(paired))
+        for i, t_arrive in paired:
+            inject.append(moving[i][0])
             arrive.append(t_arrive)
             press_of.append(press)
             stroke_of.append(s)
@@ -199,7 +251,11 @@ def analyze(directory):
             return None
         return first_at_or_after(swaps, paint)
 
-    result = {"samples": n, "arrival event": arrival_name, "dirty matched": len(newest), "dirty rows": len(dirties)}
+    # The first stroke_begin follows the first press by the delivery delay of
+    # the press; a value outside 0 to 100 ms means the clocks are not aligned.
+    press_to_begin = [(b - st[0]) / 1e6 for b, st in zip(begins_stroke, strokes)]
+    result = {"press to begin p50": median(press_to_begin)}
+    result.update({"samples": n, "rows without event": sum(dropped), "arrival event": arrival_name, "dirty matched": len(newest), "dirty rows": len(dirties)})
     sample_swap = {}
     for variant, via in (("direct", False), ("projection", True)):
         s_minus_i, s_minus_a = [], []
@@ -235,6 +291,7 @@ def analyze(directory):
     # After the swap: capture frame time minus the swap that showed the displayed sample.
     _, _, _, samples = capture_analyze.frame_samples(directory)
     after = {"direct": [], "projection": []}
+    raw = {"t-D": [], "t-S": [], "t-A": []}
     capture_ms = []
     order = sorted(range(n), key=lambda k: inject[k])
     sorted_inject = [inject[k] for k in order]
@@ -251,10 +308,18 @@ def analyze(directory):
         if abs(sorted_inject[j] - crossed) > MATCH_TOLERANCE_MS * 1e6:
             continue
         k = order[j]
+        raw["t-A"].append((t - arrive[k]) / 1e6)
+        if k in firsts:
+            raw["t-D"].append((t - firsts[k]) / 1e6)
+        if k in sample_swap["direct"]:
+            raw["t-S"].append((t - sample_swap["direct"][k]) / 1e6)
         for variant in after:
             swap = sample_swap[variant].get(k)
             if swap is not None and 0 <= t - swap < 200e6:
                 after[variant].append((t - swap) / 1e6)
+    result["raw"] = {name: (len(v), percentile(v, 0.1), median(v), percentile(v, 0.9),
+                            sum(1 for x in v if x < 0) / len(v) if v else None)
+                     for name, v in raw.items()}
     result["capture p50"] = median(capture_ms)
     for variant in after:
         result[variant]["t-S p50"] = median(after[variant])
@@ -270,16 +335,22 @@ def fmt(value):
 
 
 def main(argv):
-    if len(argv) < 2:
+    args = argv[1:]
+    offset_ns = 0
+    if args and args[0] == "--macos-clocks":
+        import time
+        offset_ns = time.clock_gettime_ns(time.CLOCK_MONOTONIC_RAW) - time.clock_gettime_ns(time.CLOCK_UPTIME_RAW)
+        args = args[1:]
+    if not args:
         print(__doc__)
         return 2
     per_run = []
-    for directory in argv[1:]:
-        r = analyze(directory)
+    for directory in args:
+        r = analyze(directory, offset_ns)
         per_run.append(r)
         print(os.path.basename(directory))
-        print("  %s: %d samples, %d of %d dirty rows matched"
-              % (r["arrival event"], r["samples"], r["dirty matched"], r["dirty rows"]))
+        print("  %s: %d samples (%d rows without an event), %d of %d dirty rows matched, press to stroke_begin p50 %s ms"
+              % (r["arrival event"], r["samples"], r["rows without event"], r["dirty matched"], r["dirty rows"], fmt(r["press to begin p50"])))
         print("  capture p50 %s ms, swap interval p50 %s ms, A-I p50 %s p90 %s"
               % (fmt(r["capture p50"]), fmt(r["swap interval p50"]), fmt(r["A-I p50"]), fmt(r["A-I p90"])))
         for variant in ("direct", "projection"):
@@ -287,6 +358,9 @@ def main(argv):
             print("  %-10s S-I p50 %s p90 %s | S-A p50 %s p90 %s | t-S p50 %s p90 %s (%s frames)"
                   % (variant, fmt(v["S-I p50"]), fmt(v["S-I p90"]), fmt(v["S-A p50"]), fmt(v["S-A p90"]),
                      fmt(v.get("t-S p50")), fmt(v.get("t-S p90")), v.get("t-S frames")))
+        for name, (count, p10, p50, p90, negative) in r["raw"].items():
+            print("  frame-based %s: p10 %s p50 %s p90 %s ms, %s of %d frames negative"
+                  % (name, fmt(p10), fmt(p50), fmt(p90), "-" if negative is None else "%.0f%%" % (negative * 100), count))
         if "os_event_time" in r:
             o = r["os_event_time"]
             print("  os event time vs injection: deviation p50 %s ms p90 %s ms (n=%d)"
