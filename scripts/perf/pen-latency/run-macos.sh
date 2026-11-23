@@ -11,7 +11,8 @@
 # Usage: run-macos.sh NAME RUNS WORK OUT_DIR -- COMMAND [ARGS...]
 #   COMMAND receives the canvas path as its last argument.
 # Environment: MACOS_CAPTURE (built macos_capture, required), KRITARC (default settings in the empty group),
-#   SETTLE_SECONDS (default 5), TRAJECTORY_JSON. The application receives
+#   SETTLE_SECONDS (default 5), TRAJECTORY_JSON, LATENCY_PROBE (1 = the application
+#   writes <run>/probe.csv through LIBREPAINT_LATENCY_LOG). The application receives
 #   REFERENCE_LOG=<run>/reference.log (used by the reference applications).
 #   LibrePaint reads KisConfig and KisImageConfig from the empty group (the
 #   keys before the first [Group] line), not from [General].
@@ -46,6 +47,7 @@ for n in $(seq 1 "$runs"); do
   rm -rf "$home"
   mkdir -p "$home/Library/Preferences" "$run"
   printf '%s' "$kritarc" > "$home/Library/Preferences/kritarc"
+  if [ "${LATENCY_PROBE:-}" = 1 ]; then export LIBREPAINT_LATENCY_LOG="$run/probe.csv"; else unset LIBREPAINT_LATENCY_LOG; fi
   "${clean_env[@]}" CFFIXED_USER_HOME=$home HOME=$home REFERENCE_LOG=$run/reference.log \
     "$@" "$work/canvas.png" > "$run/app.log" 2>&1 < /dev/null &
   app=$!

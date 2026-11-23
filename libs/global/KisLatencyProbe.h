@@ -28,7 +28,9 @@ class QCoreApplication;
  * flags), native_wintab, native_mouse, qt_tablet_move, qt_mouse_move,
  * move_compressed, compressed_dispatch, outline_request, stroke_begin,
  * stroke_paint, stroke_dab (the stroke job has painted its dab into the paint
- * device), projection_update, canvas_update_dispatch, canvas_busy_defer,
+ * device), stroke_dirty_issued (the stroke asks the canvas to redraw; x/y =
+ * the newest painted point in image pixels, extra = its event time in ms),
+ * projection_update, canvas_update_dispatch, canvas_busy_defer,
  * canvas_update_issued, outline_state, canvas_outline_doc,
  * canvas_outline_wdg, canvas_paint_event, canvas_initialize_gl,
  * canvas_resize_gl, paintgl_begin, paintgl_end and frame_swapped.

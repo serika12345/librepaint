@@ -11,7 +11,8 @@
 #   COMMAND receives the canvas path as its last argument.
 # Environment: KRITARC (default: newCursorStyle=0, newOutlineStyle=2,
 #   fpsLimit=100 in the empty group), SETTLE_SECONDS before the capture tool
-#   starts waiting for the canvas (default 5), TRAJECTORY_JSON. The
+#   starts waiting for the canvas (default 5), TRAJECTORY_JSON, LATENCY_PROBE
+#   (1 = the application writes <run>/probe.csv through LIBREPAINT_LATENCY_LOG). The
 #   application receives REFERENCE_LOG=<run>/reference.log (used by the
 #   reference applications). LibrePaint reads KisConfig and KisImageConfig
 #   from the empty group (the keys before the first [Group] line), so the
@@ -58,6 +59,7 @@ for n in $(seq 1 "$runs"); do
   rm -rf "$home"
   mkdir -p "$home/config" "$work/data" "$run"
   printf '%s' "$kritarc" > "$home/config/kritarc"
+  if [ "${LATENCY_PROBE:-}" = 1 ]; then export LIBREPAINT_LATENCY_LOG="$run/probe.csv"; else unset LIBREPAINT_LATENCY_LOG; fi
   HOME=$home XDG_CONFIG_HOME=$home/config XDG_DATA_HOME=$work/data REFERENCE_LOG=$run/reference.log \
     setsid "$@" "$work/canvas.png" > "$run/app.log" 2>&1 < /dev/null &
   app=$!

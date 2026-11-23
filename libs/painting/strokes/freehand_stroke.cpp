@@ -488,6 +488,15 @@ void FreehandStrokeStrategy::issueSetDirtySignals()
         KisLatencyProbe::mark("prediction_real_flush_end", 0, 0, flushedJobs);
     }
 
+    // The newest painted point of this update and its event time let a
+    // measurement link a pen sample to the frame that first shows it.
+    if (m_d->hasLastPaintedInfo) {
+        KisLatencyProbe::mark("stroke_dirty_issued",
+                              m_d->lastPaintedInfo.pos().x(),
+                              m_d->lastPaintedInfo.pos().y(),
+                              qint64(m_d->lastPaintedInfo.currentTime()));
+    }
+
     QVector<QRect> dirtyRects;
 
     for (int i = 0; i < numMaskedPainters(); i++) {

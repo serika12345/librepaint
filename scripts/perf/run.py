@@ -591,8 +591,9 @@ def runner_for(host, target, scenario, run_root):
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
         script = (
-            "cd %s && TRAJECTORY_JSON=%s KRITARC=%s scripts/perf/pen-latency/run-linux.sh %s 1 %s %s -- %s"
-            % (shlex.quote(host["repo"]), shlex.quote(trajectory), shlex.quote(kritarc_text(scenario)),
+            "cd %s && LATENCY_PROBE=%s TRAJECTORY_JSON=%s KRITARC=%s scripts/perf/pen-latency/run-linux.sh %s 1 %s %s -- %s"
+            % (shlex.quote(host["repo"]), "1" if target.get("probe") else "0", shlex.quote(trajectory),
+               shlex.quote(kritarc_text(scenario)),
                shlex.quote(target["name"]), shlex.quote(host["work"] + "/" + target["name"]),
                shlex.quote(remote_out), command)
         )
@@ -602,7 +603,7 @@ def runner_for(host, target, scenario, run_root):
         argv = [os.path.join(HERE, "pen-latency", "run-macos.sh"), target["name"], "1",
                 os.path.join(host["work"], target["name"]), out, "--"] + target["command"]
         env = {"MACOS_CAPTURE": host["capture_tool"], "TRAJECTORY_JSON": trajectory,
-               "KRITARC": kritarc_text(scenario)}
+               "KRITARC": kritarc_text(scenario), "LATENCY_PROBE": "1" if target.get("probe") else "0"}
         return argv, env, None
     raise SystemExit("unknown host kind: %s" % kind)
 
