@@ -12,7 +12,9 @@
 #   COMMAND receives the canvas path as its last argument.
 # Environment: MACOS_CAPTURE (built macos_capture, required), KRITARC (default settings in the empty group),
 #   SETTLE_SECONDS (default 5), TRAJECTORY_JSON, LATENCY_PROBE (1 = the application
-#   writes <run>/probe.csv through LIBREPAINT_LATENCY_LOG). The application receives
+#   writes <run>/probe.csv through LIBREPAINT_LATENCY_LOG), CAPTURE_DENSE (dark pixels per
+#   column that count as ink; the capture tool default is 6, which also counts the brush
+#   outline ring, so a solid brush needs about 18). The application receives
 #   REFERENCE_LOG=<run>/reference.log (used by the reference applications).
 #   LibrePaint reads KisConfig and KisImageConfig from the empty group (the
 #   keys before the first [Group] line), not from [General].
@@ -53,7 +55,7 @@ for n in $(seq 1 "$runs"); do
   app=$!
   sleep "$settle"
   status=0
-  "$capture" --window-pid "$app" --out "$run" --plan "$work/plan.csv" > "$run/capture.log" 2>&1 || status=$?
+  "$capture" --window-pid "$app" --out "$run" --plan "$work/plan.csv" ${CAPTURE_DENSE:+--dense "$CAPTURE_DENSE"} > "$run/capture.log" 2>&1 || status=$?
   kill -TERM "$app" 2> /dev/null || true
   sleep 2
   kill -KILL "$app" 2> /dev/null || true

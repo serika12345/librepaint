@@ -590,8 +590,9 @@ def runner_for(host, target, scenario, run_root):
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
+        dense = "CAPTURE_DENSE=%d " % int(target["capture_dense"]) if target.get("capture_dense") else ""
         script = (
-            "cd %s && LATENCY_PROBE=%s TRAJECTORY_JSON=%s KRITARC=%s scripts/perf/pen-latency/run-linux.sh %s 1 %s %s -- %s"
+            ("cd %s && LATENCY_PROBE=%s " + dense + "TRAJECTORY_JSON=%s KRITARC=%s scripts/perf/pen-latency/run-linux.sh %s 1 %s %s -- %s")
             % (shlex.quote(host["repo"]), "1" if target.get("probe") else "0", shlex.quote(trajectory),
                shlex.quote(kritarc_text(scenario)),
                shlex.quote(target["name"]), shlex.quote(host["work"] + "/" + target["name"]),
@@ -604,6 +605,8 @@ def runner_for(host, target, scenario, run_root):
                 os.path.join(host["work"], target["name"]), out, "--"] + target["command"]
         env = {"MACOS_CAPTURE": host["capture_tool"], "TRAJECTORY_JSON": trajectory,
                "KRITARC": kritarc_text(scenario), "LATENCY_PROBE": "1" if target.get("probe") else "0"}
+        if target.get("capture_dense"):
+            env["CAPTURE_DENSE"] = str(int(target["capture_dense"]))
         return argv, env, None
     raise SystemExit("unknown host kind: %s" % kind)
 

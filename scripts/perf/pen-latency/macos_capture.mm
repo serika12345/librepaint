@@ -19,6 +19,12 @@
 // frame's SCStreamFrameInfoDisplayTime. Posting events needs the
 // Accessibility permission and capturing needs Screen Recording permission
 // for the process that starts this tool.
+//
+// Set LIBREPAINT_DIAG_FRAME_DUMP=1 to keep the captured window frames of the
+// strokes: with --plan, the capture callback saves a frame as
+// screen-000.png, screen-001.png and so on at most every 50 ms while a press
+// is down, up to 40 files, and writes index,frame_ns,arrival_ns to
+// screen-dumps.csv. The variable is read once per process.
 
 #import <AppKit/AppKit.h>
 #import <ApplicationServices/ApplicationServices.h>
@@ -46,7 +52,14 @@ struct Sample { double t; std::string phase, band; double x, y; int pressed; };
 @property(nonatomic) dispatch_semaphore_t firstFrame;
 @property(nonatomic) CVPixelBufferRef latest;
 @property(nonatomic) NSMutableString *rows;
+@property(atomic) int pressedNow;
+@property(nonatomic) NSString *dumpDir;
+@property(nonatomic) NSMutableString *dumpRows;
+@property(nonatomic) int dumpIndex;
+@property(nonatomic) uint64_t dumpLast;
 @end
+
+static void savePng(CVPixelBufferRef pixels, NSString *path);
 
 @implementation Output
 - (void)stream:(SCStream *)stream didOutputSampleBuffer:(CMSampleBufferRef)sample ofType:(SCStreamOutputType)type {
@@ -105,6 +118,12 @@ struct Sample { double t; std::string phase, band; double x, y; int pressed; };
             }
         }
         CVPixelBufferUnlockBaseAddress(pixels, kCVPixelBufferLock_ReadOnly);
+        if (self.dumpDir && self.pressedNow && self.dumpIndex < 40 && (self.dumpLast == 0 || arrival - self.dumpLast >= 50000000ull)) {
+            savePng(pixels, [self.dumpDir stringByAppendingPathComponent:[NSString stringWithFormat:@"screen-%03d.png", self.dumpIndex]]);
+            [self.dumpRows appendFormat:@"%d,%llu,%llu\n", self.dumpIndex, frameNs, arrival];
+            self.dumpLast = arrival;
+            self.dumpIndex++;
+        }
     }
 }
 @end
@@ -301,6 +320,11 @@ int main(int argc, const char **argv) {
         output.firstFrame = dispatch_semaphore_create(0);
         output.rows = [NSMutableString stringWithString:@"frame_ns,arrival_ns,band,xmin,xmax,dense_xmin,dense_xmax,ymin,ymax,dense_gap\n"];
         output.dark = dark; output.dense = dense;
+        const char *dumpEnv = getenv("LIBREPAINT_DIAG_FRAME_DUMP");
+        if (dumpEnv && strcmp(dumpEnv, "1") == 0) {
+            output.dumpDir = out;
+            output.dumpRows = [NSMutableString stringWithString:@"index,frame_ns,arrival_ns\n"];
+        }
         SCStream *stream = [[SCStream alloc] initWithFilter:filter configuration:config delegate:nil];
         dispatch_queue_t queue = dispatch_queue_create("capture", DISPATCH_QUEUE_SERIAL);
         NSError *error = nil;
@@ -386,6 +410,7 @@ int main(int argc, const char **argv) {
             CGEventPost(kCGHIDEventTap, event);
             CFRelease(event);
             pressed = s.pressed;
+            output.pressedNow = pressed;
             [injected appendFormat:@"%llu,%s,%s,%.2f,%.2f,%d\n", t, s.phase.c_str(), s.band.c_str(), s.x, s.y, s.pressed];
         }
         usleep(500000);
@@ -393,6 +418,11 @@ int main(int argc, const char **argv) {
         dispatch_semaphore_wait(got, DISPATCH_TIME_FOREVER);
         @synchronized(output) {
             [output.rows writeToFile:[out stringByAppendingPathComponent:@"capture.csv"] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        }
+        if (output.dumpDir) {
+            @synchronized(output) {
+                [output.dumpRows writeToFile:[out stringByAppendingPathComponent:@"screen-dumps.csv"] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            }
         }
         [injected writeToFile:[out stringByAppendingPathComponent:@"inject.csv"] atomically:YES encoding:NSUTF8StringEncoding error:nil];
         meta = [meta stringByAppendingString:@"}\n"];

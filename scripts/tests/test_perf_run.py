@@ -273,6 +273,22 @@ class RunnerCommandTest(unittest.TestCase):
             _, env, _ = run.runner_for(host, target, scenario, root)
             self.assertEqual(env["PRESENTMON"], "off")
 
+    def test_capture_dense_reaches_the_macos_and_linux_runners(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        macos = {"name": "m", "kind": "macos", "capture_tool": "/tmp/capture", "work": "/tmp/work"}
+        linux = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/repo", "work": "/work", "remote_out": "/out"}
+        target = {"name": "T", "command": ["app"]}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(macos, target, scenario, root)
+            self.assertNotIn("CAPTURE_DENSE", env)
+            argv, _, _ = run.runner_for(linux, target, scenario, root)
+            self.assertNotIn("CAPTURE_DENSE", argv[2])
+            target["capture_dense"] = 18
+            _, env, _ = run.runner_for(macos, target, scenario, root)
+            self.assertEqual(env["CAPTURE_DENSE"], "18")
+            argv, _, _ = run.runner_for(linux, target, scenario, root)
+            self.assertIn("CAPTURE_DENSE=18 TRAJECTORY_JSON=", argv[2])
+
     def test_device_state_recording_is_light_by_default(self):
         scenario = {"trajectory": {}, "name": "test"}
         host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}

@@ -70,7 +70,7 @@ for n in $(seq 1 "$runs"); do
   fi
   status=0
   nix-shell "$here/linux-env.nix" --run \
-    "python3 '$here/mutter_capture.py' --out '$run' --options '$trajectory'" || status=$?
+    "python3 '$here/mutter_capture.py' --out '$run' --options '$trajectory' ${CAPTURE_DENSE:+--dense $CAPTURE_DENSE}" || status=$?
   kill -TERM -- "-$app" 2> /dev/null || true
   sleep 2
   kill -KILL -- "-$app" 2> /dev/null || true
