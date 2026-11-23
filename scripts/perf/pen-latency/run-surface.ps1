@@ -1118,7 +1118,12 @@ try {
     $plan = Join-Path $here 'plan.csv'
     function Invoke-Capture([string]$dir) {
         $log = Join-Path $dir 'capture.log'
-        $process = Start-Process -FilePath $captureTool -ArgumentList @('--out', "`"$dir`"", '--plan', "`"$plan`"") `
+        # LIBREPAINT_CAPTURE_DENSE (a target env entry) sets --dense, the dark pixels per
+        # column that count as ink. The default 6 also counts the brush outline ring, which
+        # leads the ink in motion; a solid brush of 22 pixels needs about 16.
+        $captureArguments = @('--out', "`"$dir`"", '--plan', "`"$plan`"")
+        if ($env:LIBREPAINT_CAPTURE_DENSE) { $captureArguments += @('--dense', $env:LIBREPAINT_CAPTURE_DENSE) }
+        $process = Start-Process -FilePath $captureTool -ArgumentList $captureArguments `
             -PassThru -Wait -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError (Join-Path $dir 'capture.err')
         if ($process.ExitCode -ne 0) { throw "windows_capture failed: $(Get-Content (Join-Path $dir 'capture.err') -Raw)" }
     }
