@@ -8,6 +8,7 @@
 
 #include <QElapsedTimer>
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include "KisPerStrokeRandomSource.h"
 #include "KisQStringListFwd.h"
 #include "kis_assert.h"
@@ -86,7 +87,10 @@ struct FreehandStrokeStrategy::Private
     KisStrokeEfficiencyMeasurer efficiencyMeasurer;
 
     QElapsedTimer timeSinceLastUpdate;
-    int currentUpdatePeriod = 40;
+    // LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS is for the ink measurements only;
+    // KisL1Switches.h owns the removal condition.
+    int currentUpdatePeriod = KisL1Switches::brushMinUpdatePeriodMs() > 0
+                                  ? KisL1Switches::brushMinUpdatePeriodMs() : 40;
 
     const bool needsAsynchronousUpdates = false;
     std::mutex updateEntryMutex;

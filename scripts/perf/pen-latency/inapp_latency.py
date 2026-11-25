@@ -20,7 +20,10 @@ capture.csv. For every stroke sample k the script finds
   S  the first frame_swapped after G.
 
 It prints the medians of S-I (injection to swap), A-I (input age at the
-application) and S-A, and the median of t-S over the captured frames of the
+application) and S-A, the parts of S-A for the direct variant (D-A, from the
+arrival to the stroke's dirty mark; G-D, from the dirty mark to the start of
+the paint; S-G, from the start of the paint to the swap), and the median of
+t-S over the captured frames of the
 ink band, where t is the capture frame time and S belongs to the sample that
 frame shows. t-S is the part after the swap: compositor, scan-out and the
 capture's own sampling. The median of the frames' input-to-capture delay is
@@ -240,7 +243,8 @@ def analyze(directory, probe_offset_ns=0):
                     firsts[covered] = t
             running = k
 
-    def swap_for(dirty_time, via_projection):
+    def paint_and_swap(dirty_time, via_projection):
+        """The (paint start, swap) that shows a dirty mark, or None."""
         start = dirty_time
         if via_projection:
             start = first_at_or_after(projections, dirty_time)
@@ -249,7 +253,12 @@ def analyze(directory, probe_offset_ns=0):
         paint = first_at_or_after(begins, start)
         if paint is None:
             return None
-        return first_at_or_after(swaps, paint)
+        swap = first_at_or_after(swaps, paint)
+        return None if swap is None else (paint, swap)
+
+    def swap_for(dirty_time, via_projection):
+        found = paint_and_swap(dirty_time, via_projection)
+        return None if found is None else found[1]
 
     # The first stroke_begin follows the first press by the delivery delay of
     # the press; a value outside 0 to 100 ms means the clocks are not aligned.
@@ -275,6 +284,20 @@ def analyze(directory, probe_offset_ns=0):
             "S-A p50": median(s_minus_a), "S-A p90": percentile(s_minus_a, 0.9),
             "samples": len(table),
         }
+    parts = {"D-A": [], "G-D": [], "S-G": []}
+    for k in range(n):
+        if k not in firsts:
+            continue
+        found = paint_and_swap(firsts[k], False)
+        if found is None:
+            continue
+        paint, swap = found
+        parts["D-A"].append((firsts[k] - arrive[k]) / 1e6)
+        parts["G-D"].append((paint - firsts[k]) / 1e6)
+        parts["S-G"].append((swap - paint) / 1e6)
+    for name, values in parts.items():
+        result["direct"][name + " p50"] = median(values)
+        result["direct"][name + " p90"] = percentile(values, 0.9)
     a_minus_i = [(arrive[k] - inject[k]) / 1e6 for k in range(n)]
     result["A-I p50"] = median(a_minus_i)
     result["A-I p90"] = percentile(a_minus_i, 0.9)
@@ -353,6 +376,10 @@ def main(argv):
               % (r["arrival event"], r["samples"], r["rows without event"], r["dirty matched"], r["dirty rows"], fmt(r["press to begin p50"])))
         print("  capture p50 %s ms, swap interval p50 %s ms, A-I p50 %s p90 %s"
               % (fmt(r["capture p50"]), fmt(r["swap interval p50"]), fmt(r["A-I p50"]), fmt(r["A-I p90"])))
+        d = r["direct"]
+        print("  direct parts D-A p50 %s p90 %s | G-D p50 %s p90 %s | S-G p50 %s p90 %s"
+              % (fmt(d["D-A p50"]), fmt(d["D-A p90"]), fmt(d["G-D p50"]), fmt(d["G-D p90"]),
+                 fmt(d["S-G p50"]), fmt(d["S-G p90"])))
         for variant in ("direct", "projection"):
             v = r[variant]
             print("  %-10s S-I p50 %s p90 %s | S-A p50 %s p90 %s | t-S p50 %s p90 %s (%s frames)"
@@ -367,6 +394,9 @@ def main(argv):
                   % (fmt(o["dev p50 ms"]), fmt(o["dev p90 ms"]), o["n"]))
     if len(per_run) > 1:
         print("median over %d runs" % len(per_run))
+        print("  direct parts D-A p50 %s | G-D p50 %s | S-G p50 %s" % tuple(
+            fmt(median([r["direct"][name] for r in per_run if r["direct"].get(name) is not None]))
+            for name in ("D-A p50", "G-D p50", "S-G p50")))
         print("  capture p50 %s ms, swap interval %s ms, A-I p50 %s ms" % (
             fmt(median([r["capture p50"] for r in per_run if r["capture p50"] is not None])),
             fmt(median([r["swap interval p50"] for r in per_run if r["swap interval p50"] is not None])),

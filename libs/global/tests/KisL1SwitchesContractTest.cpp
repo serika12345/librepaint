@@ -25,6 +25,7 @@ private Q_SLOTS:
         qunsetenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE");
         qunsetenv("LIBREPAINT_L1_OPENGL_RENDERER");
         qunsetenv("LIBREPAINT_L1_TEXTURE_BUFFERS");
+        qunsetenv("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS");
     }
 
     void unsetVariablesKeepNormalBehaviour()
@@ -138,6 +139,20 @@ private Q_SLOTS:
             qputenv("LIBREPAINT_L1_TEXTURE_BUFFERS", value);
             QCOMPARE(KisL1Switches::Detail::readTextureBuffers(), -1);
         }
+    }
+
+    void brushMinUpdatePeriodAcceptsOneToHundred()
+    {
+        qputenv("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS", "1");
+        QCOMPARE(KisL1Switches::Detail::readBrushMinUpdatePeriodMs(), 1);
+        qputenv("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS", "100");
+        QCOMPARE(KisL1Switches::Detail::readBrushMinUpdatePeriodMs(), 100);
+        for (const char *value : {"0", "101", "-1", "fast", ""}) {
+            qputenv("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS", value);
+            QCOMPARE(KisL1Switches::Detail::readBrushMinUpdatePeriodMs(), -1);
+        }
+        qunsetenv("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS");
+        QCOMPARE(KisL1Switches::Detail::readBrushMinUpdatePeriodMs(), -1);
     }
 
     void openGLRendererAcceptsTheThreeConfigNames()

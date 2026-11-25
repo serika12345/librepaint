@@ -11,6 +11,8 @@
 
 #include "kis_brushop.h"
 
+#include <KisL1Switches.h>
+
 #include <QElapsedTimer>
 #include <QRect>
 
@@ -69,7 +71,10 @@ KisBrushOp::KisBrushOp(const KisPaintOpSettingsSP settings, KisPainter *painter,
     , m_avgNumDabs(50)
     , m_avgUpdateTimePerDab(50)
     , m_idealNumRects(KisImageConfig(true).maxNumberOfThreads())
-    , m_minUpdatePeriod(10)
+    // LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS is for the ink measurements only;
+    // KisL1Switches.h owns the removal condition.
+    , m_minUpdatePeriod(KisL1Switches::brushMinUpdatePeriodMs() > 0
+                            ? KisL1Switches::brushMinUpdatePeriodMs() : 10)
     , m_maxUpdatePeriod(100)
 {
     Q_UNUSED(image);

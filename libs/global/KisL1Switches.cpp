@@ -94,6 +94,13 @@ QString readOpenGLRenderer()
     return QString();
 }
 
+int readBrushMinUpdatePeriodMs()
+{
+    if (!isSet("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS")) return -1;
+    const int value = integerValue("LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS", -1);
+    return value >= 1 && value <= 100 ? value : -1;
+}
+
 int readTextureBuffers()
 {
     const QByteArray value = qgetenv("LIBREPAINT_L1_TEXTURE_BUFFERS").trimmed().toLower();
@@ -154,6 +161,12 @@ QString openGLRenderer()
 int textureBuffers()
 {
     static const int value = Detail::readTextureBuffers();
+    return value;
+}
+
+int brushMinUpdatePeriodMs()
+{
+    static const int value = Detail::readBrushMinUpdatePeriodMs();
     return value;
 }
 }

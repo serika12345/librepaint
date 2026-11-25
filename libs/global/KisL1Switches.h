@@ -45,6 +45,12 @@ KRITAGLOBAL_EXPORT QString openGLRenderer();
 /// L2 CPU cause: texture buffer (PBO) uploads; -1 keeps the renderer default,
 /// 0 disables them (the ANGLE default) and 1 enables them on every renderer.
 KRITAGLOBAL_EXPORT int textureBuffers();
+/// Ink in-app delay: the shortest period in milliseconds between two writes
+/// of rendered dabs into the layer (LIBREPAINT_L1_BRUSH_MIN_UPDATE_MS, 1 to
+/// 100); -1 keeps the normal 10 ms of the pixel brush and the 40 ms of the
+/// first update of a stroke. Removal condition: when the ink measurement
+/// makes a value the default, fold it into the brush and remove the variable.
+KRITAGLOBAL_EXPORT int brushMinUpdatePeriodMs();
 
 namespace Detail
 {
@@ -63,6 +69,7 @@ KRITAGLOBAL_EXPORT bool readDisableMoveCompression();
 KRITAGLOBAL_EXPORT bool readDisableUpdateThrottle();
 KRITAGLOBAL_EXPORT QString readOpenGLRenderer();
 KRITAGLOBAL_EXPORT int readTextureBuffers();
+KRITAGLOBAL_EXPORT int readBrushMinUpdatePeriodMs();
 }
 }
 
