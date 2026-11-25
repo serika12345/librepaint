@@ -1119,15 +1119,18 @@ def before_pairs(host_config):
 
 
 def comparison_units(before_runs, after_runs, host_kind, scenario):
-    """Return [(metric, state, paired_interval)] of an after target against its before target.
+    """Return [(metric, None, paired_interval)] of an after target against its before target.
 
-    The units are those of settle_units; a unit the before target lacks has
-    the interval None.
+    Each metric is one unit over all counted runs, including Windows hover
+    metrics: the pairs follow the alternating order of the runs, and a state
+    split would leave a unit without pairs when the two targets settle in
+    different hover states (the old 1.0.3 build runs only in the low state and
+    the current build only in the high state, 2026-11-26), which kept the
+    comparison inconclusive until max_runs.
     """
-    before_units = {(metric, state): values
-                    for metric, state, values in settle_units(before_runs, host_kind, scenario)}
-    return [(metric, state, paired_interval(before_units.get((metric, state), []), values))
-            for metric, state, values in settle_units(after_runs, host_kind, scenario)]
+    return [(metric, None, paired_interval(run_medians(before_runs, metric),
+                                           run_medians(after_runs, metric)))
+            for metric in scenario["metrics"]]
 
 
 def inconclusive(units):
@@ -1436,7 +1439,7 @@ def judge(summary, scenario, baseline=None):
                             problems.append("only %d run in state" % group_stat["runs"])
                     compared = data.get("comparison") or {}
                     for unit in compared.get("units", []):
-                        if unit["metric"] != metric or unit["state"] != state:
+                        if unit["metric"] != metric or unit["state"] not in (None, state):
                             continue
                         if "mean" not in unit:
                             notes.append("vs %s: too few pairs" % compared["before"])

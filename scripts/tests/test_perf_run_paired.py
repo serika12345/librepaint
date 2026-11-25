@@ -80,6 +80,19 @@ class CaptureMetricTest(unittest.TestCase):
         self.assertEqual(run.metric_unit("ink.input_to_capture"), "ms")
 
 
+class ComparisonUnitsTest(unittest.TestCase):
+    def test_windows_hover_pairs_runs_of_different_states(self):
+        def runs(state, values):
+            return [{"metrics": {METRIC: {"n": 100, "p50": value}}, "state": {"label": state}}
+                    for value in values]
+        units = run.comparison_units(runs("low", [54.0, 53.5, 54.2]), runs("high", [16.0, 16.4, 16.1]),
+                                     "windows", SCENARIO)
+        self.assertEqual(len(units), 1)
+        metric, state, interval = units[0]
+        self.assertEqual((metric, state, interval["verdict"]), (METRIC, None, "improvement"))
+        self.assertEqual(interval["pairs"], 3)
+
+
 class BeforePairsTest(unittest.TestCase):
     def test_a_target_names_the_target_before_its_change(self):
         self.assertEqual(run.before_pairs(HOST), {"New": "Old"})
