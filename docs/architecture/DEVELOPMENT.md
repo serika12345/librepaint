@@ -544,11 +544,13 @@ GUIスレッド（`main_thread`）と描画スレッド（`paintgl_thread`）の
 2. 画面の明るさ、表示（2736×1824@59）、起動するアプリ、`kritarc`を回の間で変えない。
    ほかのアプリを閉じ、`surface_state_wait`（既定`on`）で`% Processor Performance`が
    75%以上を2回続けるまで待ってから始める。
-3. 比べる2つの対象の`hosts.json`に`power: "on"`を書き、同じセッションの中で交互に
-   各5回測る。回ごとの放電量のばらつきが5%以上なら、各10回まで増やす。
-4. `analyze.py`の`power`の1行（`rate` mW、`discharged` mWh）と、`run.py`の
-   `== battery power (input interval)`の中央値で比べる。ACの回、`power.csv`のない回、
-   `rate_mw`のない回は比べない。
+3. 比べる2つの対象の`hosts.json`に`power: "on"`を書き、変更後の対象の`before`に変更前の
+   対象を書いて、同じセッションの中で交互に各5回測る。
+4. 回ごとの放電の速さ`rate_mw`を測った順に組にし、差の平均の95%信頼区間で比べる。区間が0を
+   またぐ場合は各10回まで増やす。`run.py`の組の比較はシナリオの指標だけを扱うので、放電の
+   速さの区間は、集計のJSONにある回ごとの`power`の値から求める。`analyze.py`の`power`の1行と、
+   `run.py`の`== battery power (input interval)`の中央値は目安として読む。ACの回、`power.csv`の
+   ない回、`rate_mw`のない回は比べない。
 
 SRUM（`powercfg /srumutil`）は、アプリごとのエネルギー推定を一定の長い区間（分〜時の粒度）で
 記録するため、1回の入力区間（約33秒）の前後差として切り出せず、実行中の変化も追えない。
@@ -655,15 +657,16 @@ Linuxの計測はこの状態で、設定は既定のままだった）。`run.p
 空のグループのキーとして書き出す。
 
 複数の機器と対象をまとめて計測するときは、`scripts/perf/run.py`を使う。シナリオ
-（`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、ばらつきの上限、悪化と判定する差を定め、
+（`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、悪化と判定する差を定め、
 手元の機器の設定（`scripts/perf/hosts.example.json`を写した`build/perf/hosts.json`。Git の管理外）が
 各機器への入り方、対象の起動方法、取り込みの補正値を定める。各回で対象を交互に1回ずつ測り、
 集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
 すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
 シナリオの`rest_seconds`（既定0）は、Windowsの対象の回と回の間の休みの秒数である。各回の後
 （失敗した回も含む）にその秒数だけ待ち、最後の回の後は待たない。`run.py`は、シナリオの
-`warmup_runs`回（既定0）を集計せずに測り、使える回が`runs`に達するまでと、窓が安定しない
-あいだ`max_runs`（既定は`runs`）に達するまで、対象ごとに回を足す。開始の上限は
+`warmup_runs`回（既定0）を集計せずに測り、使える回が`runs`に達するまで対象ごとに回を足す。
+変更前と変更後の組の対象では、比較の結果が出ないあいだ、`max_runs`に達するまで
+両方の対象に回を足す。`max_runs`の既定値は`runs`である。開始の上限は
 `warmup_runs + 2 × max_runs`回で、値のない回は使える回と数える。計測機の出力ディレクトリーは
 丸ごと取り込むため、中断した前回の計測が取り込まれずに残した回が混ざる。`run.py`は、この計測で
 測っていない回のディレクトリーを、終了時に`<計測結果>/_unmeasured/<機器>/`へ移す（消さない）。
@@ -681,7 +684,7 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 `target-start`、`target-done`（成功。詳細に状態とホバー・インクの中央値）、`target-failed`
 （詳細に`status.txt`の最後の行）、`target-abandoned`（下の打ち切り）、`rest`（回と回の間の
 休みの開始。詳細に秒数）、`settle`（回ごとの窓の判定。詳細に窓の範囲、集計対象の回数、
-判定単位ごとのばらつき、安定したかどうか、上限で止めた理由）、`step`（自動の確認の
+判定単位ごとのばらつき、変更前との差と95%信頼区間、比較の結果が出たかどうか、上限で止めた理由）、`step`（自動の確認の
 手順の開始と終了。詳細に手順の名前）、`step-timeout`、`run-done`（終了コード）である。
 同じ対象で、同じ理由（`status.txt`の最後の行の`failed: `から後ろ）の失敗が2回続いたら、
 `run.py`はその対象の残りの回を回さずに`target-abandoned`を書き、ほかの対象は続ける。
@@ -699,13 +702,21 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 - 集計には、warm-upを除いた使える回（終了状態が0で、計測中の`% Processor Performance`が70%を
   下回らず、ほかの窓を測っていない回）の直近`runs`回（窓）を使う。窓に入らなかった回は集計の
   JSONに残し、`in_window`で区別する。窓は直近の連続した回であり、ばらつきの小さい窓を選び直さない。
-- 窓の判定単位（シナリオの各指標。Windowsのホバーは状態ごと）の回ごとの中央値のばらつき
-  （最大と最小の差を中央値で割ったもの）が5%以上なら、集計対象の回が`max_runs`
-  （`pen-light.json`は10回）に達するまで回を足す。足しても5%未満にならない対象は未安定とし、
-  判定を`check`にし、集計のJSONと基準の`settle.unsettled`に残す。
+- 変更の効果は、変更前と変更後を交互に測って判定する。機器の設定で変更後の対象の`before`に
+  同じ機器の変更前の対象の名前を書く。`run.py`では両方の対象の集計対象の回を測った順に組にし、
+  判定単位ごとに、回ごとの中央値の差の平均について95%信頼区間をtの分布で求める。判定単位は
+  シナリオの各指標で、Windowsのホバーは状態ごとに分ける。差は変更後から変更前を引いた値で、
+  どの指標も小さいほど良い。区間の全体が0より小さければ改善、0より大きければ悪化とし、悪化の行は
+  判定を`check`にする。区間が0をまたぐあいだは、集計対象の回が`max_runs`に達するまで
+  両方の対象に回を足す。`pen-light.json`の`max_runs`は10回である。達しても0をまたぐ判定単位は
+  改善を確かめられなかったものとし、注記に`not shown`と書き、集計のJSONと基準の
+  `settle.unsettled`に残す。変更前と変更後の組に入らない対象は、`runs`回で止める。
+- 回ごとの中央値のばらつきは、最大と最小の差を中央値で割った値である。ばらつきは表に出し、
+  回を足す条件と判定には使わない。
 - 1つの対象の開始の上限は、warm-upと失敗の回を含めて`warmup_runs + 2 × max_runs`回である。
 - 集計対象の回が`runs`以上になった後の回ごとに、`settle`のイベントに窓の範囲、集計対象の
-  回数、判定単位ごとのばらつき、安定したかどうか、上限で止めた理由を書く。
+  回数、判定単位ごとのばらつき、変更後の対象では変更前との差と95%信頼区間、比較の結果が
+  出たかどうか、上限で止めた理由を書く。
 - 各回の取り込みは、キャンバスの大きさ、フレームの大きさ、倍率、リフレッシュレートを
   `canvas.json`（Linuxは`capture-meta.json`）に残す。`run.py`はこれを回ごとの`conditions`
   として集計し、窓の回で2%を超えてキャンバスが違うか、倍率が違い、リフレッシュレートが1 Hzを
@@ -715,12 +726,13 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   手順は窓の大きさを指定する手段を持たないため、条件を記録して比べる。
 - `--baseline-out`は、集計のあとに許可リストのキーだけの基準のJSONを書く（`docs/perf/baselines/`）。
   キーは`format`、`label`、`date`、`commit`、`scenario`、`settings`（`runs`、`warmup_runs`、
-  `max_runs`、`spread_limit`）と、`hosts`の各機器の`kind`、`system`、`capture_offset_ms`、
+  `max_runs`）と、`hosts`の各機器の`kind`、`system`、`capture_offset_ms`、
   各対象の`reference`、`metrics`（中央値、P95、ばらつき、回数）、`states`、窓の回の中央値
   （`run_medians`）、`conditions`、`settle`である。回の名前、経路、sshの名前、環境変数、
   kritarc、取り込みの道具の場所は書かない。`--baseline`はこのファイルと、これまでの集計の
-  JSON（`--summary`）のどちらも読む。未安定の対象は`settle.unsettled`に残り、比較の注記に
-  `baseline unsettled`と出る。
+  JSON（`--summary`）のどちらも読む。基準の`settle.unsettled`に判定単位が並ぶと、比較の注記に
+  `baseline unsettled`と出る。2026-11-16の基準では、`settle.unsettled`に5%未満に収束しなかった
+  判定単位が入っている。それ以降の基準では、変更前との区間が0をまたいだ判定単位が入る。
 
 ```sh
 scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json \

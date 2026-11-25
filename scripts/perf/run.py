@@ -4,8 +4,8 @@
 
 Inputs:
 - a scenario file (scripts/perf/scenarios/*.json): trajectory, application
-  settings, number of runs, the rest between Windows runs, spread limit, and
-  the per-metric regression threshold in milliseconds;
+  settings, number of runs, the rest between Windows runs, and the
+  per-metric regression threshold in milliseconds;
 - a local hosts file (not tracked; see scripts/perf/hosts.example.json): how
   to reach every host and how to start every target there.
 
@@ -58,8 +58,18 @@ with an anomaly on standard error and the exit code 5.
 
 The first "warmup_runs" successful runs of a target are measured but left out
 of the aggregation. The aggregation uses the last "runs" usable runs (the
-window) of every target; a target whose window spread is at or above
-"spread_limit" gets further runs up to "max_runs". Every run records its
+window) of every target. A target of the hosts file can set "before" to the
+name of another target of the same host: it is then the changed version and
+the named target the version before the change. The two alternate in every
+round, and the i-th counted run of each forms a pair. For every judgement
+unit the comparison is the 95 % Student t interval of the mean of the paired
+differences of the run medians (after minus before; every metric is lower is
+better). An interval wholly below zero is an improvement, wholly above zero a
+regression, and one that contains zero is inconclusive. While a unit of the
+pair is inconclusive, both targets get further runs up to "max_runs"; an
+interval that still contains zero there is reported as inconclusive. A
+target outside a pair gets no further runs after "runs". The spread of the
+run medians is reported and plays no part in the verdict. Every run records its
 canvas, frame size, scale and refresh rate (conditions), and the judge refuses
 a comparison whose conditions differ from the baseline by more than 2 %. A
 target of the hosts file can set "reference": true; the table then shows every
@@ -242,11 +252,12 @@ def run_ink_missing(path):
 
 
 def settle_settings(scenario):
-    """Return the scenario's (runs, warmup_runs, max_runs, spread_limit).
+    """Return the scenario's (runs, warmup_runs, max_runs).
 
     "warmup_runs" (default 0) counts the first successful runs of every target
     that are measured but not aggregated. "max_runs" (default "runs") is the
-    most counted runs a target may collect while its window is not settled.
+    most counted runs a target of a before and after pair may collect while
+    the pair's comparison is inconclusive.
     """
     runs = scenario.get("runs")
     if not isinstance(runs, int) or isinstance(runs, bool) or runs < 1:
@@ -259,7 +270,7 @@ def settle_settings(scenario):
         raise SystemExit("scenario: max_runs must be a positive integer")
     if runs > max_runs:
         raise SystemExit("scenario: max_runs (%d) is smaller than runs (%d)" % (max_runs, runs))
-    return runs, warmup_runs, max_runs, float(scenario.get("spread_limit", 0.05))
+    return runs, warmup_runs, max_runs
 
 
 def set_aside_unmeasured(run_root, hosts, measured):
@@ -301,8 +312,9 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
     run_record and counted as summarize counts it, so a run whose processor
     performance stayed below the limit or that measured another window is not
     usable. A target gets another run while fewer than "runs" runs are
-    counted, or while fewer than "max_runs" runs are counted and one of the
-    window's judgement units has a spread at or above "spread_limit". A target
+    counted, or, for a target of a before and after pair, while fewer than
+    "max_runs" runs are counted and a unit of the pair's comparison is
+    inconclusive (comparison_units). A target
     starts at most warmup_runs + 2 * max_runs runs, failures and warm-ups
     included. After every run that leaves at least "runs" counted runs, a
     settle event reports the window. A Windows target rests for the scenario's
@@ -321,10 +333,16 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
     abandoned = set()
     previous_reason = {}
     rest_seconds = scenario.get("rest_seconds", 0)
-    runs, warmup_runs, max_runs, spread_limit = settle_settings(scenario)
+    runs, warmup_runs, max_runs = settle_settings(scenario)
     starts_limit = warmup_runs + 2 * max_runs
     kinds = {(host["name"], target["name"]): host["kind"]
              for host in hosts for target in host["targets"]}
+    before_of = {}
+    afters_of = {}
+    for host in hosts:
+        for after, before in before_pairs(host).items():
+            before_of[(host["name"], after)] = (host["name"], before)
+            afters_of.setdefault((host["name"], before), []).append((host["name"], after))
     started_runs = {key: 0 for key in kinds}
     successes = {key: 0 for key in kinds}
     records = {key: [] for key in kinds}
@@ -338,15 +356,16 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
         """The last "runs" counted records."""
         return counted(key)[-runs:]
 
+    def comparison(key):
+        """The comparison units of an after target, or None for any other target."""
+        if key not in before_of:
+            return None
+        return comparison_units(counted(before_of[key]), counted(key), kinds[key], scenario)
+
     def unstable(key):
-        """Whether a judgement unit of the window's spread is at or above the limit."""
-        for _, _, values in settle_units(window(key), kinds[key], scenario):
-            if len(values) < 2:
-                continue
-            center = statistics.median(values)
-            if center and (max(values) - min(values)) / center >= spread_limit:
-                return True
-        return False
+        """Whether the target's pair has an inconclusive comparison unit."""
+        afters = [key] if key in before_of else afters_of.get(key, [])
+        return any(inconclusive(comparison(after)) for after in afters)
 
     def needs_run(key):
         if key in abandoned or started_runs[key] >= starts_limit:
@@ -420,7 +439,8 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
                             capped.append("starts")
                         events_log.write(events, "settle", label, target["name"], number,
                                          settle_line(window(key), len(counted(key)),
-                                                     kinds[key], scenario, spread_limit, capped))
+                                                     kinds[key], scenario, comparison(key),
+                                                     unstable(key), capped))
                 else:
                     failures.append("%s/%s round %d" % (host["name"], target["name"], number))
                     line = status_last_line(run_root, host, target, started)
@@ -1021,6 +1041,76 @@ def run_medians(runs, metric):
     return values
 
 
+# Two-sided 95 % quantiles of Student's t for 1 to 30 degrees of freedom.
+# Above 30 the value for 30 is used, which widens the interval slightly.
+T_975 = (12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
+         2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
+         2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042)
+
+
+def paired_interval(before, after):
+    """Return the 95 % t interval of the mean of after[i] - before[i], or None.
+
+    The i-th values of the two lists form a pair; values without a partner
+    are left out. Fewer than two pairs give None. The verdict is
+    "improvement" when the interval is wholly below zero, "regression" when
+    it is wholly above zero and "inconclusive" otherwise.
+    """
+    differences = [later - earlier for earlier, later in zip(before, after)]
+    count = len(differences)
+    if count < 2:
+        return None
+    mean = statistics.mean(differences)
+    quantile = T_975[min(count - 1, len(T_975)) - 1]
+    half = quantile * statistics.stdev(differences) / (count ** 0.5)
+    low, high = mean - half, mean + half
+    if high < 0:
+        verdict = "improvement"
+    elif low > 0:
+        verdict = "regression"
+    else:
+        verdict = "inconclusive"
+    return {"pairs": count, "mean": mean, "low": low, "high": high, "verdict": verdict}
+
+
+def before_pairs(host_config):
+    """Return {after target name: before target name} of one host.
+
+    A target names the version before its change with "before". The name
+    must be another target of the same host.
+    """
+    targets = host_config.get("targets", [])
+    names = {target["name"] for target in targets}
+    pairs = {}
+    for target in targets:
+        before = target.get("before")
+        if before is None:
+            continue
+        if before not in names or before == target["name"]:
+            raise SystemExit("hosts: target %s names an unknown before target %r" % (
+                target["name"], before))
+        pairs[target["name"]] = before
+    return pairs
+
+
+def comparison_units(before_runs, after_runs, host_kind, scenario):
+    """Return [(metric, state, paired_interval)] of an after target against its before target.
+
+    The units are those of settle_units; a unit the before target lacks has
+    the interval None.
+    """
+    before_units = {(metric, state): values
+                    for metric, state, values in settle_units(before_runs, host_kind, scenario)}
+    return [(metric, state, paired_interval(before_units.get((metric, state), []), values))
+            for metric, state, values in settle_units(after_runs, host_kind, scenario)]
+
+
+def inconclusive(units):
+    """Whether a comparison has a unit without an interval or with an inconclusive one."""
+    return any(interval is None or interval["verdict"] == "inconclusive"
+               for _, _, interval in units or [])
+
+
 def unit_name(metric, state):
     """The judgement unit's full name, as it is recorded in settle.unsettled."""
     return metric if state is None else "%s[%s]" % (metric, state)
@@ -1057,8 +1147,14 @@ def settle_units(window, host_kind, scenario):
     return units
 
 
-def settle_line(window, counted_runs, host_kind, scenario, limit, capped=()):
-    """Return the detail of a settle event: the window's spreads and the outcome."""
+def settle_line(window, counted_runs, host_kind, scenario, comparison=None, unsettled=False,
+                capped=()):
+    """Return the detail of a settle event: the window's spreads, the comparison and the outcome.
+
+    The spreads are informational. "comparison" holds the units of an after
+    target (comparison_units) and is shown as mean[low,high] in milliseconds.
+    "unsettled" says whether the target's pair is still inconclusive.
+    """
     units = settle_units(window, host_kind, scenario)
     short = {}
     for metric, state, _ in units:
@@ -1068,7 +1164,6 @@ def settle_line(window, counted_runs, host_kind, scenario, limit, capped=()):
     if window:
         parts.append("window=%s..%s" % (window[0].get("start", "?"), window[-1].get("start", "?")))
     parts.append("counted=%d" % counted_runs)
-    settled = True
     for metric, state, values in units:
         name = settle_short_name(metric, state)
         if short[name] > 1:
@@ -1078,10 +1173,15 @@ def settle_line(window, counted_runs, host_kind, scenario, limit, capped=()):
             continue
         center = statistics.median(values)
         spread = (max(values) - min(values)) / center if center else None
-        if spread is not None and spread >= limit:
-            settled = False
         parts.append("%s=%s" % (name, "n/a" if spread is None else "%.1f%%" % (100 * spread)))
-    parts.append("settled=%s" % ("yes" if settled else "no"))
+    for metric, state, interval in comparison or []:
+        name = "vs-before:%s" % unit_name(metric, state)
+        if interval is None:
+            parts.append("%s=n/a" % name)
+        else:
+            parts.append("%s=%+.1f[%+.1f,%+.1f]" % (
+                name, interval["mean"], interval["low"], interval["high"]))
+    parts.append("settled=%s" % ("no" if unsettled else "yes"))
     parts.extend("capped=%s" % value for value in capped)
     return " ".join(parts)
 
@@ -1128,19 +1228,6 @@ def states_of(host, window, scenario):
     return states
 
 
-def unsettled_units(data, host_kind, limit):
-    """Names of the window's judgement units whose spread is at or above the limit."""
-    names = []
-    for metric, stat in data.get("metrics", {}).items():
-        for state, group_stat, _ in metric_groups(data, host_kind, metric, stat):
-            if not group_stat:
-                continue
-            spread = group_stat.get("spread")
-            if spread is not None and spread >= limit:
-                names.append(unit_name(metric, state))
-    return names
-
-
 def run_record(path, host, scenario):
     """Return the record of one run: medians, state, device state and conditions.
 
@@ -1179,9 +1266,11 @@ def summarize(run_root, hosts, scenario):
     and stay out of the aggregation and the run counts. The aggregation uses
     the last "runs" usable runs (the window) of every target; "settle" reports
     how many runs were counted, how large the window is and which judgement
-    units stayed unsettled. Only a Windows target is split by state.
+    units of an after target stayed inconclusive against its before target.
+    An after target also carries "comparison": the before target's name and
+    every unit's interval. Only a Windows target is split by state.
     """
-    runs_needed, warmup_runs, _, spread_limit = settle_settings(scenario)
+    runs_needed, warmup_runs, _ = settle_settings(scenario)
     summary = {"scenario": scenario["name"], "hosts": {}}
     for host in hosts:
         host_dir = os.path.join(run_root, host["name"])
@@ -1199,12 +1288,14 @@ def summarize(run_root, hosts, scenario):
                 continue
             data = entry["targets"].setdefault(target, {"runs": []})
             data["runs"].append(run_record(path, host, scenario))
+        counted_of = {}
         for target, data in entry["targets"].items():
             warmup = data["runs"][:warmup_runs]
             for index, run in enumerate(data["runs"]):
                 run["warmup"] = index < warmup_runs
             measured = data["runs"][len(warmup):]
             counted = usable_runs({"runs": measured})
+            counted_of[target] = counted
             window = counted[-runs_needed:]
             window_ids = {id(run) for run in window}
             for run in data["runs"]:
@@ -1242,8 +1333,20 @@ def summarize(run_root, hosts, scenario):
                 "warmup_runs": len(warmup),
                 "counted_runs": len(counted),
                 "window_runs": len(window),
-                "unsettled": unsettled_units(data, host["kind"], spread_limit),
+                "unsettled": [],
             }
+        for after, before in before_pairs(host).items():
+            data = entry["targets"].get(after)
+            if data is None:
+                continue
+            units = comparison_units(counted_of.get(before, []), counted_of[after],
+                                     host["kind"], scenario)
+            data["comparison"] = {"before": before, "units": [
+                dict({"metric": metric, "state": state}, **(interval or {"verdict": "inconclusive"}))
+                for metric, state, interval in units]}
+            data["settle"]["unsettled"] = [
+                unit_name(metric, state) for metric, state, interval in units
+                if interval is None or interval["verdict"] == "inconclusive"]
         summary["hosts"][host["name"]] = entry
     return summary
 
@@ -1287,7 +1390,7 @@ def baseline_metric(baseline, host, target, metric, state):
 def judge(summary, scenario, baseline=None):
     """Return rows of (host, target, metric, median, p95, spread, delta, verdict, notes, state)."""
     rows = []
-    runs, _, _, limit = settle_settings(scenario)
+    runs = settle_settings(scenario)[0]
     for host, entry in summary["hosts"].items():
         kind = entry.get("kind")
         for target, data in entry["targets"].items():
@@ -1305,14 +1408,21 @@ def judge(summary, scenario, baseline=None):
                             state, group_runs, len(valid) if valid else len(data["runs"])))
                         if group_stat["runs"] < 2:
                             problems.append("only %d run in state" % group_stat["runs"])
-                    if group_stat["spread"] is not None and group_stat["spread"] >= limit:
-                        counted = (data.get("settle") or {}).get("counted_runs")
-                        if counted is not None and counted > runs:
-                            problems.append("spread %.1f%% >= %.0f%% after %d runs" % (
-                                100 * group_stat["spread"], 100 * limit, counted))
+                    compared = data.get("comparison") or {}
+                    for unit in compared.get("units", []):
+                        if unit["metric"] != metric or unit["state"] != state:
+                            continue
+                        if "mean" not in unit:
+                            notes.append("vs %s: too few pairs" % compared["before"])
+                            continue
+                        text = "vs %s %+.1f ms [%+.1f, %+.1f] over %d pairs" % (
+                            compared["before"], unit["mean"], unit["low"], unit["high"], unit["pairs"])
+                        if unit["verdict"] == "regression":
+                            problems.append("regression " + text)
+                        elif unit["verdict"] == "improvement":
+                            notes.append("improvement " + text)
                         else:
-                            problems.append("spread %.1f%% >= %.0f%%" % (
-                                100 * group_stat["spread"], 100 * limit))
+                            notes.append("not shown " + text)
                     total_runs = len(valid) if valid else stat["runs"]
                     if total_runs < runs:
                         problems.append("%d of %d runs" % (total_runs, runs))
@@ -1450,7 +1560,7 @@ def baseline_document(summary, hosts, scenario):
     The document carries no run names, paths, ssh names, environment variables
     or tool locations, so it can be kept in the repository.
     """
-    runs, warmup_runs, max_runs, spread_limit = settle_settings(scenario)
+    runs, warmup_runs, max_runs = settle_settings(scenario)
     reference_names = {}
     for host in hosts or []:
         reference_names[host["name"]] = {
@@ -1466,8 +1576,7 @@ def baseline_document(summary, hosts, scenario):
         "date": summary.get("date"),
         "commit": summary.get("commit"),
         "scenario": summary.get("scenario"),
-        "settings": {"runs": runs, "warmup_runs": warmup_runs, "max_runs": max_runs,
-                     "spread_limit": spread_limit},
+        "settings": {"runs": runs, "warmup_runs": warmup_runs, "max_runs": max_runs},
         "hosts": {},
     }
     for host, entry in summary.get("hosts", {}).items():

@@ -3,9 +3,10 @@
 
 Performance changes are accepted or rejected by the verdict of run.py. These
 tests fix how run directories are assigned to targets, how the capture clock
-correction is applied, and when a result is flagged: too few runs, spread of
-run medians at or above the scenario limit, or a median above the baseline by
-more than the scenario threshold.
+correction is applied, and when a result is flagged: too few runs, or a
+median above the baseline by more than the scenario threshold. The paired
+comparison of a changed target with the target before the change is fixed by
+test_perf_run_paired.py.
 """
 
 import importlib.util
@@ -31,7 +32,6 @@ import test_pen_latency_capture_analyze as simulated  # noqa: E402
 SCENARIO = {
     "name": "test",
     "runs": 2,
-    "spread_limit": 0.05,
     "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}, "ink.input_to_capture": {"regression_ms": 2.0}},
 }
 
@@ -524,7 +524,6 @@ class StateSummaryTest(unittest.TestCase):
     SCENARIO = {
         "name": "test",
         "runs": 4,
-        "spread_limit": 0.05,
         "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}, "ink.input_to_capture": {"regression_ms": 2.0}},
     }
 
@@ -627,7 +626,7 @@ class StateSummaryTest(unittest.TestCase):
 class ShortTargetsTest(unittest.TestCase):
     """A target whose window counted too few runs makes the measurement fail."""
 
-    SCENARIO = {"name": "test", "runs": 3, "spread_limit": 0.05, "metrics": {}}
+    SCENARIO = {"name": "test", "runs": 3, "metrics": {}}
     HOSTS = [{"name": "h", "kind": "linux", "targets": [{"name": "A"}, {"name": "B"}]}]
 
     def test_targets_with_enough_runs_are_not_returned(self):
@@ -650,7 +649,6 @@ class EarlyStopTest(unittest.TestCase):
     SCENARIO = {
         "name": "test",
         "runs": 5,
-        "spread_limit": 0.05,
         "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
     }
     HOST = {"name": "w", "kind": "windows", "capture_offset_ms": 0,
@@ -781,10 +779,10 @@ class VerdictTest(unittest.TestCase):
     def test_stable_result_without_baseline_is_ok(self):
         self.assertEqual(self.verdict(summary_with(40.0))[7], "ok")
 
-    def test_spread_at_limit_needs_checking(self):
-        row = self.verdict(summary_with(40.0, spread=0.05))
-        self.assertEqual(row[7], "check")
-        self.assertIn("spread", row[8])
+    def test_spread_alone_does_not_need_checking(self):
+        row = self.verdict(summary_with(40.0, spread=0.20))
+        self.assertEqual(row[7], "ok")
+        self.assertNotIn("spread", row[8])
 
     def test_missing_runs_need_checking(self):
         self.assertEqual(self.verdict(summary_with(40.0, runs=1))[7], "check")
@@ -811,28 +809,31 @@ class MainExitTest(unittest.TestCase):
                "input_to_capture": {"n": 10, "p50": 52.0, "p95": 58.0},
                "pen_tip_to_edge_px": {"n": 10, "p50": 260.0}}]
 
-    def run_main(self, hovers):
+    def run_main(self, hovers, before=()):
         scenario = {
             "name": "test",
             "runs": len(hovers),
-            "spread_limit": 0.05,
             "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}},
         }
         with tempfile.TemporaryDirectory() as root:
             run_root = os.path.join(root, "runs")
-            for index, _ in enumerate(hovers, start=1):
-                path = os.path.join(run_root, "h", "T-20261108-120000-%d" % index)
-                os.makedirs(path)
-                open(os.path.join(path, "capture.csv"), "w").close()
+            for name, values in (("Old", before), ("T", hovers)):
+                for index, _ in enumerate(values, start=1):
+                    path = os.path.join(run_root, "h", "%s-20261108-120000-%d" % (name, index))
+                    os.makedirs(path)
+                    open(os.path.join(path, "capture.csv"), "w").close()
             scenario_path = os.path.join(root, "scenario.json")
             hosts_path = os.path.join(root, "hosts.json")
             with open(scenario_path, "w") as handle:
                 json.dump(scenario, handle)
             with open(hosts_path, "w") as handle:
+                targets = [{"name": "T"}]
+                if before:
+                    targets = [{"name": "Old"}, {"name": "T", "before": "Old"}]
                 json.dump({"hosts": [{"name": "h", "kind": "linux", "capture_offset_ms": 0,
-                                      "targets": [{"name": "T"}]}]}, handle)
+                                      "targets": targets}]}, handle)
             results = []
-            for hover in hovers:
+            for hover in list(before) + list(hovers):
                 result = fake_run("low", hover, 40.0)
                 result["ink.speed_groups"] = self.SPEEDS
                 result["speed_change"] = []
@@ -852,7 +853,7 @@ class MainExitTest(unittest.TestCase):
         self.assertEqual(status, 0)
 
     def test_a_flagged_metric_still_exits_nonzero_with_speed_rows(self):
-        status, output = self.run_main([40.0, 50.0])
+        status, output = self.run_main([50.0, 50.3, 50.1], before=[40.0, 40.2, 40.1])
         self.assertIn("== ink speed groups", output)
         self.assertIn("| check |", output)
         self.assertEqual(status, 1)
@@ -940,7 +941,7 @@ class TargetConditionsTest(unittest.TestCase):
 class WindowTest(unittest.TestCase):
     """The warm-ups and the window of the counted runs of one target."""
 
-    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4, "spread_limit": 0.05,
+    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4,
                 "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
 
     def summarize(self, results, scenario=None):
@@ -986,12 +987,13 @@ class WindowTest(unittest.TestCase):
         self.assertEqual(hover[7], "ok")
         self.assertNotIn("3 of 2 runs", hover[8])
 
-    def test_settle_names_the_unsettled_state_group(self):
+    def test_a_target_outside_a_pair_has_no_unsettled_unit(self):
         scenario = dict(self.SCENARIO, runs=4, warmup_runs=0)
         summary = self.summarize([fake_run("low", 40.0, 40.0), fake_run("low", 50.0, 40.0),
                                   fake_run("high", 60.0, 40.0), fake_run("high", 60.5, 40.0)], scenario)
         data = summary["hosts"]["h"]["targets"]["T"]
-        self.assertEqual(data["settle"]["unsettled"], ["hover.input_to_capture[low]"])
+        self.assertEqual(data["settle"]["unsettled"], [])
+        self.assertNotIn("comparison", data)
 
 
 class SettleMeasureTest(unittest.TestCase):
@@ -1025,7 +1027,6 @@ class SettleMeasureTest(unittest.TestCase):
             return fake_run("low", hovers[int(path.rsplit("-", 1)[1])], 40.0)
 
         scenario = {"name": "test", "runs": runs, "warmup_runs": warmup_runs, "max_runs": max_runs,
-                    "spread_limit": 0.05,
                     "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
         with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
                 mock.patch.object(run, "run_command", side_effect=fake_command), \
@@ -1044,24 +1045,16 @@ class SettleMeasureTest(unittest.TestCase):
     def settle_lines(self, lines):
         return [fields for fields in lines if fields[1] == "settle"]
 
-    def test_runs_are_added_until_the_window_settles(self):
+    def test_a_target_outside_a_pair_stops_at_runs_whatever_the_spread(self):
         calls, failures, lines = self.measure([40.0, 61.0, 50.0, 50.4], max_runs=4)
-        self.assertEqual(len(calls), 4, calls)
+        self.assertEqual(len(calls), 2, calls)
         self.assertEqual(failures, [])
         settle = self.settle_lines(lines)
-        self.assertEqual(len(settle), 3, settle)
-        self.assertIn("settled=no", settle[0][5])
+        self.assertEqual(len(settle), 1, settle)
         self.assertIn("counted=2", settle[0][5])
         self.assertIn("window=1..2", settle[0][5])
-        self.assertIn("settled=yes", settle[-1][5])
-        self.assertNotIn("capped", settle[-1][5])
-
-    def test_runs_stop_at_max_runs_when_the_window_does_not_settle(self):
-        calls, _, lines = self.measure([40.0, 60.0, 50.0, 45.0], max_runs=4)
-        self.assertEqual(len(calls), 4, calls)
-        settle = self.settle_lines(lines)[-1]
-        self.assertIn("settled=no", settle[5])
-        self.assertIn("capped=runs", settle[5])
+        self.assertIn("settled=yes", settle[0][5])
+        self.assertNotIn("capped", settle[0][5])
 
     def test_a_stable_window_at_runs_adds_no_run(self):
         calls, _, lines = self.measure([40.0, 40.4])
@@ -1099,20 +1092,18 @@ class SettleMeasureTest(unittest.TestCase):
         names = [r["name"] for r in summary["hosts"]["w"]["targets"]["LibrePaint"]["runs"]]
         self.assertEqual(names, ["LibrePaint-20261112-120000-1", "LibrePaint-20261112-120000-2"])
 
-    def test_the_start_limit_ends_an_unsettled_target(self):
+    def test_the_start_limit_ends_a_target_that_keeps_failing(self):
         calls, failures, lines = self.measure([40.0, 60.0], max_runs=4,
-                                              failed=(1, 2, 3, 4, 5, 6))
+                                              failed=(1, 2, 3, 4, 5, 6, 7))
         self.assertEqual(len(calls), 8, calls)
-        self.assertEqual(len(failures), 6)
-        settle = self.settle_lines(lines)[-1]
-        self.assertIn("capped=starts", settle[5])
-        self.assertNotIn("capped=runs", settle[5])
+        self.assertEqual(len(failures), 7)
+        self.assertEqual(self.settle_lines(lines), [])
 
 
 class JudgeSettleTest(unittest.TestCase):
     """The problem text, the baseline notes and the conditions of the judge."""
 
-    SCENARIO = {"name": "test", "runs": 5, "spread_limit": 0.05,
+    SCENARIO = {"name": "test", "runs": 5,
                 "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
     METRICS = {"hover.input_to_capture": {"median": 40.0, "p95": 45.0, "spread": 0.075, "runs": 5}}
     CONDITIONS = {"canvas": [402, 370], "frame": [402, 370], "scale": 1, "refresh": 60, "stable": True}
@@ -1137,14 +1128,10 @@ class JudgeSettleTest(unittest.TestCase):
                               "unsettled": unsettled}
         return {"hosts": {"h": {"targets": {"T": data}}}}
 
-    def test_spread_names_the_added_runs(self):
+    def test_a_wide_spread_is_not_a_problem(self):
         row = run.judge(self.summary(counted=10), self.SCENARIO)[0]
-        self.assertIn("spread 7.5% >= 5% after 10 runs", row[8])
-
-    def test_spread_keeps_the_short_text_without_added_runs(self):
-        row = run.judge(self.summary(counted=5), self.SCENARIO)[0]
-        self.assertIn("spread 7.5% >= 5%", row[8])
-        self.assertNotIn("after", row[8])
+        self.assertEqual(row[7], "ok")
+        self.assertNotIn("spread", row[8])
 
     def test_an_unsettled_baseline_is_noted(self):
         row = run.judge(self.summary(), self.SCENARIO,
@@ -1181,7 +1168,7 @@ class JudgeSettleTest(unittest.TestCase):
 class ReferenceColumnTest(unittest.TestCase):
     """The target-minus-reference column of the verdict table."""
 
-    SCENARIO = {"name": "test", "runs": 5, "spread_limit": 0.05,
+    SCENARIO = {"name": "test", "runs": 5,
                 "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
     HOSTS = [{"name": "h", "kind": "linux", "targets": [
         {"name": "LibrePaint"}, {"name": "Reference", "reference": True}]}]
@@ -1277,7 +1264,7 @@ class RunDetailStateTest(unittest.TestCase):
 class NonWindowsStateTest(unittest.TestCase):
     """Only a Windows target is split by state."""
 
-    SCENARIO = {"name": "test", "runs": 2, "spread_limit": 0.05,
+    SCENARIO = {"name": "test", "runs": 2,
                 "metrics": {"hover.input_to_capture": {"regression_ms": 2.0},
                             "ink.input_to_capture": {"regression_ms": 2.0}}}
 
@@ -1309,7 +1296,7 @@ class NonWindowsStateTest(unittest.TestCase):
 class BaselineDocumentTest(unittest.TestCase):
     """The allowlisted baseline document and its use as a baseline."""
 
-    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4, "spread_limit": 0.05,
+    SCENARIO = {"name": "test", "runs": 2, "warmup_runs": 1, "max_runs": 4,
                 "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
     HOSTS = [{"name": "windows", "kind": "windows", "ssh": "/tmp/secret-host",
               "system": "tablet", "capture_offset_ms": 0,
@@ -1347,8 +1334,7 @@ class BaselineDocumentTest(unittest.TestCase):
         self.assertEqual(set(document), {"format", "label", "date", "commit", "scenario",
                                          "settings", "hosts"})
         self.assertEqual(document["format"], 1)
-        self.assertEqual(document["settings"], {"runs": 2, "warmup_runs": 1, "max_runs": 4,
-                                                "spread_limit": 0.05})
+        self.assertEqual(document["settings"], {"runs": 2, "warmup_runs": 1, "max_runs": 4})
         target = document["hosts"]["windows"]["targets"]["T"]
         self.assertEqual(set(target), {"reference", "metrics", "states", "run_medians",
                                        "conditions", "settle"})
@@ -1378,7 +1364,7 @@ class BaselineOutTest(unittest.TestCase):
     """--baseline-out writes the document after the summary."""
 
     def test_main_writes_the_allowlisted_baseline(self):
-        scenario = {"name": "test", "runs": 2, "warmup_runs": 0, "max_runs": 2, "spread_limit": 0.05,
+        scenario = {"name": "test", "runs": 2, "warmup_runs": 0, "max_runs": 2,
                     "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}}}
         with tempfile.TemporaryDirectory() as root:
             run_root = os.path.join(root, "runs")
