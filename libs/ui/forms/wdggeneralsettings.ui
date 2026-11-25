@@ -1114,7 +1114,7 @@
           <string>Draws the line a little ahead of the pen to reduce the visible lag. Only the screen is affected: the image, its history and the saved file are not.</string>
          </property>
          <property name="text">
-          <string>Predict pen movement and draw the line a little ahead</string>
+          <string>Predict pen movement and draw the line a little ahead (experimental)</string>
          </property>
         </widget>
        </item>

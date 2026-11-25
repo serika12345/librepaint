@@ -2384,8 +2384,11 @@ void KisConfig::setEnableBrushSpeedLogging(bool value) const
 
 bool KisConfig::useStrokePrediction(bool defaultValue) const
 {
-    if (defaultValue) return true;
-    return m_cfg.readEntry("useStrokePrediction", true);
+    // The prediction line is an experimental feature: it is off by default
+    // on every platform because a sudden stop shows an overshoot of up to the
+    // movement cap (CHARTER, prediction line, 2026-11-25).
+    if (defaultValue) return false;
+    return m_cfg.readEntry("useStrokePrediction", false);
 }
 
 void KisConfig::setUseStrokePrediction(bool value) const

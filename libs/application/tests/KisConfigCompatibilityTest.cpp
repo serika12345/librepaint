@@ -227,9 +227,9 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
     /*
      * Consumer: The freehand tool and the settings dialog reading the prediction line settings.
      * Operation: Reads the built-in defaults and saves and reloads each prediction setting.
-     * Observable result: The defaults stay on, 50.0 ms and 24.0 ms, the Kalman predictor stays the
+     * Observable result: The defaults stay off, 50.0 ms and 24.0 ms, the Kalman predictor stays the
      * default, stored values survive a restart, and an unknown predictor reads as Kalman.
-     * Failure impact: The prediction line can switch itself off, or draw with an unintended horizon or anchor.
+     * Failure impact: The experimental prediction line can switch itself on, or draw with an unintended horizon or anchor.
      */
     KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
     ScopedConfigEntry restoreEnabled(configGroup, QStringLiteral("useStrokePrediction"));
@@ -239,7 +239,7 @@ void KisConfigCompatibilityTest::strokePredictionDefaultsAndRoundTrip()
 
     {
         KisConfig config(true);
-        QVERIFY(config.useStrokePrediction(true));
+        QVERIFY(!config.useStrokePrediction(true));
         QCOMPARE(config.strokePredictionHorizonMs(true), 50.0);
         QCOMPARE(config.strokePredictionAnchorMs(true), 24.0);
         QCOMPARE(config.strokePredictionPredictor(true), QStringLiteral("kalman"));
@@ -275,8 +275,8 @@ void KisConfigCompatibilityTest::strokePredictionDefaultWithoutStoredValue()
     /*
      * Consumer: The freehand tool and the settings dialog on a profile that has no prediction preference yet.
      * Operation: Reads useStrokePrediction with the entry deleted from kritarc.
-     * Observable result: The built-in default is on in every environment.
-     * Failure impact: A platform loses the prediction line it draws by default.
+     * Observable result: The built-in default is off in every environment.
+     * Failure impact: A platform draws the experimental prediction line without the user turning it on.
      */
     KConfigGroup configGroup = KSharedConfig::openConfig()->group(QString());
     ScopedConfigEntry restoreEnabled(configGroup, QStringLiteral("useStrokePrediction"));
@@ -284,7 +284,7 @@ void KisConfigCompatibilityTest::strokePredictionDefaultWithoutStoredValue()
     configGroup.sync();
 
     KisConfig config(true);
-    QCOMPARE(config.useStrokePrediction(), true);
+    QCOMPARE(config.useStrokePrediction(), false);
 }
 
 void KisConfigCompatibilityTest::strokePredictionExpiryDefaultsAndClamp()
