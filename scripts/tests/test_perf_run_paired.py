@@ -69,6 +69,17 @@ class PairedIntervalTest(unittest.TestCase):
         self.assertEqual(run.paired_interval([40.0, 40.0], [40.0, 40.0])["verdict"], "inconclusive")
 
 
+class CaptureMetricTest(unittest.TestCase):
+    def test_only_input_to_capture_times_carry_the_offset(self):
+        stat = {"n": 10, "p05": 20.0, "p50": 30.0, "p95": 40.0}
+        self.assertEqual(run.capture_metric(stat, "ink.input_to_capture", 16)["p50"], 14.0)
+        self.assertEqual(run.capture_metric(stat, "l2p.residual_px", 16)["p50"], 30.0)
+
+    def test_a_distance_is_reported_in_pixels(self):
+        self.assertEqual(run.metric_unit("l2p.residual_px"), "px")
+        self.assertEqual(run.metric_unit("ink.input_to_capture"), "ms")
+
+
 class BeforePairsTest(unittest.TestCase):
     def test_a_target_names_the_target_before_its_change(self):
         self.assertEqual(run.before_pairs(HOST), {"New": "Old"})
@@ -166,6 +177,46 @@ class PairedMeasureTest(unittest.TestCase):
         self.assertEqual(calls.count("Old"), 2 * 4)
         self.assertEqual(calls.count("New"), 4)
         self.assertEqual(len(failures), 5)
+
+
+class ChainedPairMeasureTest(unittest.TestCase):
+    """A target that is the after side of one pair and the before side of another."""
+
+    HOST = {"name": "l", "kind": "linux", "capture_offset_ms": 0,
+            "targets": [{"name": "Old"}, {"name": "Mid", "before": "Old"},
+                        {"name": "New", "before": "Mid"}]}
+
+    def test_the_middle_target_runs_while_its_later_pair_is_inconclusive(self):
+        series = {"Old": [40.0, 40.3, 40.1], "Mid": [30.0, 30.2, 30.1],
+                  "New": [31.0, 29.0, 30.5, 29.6, 30.4, 29.8]}
+        calls, values, counts = [], {}, {"Old": 0, "Mid": 0, "New": 0}
+        with tempfile.TemporaryDirectory() as temp:
+            root = os.path.join(temp, "runs")
+            events = os.path.join(temp, "events.log")
+
+            def fake_runner(host, target, scenario, run_root):
+                return ["true", target["name"]], {}, None
+
+            def fake_command(argv, env=None, cwd=None):
+                calls.append(argv[1])
+                name = argv[1]
+                path = os.path.join(root, "l", "%s-20261125-120000-%d" % (name, len(calls)))
+                os.makedirs(path)
+                stamp = time.time() + len(calls)
+                os.utime(path, (stamp, stamp))
+                open(os.path.join(path, "capture.csv"), "w").close()
+                values[os.path.basename(path)] = series[name][min(counts[name], len(series[name]) - 1)]
+                counts[name] += 1
+                return 0
+
+            with mock.patch.object(run, "runner_for", side_effect=fake_runner), \
+                    mock.patch.object(run, "run_command", side_effect=fake_command), \
+                    mock.patch.object(run.capture_analyze, "analyze_run",
+                                      side_effect=lambda path: fake_run(values[os.path.basename(path)])):
+                run.measure_runs([self.HOST], dict(SCENARIO, max_runs=5), root, "chain", events)
+        self.assertEqual(calls.count("Mid"), calls.count("New"))
+        self.assertGreater(calls.count("Mid"), 3)
+        self.assertEqual(calls.count("Old"), 3)
 
 
 class PairedSummaryTest(unittest.TestCase):

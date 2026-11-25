@@ -24,7 +24,8 @@ over all runs. A Windows target can set "presentmon": "off" to leave
 PresentMon out for a comparison, "env" to pass environment variables to the
 measured application (run-surface.ps1 records them in meta.txt), and
 "kritarc" to set root kritarc keys for one run (the file is restored after
-the run). A Windows target records the device state (surface_state.ps1) with
+the run). A Linux or macOS target can set "kritarc" as well; its keys are
+added to the scenario's kritarc for that target. A Windows target records the device state (surface_state.ps1) with
 "surface_state": "light" (the default: one Get-Counter call per five seconds,
 no per-second process list) or "on" (one WMI sample per second); only an
 explicit "off" records nothing. Before every run the runner waits, unless the
@@ -107,16 +108,21 @@ import thread_cpu  # noqa: E402
 DEFAULT_EVENTS = os.path.join(ROOT, "build", "perf", "events.log")
 
 
-def kritarc_text(scenario):
+def kritarc_text(scenario, target=None):
     """Render the scenario's kritarc for the Linux and macOS runners.
 
     LibrePaint reads KisConfig and KisImageConfig from the empty group, which
     KConfig keeps before the first "[Group]" line; Krita does not read
     "General". The scenario names its runtime settings "General", so those
     keys are written as root keys and any other section follows as a group.
+    A target's "kritarc" keys (target_kritarc) are root keys too and replace
+    the scenario's keys of the same name, so that two targets of one host can
+    differ in one setting, such as the stroke prediction.
     """
     sections = scenario.get("kritarc", {})
-    general = sections.get("General", {})
+    general = dict(sections.get("General", {}))
+    if target is not None:
+        general.update(target_kritarc(target))
     lines = ["%s=%s" % (key, value) for key, value in general.items()]
     for section, values in sections.items():
         if section == "General":
@@ -363,8 +369,12 @@ def measure_runs(hosts, scenario, run_root, label, events=None):
         return comparison_units(counted(before_of[key]), counted(key), kinds[key], scenario)
 
     def unstable(key):
-        """Whether the target's pair has an inconclusive comparison unit."""
-        afters = [key] if key in before_of else afters_of.get(key, [])
+        """Whether a pair the target belongs to has an inconclusive comparison unit.
+
+        A target can be the after side of one pair and the before side of
+        others; every such pair counts.
+        """
+        afters = ([key] if key in before_of else []) + afters_of.get(key, [])
         return any(inconclusive(comparison(after)) for after in afters)
 
     def needs_run(key):
@@ -597,8 +607,6 @@ def runner_for(host, target, scenario, run_root):
         return argv, env, None
     if kind in ("linux", "macos") and target.get("env"):
         raise SystemExit("target %s: env is supported only for Windows targets" % target["name"])
-    if kind in ("linux", "macos") and target.get("kritarc"):
-        raise SystemExit("target %s: kritarc is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("surface_state"):
         raise SystemExit("target %s: surface_state is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("surface_state_wait") is not None:
@@ -614,7 +622,7 @@ def runner_for(host, target, scenario, run_root):
         script = (
             ("cd %s && LATENCY_PROBE=%s " + dense + "TRAJECTORY_JSON=%s KRITARC=%s scripts/perf/pen-latency/run-linux.sh %s 1 %s %s -- %s")
             % (shlex.quote(host["repo"]), "1" if target.get("probe") else "0", shlex.quote(trajectory),
-               shlex.quote(kritarc_text(scenario)),
+               shlex.quote(kritarc_text(scenario, target)),
                shlex.quote(target["name"]), shlex.quote(host["work"] + "/" + target["name"]),
                shlex.quote(remote_out), command)
         )
@@ -624,7 +632,7 @@ def runner_for(host, target, scenario, run_root):
         argv = [os.path.join(HERE, "pen-latency", "run-macos.sh"), target["name"], "1",
                 os.path.join(host["work"], target["name"]), out, "--"] + target["command"]
         env = {"MACOS_CAPTURE": host["capture_tool"], "TRAJECTORY_JSON": trajectory,
-               "KRITARC": kritarc_text(scenario), "LATENCY_PROBE": "1" if target.get("probe") else "0"}
+               "KRITARC": kritarc_text(scenario, target), "LATENCY_PROBE": "1" if target.get("probe") else "0"}
         if target.get("capture_dense"):
             env["CAPTURE_DENSE"] = str(int(target["capture_dense"]))
         return argv, env, None
@@ -640,9 +648,26 @@ def target_of(run_name, targets):
 
 
 def shifted(stat, offset):
+    """Subtract the capture clock correction from a time statistic."""
     if not stat.get("n"):
         return stat
     return {key: (value - offset if key in ("p05", "p50", "p95") else value) for key, value in stat.items()}
+
+
+def metric_unit(metric):
+    """The unit of a metric's values: px for a distance, ms otherwise."""
+    return "px" if metric.endswith("_px") else "ms"
+
+
+def capture_metric(stat, metric, offset):
+    """Return a metric of one run, corrected when it is a time to the capture.
+
+    Only the input to capture times carry the capture clock; a distance such
+    as l2p.residual_px stays as analyzed.
+    """
+    if metric.endswith(".input_to_capture"):
+        return shifted(stat, offset)
+    return stat
 
 
 def presentmon_status(run):
@@ -1243,7 +1268,8 @@ def run_record(path, host, scenario):
         result = {}
     return {
         "name": os.path.basename(path),
-        "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
+        "metrics": {metric: capture_metric(result.get(metric, {"n": 0}), metric, offset)
+                    for metric in scenario["metrics"]},
         "state": result.get("state", {"label": "unknown"}),
         "presentmon": result.get("presentmon", {"present": False}),
         "foreground": result.get("foreground", {}),
@@ -1415,8 +1441,9 @@ def judge(summary, scenario, baseline=None):
                         if "mean" not in unit:
                             notes.append("vs %s: too few pairs" % compared["before"])
                             continue
-                        text = "vs %s %+.1f ms [%+.1f, %+.1f] over %d pairs" % (
-                            compared["before"], unit["mean"], unit["low"], unit["high"], unit["pairs"])
+                        text = "vs %s %+.1f %s [%+.1f, %+.1f] over %d pairs" % (
+                            compared["before"], unit["mean"], metric_unit(metric),
+                            unit["low"], unit["high"], unit["pairs"])
                         if unit["verdict"] == "regression":
                             problems.append("regression " + text)
                         elif unit["verdict"] == "improvement":

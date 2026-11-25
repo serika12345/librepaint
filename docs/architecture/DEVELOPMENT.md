@@ -431,7 +431,10 @@ L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わっ
 `run.py`が`TARGET_KRITARC`に載せ、`run-surface.ps1`がアプリの起動前にキーを書き、
 `kritarc-before.txt`に元のファイルを控えて、アプリの終了後に必ず戻す。`meta.txt`には
 `kritarc_original.<キー>`（元の値、なければ`absent`）、`kritarc_override.<キー>`、
-`kritarc_restored`を残す。kritarcはWindowsの対象だけで使える。`meta.txt`には、復元の後に
+`kritarc_restored`を残す。LinuxとmacOSの対象にも`kritarc`を書ける。そのキーは、
+シナリオのkritarcの同じ名前のキーを置き換えて、その対象の回だけに書かれる。予測の線の
+`useStrokePrediction`のように、同じ機器の2つの対象で1つの設定だけを変えて比べるときに使う。
+Windowsの`meta.txt`には、復元の後に
 アプリがkritarcへ残した値（`kritarc_after.canvasState`、`kritarc_after.OpenGLRenderer`、
 `kritarc_after.useOpenGL`、`kritarc_after.useMaximumFrameLatencyOne`）と、アプリの標準出力・
 標準エラーの大きさ（`app_log_bytes`、`app_err_bytes`）も残す。アプリの標準出力と標準エラーは

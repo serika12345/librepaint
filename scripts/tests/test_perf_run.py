@@ -446,10 +446,30 @@ class RunnerCommandTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
-    def test_kritarc_on_a_non_windows_target_is_rejected(self):
+    def test_a_linux_target_kritarc_replaces_the_scenario_key(self):
         host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
                 "remote_out": "/o", "capture_offset_ms": 16}
-        target = {"name": "T", "command": ["app"], "kritarc": {"useMaximumFrameLatencyOne": "false"}}
+        target = {"name": "T", "command": ["app"], "kritarc": {"useStrokePrediction": "true"}}
+        scenario = {"trajectory": {}, "name": "test",
+                    "kritarc": {"General": {"fpsLimit": "100", "useStrokePrediction": "false"}}}
+        with tempfile.TemporaryDirectory() as root:
+            argv, _, _ = run.runner_for(host, target, scenario, root)
+        self.assertIn("useStrokePrediction=true", argv[2])
+        self.assertNotIn("useStrokePrediction=false", argv[2])
+        self.assertIn("fpsLimit=100", argv[2])
+
+    def test_a_macos_target_kritarc_reaches_the_runner(self):
+        host = {"name": "m", "kind": "macos", "work": "/w", "capture_tool": "/c", "capture_offset_ms": 0}
+        target = {"name": "T", "command": ["app"], "kritarc": {"useStrokePrediction": "true"}}
+        scenario = {"trajectory": {}, "name": "test", "kritarc": {"General": {"useStrokePrediction": "false"}}}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+        self.assertEqual(env["KRITARC"], "useStrokePrediction=true\n")
+
+    def test_an_invalid_kritarc_key_on_a_linux_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "kritarc": {"BAD KEY": "x"}}
         with tempfile.TemporaryDirectory() as root:
             with self.assertRaises(SystemExit):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
