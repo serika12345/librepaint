@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "KisQpaPlatformChoice.h"
+#include "libs/global/KisQpaPlatformChoice.h"
 
 #include <QTest>
 
