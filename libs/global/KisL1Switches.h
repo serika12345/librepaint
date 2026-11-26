@@ -37,8 +37,10 @@ KRITAGLOBAL_EXPORT bool waitForGpuBeforeNextFrame();
 /// H4 (GPU load of one frame): window size; an invalid size keeps the normal one.
 KRITAGLOBAL_EXPORT QSize windowSize();
 /// L3 (display path per session type): maximize the main window so the X11
-/// and Wayland paths show the canvas at the same size and zoom; the switch is
-/// removed when the L3 path comparison is recorded in Issue #108.
+/// and Wayland paths show the canvas at the same size and zoom, and so the
+/// KWin display path check (scripts/perf/ui-check) clicks a known spot. The
+/// switch is removed when Issue #108 closes L3 and no display path check or
+/// measurement starts the application with it.
 KRITAGLOBAL_EXPORT bool maximizeWindow();
 /// H5 (hover event decimation): dispatch every movable event immediately.
 KRITAGLOBAL_EXPORT bool disableMoveCompression();

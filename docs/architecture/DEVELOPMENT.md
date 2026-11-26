@@ -932,6 +932,23 @@ UI_CHECK_SESSION=xorg scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-che
 python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-xorg/states.jsonl --platform xcb
 ```
 
+KDE Plasmaでの検査は、`UI_CHECK_SESSION=kwin`を指定してDockerのコンテナの中のKWinで行う。
+`kwin-server.sh`を実行するとKWinが1920×1080の仮想の出力で起動され、アプリはその
+Waylandの接続口に表示される。KWinはホストのGPUの描画専用の装置だけを使って描き、画面の出力は
+GNOMEが使ったまま残る。画面はKWinの`org.kde.KWin.ScreenShot2`で撮る。仮想の出力のKWinでは入力の装置が
+読まれず、入力はKWinの擬似入力のプロトコル`org_kde_kwin_fake_input`だけで受け付けられる。
+そのため、ポップアップに必要な実際の入力は`kwin_click.py`のクリックで与え、ペンの検査は
+`--no-pen`で外す。ペンの筆圧と傾きは、GNOMEとXorgの検査で確かめる。クリックが状態表示の欄に
+当たるようにアプリの窓を最大化して起動する。道具は`kwin-env.nix`で用意する。
+
+```sh
+# Linuxの開発機
+nix-build scripts/perf/ui-check/kwin-env.nix -o build/perf/kwin-env
+UI_CHECK_SESSION=kwin scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-check-kwin -- \
+  env LIBREPAINT_L1_MAXIMIZE_WINDOW=1 ~/pen-latency/dev-run.sh --nosplash
+python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-kwin/states.jsonl --platform wayland --no-pen
+```
+
 ## デスクトップ
 
 ### macOS

@@ -37,6 +37,12 @@ class CheckUiTest(unittest.TestCase):
     def test_a_pen_without_pressure_fails(self):
         self.assertEqual(failed(check_ui.judge(states(pressure=[1.0, 1.0]), "wayland")), ["pen pressure"])
 
+    def test_a_session_without_a_pen_device_skips_only_the_pen_checks(self):
+        results = check_ui.judge(states(pressure=[1.0, 1.0]), "wayland", pen=False)
+        self.assertEqual(failed(results), [])
+        self.assertNotIn("pen pressure", [name for name, _, _ in results])
+        self.assertIn("popup", [name for name, _, _ in results])
+
     def test_a_popup_that_did_not_open_fails(self):
         self.assertEqual(failed(check_ui.judge(states(popups=[]), "wayland")), ["popup"])
 
