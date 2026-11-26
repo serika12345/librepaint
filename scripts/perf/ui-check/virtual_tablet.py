@@ -13,13 +13,17 @@ Needs write access to /dev/uinput (the uinput group on the Linux host) and
 only the standard library.
 
 Usage: virtual_tablet.py [--from X,Y] [--to X,Y] [--seconds S] [--wait-for FILE]
+                         [--device-file FILE]
   X and Y are fractions of the screen; defaults 0.30,0.55 to 0.60,0.55.
   --wait-for creates the device at once and draws when FILE exists, so the
   tablet is present before the application starts, as a plugged-in tablet is.
+  --device-file writes the device's /dev/input/eventN path to FILE once the
+  device exists, for an X server that is given the device explicitly.
 """
 
 import argparse
 import fcntl
+import glob
 import os
 import struct
 import sys
@@ -42,6 +46,8 @@ UI_SET_ABSBIT = 0x40045567
 UI_SET_PROPBIT = 0x4004556E
 UI_DEV_SETUP = 0x405C5503
 UI_ABS_SETUP = 0x401C5504
+SYSNAME_LENGTH = 64
+UI_GET_SYSNAME = 0x80000000 | (SYSNAME_LENGTH << 16) | (ord("U") << 8) | 44
 
 MAX_XY = 32767
 MAX_PRESSURE = 4095
@@ -73,6 +79,15 @@ def create():
     fcntl.ioctl(fd, UI_DEV_SETUP, struct.pack("<4H80sI", BUS_USB, 0x56A, 0x0357, 1, name, 0))
     fcntl.ioctl(fd, UI_DEV_CREATE)
     return fd
+
+
+def event_node(fd):
+    """Return the /dev/input/eventN path of the created device."""
+    sysname = fcntl.ioctl(fd, UI_GET_SYSNAME, bytes(SYSNAME_LENGTH)).split(b"\0")[0].decode()
+    nodes = glob.glob("/sys/devices/virtual/input/%s/event*" % sysname)
+    if len(nodes) != 1:
+        raise SystemExit("no single event node for %s: %s" % (sysname, nodes))
+    return "/dev/input/" + os.path.basename(nodes[0])
 
 
 def emit(fd, kind, code, value):
@@ -118,10 +133,15 @@ def main(argv):
     parser.add_argument("--to", dest="end", type=point, default=(0.60, 0.55))
     parser.add_argument("--seconds", type=float, default=1.5)
     parser.add_argument("--wait-for", metavar="FILE", help="draw when this file exists (at most 300 seconds)")
+    parser.add_argument("--device-file", metavar="FILE", help="write the device's /dev/input/eventN path here")
     args = parser.parse_args(argv)
     fd = create()
     try:
         time.sleep(1.5)  # the compositor opens the new device
+        if args.device_file:
+            with open(args.device_file + ".tmp", "w") as stream:
+                stream.write(event_node(fd) + "\n")
+            os.replace(args.device_file + ".tmp", args.device_file)
         if args.wait_for:
             deadline = time.time() + 300
             while not os.path.exists(args.wait_for):

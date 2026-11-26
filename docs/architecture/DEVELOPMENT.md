@@ -913,6 +913,25 @@ python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-wayland/states.
 表示されたか、2つの窓が表示されたかが判定される。Waylandではコンポジタが窓の位置を
 決めるため、出力先の`<状態>.png`で画面上の配置を確かめる。
 
+GNOME 50ではXorgのセッションが廃止されたため、xcbの経路を実際のXサーバーで確かめる検査は、
+`UI_CHECK_SESSION=xorg`を指定してDockerのコンテナの中のXorgで行う。`xorg-server.sh`を実行すると
+空のイメージとホストのNixのストアを読み取り専用で使うコンテナで仮想の画面のドライバーを使う
+1920×1080のXorgが起動される。コンテナには仮想のペンタブレットの装置だけが渡され、Xorgの
+libinputのドライバーでペンとして読まれる。ホストのキーボードとマウスはホストのセッションに残る。
+アプリのOpenGLを使う窓はGLXがないと一部が黒く表示されるため、コンテナにはnixpkgsのMesaが
+`/run/opengl-driver`として渡され、XサーバーでソフトウェアのGLXが使えるようになっている。
+窓の管理にはopenboxを使い、画面は`xwd`で撮る。道具は`xorg-env.nix`で用意し、開発機の利用者は
+`docker`のグループに入っている必要がある。ホストに残るのは`build/perf/xorg-env`が指すNixのストアのパスと、
+空のイメージ`librepaint-empty:1`である。
+
+```sh
+# Linuxの開発機
+nix-build scripts/perf/ui-check/xorg-env.nix -o build/perf/xorg-env
+UI_CHECK_SESSION=xorg scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-check-xorg -- \
+  ~/pen-latency/dev-run.sh --nosplash
+python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-xorg/states.jsonl --platform xcb
+```
+
 ## デスクトップ
 
 ### macOS
