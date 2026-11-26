@@ -7,8 +7,10 @@ appends one JSON line per state to $LIBREPAINT_UI_CHECK_OUT. Each state is
 held for HOLD_MS so the runner can capture the screen while it is shown; the
 runner reads the "ready" line of a state, captures, and the plugin moves on.
 
-States: start (main window), popup (brush preset chooser), docker (Layers
-docker floating), window (a second main window), done.
+States: start (main window), tablet (the runner draws one stroke with
+virtual_tablet.py), tablet_result (the tablet events the application
+received: count, pressure and tilt ranges), popup (brush preset chooser),
+docker (Layers docker floating), window (a second main window), done.
 """
 
 import json
@@ -18,11 +20,11 @@ import time
 from krita import Extension, Krita
 
 try:
-    from PyQt6.QtCore import QTimer, Qt
+    from PyQt6.QtCore import QEvent, QObject, QTimer, Qt
     from PyQt6.QtGui import QGuiApplication
     from PyQt6.QtWidgets import QApplication, QWidget
 except ImportError:  # PyQt5 builds
-    from PyQt5.QtCore import QTimer, Qt
+    from PyQt5.QtCore import QEvent, QObject, QTimer, Qt
     from PyQt5.QtGui import QGuiApplication
     from PyQt5.QtWidgets import QApplication, QWidget
 
@@ -47,11 +49,34 @@ def visible_popups():
     return popups
 
 
+class TabletRecorder(QObject):
+    """Keeps the pressure and tilt of every tablet event the application receives."""
+
+    TYPES = (QEvent.Type.TabletPress, QEvent.Type.TabletMove, QEvent.Type.TabletRelease)
+
+    def __init__(self):
+        super().__init__()
+        self.events = []
+
+    def eventFilter(self, watched, event):
+        if event.type() in self.TYPES and len(self.events) < 20000:
+            self.events.append((int(event.type()), event.pressure(), event.xTilt(), event.yTilt()))
+        return False
+
+    def summary(self):
+        pressed = [entry for entry in self.events if entry[1] > 0]
+        values = lambda index: [entry[index] for entry in pressed]
+        span = lambda items: [min(items), max(items)] if items else None
+        return {"events": len(self.events), "pressed": len(pressed),
+                "pressure": span(values(1)), "x_tilt": span(values(2)), "y_tilt": span(values(3))}
+
+
 class WaylandCheck(Extension):
     def __init__(self, parent):
         super().__init__(parent)
         self.out = os.environ.get("LIBREPAINT_UI_CHECK_OUT")
-        self.steps = [self.start, self.popup, self.docker, self.window, self.done]
+        self.steps = [self.start, self.tablet, self.tablet_result, self.popup, self.docker, self.window, self.done]
+        self.recorder = TabletRecorder()
 
     def setup(self):
         if self.out:
@@ -85,6 +110,17 @@ class WaylandCheck(Extension):
         self.write("start", main=rect(main), visible=bool(main and main.isVisible()),
                    maximized=bool(main and main.isMaximized()),
                    screen=[screen.x(), screen.y(), screen.width(), screen.height()])
+
+    def tablet(self):
+        # A filter on the application sees every tablet event; an event a
+        # widget ignores reaches its parent and is counted again, so the count
+        # shows that events arrive, not how many the device sent.
+        QApplication.instance().installEventFilter(self.recorder)
+        self.write("tablet")
+
+    def tablet_result(self):
+        QApplication.instance().removeEventFilter(self.recorder)
+        self.write("tablet_result", **self.recorder.summary())
 
     def popup(self):
         main = self.main_window()

@@ -4,6 +4,9 @@
 
 Checks, for the expected Qt platform:
 - start: the main window is visible.
+- tablet_result: the virtual pen's stroke arrived as tablet events with
+  pressure from at most 0.3 to at least 0.8 and x tilt from at most -20 to at
+  least +20 degrees (virtual_tablet.py sends 0.1 to 1.0 and -30 to +30).
 - popup: the brush preset popup is visible, its top-left corner is at the
   bottom-left corner of its button within TOLERANCE_PX.
 - docker: the Layers docker is found, floating and visible.
@@ -30,11 +33,16 @@ def judge(states, platform):
 
     platforms = sorted({entry.get("platform") for entry in states})
     add("platform", platforms == [platform], "recorded %s" % ",".join(map(str, platforms)))
-    for name in ("start", "popup", "docker", "window"):
+    for name in ("start", "tablet", "tablet_result", "popup", "docker", "window"):
         if "error" in by_state.get(name, {}):
             add(name, False, by_state[name]["error"])
     start = by_state.get("start", {})
     add("main window", start.get("visible"), "rect %s" % start.get("main"))
+    tablet = by_state.get("tablet_result", {})
+    pressure, tilt = tablet.get("pressure"), tablet.get("x_tilt")
+    add("pen pressure", pressure and pressure[0] <= 0.3 and pressure[1] >= 0.8,
+        "%s events, %s pressed, pressure %s" % (tablet.get("events"), tablet.get("pressed"), pressure))
+    add("pen tilt", tilt and tilt[0] <= -20 and tilt[1] >= 20, "x tilt %s, y tilt %s" % (tilt, tablet.get("y_tilt")))
     popup = by_state.get("popup", {})
     button = popup.get("button")
     popups = popup.get("popups") or []

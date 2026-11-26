@@ -3,7 +3,8 @@
 #
 # Starts LibrePaint once in the logged-in GNOME session of this Linux host with
 # the waylandcheck plugin (scripts/perf/ui-check/waylandcheck) and captures the
-# screen at every state the plugin records: the main window, the brush preset
+# screen at every state the plugin records: the main window, a stroke drawn
+# with a virtual pen tablet (virtual_tablet.py), the brush preset
 # popup, the floating Layers docker and a second main window. check_ui.py
 # judges the result.
 #
@@ -48,6 +49,10 @@ while [ "$SECONDS" -lt "$deadline" ]; do
     seen=$((seen + 1))
     state=$(sed -n "${seen}p" "$states" | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])')
     [ "$state" = done ] && exit 0
+    if [ "$state" = tablet ]; then
+      python3 -I "$here/virtual_tablet.py" || echo "the virtual tablet failed" >&2
+      continue
+    fi
     # After the start state, click once on the status bar label below the
     # canvas: a Wayland compositor opens a popup only for a recent input event,
     # which a user always has and the plugin's programmatic click lacks.
