@@ -3282,6 +3282,10 @@ void KisMainWindow::initializeGeometry()
         move(desk.x() + (desk.width() - l1WindowSize.width()) / 2,
              desk.y() + (desk.height() - l1WindowSize.height()) / 2);
     }
+    // L3 (display path per session type): see KisL1Switches.h.
+    if (KisL1Switches::maximizeWindow()) {
+        setWindowState(windowState() | Qt::WindowMaximized);
+    }
 #ifdef Q_OS_ANDROID
     // We handle full-screening differently on Android, see viewFullScreen.
     bool fullScreen = KisAndroidUtils::isInFullScreen();

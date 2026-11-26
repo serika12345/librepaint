@@ -77,6 +77,11 @@ QSize readWindowSize()
     return sizeValue("LIBREPAINT_L1_WINDOW_SIZE");
 }
 
+bool readMaximizeWindow()
+{
+    return flagValue("LIBREPAINT_L1_MAXIMIZE_WINDOW");
+}
+
 bool readDisableMoveCompression()
 {
     return flagValue("LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION");
@@ -137,6 +142,12 @@ bool waitForGpuBeforeNextFrame()
 QSize windowSize()
 {
     static const QSize value = Detail::readWindowSize();
+    return value;
+}
+
+bool maximizeWindow()
+{
+    static const bool value = Detail::readMaximizeWindow();
     return value;
 }
 

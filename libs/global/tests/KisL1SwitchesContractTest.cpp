@@ -21,6 +21,7 @@ private Q_SLOTS:
         qunsetenv("LIBREPAINT_L1_SWAP_INTERVAL");
         qunsetenv("LIBREPAINT_L1_WAIT_FOR_GPU");
         qunsetenv("LIBREPAINT_L1_WINDOW_SIZE");
+        qunsetenv("LIBREPAINT_L1_MAXIMIZE_WINDOW");
         qunsetenv("LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION");
         qunsetenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE");
         qunsetenv("LIBREPAINT_L1_OPENGL_RENDERER");
@@ -34,6 +35,7 @@ private Q_SLOTS:
         QCOMPARE(KisL1Switches::swapInterval(), -1);
         QCOMPARE(KisL1Switches::waitForGpuBeforeNextFrame(), false);
         QCOMPARE(KisL1Switches::windowSize(), QSize());
+        QCOMPARE(KisL1Switches::maximizeWindow(), false);
         QCOMPARE(KisL1Switches::disableMoveCompression(), false);
         QCOMPARE(KisL1Switches::disableUpdateThrottle(), false);
         QCOMPARE(KisL1Switches::openGLRenderer(), QString());
@@ -108,6 +110,8 @@ private Q_SLOTS:
             QCOMPARE(KisL1Switches::Detail::readDisableMoveCompression(), true);
             qputenv("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE", value);
             QCOMPARE(KisL1Switches::Detail::readDisableUpdateThrottle(), true);
+            qputenv("LIBREPAINT_L1_MAXIMIZE_WINDOW", value);
+            QCOMPARE(KisL1Switches::Detail::readMaximizeWindow(), true);
         }
         for (const char *value : {"0", "false", "off", "no", ""}) {
             qputenv("LIBREPAINT_L1_WAIT_FOR_GPU", value);
