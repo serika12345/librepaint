@@ -246,6 +246,9 @@ def main(argv):
     parser.add_argument("--dark", type=int, default=128, help="channel value below which a pixel is dark")
     parser.add_argument("--dense", type=int, default=6, help="dark pixels per column that count as ink")
     parser.add_argument("--snapshot", action="store_true", help="save first-frame.png and exit")
+    parser.add_argument("--click", metavar="X,Y",
+                        help="with --snapshot: press and release the left button at X,Y in captured pixels "
+                             "after saving the frame (scripts/perf/ui-check)")
     parser.add_argument("--dump-stop-frames", default=os.environ.get("DUMP_STOP_FRAMES"), metavar="DIR",
                         help="diagnostic: save the first stroke band as PNG frames from 100 ms before to 150 ms after "
                              "the end of the first ink stroke (slows the capture; not for measurements)")
@@ -286,6 +289,14 @@ def main(argv):
             raise SystemExit("no frame captured")
         save_png(os.path.join(args.out, "first-frame.png"), frame)
         if args.snapshot:
+            if args.click:
+                x, y = (float(value) for value in args.click.split(","))
+                mutter.move(x, y)
+                time.sleep(0.2)
+                mutter.button(True)
+                time.sleep(0.05)
+                mutter.button(False)
+                time.sleep(0.2)
             return 0
         if not canvas or canvas[2] < MIN_CANVAS or canvas[3] < MIN_CANVAS:
             raise SystemExit("no white canvas of at least %d px visible: %s" % (MIN_CANVAS, canvas))

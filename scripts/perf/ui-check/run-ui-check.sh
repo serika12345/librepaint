@@ -9,7 +9,9 @@
 #
 # Usage: run-ui-check.sh OUT_DIR -- COMMAND [ARGS...]
 #   COMMAND receives the canvas path as its last argument. OUT_DIR receives
-#   states.jsonl, <state>.png for every state and app.log.
+#   states.jsonl, <state>.png for every state and app.log. STATUS_BAR_CLICK
+#   (default 700,948, captured pixels of a 1920x1080 screen) is the harmless
+#   spot clicked after the start state.
 set -euo pipefail
 
 if [ "$#" -lt 3 ] || [ "$2" != "--" ]; then
@@ -46,8 +48,13 @@ while [ "$SECONDS" -lt "$deadline" ]; do
     seen=$((seen + 1))
     state=$(sed -n "${seen}p" "$states" | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])')
     [ "$state" = done ] && exit 0
+    # After the start state, click once on the status bar label below the
+    # canvas: a Wayland compositor opens a popup only for a recent input event,
+    # which a user always has and the plugin's programmatic click lacks.
+    click=
+    [ "$state" = start ] && click="--click ${STATUS_BAR_CLICK:-700,948}"
     nix-shell "$pen/linux-env.nix" --run \
-      "python3 '$pen/mutter_capture.py' --out '$out/$state' --snapshot --wait 3" > /dev/null 2>&1 || true
+      "python3 '$pen/mutter_capture.py' --out '$out/$state' --snapshot --wait 3 $click" > /dev/null 2>&1 || true
     [ -f "$out/$state/first-frame.png" ] && mv "$out/$state/first-frame.png" "$out/$state.png"
     rm -rf "${out:?}/$state"
   done
