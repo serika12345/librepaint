@@ -3274,6 +3274,13 @@ void KisMainWindow::initializeGeometry()
             setWindowState(state & ~(Qt::WindowMaximized | Qt::WindowFullScreen));
         }
         resize(l1WindowSize);
+        // Center the resized window on its screen: the default geometry above
+        // centers the default size, so a larger requested size would reach past
+        // the screen edge and under the dock on X11. A Wayland compositor places
+        // the window itself and ignores move().
+        const QRect desk = this->screen()->availableGeometry();
+        move(desk.x() + (desk.width() - l1WindowSize.width()) / 2,
+             desk.y() + (desk.height() - l1WindowSize.height()) / 2);
     }
 #ifdef Q_OS_ANDROID
     // We handle full-screening differently on Android, see viewFullScreen.
