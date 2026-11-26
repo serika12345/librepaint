@@ -54,7 +54,7 @@ while [ "$SECONDS" -lt "$deadline" ]; do
     click=
     [ "$state" = start ] && click="--click ${STATUS_BAR_CLICK:-700,948}"
     nix-shell "$pen/linux-env.nix" --run \
-      "python3 '$pen/mutter_capture.py' --out '$out/$state' --snapshot --wait 3 $click" > /dev/null 2>&1 || true
+      "python3 '$pen/mutter_capture.py' --out '$out/$state' --snapshot --keep-pointer --wait 3 $click" > /dev/null 2>&1 || true
     [ -f "$out/$state/first-frame.png" ] && mv "$out/$state/first-frame.png" "$out/$state.png"
     rm -rf "${out:?}/$state"
   done

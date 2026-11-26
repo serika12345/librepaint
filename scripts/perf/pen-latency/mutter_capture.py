@@ -246,6 +246,8 @@ def main(argv):
     parser.add_argument("--dark", type=int, default=128, help="channel value below which a pixel is dark")
     parser.add_argument("--dense", type=int, default=6, help="dark pixels per column that count as ink")
     parser.add_argument("--snapshot", action="store_true", help="save first-frame.png and exit")
+    parser.add_argument("--keep-pointer", action="store_true",
+                        help="leave the pointer where it is: moving it can close an open popup (scripts/perf/ui-check)")
     parser.add_argument("--click", metavar="X,Y",
                         help="with --snapshot: press and release the left button at X,Y in captured pixels "
                              "after saving the frame (scripts/perf/ui-check)")
@@ -273,7 +275,8 @@ def main(argv):
     try:
         # Move the pointer out of the way (the top-left corner would open the
         # GNOME activities overview) and wait for one frame with the canvas.
-        mutter.move(1, 300)
+        if not args.keep_pointer:
+            mutter.move(1, 300)
         # Wait until the application shows a canvas of a usable size.
         deadline = time.time() + args.wait
         canvas = frame = None
