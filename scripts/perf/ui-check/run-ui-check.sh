@@ -36,10 +36,16 @@ python3 -I "$pen/canvas.py" "$work/canvas.png"
 states=$out/states.jsonl
 : > "$states"
 
+# The virtual tablet exists before the application starts, as a plugged-in
+# tablet does, and draws when the plugin reaches the tablet state.
+python3 -I "$here/virtual_tablet.py" --wait-for "$out/draw" > "$out/tablet.log" 2>&1 &
+tablet=$!
+sleep 2
+
 LIBREPAINT_UI_CHECK_OUT=$states HOME=$work/home XDG_CONFIG_HOME=$work/home/config XDG_DATA_HOME=$work/data \
   setsid "$@" "$work/canvas.png" > "$out/app.log" 2>&1 < /dev/null &
 app=$!
-trap 'kill -TERM -- "-$app" 2> /dev/null || true; sleep 2; kill -KILL -- "-$app" 2> /dev/null || true' EXIT
+trap 'kill -TERM -- "-$app" 2> /dev/null || true; kill "$tablet" 2> /dev/null || true; sleep 2; kill -KILL -- "-$app" 2> /dev/null || true' EXIT
 
 seen=0
 deadline=$((SECONDS + 150))
@@ -50,7 +56,8 @@ while [ "$SECONDS" -lt "$deadline" ]; do
     state=$(sed -n "${seen}p" "$states" | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])')
     [ "$state" = done ] && exit 0
     if [ "$state" = tablet ]; then
-      python3 -I "$here/virtual_tablet.py" || echo "the virtual tablet failed" >&2
+      touch "$out/draw"
+      wait "$tablet" || echo "the virtual tablet failed: $(cat "$out/tablet.log")" >&2
       continue
     fi
     # After the start state, click once on the status bar label below the

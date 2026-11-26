@@ -12,8 +12,10 @@ right across the given part of the screen: the pressure rises from 10 % to
 Needs write access to /dev/uinput (the uinput group on the Linux host) and
 only the standard library.
 
-Usage: virtual_tablet.py [--from X,Y] [--to X,Y] [--seconds S]
+Usage: virtual_tablet.py [--from X,Y] [--to X,Y] [--seconds S] [--wait-for FILE]
   X and Y are fractions of the screen; defaults 0.30,0.55 to 0.60,0.55.
+  --wait-for creates the device at once and draws when FILE exists, so the
+  tablet is present before the application starts, as a plugged-in tablet is.
 """
 
 import argparse
@@ -115,10 +117,17 @@ def main(argv):
     parser.add_argument("--from", dest="start", type=point, default=(0.30, 0.55))
     parser.add_argument("--to", dest="end", type=point, default=(0.60, 0.55))
     parser.add_argument("--seconds", type=float, default=1.5)
+    parser.add_argument("--wait-for", metavar="FILE", help="draw when this file exists (at most 300 seconds)")
     args = parser.parse_args(argv)
     fd = create()
     try:
         time.sleep(1.5)  # the compositor opens the new device
+        if args.wait_for:
+            deadline = time.time() + 300
+            while not os.path.exists(args.wait_for):
+                if time.time() > deadline:
+                    raise SystemExit("%s did not appear within 300 seconds" % args.wait_for)
+                time.sleep(0.1)
         stroke(fd, args.start, args.end, args.seconds)
         time.sleep(0.5)
     finally:
