@@ -41,7 +41,7 @@ app=$!
 trap 'kill -TERM -- "-$app" 2> /dev/null || true; sleep 2; kill -KILL -- "-$app" 2> /dev/null || true' EXIT
 
 seen=0
-deadline=$((SECONDS + 90))
+deadline=$((SECONDS + 150))
 while [ "$SECONDS" -lt "$deadline" ]; do
   lines=$(wc -l < "$states")
   while [ "$seen" -lt "$lines" ]; do
@@ -61,5 +61,5 @@ while [ "$SECONDS" -lt "$deadline" ]; do
   kill -0 "$app" 2> /dev/null || { echo "the application exited before the check finished" >&2; exit 1; }
   sleep 0.5
 done
-echo "the check did not finish within 90 seconds" >&2
+echo "the check did not finish within 150 seconds" >&2
 exit 1

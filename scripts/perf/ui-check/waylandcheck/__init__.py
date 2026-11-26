@@ -27,7 +27,7 @@ except ImportError:  # PyQt5 builds
     from PyQt5.QtWidgets import QApplication, QWidget
 
 START_MS = 6000
-HOLD_MS = 5000
+HOLD_MS = 12000
 
 
 def rect(widget):
