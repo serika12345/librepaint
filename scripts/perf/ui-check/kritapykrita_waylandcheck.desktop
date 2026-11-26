@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=waylandcheck
+Name=Display path check
+Comment=Opens a popup, floats a docker and opens a second window, and records their geometry for scripts/perf/ui-check/run-ui-check.sh.
