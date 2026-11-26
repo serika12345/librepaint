@@ -975,6 +975,17 @@ scripts/perf/wgpu-embed/build.sh
 scripts/perf/wgpu-embed/check.sh wgpu wayland ~/pen-latency/wgpu-embed/check-wgpu-wayland mailbox
 ```
 
+macOSでも同じ`build.sh`で構築できる。wgpuはMetalで描き、キャンバスのNSViewにCAMetalLayerを付けて描画面にする。
+Metalではmailboxを使えないため、交換で待たない方式は`immediate`である。macOSには仮想のペンタブレットの
+仕組みがないため、写しは`--demo`で起動時に線とホバーの印を描かせ、`macos_capture`の`--snapshot`で撮る。
+
+```sh
+# Mac
+scripts/perf/wgpu-embed/build.sh
+build/perf/wgpu-embed/wgpu-embed-check --canvas wgpu --present immediate --demo --overlay-widgets &
+<macos_capture> --window-pid $! --out <出力先> --snapshot
+```
+
 `check.sh`では、アプリの起動の前に`virtual_tablet.py`で仮想のペンタブレットが作られ、
 1本の線が描かれる。続いてキャンバスがクリックされ、ポインターをキャンバスに置いたまま画面が撮られる。
 `summary.txt`には、キャンバスが受け取ったペンの事象の件数と筆圧の範囲が書かれる。

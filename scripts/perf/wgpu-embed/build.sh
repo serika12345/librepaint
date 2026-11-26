@@ -20,11 +20,11 @@ paths=$(nix-shell "$here/env.nix" --run 'printf "%s\n%s\n" "$WGPU_EMBED_QT_PLUGI
 plugins=$(sed -n 1p <<< "$paths")
 libraries=$(sed -n 2p <<< "$paths")
 
-cat > "$out/wgpu-embed-check" <<EOF
-#!/usr/bin/env bash
-export QT_PLUGIN_PATH='$plugins'
-export LD_LIBRARY_PATH='$libraries'\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
-exec '$out/cmake/wgpu_embed_check' "\$@"
-EOF
+{
+  echo '#!/usr/bin/env bash'
+  echo "export QT_PLUGIN_PATH='$plugins'"
+  [ -z "$libraries" ] || echo "export LD_LIBRARY_PATH='$libraries'\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+  echo "exec '$out/cmake/wgpu_embed_check' \"\$@\""
+} > "$out/wgpu-embed-check"
 chmod +x "$out/wgpu-embed-check"
 echo "launcher: $out/wgpu-embed-check"

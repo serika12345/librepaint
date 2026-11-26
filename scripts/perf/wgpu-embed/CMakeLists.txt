@@ -17,3 +17,10 @@ target_include_directories(wgpu_embed_check PRIVATE $ENV{WGPU_NATIVE_INCLUDE})
 target_link_libraries(wgpu_embed_check PRIVATE
     Qt6::Gui Qt6::GuiPrivate Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets
     $ENV{WGPU_NATIVE_LIB})
+
+if(APPLE)
+    enable_language(OBJCXX)
+    target_sources(wgpu_embed_check PRIVATE metal_layer.mm)
+    set_source_files_properties(metal_layer.mm PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+    target_link_libraries(wgpu_embed_check PRIVATE "-framework AppKit" "-framework QuartzCore" "-framework Metal")
+endif()

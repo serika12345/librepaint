@@ -22,6 +22,8 @@
 //   --canvas gl          QOpenGLWidget, composed by Qt into the window
 //   --canvas wgpu        native child widget with its own wgpu surface
 //   --present MODE       wgpu present mode: fifo (default), mailbox, immediate
+//   --demo               draw a stroke and a hover mark at start, for
+//                        snapshots without pointer input
 //   --overlay-widgets    show a child widget of the canvas and a sibling
 //                        widget raised over the canvas
 //   --native-siblings    keep Qt's default that makes the siblings of a
@@ -64,6 +66,10 @@
 #include <cstdio>
 #include <ctime>
 #include <memory>
+
+#ifdef Q_OS_MACOS
+void *wgpuEmbedMetalLayer(void *nsView); // metal_layer.mm
+#endif
 
 namespace {
 
@@ -133,6 +139,17 @@ public:
         redrawOverlay();
     }
 
+    // --demo: a stroke and a hover position without input, so a snapshot
+    // shows the ink, the hover mark and the decoration.
+    void demo()
+    {
+        const QSizeF size = ink.deviceIndependentSize();
+        input("press", QPointF(size.width() * 0.3, size.height() * 0.6), true);
+        input("drag", QPointF(size.width() * 0.6, size.height() * 0.6), true);
+        input("release", QPointF(size.width() * 0.6, size.height() * 0.6), false);
+        input("hover", QPointF(size.width() * 0.45, size.height() * 0.4), false);
+    }
+
     void takeDirty() { inkDirty = overlayDirty = QRect(); oldestInputNs = 0; }
 
 private:
@@ -182,9 +199,16 @@ private:
     bool m_hasHover = false;
 };
 
+class DemoCanvas
+{
+public:
+    virtual ~DemoCanvas() = default;
+    virtual void runDemo() = 0;
+};
+
 // Pointer and tablet handling shared by both canvases.
 template<typename Base>
-class InputCanvas : public Base
+class InputCanvas : public Base, public DemoCanvas
 {
 public:
     explicit InputCanvas(QWidget *parent) : Base(parent)
@@ -192,6 +216,12 @@ public:
         this->setMouseTracking(true);
         this->setTabletTracking(true);
         this->setCursor(Qt::BlankCursor);
+    }
+
+    void runDemo() override
+    {
+        m_scene.demo();
+        requestFrame();
     }
 
 protected:
@@ -415,9 +445,16 @@ private:
         }
         m_instance = wgpuCreateInstance(nullptr);
         WGPUSurfaceDescriptor surfaceDescriptor = WGPU_SURFACE_DESCRIPTOR_INIT;
+        const QString platform = QGuiApplication::platformName();
+#ifdef Q_OS_MACOS
+        WGPUSurfaceSourceMetalLayer metal = WGPU_SURFACE_SOURCE_METAL_LAYER_INIT;
+        if (platform == QLatin1String("cocoa")) {
+            metal.layer = wgpuEmbedMetalLayer(reinterpret_cast<void *>(winId()));
+            surfaceDescriptor.nextInChain = &metal.chain;
+        } else
+#else
         WGPUSurfaceSourceWaylandSurface wayland = WGPU_SURFACE_SOURCE_WAYLAND_SURFACE_INIT;
         WGPUSurfaceSourceXlibWindow xlib = WGPU_SURFACE_SOURCE_XLIB_WINDOW_INIT;
-        const QString platform = QGuiApplication::platformName();
         if (platform == QLatin1String("wayland")) {
             wayland.display = qApp->nativeInterface<QNativeInterface::QWaylandApplication>()->display();
             wayland.surface = QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window);
@@ -426,7 +463,9 @@ private:
             xlib.display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
             xlib.window = winId();
             surfaceDescriptor.nextInChain = &xlib.chain;
-        } else {
+        } else
+#endif
+        {
             qFatal("unsupported platform %s", qPrintable(platform));
         }
         m_surface = wgpuInstanceCreateSurface(m_instance, &surfaceDescriptor);
@@ -600,6 +639,11 @@ private:
             if (current.texture) {
                 wgpuTextureRelease(current.texture);
             }
+            if (current.status == WGPUSurfaceGetCurrentTextureStatus_Occluded) {
+                // macOS reports a covered window; draw again once it may show.
+                QTimer::singleShot(100, this, [this] { requestFrame(); });
+                return;
+            }
             m_configured = false;
             requestFrame();
             return;
@@ -696,6 +740,7 @@ int main(int argc, char **argv)
     WGPUPresentMode presentMode = WGPUPresentMode_Fifo;
     QString presentName = QStringLiteral("fifo");
     bool overlayWidgets = false;
+    bool demo = false;
     const QStringList arguments = application.arguments();
     for (int i = 1; i < arguments.size(); ++i) {
         if (arguments[i] == QLatin1String("--canvas") && i + 1 < arguments.size()) {
@@ -705,6 +750,8 @@ int main(int argc, char **argv)
             presentMode = presentName == QLatin1String("mailbox") ? WGPUPresentMode_Mailbox
                 : presentName == QLatin1String("immediate")       ? WGPUPresentMode_Immediate
                                                                   : WGPUPresentMode_Fifo;
+        } else if (arguments[i] == QLatin1String("--demo")) {
+            demo = true;
         } else if (arguments[i] == QLatin1String("--overlay-widgets")) {
             overlayWidgets = true;
         } else if (arguments[i] == QLatin1String("--native-siblings")) {
@@ -735,6 +782,9 @@ int main(int argc, char **argv)
     window.move(screen.center() - window.rect().center());
     window.show();
 
+    if (demo) {
+        QTimer::singleShot(500, canvas, [canvas] { dynamic_cast<DemoCanvas *>(canvas)->runDemo(); });
+    }
     if (overlayWidgets) {
         QFrame *child = overlayWidget(canvas, QStringLiteral("child of the canvas"));
         child->move(canvas->width() - child->width() - 20, 20);
