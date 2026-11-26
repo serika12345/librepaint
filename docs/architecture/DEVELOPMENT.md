@@ -949,6 +949,56 @@ UI_CHECK_SESSION=kwin scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-che
 python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-kwin/states.jsonl --platform wayland --no-pen
 ```
 
+### wgpuの組み込みの試験アプリ
+
+段階Gでキャンバスの表示をwgpuへ移す前に`scripts/perf/wgpu-embed`の試験アプリで3つの項目を確かめる。
+1つ目はネイティブの子ウィンドウにペンタブレットの入力が届くか、2つ目はツールの装飾と
+キャンバスに重ねたウィジェットが見えるか、3つ目は同じ点を描いたときの遅れがQOpenGLWidgetより
+短いかである。
+
+試験アプリには2つのキャンバスがあり、`--canvas gl`ではQOpenGLWidget、`--canvas wgpu`では
+ネイティブの子ウィンドウへwgpuが直接描く。どちらのキャンバスでも、製品と同じくCPUの画像に
+インクを描き、ホバーの印と装飾を別の画像にQPainterで描き、変わった矩形だけをGPUの
+テクスチャへ送って1回の描画で重ねる。印は参照アプリと同じで、取り込みの計測でそのまま測れる。
+装飾は橙色の円で、取り込みではインクとして数えられない明るさにしている。製品と条件をそろえるため、
+OpenGLのキャンバスでは交換で垂直同期を待たず、wgpuは画面をつないでいるGPUを選ぶ。
+wgpuの表示方式は`--present`で`fifo`、`mailbox`、`immediate`から選ぶ。製品と同じく交換で待たない
+方式は`mailbox`である。
+
+道具は`env.nix`で固定版のnixpkgsのQt 6.12.0とwgpu-native 29.0.1.1をバイナリキャッシュから得る。
+`build.sh`では`build/perf/wgpu-embed`に構築し、Qtのプラグインの場所とVulkanの読み込み部の場所を
+設定する起動スクリプト`wgpu-embed-check`が書き出される。
+
+```sh
+# Linuxの開発機
+scripts/perf/wgpu-embed/build.sh
+scripts/perf/wgpu-embed/check.sh wgpu wayland ~/pen-latency/wgpu-embed/check-wgpu-wayland mailbox
+```
+
+`check.sh`では、アプリの起動の前に`virtual_tablet.py`で仮想のペンタブレットが作られ、
+1本の線が描かれる。続いてキャンバスがクリックされ、ポインターをキャンバスに置いたまま画面が撮られる。
+`summary.txt`には、キャンバスが受け取ったペンの事象の件数と筆圧の範囲が書かれる。
+`hover/first-frame.png`では、インク、ホバーの印、装飾の円、`--overlay-widgets`の2つの
+ウィジェットの見え方を確かめる。遅れは`scripts/perf/run.py`の対象に起動スクリプトを書いて測る。
+`before`にOpenGLのキャンバスの対象を書くと交互に測った差の95%信頼区間で判定される。
+
+```json
+{"name": "embed-gl-wayland", "capture_dense": 12,
+ "command": ["env", "QT_QPA_PLATFORM=wayland", "<repo>/build/perf/wgpu-embed/wgpu-embed-check", "--canvas", "gl"]},
+{"name": "embed-wgpu-wayland-mailbox", "capture_dense": 12, "before": "embed-gl-wayland",
+ "command": ["env", "QT_QPA_PLATFORM=wayland", "<repo>/build/perf/wgpu-embed/wgpu-embed-check",
+             "--canvas", "wgpu", "--present", "mailbox"]}
+```
+
+GNOMEのWaylandでQtが窓の枠を自分で描く場合は、ネイティブの子ウィンドウに次の制約がある。
+キャンバスに重ねたネイティブでないウィジェットは、キャンバスの面の下に隠れる。ネイティブの
+ウィジェットは、中身がタイトルバーの高さだけ下にずれて表示される。Qt 6.12.0の
+`QWaylandShmBackingStore::flush`では、ネイティブの子ウィンドウへ写すときに窓の枠の余白が
+足されないためである。Qtの既定では、ネイティブにしたウィジェットの兄弟と先祖の兄弟もネイティブに
+なるため、試験アプリでは`Qt::AA_DontCreateNativeWidgetSiblings`を設定している。
+`--native-siblings`を付けるとQtの既定の振る舞いを再現できる。xcbと、窓の枠を消した
+Waylandでは、すべてのウィジェットが正しい位置に表示される。
+
 ## デスクトップ
 
 ### macOS
