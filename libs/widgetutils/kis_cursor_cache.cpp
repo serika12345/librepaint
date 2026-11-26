@@ -45,7 +45,9 @@ namespace {
         int hX = hotspotX;
         int hY = hotspotY;
 #ifdef Q_OS_LINUX
-        if (qEnvironmentVariable("QT_QPA_PLATFORM") == "xcb") {
+        // The platform in use, not QT_QPA_PLATFORM: the variable can list
+        // "wayland;xcb" and Qt then falls back to xcb (KisQpaPlatformChoice.h).
+        if (QGuiApplication::platformName() == QLatin1String("xcb")) {
             hX = (hotspotX >= 0? hotspotX * cursorImage.devicePixelRatio(): (cursorImage.width() /2));
             hY = (hotspotY >= 0? hotspotY * cursorImage.devicePixelRatio(): (cursorImage.height()/2));
         }

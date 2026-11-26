@@ -445,6 +445,12 @@ kis_add_test(
 target_compile_definitions(KisLatencyProbeContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisQpaPlatformChoiceContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KisL1SwitchesContractTest.cpp
     LINK_LIBRARIES
         kritagloballatencyl1switches

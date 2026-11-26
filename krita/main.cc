@@ -44,6 +44,7 @@
 #include <KoResourcePaths.h>
 #include <application/kis_config.h>
 #include <kis_debug.h>
+#include <KisQpaPlatformChoice.h>
 #include <kis_image_config.h>
 #include <kritaversion.h>
 #include <opengl/kis_opengl.h>
@@ -481,7 +482,8 @@ extern "C" MAIN_EXPORT int MAIN_FN(int argc, char **argv)
 
 #if defined HAVE_X11
     if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM")) {
-        qputenv("QT_QPA_PLATFORM", "xcb");
+        qputenv("QT_QPA_PLATFORM", kisDefaultQpaPlatform(qgetenv("XDG_SESSION_TYPE"),
+                                                         qgetenv("WAYLAND_DISPLAY")));
     }
 #elif defined Q_OS_WIN
     if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM")) {
