@@ -893,7 +893,8 @@ Linuxでは、Waylandのセッションで既定の描画の経路がWaylandへ�
 
 経路ごとに、ペンの筆圧と傾きが届くか、ポップアップ、切り離したパネル、2つ目の窓が
 表示されるかを、ログイン中のGNOMEのセッションがあるLinuxの開発機で確かめる。ペンの検査では、
-`virtual_tablet.py`で`/dev/uinput`に仮想のペンタブレットが作られ、筆圧を0.1から1.0へ、
+アプリの起動の前に`virtual_tablet.py`で`/dev/uinput`に仮想のペンタブレットが作られ、
+プラグインがペンの状態に進むと、筆圧を0.1から1.0へ、
 横の傾きを−30度から+30度へ変えながら1本の線が描かれる。開発機では、NixOSの設定の
 `hardware.uinput.enable`と`uinput`のグループで、利用者に`/dev/uinput`への書き込みを許している。`run-ui-check.sh`では、検査用の
 プラグイン`scripts/perf/ui-check/waylandcheck`を入れたアプリが起動される。プラグインが
