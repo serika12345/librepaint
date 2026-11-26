@@ -891,8 +891,11 @@ Linuxでは、Waylandのセッションで既定の描画の経路がWaylandへ�
 `libs/global/KisQpaPlatformChoice.h`の規則で値が決まる。利用者が`QT_QPA_PLATFORM`を
 指定した場合は、その値が優先される。
 
-経路ごとに、ポップアップ、切り離したパネル、2つ目の窓が表示されるかを、ログイン中の
-GNOMEのセッションがあるLinuxの開発機で確かめる。`run-ui-check.sh`では、検査用の
+経路ごとに、ペンの筆圧と傾きが届くか、ポップアップ、切り離したパネル、2つ目の窓が
+表示されるかを、ログイン中のGNOMEのセッションがあるLinuxの開発機で確かめる。ペンの検査では、
+`virtual_tablet.py`で`/dev/uinput`に仮想のペンタブレットが作られ、筆圧を0.1から1.0へ、
+横の傾きを−30度から+30度へ変えながら1本の線が描かれる。開発機では、NixOSの設定の
+`hardware.uinput.enable`と`uinput`のグループで、利用者に`/dev/uinput`への書き込みを許している。`run-ui-check.sh`では、検査用の
 プラグイン`scripts/perf/ui-check/waylandcheck`を入れたアプリが起動される。プラグインが
 状態を1つずつ作り、各状態でmutterの画面共有を通して画面が撮られる。最初の状態の後に、
 状態表示の欄を1回クリックする。Waylandでは、直前に実際の入力がないとポップアップが
@@ -905,7 +908,7 @@ scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-check-wayland -- \
 python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-wayland/states.jsonl --platform wayland
 ```
 
-`check_ui.py`では、Qtの座標でポップアップがボタンの直下に出たか、パネルが切り離されて
+`check_ui.py`では、アプリが受け取ったペンの事象の筆圧と傾きの範囲、Qtの座標でポップアップがボタンの直下に出たか、パネルが切り離されて
 表示されたか、2つの窓が表示されたかが判定される。Waylandではコンポジタが窓の位置を
 決めるため、出力先の`<状態>.png`で画面上の配置を確かめる。
 
