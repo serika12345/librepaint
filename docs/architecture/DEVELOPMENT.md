@@ -884,6 +884,31 @@ Surfaceへは`run-remote.sh`が`run-surface.ps1`、`Q4Check.cs`、`PenInject.cs`
 確認の分岐は`request.json`の`check`があるときだけ通り、通常の計測の動作を変えない。
 `Q4Check.cs`は証拠を集めるだけで判定をせず、`check.py`がWindowsなしで判定を試験できる。
 
+### 表示の経路ごとの画面の確認
+
+Linuxでは、Waylandのセッションで既定の描画の経路がWaylandへの直接の接続になり、
+それ以外のセッションではxcbになる。`krita/main.cc`では、`QT_QPA_PLATFORM`が未設定のときに
+`libs/global/KisQpaPlatformChoice.h`の規則で値が決まる。利用者が`QT_QPA_PLATFORM`を
+指定した場合は、その値が優先される。
+
+経路ごとに、ポップアップ、切り離したパネル、2つ目の窓が表示されるかを、ログイン中の
+GNOMEのセッションがあるLinuxの開発機で確かめる。`run-ui-check.sh`では、検査用の
+プラグイン`scripts/perf/ui-check/waylandcheck`を入れたアプリが起動される。プラグインが
+状態を1つずつ作り、各状態でmutterの画面共有を通して画面が撮られる。最初の状態の後に、
+状態表示の欄を1回クリックする。Waylandでは、直前に実際の入力がないとポップアップが
+開かないためである。
+
+```sh
+# Linuxの開発機
+scripts/perf/ui-check/run-ui-check.sh ~/pen-latency/ui-check-wayland -- \
+  env QT_QPA_PLATFORM=wayland LIBREPAINT_L1_MAXIMIZE_WINDOW=1 ~/pen-latency/dev-run.sh --nosplash
+python3 scripts/perf/ui-check/check_ui.py ~/pen-latency/ui-check-wayland/states.jsonl --platform wayland
+```
+
+`check_ui.py`では、Qtの座標でポップアップがボタンの直下に出たか、パネルが切り離されて
+表示されたか、2つの窓が表示されたかが判定される。Waylandではコンポジタが窓の位置を
+決めるため、出力先の`<状態>.png`で画面上の配置を確かめる。
+
 ## デスクトップ
 
 ### macOS
