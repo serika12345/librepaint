@@ -679,8 +679,11 @@ bool KisApplication::start(const KisApplicationArguments &args)
         }
     }
 
-    // Check for autosave files that can be restored, if we're not running a batch run (test)
-    if (!d->batchRun) {
+    // Check for autosave files that can be restored, if we're not running a batch run (test).
+    // Measurement launches end by terminating the process, which leaves an
+    // autosave file, and the next launch must open its new image directly
+    // (scripts/perf/ipad-pen/run-ipad.sh).
+    if (!d->batchRun && !qEnvironmentVariableIsSet("LIBREPAINT_SKIP_AUTOSAVE_RECOVERY")) {
         checkAutosaveFiles();
     }
 

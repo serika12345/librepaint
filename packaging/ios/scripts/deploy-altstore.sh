@@ -105,16 +105,21 @@ for document_type in org.krita.kra org.krita.openraster public.png public.jpeg; 
     fi
 done
 
-if ! pgrep -x AltServer >/dev/null; then
-    echo "error: AltServer is not running" >&2
-    exit 1
-fi
+# KRITA_IOS_IPA_ONLY=1 stops after the IPA is written to build-ios/deploy, for
+# installers that sign the IPA themselves (scripts/perf/ipad-pen/install-dev.sh).
+ipa_only="${KRITA_IOS_IPA_ONLY:-0}"
+if [[ "$ipa_only" != 1 ]]; then
+    if ! pgrep -x AltServer >/dev/null; then
+        echo "error: AltServer is not running" >&2
+        exit 1
+    fi
 
-apps_output="$(xcrun devicectl device info apps --device "$device_id")"
-altstore_bundle_id="$(awk '$1 == "AltStore" { print $2; exit }' <<<"$apps_output")"
-if [[ -z "$altstore_bundle_id" ]]; then
-    echo "error: AltStore is not installed on the selected device" >&2
-    exit 1
+    apps_output="$(xcrun devicectl device info apps --device "$device_id")"
+    altstore_bundle_id="$(awk '$1 == "AltStore" { print $2; exit }' <<<"$apps_output")"
+    if [[ -z "$altstore_bundle_id" ]]; then
+        echo "error: AltStore is not installed on the selected device" >&2
+        exit 1
+    fi
 fi
 
 stage_dir="$(mktemp -d "${TMPDIR:-/tmp}/krita-altstore.XXXXXX")"
@@ -213,6 +218,10 @@ unzip -tq "$staged_ipa"
 python3 "$ipa_permissions" check-ipa "$staged_ipa" \
     --staged-app "$stage_dir/Payload/LibrePaint.app"
 mv -f "$staged_ipa" "$ipa_path"
+if [[ "$ipa_only" == 1 ]]; then
+    echo "ipa: $ipa_path"
+    exit 0
+fi
 
 network_interface="$(route -n get default | awk '$1 == "interface:" { print $2; exit }')"
 host_ip="$(ipconfig getifaddr "$network_interface" 2>/dev/null || true)"

@@ -1527,6 +1527,55 @@ packaging/ios/scripts/check-prediction.sh [device-id]
 - 2:引数が誤っているか、導入済みのアプリが見つからない。
 - 3:記録またはログを回収できない。
 
+### ペン入力から表示までの遅れの計測
+
+USBでMacにつないだiPadで、合成したApple Pencilの線をLibrePaintに描かせ、入力から表示までの遅れを測る。
+Macでは、iPadの画面を取り込みながら手順を進める。結果は他の環境と同じ`inject.csv`と`capture.csv`になり、
+`capture_analyze.py`で解析する。この機種のiPadはペン先のホバーを検知できないので、計測の対象はインクの線だけである。
+
+準備は次のとおりである。
+
+- XcodeのiOSの構成部品を入れる。部品がない場合は`xcodebuild -downloadPlatform iOS -architectureVariant arm64`で取得する。
+- iPadの設定のデベロッパの項目でUI Automationを有効にする。最初の実行で求められたらiPadでパスコードを入力する。
+- 試験用のアプリに署名する開発チームを環境変数`IPAD_DEVELOPMENT_TEAM`で渡す。
+- 最初の実行でMacにカメラの利用の確認が出たら許可する。iPadの画面の取り込みは、macOSではカメラの装置として扱われる。
+- 取り込みでフレームが届かない場合は、iPadのケーブルを一度抜いて差し直す。差し直すとUSBの接続が画面の取り込み用に切り替わる。
+
+LibrePaintは増分構築で作ったIPAに開発用のプロファイルで署名して入れる。プロファイルは
+識別子`local.librepaint.ipad.xcodedev`のアプリをXcodeの自動署名で端末向けに構築すると作られる。
+
+```sh
+KRITA_IOS_IPA_ONLY=1 build-incremental ios deploy [device-id]
+scripts/perf/ipad-pen/install-dev.sh build-ios/deploy/LibrePaint-iOS-<版>.ipa <device-id>
+IPAD_DEVELOPMENT_TEAM=<チーム> scripts/perf/ipad-pen/run-ipad.sh NAME RUNS OUT_DIR
+python3 scripts/perf/pen-latency/capture_analyze.py OUT_DIR/NAME-*
+```
+
+`KRITA_IOS_IPA_ONLY=1`を付けるとAltStoreへの配備の手順はIPAを`build-ios/deploy/`へ書いたところで終わる。
+`run-ipad.sh`の手順は次のとおりである。
+
+1. 試験用のアプリPencilProbeとそのUIの試験を構築し、3点を叩く較正でパネル本来の縦向きの座標からウィンドウの座標への写像を求める。
+2. LibrePaintを新しい2048×1536の画像と計測の記録で起動し、取り込んだ画面からキャンバスを見つける。キャンバスの中に`trajectory.py`の線を置いた計画を作る。
+3. 回ごとにLibrePaintを起動し直す。取り込みを始め、PencilProbeの点滅、線の再生、2回目の点滅の順に進める。
+4. LibrePaintの記録からApple Pencilの各点の時刻と位置を読む。時計の差で時刻をMacの時計に直して`inject.csv`を書く。
+
+線を描くには、Recapで合成したペンのイベントの列を試験の実行役からtestmanagerdの再生の受け口へ直接渡す。
+XCTestの公開の機能では指のタッチしか合成できず、再生の公開の入口は一般の開発者の端末では断られる。
+LibrePaintではApple Pencilのタッチを受けるたびに計測の記録へ`ios_pencil_sample`の行が書かれる。
+この行にはOSの時刻と位置が入る。計測の起動では`LIBREPAINT_SKIP_AUTOSAVE_RECOVERY=1`を渡し、
+強制終了で残った自動保存の復元の確認を飛ばす。
+
+時計の差は点滅で求める。PencilProbeでは1秒あたり120回の表示の13回ごとに画面が白と黒に切り替わり、
+各切り替えの表示の予定時刻がiPadの時計で記録される。Macで取り込んだフレームの時刻との差の中央値が、その時点の時計の差である。
+取り込みは1秒あたり60回なので、切り替えの半分は1回分の8.3ミリ秒遅れて見える。予定時刻どおりに見えた側の組から差を求める。
+2つの時計の進み方は100万分の50前後違い、取り込み側の時刻は約17秒ごとに0.8ミリ秒の段で補正される。
+そのため、各点の差は線の前後2回の点滅の間で補間する。
+
+計測の値には、取り込みの間隔による最大8.3ミリ秒の上乗せが入る。前後の比較では、変更の前と後の両方に同じ条件で入る。
+ハイスピードカメラとの突き合わせによる絶対値の確認は、まだ行っていない。
+`ANOMALY`行は点滅の組が足りない場合、時計の差の動きが100万分の200を超える場合、
+LibrePaintの記録の点が計画より少ない場合に出る。
+
 ### LiveContainerへの導入
 
 設定済みのLiveContainerへ`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`を

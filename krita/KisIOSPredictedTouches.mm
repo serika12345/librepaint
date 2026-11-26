@@ -69,6 +69,16 @@ static id s_applicationDidBecomeActiveObserver = nil;
     // deltas use the same view.
     UIView *view = last.view ?: s_applicationView;
 
+    // Each pen sample's operating system time (microseconds of the system
+    // uptime) and window position, so a measurement can relate the samples to
+    // the display without the probe clock. The probe records nothing unless it
+    // is enabled.
+    for (UITouch *sample in coalesced) {
+        const CGPoint location = [sample locationInView:view];
+        KisLatencyProbe::mark("ios_pencil_sample", location.x, location.y,
+                              qint64(llround(sample.timestamp * 1e6)));
+    }
+
     QVector<KisPlatformPredictedPoint> points;
     const CGPoint lastLocation = [last locationInView:view];
     for (UITouch *predicted in [event predictedTouchesForTouch:touch]) {
