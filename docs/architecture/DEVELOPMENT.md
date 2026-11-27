@@ -986,6 +986,19 @@ build/perf/wgpu-embed/wgpu-embed-check --canvas wgpu --present immediate --demo 
 <macos_capture> --window-pid $! --out <出力先> --snapshot
 ```
 
+Windows向けにはLinuxの開発機で`build-windows.sh`を実行して交差構築する。製品のWindows向けの構築環境の
+MinGWとQtを使い、wgpu-nativeは`wgpu-native-windows.nix`で固定版のnixpkgsから交差構築する。
+バイナリキャッシュにこの構築はないため、初回は約15分かかる。`build/perf/wgpu-embed-windows/deploy`に
+実行ファイル、Qtのプラットフォームのプラグイン、読み込まれるDLLが集められる。このフォルダーを
+Windowsの機器へ写し、`run.py`のWindowsの対象では`runner_target`を`LibrePaint`、`app`を実行ファイルにする。
+Windowsの計測の道具からは引数を渡せないため、キャンバスと表示方式は`env`の`WGPU_EMBED_CANVAS`と
+`WGPU_EMBED_PRESENT`で選ぶ。
+
+```sh
+# Linuxの開発機
+scripts/perf/wgpu-embed/build-windows.sh
+```
+
 `check.sh`では、アプリの起動の前に`virtual_tablet.py`で仮想のペンタブレットが作られ、
 1本の線が描かれる。続いてキャンバスがクリックされ、ポインターをキャンバスに置いたまま画面が撮られる。
 `summary.txt`には、キャンバスが受け取ったペンの事象の件数と筆圧の範囲が書かれる。

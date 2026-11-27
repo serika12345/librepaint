@@ -35,8 +35,11 @@
 //   tablet,<time_ns>,<type>,<x>,<y>,<pressure>,<xtilt>,<ytilt>
 //   frame,<time_ns>,<oldest shown input ns>   after the frame is handed over
 //   info,<text>
-// Any last argument that does not start with "--" is ignored (run-linux.sh
-// passes a canvas path).
+// WGPU_EMBED_CANVAS and WGPU_EMBED_PRESENT give the defaults of --canvas and
+// --present, for runners that pass only environment variables (the Windows
+// runner run-surface.ps1, which also passes --nosplash; it is ignored). Any
+// last argument that does not start with "--" is ignored (the runners pass a
+// canvas path).
 //
 // Build and run: build.sh, then the launcher it writes.
 
@@ -58,6 +61,13 @@
 #include <QWindow>
 #include <QtGui/qguiapplication_platform.h>
 #include <qpa/qplatformnativeinterface.h>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+#ifndef GL_BGRA
+#define GL_BGRA 0x80E1
+#endif
 
 #include <webgpu/webgpu.h>
 #include <webgpu/wgpu.h>
@@ -93,6 +103,9 @@ void logLine(const char *format, ...)
     vfprintf(s_log, format, args);
     va_end(args);
     fputc('\n', s_log);
+    // Windows treats _IOLBF as full buffering; a failed start must still
+    // leave its lines.
+    fflush(s_log);
 }
 
 // The CPU images both canvases show, in device pixels.
@@ -446,7 +459,14 @@ private:
         m_instance = wgpuCreateInstance(nullptr);
         WGPUSurfaceDescriptor surfaceDescriptor = WGPU_SURFACE_DESCRIPTOR_INIT;
         const QString platform = QGuiApplication::platformName();
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_WIN)
+        WGPUSurfaceSourceWindowsHWND hwnd = WGPU_SURFACE_SOURCE_WINDOWS_HWND_INIT;
+        if (platform == QLatin1String("windows")) {
+            hwnd.hinstance = GetModuleHandleW(nullptr);
+            hwnd.hwnd = reinterpret_cast<void *>(winId());
+            surfaceDescriptor.nextInChain = &hwnd.chain;
+        } else
+#elif defined(Q_OS_MACOS)
         WGPUSurfaceSourceMetalLayer metal = WGPU_SURFACE_SOURCE_METAL_LAYER_INIT;
         if (platform == QLatin1String("cocoa")) {
             metal.layer = wgpuEmbedMetalLayer(reinterpret_cast<void *>(winId()));
@@ -525,9 +545,12 @@ private:
             }
         }
         bool presentModeSupported = false;
+        QByteArray presentModes;
         for (size_t i = 0; i < capabilities.presentModeCount; ++i) {
             presentModeSupported |= capabilities.presentModes[i] == m_presentMode;
+            presentModes += ' ' + QByteArray::number(int(capabilities.presentModes[i]));
         }
+        logLine("info,supported present modes%s", presentModes.constData());
         if (!presentModeSupported) {
             qFatal("present mode %d is not supported by this surface", int(m_presentMode));
         }
@@ -736,9 +759,8 @@ int main(int argc, char **argv)
         QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
     }
     QApplication application(argc, argv);
-    QString canvasKind = QStringLiteral("gl");
-    WGPUPresentMode presentMode = WGPUPresentMode_Fifo;
-    QString presentName = QStringLiteral("fifo");
+    QString canvasKind = qEnvironmentVariable("WGPU_EMBED_CANVAS", QStringLiteral("gl"));
+    QString presentName = qEnvironmentVariable("WGPU_EMBED_PRESENT", QStringLiteral("fifo"));
     bool overlayWidgets = false;
     bool demo = false;
     const QStringList arguments = application.arguments();
@@ -747,18 +769,20 @@ int main(int argc, char **argv)
             canvasKind = arguments[++i];
         } else if (arguments[i] == QLatin1String("--present") && i + 1 < arguments.size()) {
             presentName = arguments[++i];
-            presentMode = presentName == QLatin1String("mailbox") ? WGPUPresentMode_Mailbox
-                : presentName == QLatin1String("immediate")       ? WGPUPresentMode_Immediate
-                                                                  : WGPUPresentMode_Fifo;
         } else if (arguments[i] == QLatin1String("--demo")) {
             demo = true;
         } else if (arguments[i] == QLatin1String("--overlay-widgets")) {
             overlayWidgets = true;
-        } else if (arguments[i] == QLatin1String("--native-siblings")) {
+        } else if (arguments[i] == QLatin1String("--native-siblings")
+                   || arguments[i] == QLatin1String("--nosplash")) {
         } else if (arguments[i].startsWith(QLatin1String("--")) || i + 1 < arguments.size()) {
             qFatal("unknown argument %s", qPrintable(arguments[i]));
         }
     }
+
+    const WGPUPresentMode presentMode = presentName == QLatin1String("mailbox") ? WGPUPresentMode_Mailbox
+        : presentName == QLatin1String("immediate")                         ? WGPUPresentMode_Immediate
+                                                                            : WGPUPresentMode_Fifo;
 
     QMainWindow window;
     window.setWindowTitle(QStringLiteral("wgpu embed check"));
